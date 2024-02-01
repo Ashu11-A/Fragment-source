@@ -23,10 +23,10 @@ export class GenAccount {
     const { guildId, user } = this.interaction
     const { url: urlPtero, tokenPanel: tokenPtero } = (await db.payments.get(
         `${guildId}.config.pterodactyl`
-    )) as { url?: string, tokenPanel?: string }
+    )) ?? { url: undefined, token: undefined }
     const { url: urlCtrl, token: tokenCtrl } = (await db.payments.get(
         `${guildId}.config.ctrlPanel`
-    )) as { url?: string, token?: string }
+    )) ?? { url: undefined, token: undefined }
 
     const pteroUserDB = (await db.pterodactyl.table('guilds').get(`${guildId}.users.${user.id}`)) ?? undefined
     const ctrlUserDB = (await db.ctrlPanel.table('guilds').get(`${guildId}.users.${user.id}`)) ?? undefined

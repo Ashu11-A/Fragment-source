@@ -16,7 +16,7 @@ export async function createAccount (options: {
 
   try {
     const { guildId, user, fields } = interaction
-    const { url: urlCtrl, token: tokenCtrl } = await db.payments.get(`${guildId}.config.ctrlPanel`)
+    const { url: urlCtrl, token: tokenCtrl } = await db.payments.get(`${guildId}.config.ctrlPanel`) ?? { url: undefined, token: undefined }
 
     const email = fields.getTextInputValue('email')
     const username = fields.getTextInputValue('username')
