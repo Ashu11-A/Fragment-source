@@ -1,6 +1,8 @@
 import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import path from 'path'
 import { minify } from 'terser'
+import { SingleBar, Presets } from 'cli-progress'
+import { exec } from 'pkg'
 
 async function carregarDados (options: {
   diretorio: string
@@ -26,8 +28,11 @@ async function carregarDados (options: {
 }
 
 async function compress (): Promise<void> {
+  const progressBar = new SingleBar({}, Presets.rect)
   const files = await carregarDados({ diretorio: 'dist' })
+  progressBar.start(Object.entries(files).length, 0)
   for (const [filePath, fileContent] of Object.entries(files)) {
+    progressBar.increment(1)
     const newPath = path.dirname(filePath).replace('dist', 'build')
     const fileName = path.basename(filePath)
     const fileExt = path.extname(filePath)
@@ -35,18 +40,7 @@ async function compress (): Promise<void> {
 
     if (fileExt === '.js') {
       await minify({ [filePath]: fileContent }, {
-        compress: {
-          unsafe: true,
-          unsafe_arrows: true,
-          unsafe_comps: true,
-          unsafe_Function: true,
-          unsafe_math: true,
-          unsafe_methods: true,
-          unsafe_proto: true,
-          unsafe_regexp: true,
-          unsafe_symbols: true,
-          unsafe_undefined: true
-        },
+        compress: true,
         parse: {
           bare_returns: true
         },
@@ -74,6 +68,9 @@ async function compress (): Promise<void> {
       writeFileSync(`${newPath}/${fileName}`, fileContent, 'utf8')
     }
   }
+  progressBar.stop()
+
+  await exec(['.', '-d', '--compress', 'GZip', '--no-bytecode', '--public-packages', '"*"', '--public'])
 }
 
 void compress()

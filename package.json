@@ -3,6 +3,16 @@
   "description": "Bot da SeventyHost, só que agora de código aberto e feito em TypeScript.",
   "version": "2.0.0",
   "main": "dist/app.js",
+  "bin": "build/app.js",
+  "pkg": {
+    "scripts": [ "build/**/*.js", "package.json" ],
+  "assets": [
+    "node_modules/**/*",
+    "package.json"
+  ],
+    "targets": [ "node18-win-x64" ],
+    "outputPath": "exe"
+  },
   "scripts": {
     "start": "node .",
     "start:build": "npm run build && node .",
@@ -12,7 +22,7 @@
     "build": "tsc && tscpaths -p tsconfig.json -s ./src -o ./dist",
     "build:test": "tsc --project ./tsconfig.json --declaration true -declarationDir dist/types && tsc-alias",
     "lint": "eslint --ext .tsx,.ts --fix ./src -c .eslintrc.json",
-    "compress": "npm run build:test && ts-node compress.ts",
+    "compress": "npm run build && ts-node compress.ts",
     "rollup": "npm run build:test && rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript --bundleConfigAsCjs"
   },
   "keywords": [
@@ -42,6 +52,7 @@
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/axios": "^0.14.0",
     "@types/bcrypt": "^5.0.2",
+    "@types/cli-progress": "^3.11.5",
     "@types/cors": "^2.8.15",
     "@types/express": "^4.17.18",
     "@types/jsonwebtoken": "^9.0.4",
@@ -52,11 +63,13 @@
     "@types/uglify-js": "^3.17.4",
     "@typescript-eslint/eslint-plugin": "^6.5.0",
     "@typescript-eslint/parser": "^6.5.0",
+    "cli-progress": "^3.12.0",
     "eslint": "^8.47.0",
     "eslint-config-standard-with-typescript": "^38.0.0",
     "eslint-plugin-import": "^2.28.1",
     "eslint-plugin-n": "^16.0.2",
     "eslint-plugin-promise": "^6.1.1",
+    "pkg": "^5.8.1",
     "rollup-plugin-rename": "^1.0.1",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "rollup-plugin-typescript-paths": "^1.5.0",
