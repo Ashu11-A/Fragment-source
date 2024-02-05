@@ -1,7 +1,7 @@
 import { core, db } from '@/app'
 import { Component } from '@/discord/base'
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, ModalSubmitInteraction, StringSelectMenuInteraction, type User, codeBlock, type AnyComponentBuilder, type CacheType, type ChatInputCommandInteraction, type ColorResolvable, type CommandInteraction, type Guild, type MessageInteraction, type PermissionResolvable, type TextChannel, type Interaction, type APIMessageComponentEmoji } from 'discord.js'
-import { genButtonID } from './UuidGen'
+import { genv4 } from './UuidGen'
 
 export function createRow<Component extends AnyComponentBuilder = AnyComponentBuilder> (...components: Component[]): ActionRowBuilder<Component> {
   return new ActionRowBuilder<Component>({ components })
@@ -186,8 +186,10 @@ export class CustomButtonBuilder extends ButtonBuilder implements ButtonType {
   }
 
   async init (): Promise<this> {
-    const { Id } = await genButtonID({ isProtected: this.isProtected })
-    if (this.customId !== undefined) { this.setCustomId(`${Id}_${this.permission}_${this.type}_${this.customId}`) }
+    const id = genv4()
+    if (this.customId !== undefined) {
+      this.setCustomId(`${id}_${this.permission}_${this.type}_${this.customId}${this.isProtected?.user !== undefined ? `_${this.isProtected.user.id}` : '_undefined'}`)
+    }
     if (this.url !== undefined && this.customId === undefined) { this.setURL(this.url) }
     return this
   }
@@ -198,12 +200,11 @@ export class CustomButtonBuilder extends ButtonBuilder implements ButtonType {
   }
 
   static async verify (options: {
-    id: string
+    userId: string | null
     interaction: Interaction
   }): Promise<boolean> {
-    const { id, interaction } = options
-    const userDB = await db.tokens.get(id) as { user?: User | undefined }
-    if (userDB?.user?.id === undefined || userDB?.user?.id === interaction.user.id || interaction.memberPermissions?.has('Administrator') === true) {
+    const { userId, interaction } = options
+    if (userId === interaction.user.id || interaction.memberPermissions?.has('Administrator') === true) {
       return true
     }
     return false
@@ -211,8 +212,8 @@ export class CustomButtonBuilder extends ButtonBuilder implements ButtonType {
 
   static getInfos = (customId: string): string[] | null[] => {
     const parts = customId.split('_')
-    if (parts.length === 4) {
-      return [parts[0], parts[1], parts[2], parts[3]]
+    if (parts.length === 4 || parts.length === 5) {
+      return [parts[0], parts[1], parts[2], parts[3], parts[4]]
     }
     return [null, null, null, null]
   }
