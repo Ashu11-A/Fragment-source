@@ -47,7 +47,7 @@ class IPN {
           core.info('IPN: codigo não encontrado, possivel fraude.')
           return res.status(401)
         }
-      } catch (err: Error) {
+      } catch (err: any) {
         core.error(err)
         return res.status(500)
       }

@@ -60,7 +60,7 @@ export function BooleanColors (bool: boolean): string {
  * Converte um numero em um numero com cor
  */
 export function NumberColors (num: number): string {
-  const callback = num !== undefined ? color.blue(num.toString()) : color.red(num.toString())
+  const callback = (!Number.isNaN(num)) ? color.blue(num.toString()) : color.red(num.toString())
   return callback
 }
 /**
