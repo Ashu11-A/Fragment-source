@@ -54,7 +54,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
   })
 
   const config = [
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'System',
       label: 'Ticket',
@@ -62,7 +62,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
       emoji: { name: '🎫' },
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'System',
       customId: 'Welcomer',
@@ -70,7 +70,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
       emoji: { name: '❤️' },
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'System',
       customId: 'Logs',
@@ -78,7 +78,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
       emoji: { name: '📰' },
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'System',
       customId: 'Payments',
@@ -89,7 +89,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
   ]
 
   const config2 = [
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'System',
       customId: 'DeleteServers',
@@ -100,7 +100,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
   ]
 
   const configTelegram = [
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'System',
       customId: 'TelegramNotif',
@@ -111,7 +111,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
   ]
 
   const presence = [
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'System',
       customId: 'Status',
@@ -119,7 +119,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
       emoji: { name: '⚙️' },
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'System',
       customId: 'StatusMinecraft',
@@ -127,7 +127,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
       emoji: { name: '🧱' },
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'System',
       customId: 'StatusString',
@@ -137,7 +137,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
     })
   ]
   const presence2 = [
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'System',
       customId: 'StatusOnline',
@@ -145,7 +145,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
       emoji: { name: '🟢' },
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'System',
       customId: 'StatusAusente',
@@ -153,7 +153,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
       emoji: { name: '🟠' },
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'System',
       customId: 'StatusNoPerturbe',
@@ -161,7 +161,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
       emoji: { name: '🔴' },
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'System',
       customId: 'StatusInvisível',

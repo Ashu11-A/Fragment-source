@@ -49,14 +49,14 @@ export class ProductButtonCollector {
     }
 
     const row1Buttons = [
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Product',
         customId: 'Buy',
         label: 'Adicionar ao Carrinho',
         style: ButtonStyle.Success,
         emoji: { name: '🛒' }
       }),
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         permission: 'Admin',
         type: 'Product',
         customId: 'Config',

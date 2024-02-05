@@ -10,7 +10,7 @@ export async function createRowEdit (interaction: StringSelectMenuInteraction<Ca
   const data = await db.messages.get(`${guildId}.${type}.${channelId}.messages.${message.id}`)
 
   const rowButtons = [
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'SUEE',
       customId: `${type}-SetName`,
@@ -18,7 +18,7 @@ export async function createRowEdit (interaction: StringSelectMenuInteraction<Ca
       emoji: { name: '📝' },
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'SUEE',
       customId: `${type}-SetDesc`,
@@ -26,7 +26,7 @@ export async function createRowEdit (interaction: StringSelectMenuInteraction<Ca
       emoji: { name: '📑' },
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'SUEE',
       customId: `${type}-SetMiniature`,
@@ -34,7 +34,7 @@ export async function createRowEdit (interaction: StringSelectMenuInteraction<Ca
       emoji: { name: '🖼️' },
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'SUEE',
       customId: `${type}-SetBanner`,
@@ -42,7 +42,7 @@ export async function createRowEdit (interaction: StringSelectMenuInteraction<Ca
       emoji: { name: '🌄' },
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'SUEE',
       customId: `${type}-SetColor`,

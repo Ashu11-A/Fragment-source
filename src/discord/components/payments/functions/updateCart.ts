@@ -371,7 +371,7 @@ export class UpdateCart {
     const start = Date.now()
     const components = new ActionRowBuilder<ButtonBuilder>()
     const productComponents = [
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Rem',
         disabled: product.quantity <= 1,
@@ -379,14 +379,14 @@ export class UpdateCart {
         style: ButtonStyle.Primary,
         isProtected: { user }
       }),
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Add',
         emoji: { name: '➕' },
         style: ButtonStyle.Primary,
         isProtected: { user }
       }),
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Cupom',
         disabled: properties?.cupom,
@@ -394,7 +394,7 @@ export class UpdateCart {
         style: ButtonStyle.Primary,
         isProtected: { user }
       }),
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Remove',
         emoji: { name: '✖️' },
@@ -415,7 +415,7 @@ export class UpdateCart {
     const start = Date.now()
 
     const Secondary = [
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         customId: 'DM',
         label: 'Mensagem via DM',
@@ -427,7 +427,7 @@ export class UpdateCart {
     ]
 
     Secondary.push(
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Login',
         label: 'Login',
@@ -435,7 +435,7 @@ export class UpdateCart {
         style: ButtonStyle.Success,
         isProtected: { user }
       }),
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Registro',
         label: 'Registro',
@@ -446,7 +446,7 @@ export class UpdateCart {
     )
 
     const Third = [
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Pix',
         label: 'PIX',
@@ -454,7 +454,7 @@ export class UpdateCart {
         style: ButtonStyle.Success,
         isProtected: { user }
       }),
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         customId: 'CardDebito',
         label: 'Cartão de Débito',
@@ -463,7 +463,7 @@ export class UpdateCart {
         disabled: true,
         isProtected: { user }
       }),
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         customId: 'CardCredito',
         label: 'Cartão de Crédito',
@@ -475,13 +475,13 @@ export class UpdateCart {
     ]
 
     const Payment = [
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         label: 'Pagar',
         url: 'https://www.mercadopago.com.br/',
         style: ButtonStyle.Link
       }),
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Verify',
         label: 'Verificar Pagamento',
@@ -489,7 +489,7 @@ export class UpdateCart {
         style: ButtonStyle.Success,
         isProtected: { user }
       }),
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Cancelar',
         label: 'Cancelar',
@@ -500,7 +500,7 @@ export class UpdateCart {
     ]
 
     const headerBar = [
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Before',
         label: 'Voltar',
@@ -508,7 +508,7 @@ export class UpdateCart {
         style: ButtonStyle.Secondary,
         isProtected: { user }
       }),
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Next',
         label: 'Proximo',
@@ -516,7 +516,7 @@ export class UpdateCart {
         style: ButtonStyle.Success,
         isProtected: { user }
       }),
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         customId: 'WTF',
         label: 'Saiba Mais 🔔',
@@ -524,7 +524,7 @@ export class UpdateCart {
         style: ButtonStyle.Primary,
         isProtected: { user }
       }),
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Cancelar',
         label: 'Cancelar',

@@ -177,7 +177,7 @@ export async function panelCupons (options: {
   })
 
   const buttons = [
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'Cupom',
       customId: 'Add',
@@ -186,7 +186,7 @@ export async function panelCupons (options: {
       style: ButtonStyle.Success,
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'Cupom',
       customId: 'Rem',
@@ -195,7 +195,7 @@ export async function panelCupons (options: {
       style: ButtonStyle.Danger,
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'Cupom',
       customId: 'List',

@@ -11,7 +11,7 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
   const { embed } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message?.id}`)
 
   const setSystem = [
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'Ticket',
       customId: 'SetRole',
@@ -19,7 +19,7 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
       emoji: { name: '🛂' },
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'Ticket',
       customId: 'SetSelect',
@@ -27,7 +27,7 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
       emoji: { name: '🗄️' },
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'Ticket',
       customId: 'AddSelect',
@@ -36,7 +36,7 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
       disabled: true,
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'Ticket',
       customId: 'SetButton',
@@ -47,7 +47,7 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
   ]
 
   const saveDelete = [
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'Ticket',
       customId: 'SendSave',
@@ -56,7 +56,7 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
       style: ButtonStyle.Success,
       isProtected: { user }
     }),
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       permission: 'Admin',
       type: 'Ticket',
       customId: 'EmbedDelete',
@@ -93,7 +93,7 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
     )
   } else {
     row4 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      await CustomButtonBuilder.create({
+      new CustomButtonBuilder({
         type: 'Ticket',
         permission: 'User',
         customId: 'Open',
@@ -184,7 +184,7 @@ export async function buttonsUsers (interaction: CommandInteraction<CacheType> |
   ]
 
   const botao = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    await CustomButtonBuilder.create({
+    new CustomButtonBuilder({
       type: 'Ticket',
       customId: 'Open',
       label: 'Abra seu ticket',

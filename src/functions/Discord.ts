@@ -164,7 +164,7 @@ interface ButtonType {
   disabled?: boolean
   isProtected?: { user: User }
   permission?: 'User' | 'Admin'
-  type: 'Ticket' | 'Cart' | 'Product' | 'System' | 'Cupom' | 'SUEE' | 'Event' | 'Account'
+  type: 'Ticket' | 'Cart' | 'Product' | 'System' | 'Cupom' | 'SUEE' | 'Event' | 'Account' | 'Config'
 }
 export class CustomButtonBuilder extends ButtonBuilder implements ButtonType {
   customId
@@ -174,29 +174,17 @@ export class CustomButtonBuilder extends ButtonBuilder implements ButtonType {
   isProtected
   constructor ({ customId, emoji, style, url, label, disabled, permission, type, isProtected }: ButtonType) {
     super()
-    this.customId = customId
-    if (emoji !== undefined) this.data.emoji = emoji
-    this.data.style = style
     this.url = url
-    this.data.label = label
-    this.data.disabled = disabled ?? false
     this.type = type
+    this.data.style = style
+    this.data.label = label
+    this.customId = customId
     this.isProtected = isProtected
     this.permission = permission ?? 'User'
-  }
-
-  async init (): Promise<this> {
-    const id = genv4()
-    if (this.customId !== undefined) {
-      this.setCustomId(`${id}_${this.permission}_${this.type}_${this.customId}${this.isProtected?.user !== undefined ? `_${this.isProtected.user.id}` : '_undefined'}`)
-    }
+    this.data.disabled = disabled ?? false
+    if (emoji !== undefined) this.data.emoji = emoji
     if (this.url !== undefined && this.customId === undefined) { this.setURL(this.url) }
-    return this
-  }
-
-  static async create (buttonType: ButtonType): Promise<CustomButtonBuilder> {
-    const builder = new CustomButtonBuilder(buttonType)
-    return await builder.init()
+    this.setCustomId(`${genv4()}_${this.permission}_${this.type}_${this.customId}${this.isProtected?.user !== undefined ? `_${this.isProtected.user.id}` : '_undefined'}`)
   }
 
   static async verify (options: {

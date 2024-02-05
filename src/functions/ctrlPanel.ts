@@ -60,7 +60,7 @@ export class ctrlPanel {
             }).setColor('Green')
           ],
           components: [createRow(
-            await CustomButtonBuilder.create({
+            new CustomButtonBuilder({
               permission: 'User',
               type: 'Event',
               customId: 'deleteMSG',
@@ -101,7 +101,7 @@ export class ctrlPanel {
           )
         }
         row.addComponents(
-          await CustomButtonBuilder.create({
+          new CustomButtonBuilder({
             permission: 'User',
             type: 'Event',
             customId: 'deleteMSG',

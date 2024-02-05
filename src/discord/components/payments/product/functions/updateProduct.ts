@@ -136,7 +136,7 @@ export class UpdateProduct {
     ActionRowBuilder<ButtonBuilder>
     > {
       const row2Buttons = [
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'SetPrice',
@@ -144,7 +144,7 @@ export class UpdateProduct {
           emoji: { name: '💰' },
           isProtected: { user }
         }),
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'SetRole',
@@ -152,7 +152,7 @@ export class UpdateProduct {
           emoji: { name: '🛂' },
           isProtected: { user }
         }),
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'Export',
@@ -160,7 +160,7 @@ export class UpdateProduct {
           emoji: { name: '📤' },
           isProtected: { user }
         }),
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'Import',
@@ -190,7 +190,7 @@ export class UpdateProduct {
 
     async function createThirdRow (): Promise<ActionRowBuilder<ButtonBuilder>> {
       const redeemSystem = [
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'SetEstoque',
@@ -199,7 +199,7 @@ export class UpdateProduct {
           style: ButtonStyle.Secondary,
           isProtected: { user }
         }),
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'AddEstoque',
@@ -209,7 +209,7 @@ export class UpdateProduct {
           disabled: true,
           isProtected: { user }
         }),
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'SetCtrlPanel',
@@ -218,7 +218,7 @@ export class UpdateProduct {
           style: ButtonStyle.Secondary,
           isProtected: { user }
         }),
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'AddCoins',
@@ -228,7 +228,7 @@ export class UpdateProduct {
           disabled: true,
           isProtected: { user }
         }),
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'SetPterodactyl',
@@ -270,7 +270,7 @@ export class UpdateProduct {
 
     async function createFourRow (): Promise<ActionRowBuilder<ButtonBuilder>> {
       const PterodactylConfig = [
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'Egg',
@@ -279,7 +279,7 @@ export class UpdateProduct {
           isProtected: { user },
           style: ButtonStyle.Secondary
         }),
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'CPU',
@@ -288,7 +288,7 @@ export class UpdateProduct {
           isProtected: { user },
           style: ButtonStyle.Secondary
         }),
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'Ram',
@@ -297,7 +297,7 @@ export class UpdateProduct {
           isProtected: { user },
           style: ButtonStyle.Secondary
         }),
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'Disk',
@@ -306,7 +306,7 @@ export class UpdateProduct {
           isProtected: { user },
           style: ButtonStyle.Secondary
         }),
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'Port',
@@ -345,7 +345,7 @@ export class UpdateProduct {
     }
     async function createFooterRow (): Promise<ActionRowBuilder<ButtonBuilder>> {
       const footerBar = [
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'Save',
@@ -354,14 +354,14 @@ export class UpdateProduct {
           style: ButtonStyle.Success,
           isProtected: { user }
         }),
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'Status',
           label: 'Ativar/Desativar',
           isProtected: { user }
         }),
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'Delete',

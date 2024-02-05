@@ -102,7 +102,7 @@ export class TicketButtons implements TicketType {
       }).setColor('Purple')
 
       const botao = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           type: 'Ticket',
           permission: 'User',
           customId: 'delTicket',
