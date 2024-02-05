@@ -1,9 +1,10 @@
 import { logs } from '@/controllers/loggings/logs'
 import { loggings } from '@/controllers/loggings/params'
+import { type LogMessage } from '../Loggings'
 
 const logHistory: any = {} // armazena o histórico de mensagens
 
-const core = (message: string): void => { logs('Loggings', message, 'Warn', 'green') }
+const core = (args: LogMessage[]): void => { logs('Loggings', 'Warn', 'green', {}, args) }
 
 export function CheckColors (color: string, type: string): string {
   const validColors = ['strip', 'stripColors', 'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white', 'gray', 'grey',
@@ -17,7 +18,7 @@ export function CheckColors (color: string, type: string): string {
 
     if (logHistory[errorMessage] === undefined) {
       logHistory[errorMessage] = true
-      core(errorMessage)
+      core([errorMessage])
     }
 
     return loggings.Alternative.color
