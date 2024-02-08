@@ -46,9 +46,17 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
   })
 
   const telegramEmbed = new EmbedBuilder({
-    title: '✈️ Telegram Config',
+    title: '✈️ Telegram',
     description: brBuilder(
       'Notificações: Envia as mensagens de um channel selecionado para o Telegram.'
+    ),
+    color: 0x57f287
+  })
+
+  const pterodactylEmbed = new EmbedBuilder({
+    title: '🦖 Pterodactyl',
+    description: brBuilder(
+      'Timeout: Tempo que o sistema de status ira atualizar.'
     ),
     color: 0x57f287
   })
@@ -171,13 +179,32 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
     })
   ]
 
+  const pteroButtons = [
+    new CustomButtonBuilder({
+      permission: 'Admin',
+      type: 'System',
+      customId: 'PteroStatus',
+      label: 'Status',
+      style: ButtonStyle.Secondary,
+      emoji: { name: '⏲️' }
+    }),
+    new CustomButtonBuilder({
+      permission: 'Admin',
+      type: 'System',
+      customId: 'PteroTimeout',
+      label: 'Timeout',
+      style: ButtonStyle.Secondary,
+      emoji: { name: '⏲️' }
+    })
+  ]
+
   const typeStatus: Record<string, string> = {
     StatusOnline: 'online',
     StatusAusente: 'idle',
     StatusNoPerturbe: 'dnd',
     StatusInvisível: 'invisible'
   }
-  const allConfigs = [...config, ...config2, ...configTelegram, ...presence]
+  const allConfigs = [...config, ...config2, ...configTelegram, ...presence, ...pteroButtons]
 
   for (const value of allConfigs) {
     const { customId } = value
@@ -198,24 +225,26 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
     value.setStyle(systemEnabled === result ? ButtonStyle.Success : ButtonStyle.Secondary)
   }
 
-  const configRow1 = new ActionRowBuilder<ButtonBuilder>().addComponents(...config)
-  const configRow2 = new ActionRowBuilder<ButtonBuilder>().addComponents(...config2)
-  const telegramRow1 = new ActionRowBuilder<ButtonBuilder>().addComponents(...configTelegram)
-  const presenceRow1 = new ActionRowBuilder<ButtonBuilder>().addComponents(...presence)
-  const presenceRow2 = new ActionRowBuilder<ButtonBuilder>().addComponents(...presence2)
+  function genButtons (row: CustomButtonBuilder[]): ActionRowBuilder<ButtonBuilder> {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(...row)
+  }
 
   const embedsData = [
     {
       embed: configEmbed,
-      row: [configRow1, configRow2]
+      row: [genButtons(config), genButtons(config2)]
     },
     {
       embed: telegramEmbed,
-      row: [telegramRow1]
+      row: [genButtons(configTelegram)]
     },
     {
       embed: presenceEmbed,
-      row: [presenceRow1, presenceRow2]
+      row: [genButtons(presence), genButtons(presence2)]
+    },
+    {
+      embed: pterodactylEmbed,
+      row: [genButtons(pteroButtons)]
     }
   ]
 
@@ -227,7 +256,10 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
 
       await channelSend?.messages.fetch(messageId)
         .then(async (msg) => {
-          await msg.edit({ embeds: [embed], components: row })
+          await msg.edit({
+            embeds: [embed],
+            components: row
+          })
         })
         .catch(async () => {
           await interaction.channel?.send({ embeds: [embed], components: row })

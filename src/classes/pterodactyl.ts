@@ -1,5 +1,5 @@
 import axios, { type AxiosError, type AxiosInstance } from 'axios'
-import { type UserObject, type EggObject, type NestObject } from '@/interfaces'
+import { type UserObject, type EggObject, type NestObject, type NodeObject, type NodeConfigObject } from '@/interfaces'
 import { core } from '@/app'
 
 export class Pterodactyl {
@@ -109,6 +109,36 @@ export class Pterodactyl {
             })
       }
     } catch (err: any | Error | AxiosError) {
+      console.log(err)
+      if (axios.isAxiosError(err)) {
+        return err
+      }
+    }
+  }
+
+  public async getNodes (): Promise<NodeObject[] | undefined | AxiosError<any, any>> {
+    try {
+      return await this.client().get('application/nodes?include=servers,location,allocations')
+        .then(async (res) => {
+          return res.data.data as NodeObject[]
+        })
+    } catch (err) {
+      console.log(err)
+      if (axios.isAxiosError(err)) {
+        return err
+      }
+    }
+  }
+
+  public async getConfigNode (options: {
+    id: string | number
+  }): Promise<NodeConfigObject | AxiosError<any, any> | undefined> {
+    try {
+      return await this.client().get(`application/nodes/${options.id}/configuration`)
+        .then(async (res) => {
+          return res.data as NodeConfigObject
+        })
+    } catch (err) {
       console.log(err)
       if (axios.isAxiosError(err)) {
         return err

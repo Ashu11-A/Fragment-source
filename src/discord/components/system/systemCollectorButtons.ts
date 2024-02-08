@@ -1,13 +1,13 @@
 import { Database, type DatabaseType } from '@/functions'
 import { type SystemCustomIdHandlers } from '@/interfaces'
 import { type ButtonInteraction, type CacheType } from 'discord.js'
+import { showModal } from './systemCollector/showModal'
 
 export async function systemCollectorButtons (options: {
   interaction: ButtonInteraction<CacheType>
   key: string
 }): Promise<void> {
   const { interaction, key } = options
-  await interaction.deferReply({ ephemeral })
 
   const customIdHandlers: SystemCustomIdHandlers = {
     Ticket: { info: 'Tickets' },
@@ -22,7 +22,9 @@ export async function systemCollectorButtons (options: {
     StatusOnline: { type: 'StatusType', info: 'online' },
     StatusAusente: { type: 'StatusType', info: 'idle' },
     StatusNoPerturbe: { type: 'StatusType', info: 'dnd' },
-    StatusInvisível: { type: 'StatusType', info: 'invisible' }
+    StatusInvisível: { type: 'StatusType', info: 'invisible' },
+    PteroStatus: { info: 'de Status do Pterodactyl' },
+    PteroTimeout: { type: 'Modal' }
   }
 
   const customIdHandler = customIdHandlers[key]
@@ -38,7 +40,14 @@ export async function systemCollectorButtons (options: {
       pathDB: 'status'
     }
 
-    if (customIdHandler.type !== undefined) {
+    if (customIdHandler.type === 'Modal') {
+      await showModal({ interaction, key })
+      return
+    }
+
+    await interaction.deferReply({ ephemeral })
+
+    if (customIdHandler.type !== undefined && customIdHandler.info !== undefined) {
       await new Database({ ...commonDatabase }).setDelete({
         ...commonParams,
         systemName: customIdHandler.type,

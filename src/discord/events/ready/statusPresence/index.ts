@@ -7,7 +7,6 @@ export default async function statusPresence (): Promise<void> {
 
   for (const guild of guilds.values()) {
     const enabled = await db.system.get(`${guild.id}.status.systemStatus`)
-
     if (enabled !== undefined && enabled === false) return
 
     const type = (await db.system.get(`${guild.id}.status.systemStatusType`)) as PresenceStatusData

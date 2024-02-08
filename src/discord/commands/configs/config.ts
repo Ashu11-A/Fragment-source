@@ -3,8 +3,8 @@ import {
   ApplicationCommandType,
   ChannelType,
   EmbedBuilder,
-  type CategoryChannel,
-  type TextChannel
+  TextChannel,
+  type CategoryChannel
 } from 'discord.js'
 import { Command } from '@/discord/base'
 import { Database, validarURL } from '@/functions'
@@ -14,6 +14,7 @@ import { modelPresence, delPresence } from './utils/Presence'
 import { sendEmbed } from '@/discord/components/payments'
 import { Discord } from '@/functions/Discord'
 import { MpModalconfig } from '@/discord/components/config/modals/mpModal'
+import { genEmbeds } from '@/discord/events/ready/statusPtero/SystemStatus'
 
 new Command({
   name: 'config',
@@ -211,6 +212,12 @@ new Command({
           description:
             'Token de um usuário administrador para fazer as requisições a API',
           type: ApplicationCommandOptionType.String
+        },
+        {
+          name: 'status',
+          description: 'Definir local para o status do Pterodactyl',
+          type: ApplicationCommandOptionType.Channel,
+          channelTypes: [ChannelType.GuildText]
         }
       ]
     },
@@ -237,7 +244,7 @@ new Command({
     ) { return }
 
     if (!interaction.inCachedGuild()) return
-    const { options } = interaction
+    const { options, guildId } = interaction
     try {
       switch (options.getSubcommand(true)) {
         case 'guild': {
@@ -365,6 +372,7 @@ new Command({
           const url = options.getString('url')
           const tokenPanel = options.getString('token-panel')
           const tokenADM = options.getString('token-admin')
+          const statusChannel = options.getChannel('status')
 
           if (url !== null) {
             const [isValid, formatedURL] = validarURL(url)
@@ -404,6 +412,18 @@ new Command({
             }).set({
               data: tokenADM
             })
+          }
+
+          if (statusChannel !== null) {
+            const embeds = await genEmbeds({ guildId, embedInit: true })
+            if (embeds !== undefined && statusChannel instanceof TextChannel) {
+              await statusChannel.send({
+                embeds
+              }).then(async (msg) => {
+                await db.messages.set(`${guildId}.system.pterodactyl.messageId`, msg.id)
+                await db.messages.set(`${guildId}.system.pterodactyl.channelId`, statusChannel.id)
+              })
+            }
           }
 
           break
