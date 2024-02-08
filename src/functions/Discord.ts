@@ -155,26 +155,29 @@ export class Discord {
   }
 }
 
-interface ButtonType {
+interface SharedButtonData {
   customId?: string
   emoji?: APIMessageComponentEmoji
   style?: ButtonStyle
   url?: string
   label?: string
   disabled?: boolean
+}
+
+interface ButtonType extends SharedButtonData {
   isProtected?: { user: User }
   permission?: 'User' | 'Admin'
   type: 'Ticket' | 'Cart' | 'Product' | 'System' | 'Cupom' | 'SUEE' | 'Event' | 'Account' | 'Config'
 }
+
 export class CustomButtonBuilder extends ButtonBuilder implements ButtonType {
   customId
-  url
-  permission
   type
+  permission
   isProtected
+
   constructor ({ customId, emoji, style, url, label, disabled, permission, type, isProtected }: ButtonType) {
     super()
-    this.url = url
     this.type = type
     this.data.style = style
     this.data.label = label
@@ -183,8 +186,10 @@ export class CustomButtonBuilder extends ButtonBuilder implements ButtonType {
     this.permission = permission ?? 'User'
     this.data.disabled = disabled ?? false
     if (emoji !== undefined) this.data.emoji = emoji
-    if (this.url !== undefined && this.customId === undefined) { this.setURL(this.url) }
-    this.setCustomId(`${genv4()}_${this.permission}_${this.type}_${this.customId}${this.isProtected?.user !== undefined ? `_${this.isProtected.user.id}` : '_undefined'}`)
+    if (url !== undefined && customId === undefined) {
+      this.setURL(url)
+    }
+    this.setCustomId(`${genv4()}_${this.permission}_${type}_${customId}${this.isProtected?.user !== undefined ? `_${this.isProtected.user.id}` : '_undefined'}`)
   }
 
   static async verify (options: {
@@ -198,16 +203,18 @@ export class CustomButtonBuilder extends ButtonBuilder implements ButtonType {
     return false
   }
 
-  static getInfos = (customId: string): string[] | null[] => {
+  static getInfos = (customId: string): string[] | undefined[] => {
     const parts = customId.split('_')
-    if (parts.length === 4 || parts.length === 5) {
+    if (parts.length === 4) {
+      return [parts[0], parts[1], parts[2], parts[3]]
+    } else if (parts.length === 5) {
       return [parts[0], parts[1], parts[2], parts[3], parts[4]]
     }
-    return [null, null, null, null]
+    return [undefined, undefined, undefined, undefined, undefined]
   }
 
   static getAction (customId: string): string {
     const parts = customId.split('_')
-    return parts[parts.length - 1]
+    return parts[parts.length - 2]
   }
 }

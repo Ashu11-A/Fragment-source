@@ -14,9 +14,8 @@ new Event({
     core.log(customId)
     const typeAction = interaction.isButton() ? 'Buttom' : interaction.isModalSubmit() ? 'Modal' : 'Select'
     const [id, permission, type, action, userId] = CustomButtonBuilder.getInfos(customId)
-    console.log(id, permission, type, action, userId)
 
-    if (id === null || action === null) { console.log('Nenhuma ação foi expecificada no botão'); return }
+    if (id === undefined || action === undefined || userId === undefined) { console.log('Nenhuma ação foi expecificada no botão'); return }
     // <-- Verifica a interação -->
     if (!(await CustomButtonBuilder.verify({ userId, interaction }))) {
       await interaction.reply({
@@ -40,7 +39,7 @@ new Event({
     }
     // <-- Verifica a permição -->
     if (permission !== 'User') if (await Discord.Permission(interaction, 'Administrator', 'noPermission')) return
-    core.info(`${username} | Id: ${id} | Permission: ${permission} | Type: ${type} | typeAction: ${typeAction} | Action: ${action}`)
+    core.info(`${username} | Id: ${id} | Permission: ${permission} | Type: ${type} | typeAction: ${typeAction} | Action: ${action} | userID: ${userId}`)
     const Controller = new ButtonController({ interaction, key: action })
 
     switch (type) {
