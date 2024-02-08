@@ -38,7 +38,7 @@ export async function createAccount (options: {
     if (await showError({ interaction, res: createUser })) return
     console.log(createUser)
     const { id, pterodactyl_id: pterodactylId } = createUser as UserData
-    await db.ctrlPanel.table('guilds').set(`${guildId}.users.${user.id}`, {
+    await db.accounts.set(`${guildId}.users.${user.id}.ctrlPanel`, {
       id,
       pterodactylId
     })

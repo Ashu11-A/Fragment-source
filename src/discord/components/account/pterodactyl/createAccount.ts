@@ -65,7 +65,7 @@ export async function createAccount (options: {
         })
       }
     } else {
-      await db.pterodactyl.table('guilds').set(`${guildId}.users.${user.id}`, {
+      await db.accounts.set(`${guildId}.users.${user.id}.pterodactyl`, {
         id,
         uuid
       })

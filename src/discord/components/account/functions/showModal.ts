@@ -18,7 +18,7 @@ export async function showModal (options: {
   const info = getModalData(key)
   const modal = new ModalBuilder({ customId, title: `${key} Registro` })
 
-  const userDB = (await db[key === 'Pterodactyl' ? 'pterodactyl' : 'ctrlPanel'].table('guilds').get(`${guildId}.users.${user.id}`)) ?? undefined
+  const userDB = (await db.accounts.get(`${guildId}.users.${user.id}.${key === 'Pterodactyl' ? 'pterodactyl' : 'ctrlPanel'}`)) ?? undefined
   if (userDB !== undefined) {
     await interaction.reply({
       ephemeral,

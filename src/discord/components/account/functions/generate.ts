@@ -28,13 +28,9 @@ export class GenAccount {
         `${guildId}.config.ctrlPanel`
     )) ?? { url: undefined, token: undefined }
 
-    const pteroUserDB = (await db.pterodactyl.table('guilds').get(`${guildId}.users.${user.id}`)) ?? undefined
-    const ctrlUserDB = (await db.ctrlPanel.table('guilds').get(`${guildId}.users.${user.id}`)) ?? undefined
+    const accounts = await db.accounts.get(`${guildId}.users.${user.id}`)
 
-    console.log(pteroUserDB)
-    console.log(ctrlUserDB)
-
-    return { urlPtero, tokenPtero, urlCtrl, tokenCtrl, pteroUserDB, ctrlUserDB }
+    return { urlPtero, tokenPtero, urlCtrl, tokenCtrl, pteroUserDB: accounts.pterodactyl, ctrlUserDB: accounts.ctrlPanel }
   }
 
   /**
@@ -55,7 +51,7 @@ export class GenAccount {
 
     if (urlCtrl !== undefined && tokenCtrl !== undefined) {
       row.addComponents(
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'User',
           type: 'Account',
           label: 'CtrlPanel',
@@ -78,7 +74,7 @@ export class GenAccount {
 
     if (urlPtero !== undefined && tokenPtero !== undefined) {
       row.addComponents(
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'User',
           type: 'Account',
           label: 'Pterodactyl',
@@ -134,7 +130,7 @@ export class GenAccount {
 
     if (urlCtrl !== undefined && tokenCtrl !== undefined) {
       row.addComponents(
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'User',
           type: 'Cart',
           label: 'CtrlPanel',
@@ -157,7 +153,7 @@ export class GenAccount {
 
     if (urlPtero !== undefined && tokenPtero !== undefined) {
       row.addComponents(
-        await CustomButtonBuilder.create({
+        new CustomButtonBuilder({
           permission: 'User',
           type: 'Account',
           label: 'Pterodactyl',
