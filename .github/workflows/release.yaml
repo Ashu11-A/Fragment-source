@@ -5,7 +5,58 @@ on:
     tags:
       - "v*"
 jobs:
-  publish:
+  publish-win:
+    name: Publish for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node-version: [18.x]
+        include:
+          - os: windows-latest
+            asset_os: win
+            asset_arm: payment-bot-arm64.exe
+            asset_x64: payment-bot-x64.exe
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Set output
+      id: vars
+      run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+    - name: Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        check-latest: true
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Config project
+      run: mv src/settings/settings.exemple.json src/settings/settings.json
+
+    - name: Build release
+      run: npm run build:release
+
+    - name: Upload x64 binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: release/${{ matrix.asset_x64 }}
+        asset_name: ${{ steps.vars.outputs.tag }}-paymentBot-${{ steps.vars.outputs.asset_os }}-x64.exe
+        tag: ${{ github.ref }}
+        overwrite: true
+
+    - name: Upload arm64 binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: release/${{ matrix.asset_arm }}
+        asset_name: ${{ steps.vars.outputs.tag }}-paymentBot-${{ steps.vars.outputs.asset_os }}-arm64.exe
+        tag: ${{ github.ref }}
+        overwrite: true
+
+  publish-linux:
     name: Publish for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -16,10 +67,6 @@ jobs:
             asset_os: linux
             asset_arm: payment-bot-arm64
             asset_x64: payment-bot-x64
-          - os: windows-latest
-            asset_os: win
-            asset_arm: payment-bot-arm64.exe
-            asset_x64: payment-bot-x64.exe
 
     steps:
     - name: Checkout repository
