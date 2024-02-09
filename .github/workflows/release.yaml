@@ -27,16 +27,6 @@ jobs:
     - name: Set output
       id: vars
       run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
-    - name: Check output
-      env:
-        RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
-      run: |
-        if [ "${{ runner.os }}" == "Linux" ]; then
-          echo $RELEASE_VERSION
-          echo ${{ steps.vars.outputs.tag }}
-        else
-          echo $env:RELEASE_VERSION
-        fi
     - name: Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
