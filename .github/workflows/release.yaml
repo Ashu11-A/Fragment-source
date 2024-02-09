@@ -46,7 +46,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ./release/payment-bot-linux
+        file: release/payment-bot-linux
         asset_name: paymentBot-${{ steps.vars.outputs.tag }}-linux
         tag: ${{ github.ref }}
         overwrite: true
@@ -55,7 +55,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ./release/paymentBot-win.exe
+        file: release/paymentBot-win.exe
         asset_name: paymentBot-${{ steps.vars.outputs.tag }}-win.exe
         tag: ${{ github.ref }}
         overwrite: true
