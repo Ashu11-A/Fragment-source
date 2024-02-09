@@ -14,15 +14,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-    - name: Set output
-      id: vars
-      run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
-    - name: Check output
-      env:
-        RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
-      run: |
-        echo $RELEASE_VERSION
-        echo ${{ steps.vars.outputs.tag }}
     - name: Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
@@ -42,24 +33,36 @@ jobs:
         path: release/*
         retention-days: 1
 
-    - name: Upload release linux
-      id: upload-release-linux
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./release/payment-bot-linux
-        asset_name: paymentBot-${{ steps.vars.outputs.tag }}-linux
-        asset_content_type: application/octet-stream
+  publish:
+    name: Publish for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: ./release/payment-bot-linux
+            asset_name: paymentBot-linux
+          - os: windows-latest
+            artifact_name: ./release/paymentBot-win.exe
+            asset_name: paymentBot-win.exe
 
-    - name: Upload release windows
-      id: upload-release-windows
-      uses: actions/upload-release-asset@v1
+    steps:
+    - name: Set output
+      id: vars
+      run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+    - name: Check output
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+      run: |
+        echo $RELEASE_VERSION
+        echo ${{ steps.vars.outputs.tag }}
+    - uses: actions/checkout@v3
+    - name: Build
+      run: cargo build --release --locked
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./release/paymentBot-win.exe
-        asset_name: paymentBot-${{ steps.vars.outputs.tag }}-win.exe
-        asset_content_type: application/x-msdownload
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: target/release/${{ matrix.artifact_name }}
+        asset_name: ${{ steps.vars.outputs.tag }}-${{ matrix.asset_name }}
+        tag: ${{ github.ref }}
