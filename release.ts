@@ -1,4 +1,5 @@
 import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
+import os from 'os';
 import path from 'path'
 import { minify } from 'terser'
 import { SingleBar, Presets } from 'cli-progress'
@@ -70,7 +71,21 @@ async function compress (): Promise<void> {
   }
   progressBar.stop()
 
-  await exec(['.', '-d', '--compress', 'GZip', '--no-bytecode', '--public-packages', '"*"', '--public'])
+  const args = ['.', '-d', '--compress', 'GZip', '--no-bytecode', '--public-packages', '"*"', '--public']
+
+  switch (os.platform()){
+    case 'linux':
+      args.push("-t", 'node18-linux-x64,node18-linux-arm64')
+      break
+    case 'win32':
+      args.push("-t", 'node18-win-x64,node18-win-arm64')
+      break
+  }
+
+  console.log(os.platform())
+  console.log(args)
+
+  await exec(args)
 }
 
 void compress()
