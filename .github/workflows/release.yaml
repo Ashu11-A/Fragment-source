@@ -43,7 +43,7 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: release/${{ matrix.asset_x64 }}
-        asset_name: ${{ steps.vars.outputs.tag }}-paymentBot-${{ matrix.asset_os }}-x64.exe
+        asset_name: paymentBot-${{ matrix.asset_os }}-${{ steps.vars.outputs.tag }}-x64.exe
         tag: ${{ github.ref }}
         overwrite: true
 
@@ -52,7 +52,7 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: release/${{ matrix.asset_arm }}
-        asset_name: ${{ steps.vars.outputs.tag }}-paymentBot-${{ matrix.asset_os }}-arm64.exe
+        asset_name: paymentBot-${{ matrix.asset_os }}-${{ steps.vars.outputs.tag }}-arm64.exe
         tag: ${{ github.ref }}
         overwrite: true
 
@@ -94,7 +94,7 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: release/${{ matrix.asset_x64 }}
-        asset_name: ${{ steps.vars.outputs.tag }}-paymentBot-${{ matrix.asset_os }}-x64
+        asset_name: paymentBot-${{ matrix.asset_os }}-${{ steps.vars.outputs.tag }}-x64
         tag: ${{ github.ref }}
         overwrite: true
 
@@ -103,6 +103,6 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: release/${{ matrix.asset_arm }}
-        asset_name: ${{ steps.vars.outputs.tag }}-paymentBot-${{ matrix.asset_os }}-arm64
+        asset_name: paymentBot-${{ matrix.asset_os }}-${{ steps.vars.outputs.tag }}-arm64
         tag: ${{ github.ref }}
         overwrite: true
