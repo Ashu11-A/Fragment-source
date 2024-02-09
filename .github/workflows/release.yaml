@@ -31,11 +31,11 @@ jobs:
       env:
         RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
       run: |
-        if [ "${{ steps.vars.outputs.tag }}" == "linux" ]; then
+        if [ "${{ runner.os }}" == "Linux" ]; then
           echo $RELEASE_VERSION
           echo ${{ steps.vars.outputs.tag }}
         else
-          echo "$env:RELEASE_VERSION"
+          echo $env:RELEASE_VERSION
         fi
     - name: Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
