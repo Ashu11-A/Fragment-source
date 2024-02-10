@@ -6,7 +6,12 @@
   "bin": "build/app.js",
   "pkg": {
     "scripts": [
-      "build/**/*.js"
+      "build/**/*.js",
+      "package.json"
+    ],
+    "assets": [
+      "node_modules/**/*",
+      "package.json"
     ],
     "outputPath": "release"
   },

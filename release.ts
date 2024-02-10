@@ -71,7 +71,7 @@ async function compress (): Promise<void> {
   }
   progressBar.stop()
 
-  const args = ['.', '-d', '--compress', 'Brotli', '--public-packages', '"*"', '--public']
+  const args = ['.', '-d', '--no-bytecode', '--compress', 'Brotli', '--public-packages', '"*"', '--public']
   const platforms = ['alpine', 'linux', 'linuxstatic', 'win']
   const archs = ['x64', 'arm64']
   const nodeVersion = '20'
