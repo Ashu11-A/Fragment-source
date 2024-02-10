@@ -11,13 +11,12 @@ new Event({
     if (!interaction.isButton() && !interaction.isStringSelectMenu() && !interaction.isModalSubmit()) return
     const start = Date.now() // Mostrar delay
     const { customId, user: { username }, guild } = interaction
-    core.log(customId)
     const typeAction = interaction.isButton() ? 'Buttom' : interaction.isModalSubmit() ? 'Modal' : 'Select'
     const [id, permission, type, action, userId] = CustomButtonBuilder.getInfos(customId)
 
-    if (id === undefined || action === undefined || userId === undefined) { console.log('Nenhuma ação foi expecificada no botão'); return }
+    if (id === undefined || action === undefined) { console.log('Nenhuma ação foi expecificada no botão'); return }
     // <-- Verifica a interação -->
-    if (!(await CustomButtonBuilder.verify({ userId, interaction }))) {
+    if (userId !== undefined && !(await CustomButtonBuilder.verify({ userId, interaction }))) {
       await interaction.reply({
         ephemeral,
         embeds: [

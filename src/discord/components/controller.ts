@@ -10,7 +10,9 @@ import { systemCollectorButtons } from './system/systemCollectorButtons'
 import ticketCollectorButtons from './tickets/collectorButtons'
 import { ticketCollectorSelect } from './tickets/collectorSelect'
 import { ticketCollectorModal } from './tickets/collectorModal'
-import configCollectorButtons from './config/configCollectorButtons'
+import configCollectorButtons from './config/collectorButtons'
+import configCollectorModals from './config/collectorModals'
+import configCollectorSelect from './config/collectorSelectors'
 import { db } from '@/app'
 import accountCollectorButtons from './account/collectorButtons'
 import accountCollectorModal from './account/collectorModal'
@@ -85,12 +87,14 @@ export class ButtonController {
 
   async config (): Promise<void> {
     const { interaction, key } = this
-    if (interaction.isModalSubmit()) { await configCollectorButtons({ interaction, key }) }
+    if (interaction.isButton()) { await configCollectorButtons({ interaction, key }); return }
+    if (interaction.isModalSubmit()) { await configCollectorModals({ interaction, key }); return }
+    if (interaction.isStringSelectMenu()) { await configCollectorSelect({ interaction, key }) }
   }
 
   async account (): Promise<void> {
     const { interaction, key } = this
-    if (interaction.isButton()) { await accountCollectorButtons({ interaction, key }) }
+    if (interaction.isButton()) { await accountCollectorButtons({ interaction, key }); return }
     if (interaction.isModalSubmit()) { await accountCollectorModal({ interaction, key }) }
   }
 }

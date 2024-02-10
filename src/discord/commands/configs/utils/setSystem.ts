@@ -142,6 +142,22 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
       label: 'Mensagens',
       emoji: { name: '📃' },
       isProtected: { user }
+    }),
+    new CustomButtonBuilder({
+      customId: 'AddPresence',
+      permission: 'Admin',
+      label: 'Adicionar',
+      emoji: { name: '➕' },
+      type: 'Config',
+      style: ButtonStyle.Primary
+    }),
+    new CustomButtonBuilder({
+      customId: 'RemPresence',
+      permission: 'Admin',
+      label: 'Remover',
+      emoji: { name: '➖' },
+      type: 'Config',
+      style: ButtonStyle.Danger
     })
   ]
   const presence2 = [
@@ -185,7 +201,6 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
       type: 'System',
       customId: 'PteroStatus',
       label: 'Status',
-      style: ButtonStyle.Secondary,
       emoji: { name: '⏲️' }
     }),
     new CustomButtonBuilder({
@@ -193,7 +208,6 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
       type: 'System',
       customId: 'PteroTimeout',
       label: 'Timeout',
-      style: ButtonStyle.Secondary,
       emoji: { name: '⏲️' }
     })
   ]
@@ -212,7 +226,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
     if (systemData === null) continue
 
     const isTrue = systemData[customId]
-    value.setStyle(isTrue === true ? ButtonStyle.Success : ButtonStyle.Secondary)
+    if (value.data.style === undefined) value.setStyle(isTrue === true ? ButtonStyle.Success : ButtonStyle.Secondary)
   }
 
   for (const value of presence2) {

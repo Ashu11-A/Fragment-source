@@ -1,20 +1,22 @@
+import { db } from '@/app'
+import { Command } from '@/discord/base'
+import { setSystem } from '@/discord/commands/configs/utils/setSystem'
+import { MpModalconfig } from '@/discord/components/config/modals/mpModal'
+import { sendEmbed } from '@/discord/components/payments'
+import { genEmbeds } from '@/discord/events/ready/statusPtero/SystemStatus'
+import { Database, validarURL } from '@/functions'
+import { CustomButtonBuilder, Discord } from '@/functions/Discord'
 import {
+  ActionRowBuilder,
   ApplicationCommandOptionType,
   ApplicationCommandType,
+  type ButtonBuilder,
   ChannelType,
   EmbedBuilder,
   TextChannel,
-  type CategoryChannel
+  type CategoryChannel,
+  ButtonStyle
 } from 'discord.js'
-import { Command } from '@/discord/base'
-import { Database, validarURL } from '@/functions'
-import { db } from '@/app'
-import { setSystem } from '@/discord/commands/configs/utils/setSystem'
-import { modelPresence, delPresence } from './utils/Presence'
-import { sendEmbed } from '@/discord/components/payments'
-import { Discord } from '@/functions/Discord'
-import { MpModalconfig } from '@/discord/components/config/modals/mpModal'
-import { genEmbeds } from '@/discord/events/ready/statusPtero/SystemStatus'
 
 new Command({
   name: 'config',
@@ -85,14 +87,10 @@ new Command({
           type: ApplicationCommandOptionType.Subcommand,
           options: [
             {
-              name: 'messages',
+              name: 'panel',
               description:
-                '[ 🌠 Modal ] Envia um Modal para definir as mensagens do status',
-              type: ApplicationCommandOptionType.String,
-              choices: [
-                { name: 'Adicionar', value: 'true' },
-                { name: 'Remover', value: 'false' }
-              ]
+                '[ 🌠 Panel ] Adicione ou remova as mensagens de status',
+              type: ApplicationCommandOptionType.Channel
             }
           ]
         },
@@ -450,14 +448,37 @@ new Command({
         case 'status': {
           switch (options.getSubcommand(true)) {
             case 'opções': {
-              const messages = options.getString('messages')
+              const channel = options.getChannel('panel')
+              await interaction.deferReply()
 
-              if (messages !== null) {
-                if (messages === 'true') {
-                  await modelPresence(interaction)
-                } else {
-                  await delPresence(interaction)
-                }
+              const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+                new CustomButtonBuilder({
+                  customId: 'AddPresence',
+                  permission: 'Admin',
+                  label: 'Adicionar',
+                  emoji: { name: '➕' },
+                  type: 'Config',
+                  style: ButtonStyle.Primary
+                }),
+                new CustomButtonBuilder({
+                  customId: 'RemPresence',
+                  permission: 'Admin',
+                  label: 'Remover',
+                  emoji: { name: '➖' },
+                  type: 'Config',
+                  style: ButtonStyle.Danger
+                })
+              )
+
+              if (channel !== null) {
+                await interaction.editReply({
+                  embeds: [
+                    new EmbedBuilder({
+                      title: 'Gerencie as mensagens de status do bot'
+                    }).setColor('Purple')
+                  ],
+                  components: [row]
+                })
               }
               break
             }
