@@ -18,7 +18,7 @@ export default async function statusPresence (): Promise<void> {
     } else if (typeStatus === undefined || typeStatus === false) {
       const messages = await db.messages.get(`${guild.id}.system.status.messages`)
 
-      if (messages[0] !== undefined) {
+      if (messages?.[0] !== undefined) {
         let currentMessage = await db.messages.get(`${guild.id}.system.status.currentMessage`)
 
         if (currentMessage >= messages?.length || currentMessage === undefined) {
