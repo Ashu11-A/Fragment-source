@@ -3,7 +3,7 @@ import os from 'os';
 import path from 'path'
 import { minify } from 'terser'
 import { SingleBar, Presets } from 'cli-progress'
-import { exec } from 'pkg'
+import { exec } from '@yao-pkg/pkg'
 
 async function carregarDados (options: {
   diretorio: string
@@ -71,16 +71,22 @@ async function compress (): Promise<void> {
   }
   progressBar.stop()
 
-  const args = ['.', '-d', '--compress', 'GZip', '--no-bytecode', '--public-packages', '"*"', '--public']
+  const args = ['.', '-d', '--compress', 'Brotli', '--no-bytecode', '--public-packages', '"*"', '--public']
+  const platforms = ['alpine', 'linux', 'linuxstatic', 'win']
+  const archs = ['x64', 'arm64']
+  const nodeVersion = '20'
+  const allBuildPlatforms: string[] = []
 
-  switch (os.platform()){
-    case 'linux':
-      args.push("-t", 'node18-linux-x64,node18-linux-arm64')
-      break
-    case 'win32':
-      args.push("-t", 'node18-win-x64,node18-win-arm64')
-      break
+  args.push("-t")
+
+
+  for (const platform of platforms) {
+    for (const arch of archs) {
+      allBuildPlatforms.push(`node${nodeVersion}-${platform}-${arch}`)
+    }
   }
+
+  args.push(allBuildPlatforms.join(','))
 
   console.log(os.platform())
   console.log(args)

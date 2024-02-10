@@ -5,104 +5,44 @@ on:
     tags:
       - "v*"
 jobs:
-  publish-win:
-    name: Publish for ${{ matrix.os }}
+  publish:
+    name: Publish Release for all Platform
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node-version: [18.x]
-        include:
-          - os: windows-latest
-            asset_os: win
-            asset_arm: payment-bot-arm64.exe
-            asset_x64: payment-bot-x64.exe
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    - name: Set output
-      id: vars
-      run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
-    - name: Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        check-latest: true
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Config project
-      run: mv settings.exemple.json settings.json
-
-    - name: Build release
-      run: npm run build:release
-
-    - name: Upload x64 binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: release/${{ matrix.asset_x64 }}
-        asset_name: paymentBot-${{ matrix.asset_os }}-x64.exe
-        tag: ${{ github.ref }}
-        overwrite: true
-
-    - name: Upload arm64 binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: release/${{ matrix.asset_arm }}
-        asset_name: paymentBot-${{ matrix.asset_os }}-arm64.exe
-        tag: ${{ github.ref }}
-        overwrite: true
-
-  publish-linux:
-    name: Publish for ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        node-version: [18.x]
+        node-version: [20.x]
         include:
           - os: ubuntu-latest
-            asset_os: linux
-            asset_arm: payment-bot-arm64
-            asset_x64: payment-bot-x64
 
     steps:
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
     - name: Checkout repository
       uses: actions/checkout@v4
+
     - name: Set output
       id: vars
       run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+
     - name: Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
         check-latest: true
+
     - name: Install dependencies
       run: npm ci
-
-    - name: Config project
-      run: mv settings.exemple.json settings.json
 
     - name: Build release
       run: npm run build:release
 
-    - name: Upload x64 binaries to release
+    - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: release/${{ matrix.asset_x64 }}
-        asset_name: paymentBot-${{ matrix.asset_os }}-x64
+        file: release/*
         tag: ${{ github.ref }}
         overwrite: true
-
-    - name: Upload arm64 binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: release/${{ matrix.asset_arm }}
-        asset_name: paymentBot-${{ matrix.asset_os }}-arm64
-        tag: ${{ github.ref }}
-        overwrite: true
+        file_glob: true
