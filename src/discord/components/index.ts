@@ -16,7 +16,7 @@ new Event({
 
     if (id === undefined || action === undefined) { console.log('Nenhuma ação foi expecificada no botão'); return }
     // <-- Verifica a interação -->
-    if (userId !== undefined && !(await CustomButtonBuilder.verify({ userId, interaction }))) {
+    if (userId !== undefined && userId !== 'undefined' && !(await CustomButtonBuilder.verify({ userId, interaction }))) {
       await interaction.reply({
         ephemeral,
         embeds: [
