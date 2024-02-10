@@ -27,7 +27,7 @@ async function checkConfig (): Promise<void> {
     throw new Error('Defina o token em .env', { cause: 'Token não fornecido' })
   }
 
-  if (dirEX('./settings/settings.json')) {
+  if (!dirEX('./settings/settings.json')) {
     await axios.get('https://raw.githubusercontent.com/Ashu11-A/PaymentBot/main/src/settings/settings.exemple.json')
       .then((res) => {
         dirCR(`${rootDir}/settings`)
