@@ -5,7 +5,7 @@ release
 .env
 .env.development
 
-src/settings/settings.json
+settings.json
 storage
 database
 

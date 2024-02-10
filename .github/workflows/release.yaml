@@ -33,7 +33,7 @@ jobs:
       run: npm ci
 
     - name: Config project
-      run: mv src/settings/settings.exemple.json src/settings/settings.json
+      run: mv settings.exemple.json settings.json
 
     - name: Build release
       run: npm run build:release
@@ -84,7 +84,7 @@ jobs:
       run: npm ci
 
     - name: Config project
-      run: mv src/settings/settings.exemple.json src/settings/settings.json
+      run: mv settings.exemple.json settings.json
 
     - name: Build release
       run: npm run build:release

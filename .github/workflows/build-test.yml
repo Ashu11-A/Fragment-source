@@ -28,5 +28,5 @@ jobs:
         cache: 'npm'
         check-latest: true
     - run: npm ci
-    - run: mv src/settings/settings.exemple.json src/settings/settings.json
+    - run: mv settings.exemple.json settings.json
     - run: npm run build --if-present

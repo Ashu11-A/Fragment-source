@@ -15,7 +15,7 @@ import {
 } from 'discord.js'
 import { type PaymentResponse } from 'mercadopago/dist/clients/payment/commonTypes'
 import { type ProductCartData, type cartData } from '@/interfaces'
-import { settings } from '@/settings'
+import settings from '@/functions/getSettings'
 
 interface UpdateCartType {
   interaction: ButtonInteraction<CacheType> | ModalSubmitInteraction<CacheType>
@@ -347,9 +347,7 @@ export class UpdateCart {
 
     if (product.pterodactyl !== undefined) {
       const { cpu, disk, port, ram } = product.pterodactyl
-      const { Emojis } = settings as unknown as {
-        Emojis: Record<string, string | undefined> | undefined
-      }
+      const { Emojis } = settings()
 
       embed.setDescription(`
         ${cpu !== undefined ? `${Emojis?.cpu} | CPU: ${cpu}` : ''}

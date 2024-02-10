@@ -2,7 +2,6 @@ import dotenv from 'dotenv'
 import { existsSync } from 'fs'
 import { resolve } from 'path'
 import { Signale } from 'signale'
-import settings from './settings.json'
 import './constants'
 
 const developmentEnvPath = resolve(process.cwd(), '.env.development')
@@ -21,4 +20,4 @@ const log = new Signale({
   }
 })
 
-export { log, processEnv, settings }
+export { log, processEnv }

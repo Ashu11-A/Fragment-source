@@ -2,7 +2,7 @@
   "Express": {
     "ip": "0.0.0.0",
     "Port": 6070,
-    "encryptionKey": "87ytdsguytasd67astdb8tabdyuagbdq8e7tdagi7sdrai8a7sdn",
+    "encryptionKey": " am_something_very_precious_and_i_have_to_have_32_characters",
     "cors": {
       "active": true,
       "allow": [
@@ -12,10 +12,6 @@
         "localhost"
       ]
     }
-  },
-  "Logs": {
-    "configPATH": "./src/config",
-    "loggingsPATH": "./storage/logs"
   },
   "Emojis": {
     "egg": "<:square_discovery:1123998856212918423>",

@@ -17,7 +17,7 @@ import {
   type StringSelectMenuInteraction
 } from 'discord.js'
 import { type productData } from '@/interfaces'
-import { settings } from '@/settings'
+import settings from '@/functions/getSettings'
 
 interface UpdateProductType {
   interaction:
@@ -68,7 +68,7 @@ export class UpdateProduct {
 
     if (productData?.properties?.SetPterodactyl && productData?.pterodactyl !== undefined) {
       const { egg, cpu, disk, port, ram } = productData.pterodactyl
-      const { Emojis } = settings as unknown as { Emojis: Record<string, string | undefined> | undefined }
+      const { Emojis } = settings()
       const strings: string[] = []
 
       console.log(productData.pterodactyl)

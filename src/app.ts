@@ -1,10 +1,10 @@
-import { createClient } from './discord/base'
-import { log, processEnv } from './settings'
 import Loggings from '@/controllers/Loggings'
 import { dirCR, dirEX, jsonsv } from '@/functions'
-import { QuickDB } from 'quick.db'
-import { join } from 'path'
 import { writeFileSync } from 'fs'
+import { join } from 'path'
+import { QuickDB } from 'quick.db'
+import { createClient } from './discord/base'
+import { log, processEnv } from './settings'
 import axios from 'axios'
 export * from 'colors'
 
@@ -27,11 +27,11 @@ async function checkConfig (): Promise<void> {
     throw new Error('Defina o token em .env', { cause: 'Token não fornecido' })
   }
 
-  if (!dirEX('./settings/settings.json')) {
-    await axios.get('https://raw.githubusercontent.com/Ashu11-A/PaymentBot/main/src/settings/settings.exemple.json')
+  if (!dirEX('./settings.json')) {
+    await axios.get('https://raw.githubusercontent.com/Ashu11-A/PaymentBot/main/settings.exemple.json')
       .then((res) => {
         dirCR(`${rootDir}/settings`)
-        jsonsv('./settings/settings.json', res.data)
+        jsonsv('./settings.json', res.data)
       })
   }
 }

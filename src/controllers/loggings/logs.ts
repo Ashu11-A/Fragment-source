@@ -6,7 +6,6 @@ import { type Colors, type ConsoleLog as ConsoleLogger, type LogType } from '@/c
 import { Checker } from '@/controllers/loggings/Checker'
 import { type LoggingsOptions } from '@/controllers/Loggings'
 import { WhiteColors, WhiteLogs } from '@/controllers/loggings/Colors'
-import { settings } from '@/settings'
 import { json } from '@/functions'
 
 const cores: Colors = colors
@@ -18,7 +17,7 @@ export function logs (controller: string, level: string, color: string, options:
   // const message = msg + args.join(); // converte os args em uma string separando por " "
   let ArchiveLog: string | RegisterLog = ''
 
-  const valoressssss = json(settings.Logs.configPATH + '/loggings.json')
+  const valoressssss = json('./src/config/loggings.json')
   const CURRENT_LOG_LEVEL = valoressssss.level ?? 'Debug' // Altere o nível atual conforme necessário
   // carrega o codigo
   const levelConfig: LogType = loggings[level]

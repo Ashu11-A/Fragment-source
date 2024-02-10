@@ -2,12 +2,11 @@ import fs, { statSync } from 'fs'
 import path, { join } from 'path'
 import { Console } from '@/controllers/loggings/OnlyConsole'
 import { json } from '@/functions'
-import { settings } from '@/settings'
 type LogMessage = string | number | boolean | object
 const core = (levelsss: string, ...message: LogMessage[]): void => { Console('Loggings', 'green', levelsss, message) }
 
 export function unlinkfolders (logFolderPath: string, level: string, logtype: string): void {
-  const loggings = json(settings.Logs.configPATH + '/loggings.json')
+  const loggings = json('./src/config/loggings.json')
 
   const logFilesPattern = new RegExp(
     `${logtype === 'json' ? `.*_${level.toLowerCase()}.json` : `.*_${level.toLowerCase()}.log`}`

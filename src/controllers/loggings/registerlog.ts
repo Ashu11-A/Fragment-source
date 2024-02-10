@@ -3,7 +3,6 @@ import path, { resolve } from 'path'
 import { unlinkfolders } from '@/controllers/loggings/unlinkfolders'
 import { dirCR } from '@/functions'
 import { getTimestamp } from '@/controllers/loggings/getTimestamp'
-import { settings } from '@/settings'
 /**
  * Se registerLog for um object
  */
@@ -17,7 +16,7 @@ let logData: Record<string, RegisterLog[]> = {}
 
 export function registerlog (level: string, ArchiveLog: string | RegisterLog, Sublevel: string): void {
   let logFileName: string
-  const logFolderPath = resolve(settings.Logs.loggingsPATH, level, Sublevel ?? '')
+  const logFolderPath = resolve('./storage/logs', level, Sublevel ?? '')
   let logFilePath: string
   let logtype: string
   dirCR(logFolderPath)

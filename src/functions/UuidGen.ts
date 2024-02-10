@@ -1,5 +1,4 @@
 import { db } from '@/app'
-import { settings } from '@/settings'
 import { User } from 'discord.js'
 import { NIL as nilUUID, v4 as uuidv4, v5 as uuidv5 } from 'uuid'
 import { json } from './Json'
@@ -11,7 +10,7 @@ export function genv4 (): string {
 
 // Gera um UUID v5 baseado em um namespace e um nome
 export function genv5 (name: string, type: string): string {
-  const set = json(settings.Logs.configPATH + '/settings.json')
+  const set = json('./src/config/settings.json')
   return uuidv5(name, set.namespaces[type])
 }
 

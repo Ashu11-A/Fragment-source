@@ -11,7 +11,7 @@ import {
 } from 'discord.js'
 import { UpdateCart } from './updateCart'
 import axios from 'axios'
-import { settings } from '@/settings'
+import settings from '@/functions/getSettings'
 import { PaymentFunction } from '../cart/functions/cartCollectorFunctions'
 import { type cartData, type infoPayment } from '@/interfaces'
 
@@ -65,7 +65,7 @@ export async function createPayment (options: {
     try {
       const paymentCreate = await axios
         .post(
-          `http://${settings.Express.ip}:${settings.Express.Port}/payment/create/pix`,
+          `http://${settings().Express.ip}:${settings().Express.Port}/payment/create/pix`,
           dataPix
         )
         .catch(async (error) => {
@@ -159,7 +159,7 @@ export async function createPayment (options: {
       ipn
     }
     const paymentCreate = await axios.post(
-      `http://${settings.Express.ip}:${settings.Express.Port}/payment/create/card`,
+      `http://${settings().Express.ip}:${settings().Express.Port}/payment/create/card`,
       dataCart
     )
 
