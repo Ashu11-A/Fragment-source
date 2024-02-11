@@ -57,9 +57,6 @@ jobs:
           - os: windows-latest
 
     steps:
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-
     - name: Checkout repository
       uses: actions/checkout@v4
 
