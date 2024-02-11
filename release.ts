@@ -71,22 +71,27 @@ async function compress (): Promise<void> {
   }
   progressBar.stop()
 
-  const args = ['.', '-d', '--no-bytecode', '--compress', 'Brotli', '--public-packages', '"*"', '--public']
-  const platforms = ['alpine', 'linux', 'linuxstatic', 'win']
+  const args = ['.', '--no-bytecode', '--compress', 'Brotli', '--public-packages', '"*"', '--public']
+  const platforms = ['alpine', 'linux', 'linuxstatic']
   const archs = ['x64', 'arm64']
   const nodeVersion = '20'
-  const allBuildPlatforms: string[] = []
+  const allBuild: string[] = []
 
   args.push("-t")
 
-
-  for (const platform of platforms) {
+  if (os.platform() !== 'win32') {
+    for (const platform of platforms) {
+      for (const arch of archs) {
+        allBuild.push(`node${nodeVersion}-${platform}-${arch}`)
+      }
+    }
+  } else {
     for (const arch of archs) {
-      allBuildPlatforms.push(`node${nodeVersion}-${platform}-${arch}`)
+      allBuild.push(`node${nodeVersion}-win-${arch}`)
     }
   }
 
-  args.push(allBuildPlatforms.join(','))
+  args.push(allBuild.join(','))
 
   console.log(os.platform())
   console.log(args)
