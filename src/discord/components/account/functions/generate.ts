@@ -1,6 +1,6 @@
 import { db } from '@/app'
 import { CustomButtonBuilder } from '@/functions'
-import { type ModalSubmitInteraction, type CacheType, type ButtonInteraction, type CommandInteraction, type StringSelectMenuInteraction, type ChatInputCommandInteraction, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, type Message } from 'discord.js'
+import { type ModalSubmitInteraction, type CacheType, type ButtonInteraction, type CommandInteraction, type StringSelectMenuInteraction, type ChatInputCommandInteraction, EmbedBuilder, ActionRowBuilder, type ButtonBuilder, ButtonStyle, type Message } from 'discord.js'
 
 interface GenAccountType {
   interaction: ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | CommandInteraction<CacheType> | StringSelectMenuInteraction<CacheType> | ChatInputCommandInteraction<CacheType>
@@ -30,7 +30,7 @@ export class GenAccount {
 
     const accounts = await db.accounts.get(`${guildId}.users.${user.id}`)
 
-    return { urlPtero, tokenPtero, urlCtrl, tokenCtrl, pteroUserDB: accounts.pterodactyl, ctrlUserDB: accounts.ctrlPanel }
+    return { urlPtero, tokenPtero, urlCtrl, tokenCtrl, pteroUserDB: accounts?.pterodactyl, ctrlUserDB: accounts?.ctrlPanel }
   }
 
   /**
@@ -47,7 +47,7 @@ export class GenAccount {
     }).setColor('Blurple')
 
     const row = new ActionRowBuilder<ButtonBuilder>()
-    const row2 = new ActionRowBuilder<ButtonBuilder>()
+    // const row2 = new ActionRowBuilder<ButtonBuilder>()
 
     if (urlCtrl !== undefined && tokenCtrl !== undefined) {
       row.addComponents(
@@ -61,15 +61,15 @@ export class GenAccount {
           isProtected: { user: interaction.user }
         })
       )
-      row2.addComponents(
-        new ButtonBuilder({
-          url: urlCtrl,
-          emoji: { name: '🔗' },
-          label: 'Ctrl',
-          style: ButtonStyle.Link,
-          type: ComponentType.Button
-        })
-      )
+      // row2.addComponents(
+      //   new ButtonBuilder({
+      //     url: urlCtrl,
+      //     emoji: { name: '🔗' },
+      //     label: 'Ctrl',
+      //     style: ButtonStyle.Link,
+      //     type: ComponentType.Button
+      //   })
+      // )
     }
 
     if (urlPtero !== undefined && tokenPtero !== undefined) {
@@ -81,25 +81,24 @@ export class GenAccount {
           customId: 'Pterodactyl',
           style: pteroUserDB !== undefined ? ButtonStyle.Success : ButtonStyle.Secondary,
           emoji: { name: '🦖' },
-          isProtected: { user: interaction.user },
-          disabled: true
+          isProtected: { user: interaction.user }
         })
       )
-      row2.addComponents(
-        new ButtonBuilder({
-          url: urlPtero,
-          emoji: { name: '🔗' },
-          label: 'Ptero',
-          style: ButtonStyle.Link,
-          type: ComponentType.Button
-        })
-      )
+      // row2.addComponents(
+      //   new ButtonBuilder({
+      //     url: urlPtero,
+      //     emoji: { name: '🔗' },
+      //     label: 'Ptero',
+      //     style: ButtonStyle.Link,
+      //     type: ComponentType.Button
+      //   })
+      // )
     }
 
     if (row.components.length !== 0) {
       return await interaction.editReply({
         embeds: [embed],
-        components: [row, row2]
+        components: [row]
       })
     } else {
       await interaction.editReply({
@@ -126,7 +125,7 @@ export class GenAccount {
     }).setColor('Blurple')
 
     const row = new ActionRowBuilder<ButtonBuilder>()
-    const row2 = new ActionRowBuilder<ButtonBuilder>()
+    // const row2 = new ActionRowBuilder<ButtonBuilder>()
 
     if (urlCtrl !== undefined && tokenCtrl !== undefined) {
       row.addComponents(
@@ -134,51 +133,50 @@ export class GenAccount {
           permission: 'User',
           type: 'Cart',
           label: 'CtrlPanel',
-          customId: 'Direct',
+          customId: 'CtrlPanel',
           style: ctrlUserDB !== undefined ? ButtonStyle.Success : ButtonStyle.Secondary,
           emoji: { name: '🖥️' },
           isProtected: { user: interaction.user }
         })
       )
-      row2.addComponents(
-        new ButtonBuilder({
-          url: urlCtrl,
-          emoji: { name: '🔗' },
-          label: 'Ctrl',
-          style: ButtonStyle.Link,
-          type: ComponentType.Button
-        })
-      )
+      // row2.addComponents(
+      //   new ButtonBuilder({
+      //     url: urlCtrl,
+      //     emoji: { name: '🔗' },
+      //     label: 'Ctrl',
+      //     style: ButtonStyle.Link,
+      //     type: ComponentType.Button
+      //   })
+      // )
     }
 
     if (urlPtero !== undefined && tokenPtero !== undefined) {
       row.addComponents(
         new CustomButtonBuilder({
           permission: 'User',
-          type: 'Account',
+          type: 'Cart',
           label: 'Pterodactyl',
           customId: 'Pterodactyl',
           style: pteroUserDB !== undefined ? ButtonStyle.Success : ButtonStyle.Secondary,
           emoji: { name: '🦖' },
-          isProtected: { user: interaction.user },
-          disabled: true
+          isProtected: { user: interaction.user }
         })
       )
-      row2.addComponents(
-        new ButtonBuilder({
-          url: urlPtero,
-          emoji: { name: '🔗' },
-          label: 'Ptero',
-          style: ButtonStyle.Link,
-          type: ComponentType.Button
-        })
-      )
+      // row2.addComponents(
+      //   new ButtonBuilder({
+      //     url: urlPtero,
+      //     emoji: { name: '🔗' },
+      //     label: 'Ptero',
+      //     style: ButtonStyle.Link,
+      //     type: ComponentType.Button
+      //   })
+      // )
     }
 
     if (row.components.length !== 0) {
       return await interaction.editReply({
         embeds: [embed],
-        components: [row, row2]
+        components: [row]
       })
     } else {
       await interaction.editReply({

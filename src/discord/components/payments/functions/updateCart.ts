@@ -204,6 +204,7 @@ export class UpdateCart {
     const { cartData, interaction } = this
     const { products, typeEmbed, typeRedeem, user } = cartData
     const { user: { id: userID }, guildId } = interaction
+    console.log(products)
     const valorTotal =
       products.reduce(
         (allValue, product) => allValue + product.quantity * product.amount,
@@ -221,7 +222,6 @@ export class UpdateCart {
     const embeds: EmbedBuilder[] = []
     let title
     let description
-    let type
 
     if (typeEmbed === 0) {
       title = 'Checkout & Quantidade.'
@@ -237,13 +237,6 @@ export class UpdateCart {
     } else {
       title = 'Pagamento.'
       description = 'Realize o pagamento abaixo para adquirir o seu produto!'
-    }
-    if (typeRedeem === 1) {
-      type = 'DM'
-    } else if (typeRedeem === 2) {
-      type = 'Direct'
-    } else {
-      type = 'Não selecionado.'
     }
 
     embeds.push(
@@ -262,7 +255,7 @@ export class UpdateCart {
         value: `${coinsTotal}`
       })
     }
-    if (typeEmbed > 1) { embeds[0].addFields({ name: '✉️ Método de envio:', value: type }) }
+    if (typeEmbed > 1) { embeds[0].addFields({ name: '✉️ Método de envio:', value: typeRedeem ?? 'Não definido' }) }
 
     if (user !== undefined && typeEmbed !== 3 && typeEmbed !== 0) {
       embeds.push(
@@ -557,10 +550,10 @@ export class UpdateCart {
     (options: {
       value: CustomButtonBuilder
       customId: string
-      typeEmbed: number | undefined
+      typeEmbed?: number
       quantity?: number
-      properties: Record<string, boolean> | undefined
-      typeRedeem: number | undefined
+      properties?: Record<string, boolean>
+      typeRedeem?: 'CtrlPanel' | 'Pterodactyl' | 'DM'
     }) => void
     > = {
       Before: ({ value, typeEmbed }) => {
@@ -584,10 +577,10 @@ export class UpdateCart {
         }
       },
       DM: ({ value, customId, typeRedeem, properties }) => {
-        if (typeRedeem === 1 && properties?.[customId] === true) { value.setDisabled(true) }
+        if (typeRedeem === 'DM' && properties?.[customId] === true) { value.setDisabled(true) }
       },
-      Direct: ({ value, customId, typeRedeem, properties }) => {
-        if (typeRedeem === 2 && properties?.[customId] === true) { value.setDisabled(true) }
+      CtrlPanel: ({ value, customId, typeRedeem, properties }) => {
+        if (typeRedeem === 'CtrlPanel' && properties?.[customId] === true) { value.setDisabled(true) }
       }
     }
 

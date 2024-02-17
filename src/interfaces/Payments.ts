@@ -31,7 +31,7 @@ export interface cartData {
   products: ProductCartData[]
   messageId?: string
   typeEmbed: number
-  typeRedeem?: number
+  typeRedeem?: 'CtrlPanel' | 'Pterodactyl' | 'DM'
   role?: string
   paymentId?: number
   user?: User

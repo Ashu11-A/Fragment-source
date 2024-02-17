@@ -26,9 +26,10 @@ export class PaymentFunction {
   public async DM (): Promise<void> {
     const { interaction, key } = this
     const { guildId, message, channelId } = interaction
-    await db.payments.set(`${guildId}.process.${channelId}.typeRedeem`, 1)
+    await db.payments.set(`${guildId}.process.${channelId}.typeRedeem`, key)
     await db.payments.set(`${guildId}.process.${channelId}.properties.${key}`, true)
-    await db.payments.delete(`${guildId}.process.${channelId}.properties.Direct`)
+    await db.payments.delete(`${guildId}.process.${channelId}.properties.Pterodactyl`)
+    await db.payments.delete(`${guildId}.process.${channelId}.properties.CtrlPanel`)
     await db.payments.delete(`${guildId}.process.${channelId}.user`)
     await this.NextOrBefore({ type: 'next' })
 
@@ -259,7 +260,7 @@ export class PaymentFunction {
       if (data?.typeEmbed !== undefined) {
         if (
           (typeEmbed === 0 && products.map((product) => product.quantity).some((quantity) => quantity >= 1)) ||
-          (typeEmbed === 1 && typeRedeem !== undefined && typeRedeem >= 1) ||
+          (typeEmbed === 1 && typeRedeem !== undefined) ||
           (typeEmbed === 2)
         ) {
           const number = await db.payments.add(`${guildId}.process.${channelId}.typeEmbed`, 1)
@@ -373,7 +374,7 @@ export class PaymentFunction {
         })
         await interaction.deleteReply()
 
-        if (cartData.typeRedeem === 2) {
+        if (cartData.typeRedeem === 'CtrlPanel') {
           if (
             cartData.products !== undefined &&
             cartData.user?.email !== undefined &&
