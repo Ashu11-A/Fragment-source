@@ -1,6 +1,6 @@
-import axios, { type AxiosError, type AxiosInstance } from 'axios'
-import { type UserObject, type EggObject, type NestObject, type NodeObject, type NodeConfigObject } from '@/interfaces'
 import { core } from '@/app'
+import { type EggObject, type NestObject, type NodeConfigObject, type NodeObject, type Server, type UserObject } from '@/interfaces'
+import axios, { type AxiosError, type AxiosInstance } from 'axios'
 
 export class Pterodactyl {
   private readonly url
@@ -77,6 +77,28 @@ export class Pterodactyl {
     }
   }
 
+  /**
+   * Obter detalhes de um egg expecifico
+   * Metodo: GET
+   */
+  public async getEgg (options: {
+    nest: number | string
+    egg: number | string
+  }): Promise<EggObject | AxiosError<any, any> | undefined> {
+    const { egg, nest } = options
+    try {
+      return await this.client().get(`application/nests/${nest}/eggs/${egg}`)
+        .then((res) => {
+          return res.data as EggObject
+        })
+    } catch (err) {
+      console.log(err)
+      if (axios.isAxiosError(err)) {
+        return err
+      }
+    }
+  }
+
   public async user (options: {
     userId?: string | number
     data?: {
@@ -137,6 +159,48 @@ export class Pterodactyl {
       return await this.client().get(`application/nodes/${options.id}/configuration`)
         .then(async (res) => {
           return res.data as NodeConfigObject
+        })
+    } catch (err) {
+      console.log(err)
+      if (axios.isAxiosError(err)) {
+        return err
+      }
+    }
+  }
+
+  /**
+   * Solicitação para a criação de servidores Pterodactyl
+   * Metodo: Post
+   */
+  public async createServer (options: {
+    name: string
+    user: number
+    egg: number
+    docker_image: string
+    startup: string
+    environment: {
+      BUNGEE_VERSION: string
+      SERVER_JARFILE: string
+      limits: {
+        memory: number
+        swap: 0
+        disk: number
+        io: 500
+        cpu: number
+      }
+      feature_limits: {
+        databases: 0
+        backups: 0
+      }
+      allocation: {
+        default: number
+      }
+    }
+  }): Promise<Server | AxiosError<any, any> | undefined> {
+    try {
+      return await this.client().post('application/servers', options)
+        .then(async (res) => {
+          return res.data as Server
         })
     } catch (err) {
       console.log(err)

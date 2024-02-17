@@ -126,3 +126,49 @@ export interface NodeConfigObject {
   }
   remote: string
 }
+
+export interface Server {
+  object: 'server'
+  attributes: {
+    id: number
+    external_id: null | string
+    uuid: string
+    identifier: string
+    name: string
+    description: string
+    suspended: boolean
+    limits: {
+      memory: number
+      swap: number
+      disk: number
+      io: number
+      cpu: number
+      threads: null | number
+    }
+    feature_limits: {
+      databases: number
+      allocations: number
+      backups: number
+    }
+    user: number
+    node: number
+    allocation: number
+    nest: number
+    egg: number
+    container: {
+      startup_command: string
+      image: string
+      installed: boolean
+      environment: {
+        BUNGEE_VERSION: string
+        SERVER_JARFILE: string
+        STARTUP: string
+        P_SERVER_LOCATION: string
+        P_SERVER_UUID: string
+        P_SERVER_ALLOCATION_LIMIT: number
+      }
+    }
+    updated_at: string
+    created_at: string
+  }
+}
