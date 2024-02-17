@@ -346,15 +346,16 @@ export class UpdateCart {
     }
 
     if (product.pterodactyl !== undefined) {
-      const { cpu, disk, port, ram } = product.pterodactyl
+      const { cpu, disk, time, /* port, */ ram } = product.pterodactyl
       const { Emojis } = settings()
 
       embed.setDescription(`
         ${cpu !== undefined ? `${Emojis?.cpu} | CPU: ${cpu}` : ''}
-        ${disk !== undefined ? `${Emojis?.disk} | Disco: ${disk}` : ''}
-        ${port !== undefined ? `${Emojis?.port} | Porta: ${port}` : ''}
         ${ram !== undefined ? `${Emojis?.ram} | Ram:  ${ram}` : ''}
-      `)
+        ${time !== undefined ? `${Emojis?.time} | Duração do plano: ${time}` : ''}
+        ${disk !== undefined ? `${Emojis?.disk} | Disco: ${disk}` : ''}
+        `)
+      // ${port !== undefined ? `${Emojis?.port} | Portas: ${port}` : ''}
     }
 
     return embed

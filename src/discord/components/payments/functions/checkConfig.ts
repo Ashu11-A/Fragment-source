@@ -44,6 +44,29 @@ export async function checkProduct (options: {
       }
     }
 
+    if (productData?.properties?.SetPterodactyl !== undefined) {
+      if (productData?.pterodactyl === undefined) {
+        errors.push('O metodo `Pterodactyl` foi selecionado, mas nenhum elemento como: `Egg`, `CPU`, `Ram`, `Disco`, `Período`, foi configurado!')
+      } else {
+        const configured = []
+        const existingItems = ['egg', 'cpu', 'ram', 'disk', 'time']
+        const missingItem = []
+
+        for (const item in productData.pterodactyl) {
+          configured.push(item)
+        }
+        for (const item of existingItems) {
+          if (!configured.includes(item)) {
+            missingItem.push(item)
+          }
+        }
+
+        if (missingItem.length > 0) {
+          errors.push(`Faltam configurar os elementos: ${missingItem.join(', ')}.`)
+        }
+      }
+    }
+
     if (productData.price === undefined) {
       errors.push('Preço do produto não foi configurado')
     }

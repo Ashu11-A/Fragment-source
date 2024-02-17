@@ -20,7 +20,8 @@ export interface ProductCartData {
     cpu: string
     ram: string
     disk: string
-    port: string
+    time: string
+    // port: string
   }
 }
 
@@ -71,7 +72,8 @@ export interface productData {
     cpu: string
     ram: string
     disk: string
-    port: string
+    time: string
+    // port: string
   }
 }
 

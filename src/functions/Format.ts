@@ -56,7 +56,7 @@ export function numerosParaLetras (str: string): string {
 }
 
 export function convertStringToDate (str: string): Date {
-  const regex = /(\d+)([smhd])/
+  const regex = /(\d+)([smhdMy])/
   const matches = str.match(regex)
 
   if (matches === null) {
@@ -80,9 +80,53 @@ export function convertStringToDate (str: string): Date {
     case 'd':
       now.setDate(now.getDate() + value)
       break
+    case 'M':
+      now.setMonth(now.getMonth() + value)
+      break
+    case 'y':
+      now.setFullYear(now.getFullYear() + value)
+      break
     default:
       throw new Error('Unidade inválida')
   }
 
   return now
+}
+
+export function convertStringDateToString (str: string): string {
+  const regex = /(\d+)([smhdMy])/
+  const matches = str.match(regex)
+
+  if (matches === null) {
+    throw new Error('Formato inválido')
+  }
+
+  const value = parseInt(matches[1])
+  const unit = matches[2]
+  let string = ''
+
+  switch (unit) {
+    case 's':
+      string = value > 1 ? 'segundos' : 'segundo'
+      break
+    case 'm':
+      string = value > 1 ? 'minutos' : 'minuto'
+      break
+    case 'h':
+      string = value > 1 ? 'horas' : 'hora'
+      break
+    case 'd':
+      string = value > 1 ? 'dias' : 'dia'
+      break
+    case 'M':
+      string = value > 1 ? 'meses' : 'mês'
+      break
+    case 'y':
+      string = value > 1 ? 'anos' : 'ano'
+      break
+    default:
+      throw new Error('Unidade inválida')
+  }
+
+  return `${value} ${string}`
 }

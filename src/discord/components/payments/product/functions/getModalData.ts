@@ -44,7 +44,7 @@ const productModal: ModalType = {
     customId: 'content'
   },
   Ram: {
-    title: '❓| Memoria Ram',
+    title: '❓| Memória Ram',
     label: 'Quantos GB/MB de Ram?',
     placeholder: 'Ex: 1024M ou 1GB',
     style: 1,
@@ -63,16 +63,26 @@ const productModal: ModalType = {
     type: ComponentType.TextInput,
     customId: 'content'
   },
-  Port: {
-    title: '❓| Portas de conexão',
-    label: 'Quantas portas serão disponibilizadas?',
-    placeholder: 'Ex: 3',
+  Time: {
+    title: '⏳ | Tempo que o plano irá durar',
+    label: 'Defina o período de tempo que o plano terá',
+    placeholder: 'Ex: 30s, 5m, 8h, 7d, 1M, 1y',
     style: 1,
-    maxLength: 30,
-    db: 'pterodactyl.port',
+    maxLength: 5,
+    db: 'pterodactyl.time',
     type: ComponentType.TextInput,
     customId: 'content'
   }
+  // Port: {
+  //   title: '❓| Portas de conexão',
+  //   label: 'Quantas portas serão disponibilizadas?',
+  //   placeholder: 'Ex: 3',
+  //   style: 1,
+  //   maxLength: 30,
+  //   db: 'pterodactyl.port',
+  //   type: ComponentType.TextInput,
+  //   customId: 'content'
+  // }
 }
 
 export function getModalData (customID: string): collectorButtonsForModals {

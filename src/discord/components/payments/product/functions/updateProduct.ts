@@ -1,6 +1,6 @@
 import { core, db } from '@/app'
 import { createRowEdit } from '@/discord/components/SUEE/functions/createRowEdit'
-import { CustomButtonBuilder } from '@/functions'
+import { CustomButtonBuilder, convertStringDateToString } from '@/functions'
 import {
   ActionRowBuilder,
   type ButtonBuilder,
@@ -67,16 +67,15 @@ export class UpdateProduct {
     if (updateEmbed.data.description !== undefined) updateEmbed.setDescription(updateEmbed.data.description)
 
     if (productData?.properties?.SetPterodactyl && productData?.pterodactyl !== undefined) {
-      const { egg, cpu, disk, port, ram } = productData.pterodactyl
+      const { egg, cpu, disk, time, /* port, */ ram } = productData.pterodactyl
       const { Emojis } = settings()
       const strings: string[] = []
 
-      console.log(productData.pterodactyl)
-
-      if (egg !== undefined) strings.push(`${Emojis?.egg ?? '🥚'} | Egg: ${egg.name}`)
+      if (egg !== undefined) strings.push(`${Emojis?.egg ?? '⚙️'} | Serviço: ${egg.name}`)
       if (cpu !== undefined) strings.push(`${Emojis?.cpu ?? '🖥️'} | CPU: ${cpu}`)
       if (disk !== undefined) strings.push(`${Emojis?.disk ?? '💿'} | Disco: ${disk}`)
-      if (port !== undefined) strings.push(`${Emojis?.port ?? '🌐'} | Porta: ${port}`)
+      if (time !== undefined) strings.push(`${Emojis?.time ?? '⏳'} | Duração: ${convertStringDateToString(time)}`)
+      // if (port !== undefined) strings.push(`${Emojis?.port ?? '🌐'} | Porta: ${port}`)
       if (ram !== undefined) strings.push(`${Emojis?.ram ?? '🎟'} | Ram:  ${ram}`)
 
       updateEmbed.setDescription(`${updateEmbed.data.description}\n${strings.join('\n')}`)
@@ -120,7 +119,7 @@ export class UpdateProduct {
   }): Promise<void> {
     const { interaction, message } = this
     const { switchBotton, button } = options
-    const { guildId, channelId, user } = interaction
+    const { guildId, channelId } = interaction
     const productData = (await db.messages.get(
       `${guildId}.payments.${channelId}.messages.${message.id}`
     )) as productData
@@ -141,32 +140,28 @@ export class UpdateProduct {
           type: 'Product',
           customId: 'SetPrice',
           label: 'Preço',
-          emoji: { name: '💰' },
-          isProtected: { user }
+          emoji: { name: '💰' }
         }),
         new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'SetRole',
           label: 'Add Cargo',
-          emoji: { name: '🛂' },
-          isProtected: { user }
+          emoji: { name: '🛂' }
         }),
         new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'Export',
           label: 'Exportar',
-          emoji: { name: '📤' },
-          isProtected: { user }
+          emoji: { name: '📤' }
         }),
         new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'Import',
           label: 'Importar',
-          emoji: { name: '📥' },
-          isProtected: { user }
+          emoji: { name: '📥' }
         })
       ]
 
@@ -196,8 +191,7 @@ export class UpdateProduct {
           customId: 'SetEstoque',
           label: 'Estoque',
           emoji: { name: '🗃️' },
-          style: ButtonStyle.Secondary,
-          isProtected: { user }
+          style: ButtonStyle.Secondary
         }),
         new CustomButtonBuilder({
           permission: 'Admin',
@@ -206,8 +200,7 @@ export class UpdateProduct {
           label: 'Add Estoque',
           emoji: { name: '➕' },
           style: ButtonStyle.Secondary,
-          disabled: true,
-          isProtected: { user }
+          disabled: true
         }),
         new CustomButtonBuilder({
           permission: 'Admin',
@@ -215,8 +208,7 @@ export class UpdateProduct {
           customId: 'SetCtrlPanel',
           label: 'CrtlPanel',
           emoji: { name: '💻' },
-          style: ButtonStyle.Secondary,
-          isProtected: { user }
+          style: ButtonStyle.Secondary
         }),
         new CustomButtonBuilder({
           permission: 'Admin',
@@ -225,8 +217,7 @@ export class UpdateProduct {
           label: 'Moedas',
           emoji: { name: '🪙' },
           style: ButtonStyle.Secondary,
-          disabled: true,
-          isProtected: { user }
+          disabled: true
         }),
         new CustomButtonBuilder({
           permission: 'Admin',
@@ -234,7 +225,6 @@ export class UpdateProduct {
           customId: 'SetPterodactyl',
           label: 'Pterodactyl',
           emoji: { name: '🦖' },
-          isProtected: { user },
           style: ButtonStyle.Secondary
         })
       ]
@@ -276,7 +266,6 @@ export class UpdateProduct {
           customId: 'Egg',
           label: 'Egg',
           emoji: { name: '🥚' },
-          isProtected: { user },
           style: ButtonStyle.Secondary
         }),
         new CustomButtonBuilder({
@@ -285,7 +274,6 @@ export class UpdateProduct {
           customId: 'CPU',
           label: 'CPU',
           emoji: { name: 'cpu', id: '789745130507599882' },
-          isProtected: { user },
           style: ButtonStyle.Secondary
         }),
         new CustomButtonBuilder({
@@ -294,7 +282,6 @@ export class UpdateProduct {
           customId: 'Ram',
           label: 'Ram',
           emoji: { name: 'Ram', id: '789745215690244107' },
-          isProtected: { user },
           style: ButtonStyle.Secondary
         }),
         new CustomButtonBuilder({
@@ -303,18 +290,25 @@ export class UpdateProduct {
           customId: 'Disk',
           label: 'Disco',
           emoji: { name: '🗃️' },
-          isProtected: { user },
           style: ButtonStyle.Secondary
         }),
         new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
-          customId: 'Port',
-          label: 'Portas',
-          emoji: { name: '🌐' },
-          isProtected: { user },
+          customId: 'Time',
+          label: 'Período',
+          emoji: { name: '⏳' },
           style: ButtonStyle.Secondary
         })
+        // new CustomButtonBuilder({
+        //   permission: 'Admin',
+        //   type: 'Product',
+        //   customId: 'Port',
+        //   label: 'Portas',
+        //   emoji: { name: '🌐' },
+        //   ,
+        //   style: ButtonStyle.Secondary
+        // })
       ]
 
       const componetUpdate: string[] = []
@@ -351,15 +345,13 @@ export class UpdateProduct {
           customId: 'Save',
           label: 'Salvar',
           emoji: { name: '✔️' },
-          style: ButtonStyle.Success,
-          isProtected: { user }
+          style: ButtonStyle.Success
         }),
         new CustomButtonBuilder({
           permission: 'Admin',
           type: 'Product',
           customId: 'Status',
-          label: 'Ativar/Desativar',
-          isProtected: { user }
+          label: 'Ativar/Desativar'
         }),
         new CustomButtonBuilder({
           permission: 'Admin',
@@ -367,8 +359,7 @@ export class UpdateProduct {
           customId: 'Delete',
           label: 'Apagar Produto',
           emoji: { name: '✖️' },
-          style: ButtonStyle.Danger,
-          isProtected: { user }
+          style: ButtonStyle.Danger
         })
       ]
       const componetUpdate: string[] = []
@@ -414,7 +405,8 @@ export class UpdateProduct {
       Ram: 4,
       Disk: 4,
       CPU: 4,
-      Port: 4,
+      Time: 4,
+      // Port: 4,
       Save: 5,
       Status: 5,
       Delete: 5
