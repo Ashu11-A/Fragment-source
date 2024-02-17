@@ -108,12 +108,15 @@ export class Pterodactyl {
       last_name: string
       password?: string
     }
-    type: 'create' | 'update' | 'delete'
+    type: 'create' | 'update' | 'delete' | 'list'
   }): Promise<UserObject | number | undefined | AxiosError<any, any>> {
     try {
       const { type, data, userId } = options
 
       switch (type) {
+        case 'list':
+          return await this.client().get('application/users')
+            .then((res) => res.data as UserObject)
         case 'create':
           return await this.client().post('application/users', data)
             .then(async (res) => {
