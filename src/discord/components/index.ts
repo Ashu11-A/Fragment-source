@@ -1,4 +1,4 @@
-// Isso ira pegar todos os eventos que um botão é precionado e ira destrinjar ele para os seus reais ações
+// Isso irá pegar todos os eventos que um botão é precionado e irá destrinjar ele para os seus reais ações
 import { core } from '@/app'
 import { CustomButtonBuilder, Discord } from '@/functions'
 import { Event } from '../base'

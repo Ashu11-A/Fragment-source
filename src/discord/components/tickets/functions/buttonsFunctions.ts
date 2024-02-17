@@ -188,7 +188,7 @@ export class TicketButtons implements TicketType {
     if (type === 'delTicket') {
       embed.setDescription('Tem certeza que deseja fechar o Ticket?')
     } else {
-      embed.setDescription('Tem certeza que deseja deletar esse templete de Ticket?\nIsso ira deletar as informações do Banco de dados e Embeds.')
+      embed.setDescription('Tem certeza que deseja deletar esse templete de Ticket?\nIsso irá deletar as informações do Banco de dados e Embeds.')
     }
 
     const messagePrimary = await this.interaction.editReply({

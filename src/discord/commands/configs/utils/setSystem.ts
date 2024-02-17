@@ -56,7 +56,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
   const pterodactylEmbed = new EmbedBuilder({
     title: '🦖 Pterodactyl',
     description: brBuilder(
-      'Timeout: Tempo que o sistema de status ira atualizar.'
+      'Timeout: Tempo que o sistema de status irá atualizar.'
     ),
     color: 0x57f287
   })
