@@ -54,3 +54,35 @@ export function numerosParaLetras (str: string): string {
 
   return resultado
 }
+
+export function convertStringToDate (str: string): Date {
+  const regex = /(\d+)([smhd])/
+  const matches = str.match(regex)
+
+  if (matches === null) {
+    throw new Error('Formato inválido')
+  }
+
+  const value = parseInt(matches[1])
+  const unit = matches[2]
+  const now = new Date()
+
+  switch (unit) {
+    case 's':
+      now.setSeconds(now.getSeconds() + value)
+      break
+    case 'm':
+      now.setMinutes(now.getMinutes() + value)
+      break
+    case 'h':
+      now.setHours(now.getHours() + value)
+      break
+    case 'd':
+      now.setDate(now.getDate() + value)
+      break
+    default:
+      throw new Error('Unidade inválida')
+  }
+
+  return now
+}
