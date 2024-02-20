@@ -204,7 +204,6 @@ export class UpdateCart {
     const { cartData, interaction } = this
     const { products, typeEmbed, typeRedeem, user } = cartData
     const { user: { id: userID }, guildId } = interaction
-    console.log(products)
     const valorTotal =
       products.reduce(
         (allValue, product) => allValue + product.quantity * product.amount,
@@ -223,7 +222,6 @@ export class UpdateCart {
     const taxTotal: number = products.reduce(
       (allTax, { amount }) => allTax + (amount * ((taxa ?? 0) / 100)), 0
     ) ?? 0
-    console.log(taxTotal, taxa)
     const embeds: EmbedBuilder[] = []
     let title
     let description
