@@ -26,9 +26,9 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
     title: '🎉 Configurações',
     description: brBuilder(
       '◈ Escolha quais sistemas do bot você deseja ativar ou desativar neste servidor.',
-      '◈ Para configurar os tickets, utilize </config ticket:1150898069941002267>,',
-      'os Logs, Boas Vindas, e outos aspectos, utilize </config guild:1150898069941002267>',
-      'configure o sistema de pagamentos em: </config pagamentos:1150898069941002267>.'
+      '◈ Para configurar os tickets, utilize `/config ticket>`',
+      'os Logs, Boas Vindas, e outos aspectos, utilize `/config guild`',
+      'configure o sistema de pagamentos em: `</config pagamentos`'
     ),
     color: 0x57f287
   })
@@ -39,8 +39,8 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
       '◈ Ative ou Desative o status do Bot.',
       '◈ Escolha abaixo qual tipo de status deseja.',
       '◈ Os status são atualizados a cada ``15 segundos``.',
-      '◈ Mensagens: Você pode personalizar os status com o comando </config status opções:1150898069941002267>.',
-      '◈ Minecraft: Para utilizar esse metodo configure-o em: </config status minecraft:1150898069941002267>.'
+      '◈ Mensagens: Você pode personalizar os status com o comando `/config status opções`.',
+      '◈ Minecraft: Para utilizar esse metodo configure-o em: `/config status minecraft`.'
     ),
     color: 0x57f287
   })
@@ -225,7 +225,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
     if (customId === undefined) continue
     if (systemData === null) continue
 
-    const isTrue = systemData[customId]
+    const isTrue = systemData?.[customId] ?? false
     if (value.data.style === undefined) value.setStyle(isTrue === true ? ButtonStyle.Success : ButtonStyle.Secondary)
   }
 
