@@ -12,7 +12,8 @@
     "assets": [
       "node_modules/**/*.js",
       "node_modules/**/*.cjs",
-      "node_modules/**/*.json"
+      "node_modules/**/*.json",
+      "node_modules/**/*.node"
     ],
     "outputPath": "release"
   },

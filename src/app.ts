@@ -28,7 +28,7 @@ async function checkConfig (): Promise<void> {
   }
 
   if (!dirEX('./settings.json')) {
-    await axios.get('https://raw.githubusercontent.com/Ashu11-A/PaymentBot/main/settings.exemple.json')
+    await axios.get('https://raw.githubusercontent.com/Ashu11-A/PaymentBot/release/settings.exemple.json')
       .then((res) => {
         dirCR(`${rootDir}/settings`)
         jsonsv('./settings.json', res.data)
