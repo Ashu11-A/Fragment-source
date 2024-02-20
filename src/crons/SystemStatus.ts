@@ -1,8 +1,8 @@
-import { EmbedBuilder, type TextChannel } from 'discord.js'
-import axios from 'axios'
-import { setIntervalAsync } from 'set-interval-async'
 import { client, db } from '@/app'
+import { Crons } from '@/classes/Crons'
 import { Pterodactyl } from '@/classes/pterodactyl'
+import axios from 'axios'
+import { EmbedBuilder, type TextChannel } from 'discord.js'
 
 interface NodeData {
   id: number
@@ -49,6 +49,7 @@ export async function genEmbeds (options: {
 
   // Obtém as informações de estatísticas dos nós
   async function getNodeStats (): Promise<NodeData[] | undefined> {
+    if (token === undefined || url === undefined) return
     const pteroConect = new Pterodactyl({ token, url })
     const nodesList = await pteroConect.getNodes()
     if (nodesList === undefined || axios.isAxiosError(nodesList)) return
@@ -150,20 +151,21 @@ export async function genEmbeds (options: {
   return embeds
 }
 
-export default async function statusPtero (): Promise<void> {
-  const guilds = client.guilds.cache
+new Crons({
+  name: 'statusPtero',
+  cron: '*/15 * * * * *',
+  once: false,
+  async exec (cron, interval) {
+    if (interval === undefined) return
+    const guilds = client.guilds.cache
 
-  for (const [, guild] of guilds.entries()) {
-    const timeout = (await db.system.get(`${guild.id}.pterodactyl.timeout`)) ?? 15000
-
-    // Set an interval
-    setIntervalAsync(async () => {
+    for (const [, guild] of guilds.entries()) {
       const enabled = await db.system.get(`${guild.id}.status.PteroStatus`)
       if (enabled === false) return
       try {
         const embeds: EmbedBuilder[] = []
         const now = new Date()
-        const futureTime = new Date(now.getTime() + parseInt(timeout))
+        const futureTime = new Date(now.getTime() + 15000)
         const futureTimeString = `<t:${Math.floor(futureTime.getTime() / 1000)}:R>`
 
         embeds.push(
@@ -195,6 +197,6 @@ export default async function statusPtero (): Promise<void> {
       } catch (err) {
         console.log(err)
       }
-    }, parseInt(timeout))
+    }
   }
-}
+})

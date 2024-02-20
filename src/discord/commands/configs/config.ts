@@ -1,9 +1,9 @@
 import { db } from '@/app'
+import { genEmbeds } from '@/crons/SystemStatus'
 import { Command } from '@/discord/base'
 import { setSystem } from '@/discord/commands/configs/utils/setSystem'
 import { MpModalconfig } from '@/discord/components/config/modals/mpModal'
 import { sendEmbed } from '@/discord/components/payments'
-import { genEmbeds } from '@/discord/events/ready/statusPtero/SystemStatus'
 import { Database, validarURL } from '@/functions'
 import { CustomButtonBuilder, Discord } from '@/functions/Discord'
 import {
