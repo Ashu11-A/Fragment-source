@@ -1,0 +1,9 @@
+{
+  "API": "http://localhost:3000",
+  "Tokens": {
+    "accessToken": "undefined",
+    "refreshToken": "undefined"
+  },
+  "expired": true,
+  "enabled": false
+}
