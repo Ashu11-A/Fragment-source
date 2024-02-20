@@ -35,6 +35,11 @@ jobs:
           npm install eslint@8.10.0
           npm install @microsoft/eslint-formatter-sarif@2.1.7
 
+      - name: Config Project
+        run: |
+            mv settings.exemple.json settings.json
+            mv src\settings\settings.exemple.json src\settings\settings.json
+
       - name: Run ESLint
         run: npx eslint ./src
           --config .eslintrc.json

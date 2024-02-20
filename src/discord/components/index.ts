@@ -30,7 +30,7 @@ new Event({
       return
     }
 
-    if (internalDB?.expired === undefined || internalDB.expired !== false) {
+    if (internalDB?.expired === undefined || internalDB.expired) {
       await interaction.reply({
         ephemeral,
         embeds: [new EmbedBuilder({ title: '⚠️ Token ou Login invalidos.' }).setColor('Red')]

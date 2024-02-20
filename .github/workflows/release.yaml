@@ -35,6 +35,11 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Config Project
+      run: |
+          mv settings.exemple.json settings.json
+          mv src\settings\settings.exemple.json src\settings\settings.json
+
     - name: Build release
       run: npm run build:release
 

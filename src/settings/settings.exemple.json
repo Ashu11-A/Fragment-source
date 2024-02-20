@@ -1,8 +1,8 @@
 {
-  "API": "http://localhost:3000",
+  "API": "http://node.seventyhost.net:24398",
   "Tokens": {
-    "accessToken": "undefined",
-    "refreshToken": "undefined"
+    "accessToken": "",
+    "refreshToken": ""
   },
   "expired": true,
   "enabled": false
