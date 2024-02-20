@@ -13,11 +13,16 @@
       ]
     }
   },
+  "Auth": {
+    "username": "exemple",
+    "password": "exemple",
+    "uuid": "exemple"
+  },
   "Emojis": {
     "egg": "<:square_discovery:1123998856212918423>",
     "cpu": "<:square_boost:1123998887254958190>",
     "disk": "<:square_verified:1123998716274155590>",
-    "port": "<:square_announcement:1123998919005831188>",
+    "time": "<:square_announcement:1123998919005831188>",
     "ram": "<:square_partner:1123998765041336385>"
   }
 }

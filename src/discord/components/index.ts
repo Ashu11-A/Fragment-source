@@ -4,6 +4,8 @@ import { CustomButtonBuilder, Discord } from '@/functions'
 import { Event } from '../base'
 import { ButtonController } from './controller'
 import { EmbedBuilder } from 'discord.js'
+import internalDB from '@/settings/settings.json'
+import getSettings from '@/functions/getSettings'
 
 new Event({
   name: 'interactionCreate',
@@ -13,6 +15,28 @@ new Event({
     const { customId, user: { username }, guild } = interaction
     const typeAction = interaction.isButton() ? 'Buttom' : interaction.isModalSubmit() ? 'Modal' : 'Select'
     const [id, permission, type, action, userId] = CustomButtonBuilder.getInfos(customId)
+    const { Auth } = getSettings()
+
+    if (Auth === undefined) {
+      await interaction.reply({
+        ephemeral,
+        embeds: [
+          new EmbedBuilder({
+            title: '⚠️ Token invalido ou inexistente.',
+            description: 'Caso queira usar esse bot, mande uma DM para `ashu11a`.'
+          }).setColor('Red')
+        ]
+      })
+      return
+    }
+
+    if (internalDB?.expired === undefined || internalDB.expired !== false) {
+      await interaction.reply({
+        ephemeral,
+        embeds: [new EmbedBuilder({ title: '⚠️ Token ou Login invalidos.' }).setColor('Red')]
+      })
+      return
+    }
 
     if (id === undefined || action === undefined) { console.log('Nenhuma ação foi expecificada no botão'); return }
     // <-- Verifica a interação -->

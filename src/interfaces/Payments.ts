@@ -34,7 +34,7 @@ export interface cartData {
   typeRedeem?: 'CtrlPanel' | 'Pterodactyl' | 'DM'
   role?: string
   paymentId?: number
-  user?: User
+  user?: PaymentUserCTRL
   properties?: Record<string, boolean> | undefined
   fields?: Array<{ value: string }>
 }
@@ -77,7 +77,7 @@ export interface productData {
   }
 }
 
-export interface User {
+export interface PaymentUserCTRL {
   id: number
   name: string
   email: string
@@ -85,7 +85,7 @@ export interface User {
   role: string
 }
 
-export interface Server {
+export interface PaymentServerCTRL {
   userId: number
   pterodactylId: number
   identifier: string

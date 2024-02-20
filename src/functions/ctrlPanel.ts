@@ -1,8 +1,8 @@
 import { core, db } from '@/app'
-import { type Server, type User } from '@/interfaces'
+import { type PaymentServerCTRL, type PaymentUserCTRL } from '@/interfaces/Payments'
 import { createRow } from '@magicyan/discord'
 import axios from 'axios'
-import { ActionRowBuilder, ButtonStyle, ComponentType, EmbedBuilder, codeBlock, ButtonBuilder, type InteractionResponse, type ModalSubmitInteraction } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, codeBlock, type InteractionResponse, type ModalSubmitInteraction } from 'discord.js'
 import { CustomButtonBuilder, updateProgressAndEstimation } from '.'
 import { numerosParaLetras } from './Format'
 
@@ -279,8 +279,8 @@ export class ctrlPanel {
     { lastPage: number, perPage: number, total: number } |
     undefined> {
     const { url, token, guildId, msg, type } = options
-    const usersData: User[] = []
-    const serversData: Server[] = []
+    const usersData: PaymentUserCTRL[] = []
+    const serversData: PaymentServerCTRL[] = []
     const startTime = Date.now()
     let clientCount = 0
     let teamCount = 0

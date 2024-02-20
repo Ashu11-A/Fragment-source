@@ -10,7 +10,14 @@ interface ExpressConfig {
 
 type Emoji = Record<string, string>
 
+interface Auth {
+  email: string
+  password: string
+  uuid: string
+}
+
 export interface Config {
   Express: ExpressConfig
   Emojis: Emoji
+  Auth: Auth
 }
