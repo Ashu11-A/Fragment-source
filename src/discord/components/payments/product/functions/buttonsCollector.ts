@@ -6,6 +6,7 @@ import { checkProduct } from '../../functions/checkConfig'
 import { type productData } from '@/interfaces'
 import { UpdateProduct } from './updateProduct'
 import { Pterodactyl } from '@/classes/pterodactyl'
+import { validator } from '@/discord/components/account/functions/validator'
 
 interface ProductButtonType {
   interaction:
@@ -352,16 +353,18 @@ export class ProductButtonCollector {
     const { url: urlPtero, tokenPanel: tokenPtero } = (await db.payments.get(
           `${guildId}.config.pterodactyl`
     )) ?? { url: undefined, tokenPanel: undefined }
+    if (await validator({ interaction, token: tokenPtero, url: urlPtero })) return
 
     const PterodactylBuilder = new Pterodactyl({ url: urlPtero, token: tokenPtero })
 
     const listNest = await PterodactylBuilder.getNests()
     if (listNest === undefined) {
-      await interaction.editReply({
+      await interaction.reply({
+        ephemeral,
         embeds: [
           new EmbedBuilder({
-            title: '❌ | Ocorreu um erro ao solicitar ao Back-end do Petrodactyl a lista de Nests existentes.'
-          })
+            title: '❌ | Ocorreu um erro ao solicitar ao Back-end do Pterodactyl a lista de Nests existentes.'
+          }).setColor('Red')
         ]
       })
       return

@@ -1,10 +1,10 @@
 import { core, db } from '@/app'
 import { UpdateCart } from '@/discord/components/payments'
 import { validarEmail } from '@/functions'
-import { ctrlPanel } from '@/functions/ctrlPanel'
-import { EmbedBuilder, type CacheType, type ModalSubmitInteraction } from 'discord.js'
+import { EmbedBuilder, codeBlock, type CacheType, type ModalSubmitInteraction } from 'discord.js'
 import { getModalData } from './functions/getModalData'
 import { PaymentFunction } from './functions/cartCollectorFunctions'
+import { CtrlPanel } from '@/classes/ctrlPanel'
 
 export default async function cartCollectorModal (options: {
   interaction: ModalSubmitInteraction<CacheType>
@@ -27,10 +27,45 @@ export default async function cartCollectorModal (options: {
       const [validador, messageInfo] = validarEmail(dataInfo.email)
       if (validador) {
         core.info(`Solicitação para o E-mail: ${dataInfo.email}`)
-        const userData = await ctrlPanel.searchEmail({ interaction, email: dataInfo.email })
+        const { token, url } = await db.payments.get(`${guildId}.config.ctrlPanel`)
+
+        if (token === undefined || url === undefined) {
+          await interaction.reply({
+            ephemeral,
+            embeds: [
+              new EmbedBuilder({
+                title: '☹️ | Desculpe-me, mas o dono do servidor não configurou essa opção...'
+              }).setColor('Red')
+            ]
+          })
+          return
+        }
+
+        const msg = await interaction.reply({
+          embeds: [
+            new EmbedBuilder({
+              title: 'Aguarde, estou consultando os seus dados...',
+              description: '(Isso pode levar 1 minuto caso sua conta seja nova)'
+            }).setColor('Yellow')
+          ]
+        })
+
+        const CtrlPanelBuilder = new CtrlPanel({ url, token })
+        const { status, userData } = await CtrlPanelBuilder.searchEmail({ email: dataInfo.email, guildId })
+
+        console.log(status, userData)
+
+        await msg.edit({
+          embeds: [
+            new EmbedBuilder({
+              title: (status && userData !== undefined) ? `👋 Olá ${userData[0].name}` : 'Desculpe-me, mas o E-mail informado não foi encontrado...',
+              description: (status && userData !== undefined) ? codeBlock(`Sabia que seu id é ${userData[0].id}?`) : undefined
+            })
+          ]
+        })
 
         if (userData !== undefined) {
-          await db.payments.set(`${guildId}.process.${channelId}.user`, userData)
+          await db.payments.set(`${guildId}.process.${channelId}.user`, userData[0])
 
           if (message !== null) {
             const PaymentBuilder = new PaymentFunction({ interaction, key })

@@ -653,7 +653,23 @@ export class PaymentFunction {
      * Login
      */
   public async Login (): Promise<void> {
+    const { guildId, channelId } = this.interaction
+
     const Account = new GenAccount({ interaction: this.interaction })
-    await Account.genLogin()
+    const cartData = await db.payments.get(`${guildId}.process.${channelId}`) as cartData
+
+    let disablePtero = false
+    let disableCTRL = false
+
+    for (const product of cartData.products) {
+      if ((product.pterodactyl !== undefined)) {
+        disableCTRL = true
+      }
+      if ((product.coins !== undefined)) {
+        disablePtero = true
+      }
+    }
+
+    await Account.genLogin({ disable: { ptero: disablePtero, dash: disableCTRL } })
   }
 }

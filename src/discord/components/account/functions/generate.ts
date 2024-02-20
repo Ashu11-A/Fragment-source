@@ -114,9 +114,27 @@ export class GenAccount {
   /**
    * genLogin
    */
-  public async genLogin (): Promise<Message<boolean> | undefined> {
+  public async genLogin (options: {
+    disable: {
+      ptero?: boolean
+      dash?: boolean
+    }
+  }): Promise<Message<boolean> | undefined> {
     const { interaction } = this
+    const { disable } = options
+    console.log(disable)
     const { urlCtrl, urlPtero, tokenCtrl, tokenPtero, ctrlUserDB, pteroUserDB } = await this.getData()
+
+    if (disable.dash === true && disable.ptero === true) {
+      await interaction.editReply({
+        embeds: [
+          new EmbedBuilder({
+            title: 'Você tem produtos com diferentes características de entrega, no momento isso não é permitido!'
+          }).setColor('Red')
+        ]
+      })
+      return
+    }
 
     const embed = new EmbedBuilder({
       title: `👋 Bem vindo ${interaction.user.username}.`,
@@ -127,7 +145,7 @@ export class GenAccount {
     const row = new ActionRowBuilder<ButtonBuilder>()
     // const row2 = new ActionRowBuilder<ButtonBuilder>()
 
-    if (urlCtrl !== undefined && tokenCtrl !== undefined) {
+    if ((urlCtrl !== undefined && tokenCtrl !== undefined) && !(disable.dash ?? false)) {
       row.addComponents(
         new CustomButtonBuilder({
           permission: 'User',
@@ -150,7 +168,7 @@ export class GenAccount {
       // )
     }
 
-    if (urlPtero !== undefined && tokenPtero !== undefined) {
+    if ((urlPtero !== undefined && tokenPtero !== undefined) && !(disable.ptero ?? false)) {
       row.addComponents(
         new CustomButtonBuilder({
           permission: 'User',

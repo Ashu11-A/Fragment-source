@@ -4,6 +4,7 @@ import { ProductButtonCollector } from './buttonsCollector'
 import { TextChannel } from 'discord.js'
 import { UpdateProduct } from './updateProduct'
 import { Pterodactyl } from '@/classes/pterodactyl'
+import { validator } from '@/discord/components/account/functions/validator'
 
 interface ProductSeletcType {
   interaction: StringSelectMenuInteraction<CacheType>
@@ -31,6 +32,7 @@ export class ProductSeletc implements ProductSeletcType {
     const { url: urlPtero, tokenPanel: tokenPtero } = (await db.payments.get(
       `${guildId}.config.pterodactyl`
     )) ?? { url: undefined, tokenPanel: undefined }
+    if (await validator({ interaction, token: tokenPtero, url: urlPtero })) return
 
     const PterodactylBuilder = new Pterodactyl({ url: urlPtero, token: tokenPtero })
 
@@ -91,7 +93,7 @@ export class ProductSeletc implements ProductSeletcType {
     const { url: urlPtero, tokenPanel: tokenPtero } = (await db.payments.get(
       `${guildId}.config.pterodactyl`
     )) ?? { url: undefined, tokenPanel: undefined }
-    console.log(urlPtero, tokenPtero)
+    if (await validator({ interaction, token: tokenPtero, url: urlPtero })) return
 
     const [eggId, eggName, nestId, messageId] = values[0].split('-')
 

@@ -12,7 +12,14 @@ export async function checkProduct (options: {
 }): Promise<[boolean, string] | [boolean]> {
   const { interaction, productData } = options
   const { guildId } = interaction
+  const methodTax = ['pix', 'debit_card', 'credit_card']
+  const taxData = await db.payments.get(`${guildId}.config.taxes`)
   const errors: string[] = []
+
+  for (const tax of methodTax) {
+    if (taxData[tax] === undefined) errors.push('Método de taxa ``' + tax + '`` não configurado')
+  }
+  if (errors.length > 0) errors.push('Use o comando ``/config pagamentos config:Mercado Pago``')
 
   if (productData !== undefined) {
     if (

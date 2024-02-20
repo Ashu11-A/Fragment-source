@@ -44,7 +44,41 @@ export async function createCart (interaction: ButtonInteraction<CacheType>): Pr
   if (sendChannel !== undefined && sendChannel instanceof TextChannel) {
     try {
       const cartData = await db.payments.get(`${guildId}.process.${sendChannel.id}`) as cartData
-      if (cartData.products.some((product) => product.id === message.id)) {
+      // <-- Validar se o resgate é Pterodactyl ou Ctrlpanel, e se nn há conflito -->
+      let disablePtero = false
+      let disableCTRL = false
+
+      for (const product of cartData.products) {
+        if ((product.pterodactyl !== undefined)) {
+          disableCTRL = true
+        }
+        if ((product.coins !== undefined)) {
+          disablePtero = true
+        }
+      }
+
+      if ((productData.pterodactyl !== undefined)) {
+        disableCTRL = true
+      }
+      if ((productData.coins !== undefined)) {
+        disablePtero = true
+      }
+
+      if (disablePtero && disableCTRL) {
+        await interaction.editReply({
+          embeds: [
+            new EmbedBuilder({
+              title: 'Você tem produtos com diferentes características de entrega, no momento isso não é permitido!'
+            }).setColor('Red')
+          ]
+        })
+        return
+      }
+
+      if (cartData === undefined) {
+        await sendChannel.delete()
+        await createCart(interaction)
+      } else if (cartData.products.some((product) => product.id === message.id)) {
         await interaction.editReply({
           embeds: [new EmbedBuilder({
             title: '🤚 Desculpe, mas esse item já está no seu carrinho!'

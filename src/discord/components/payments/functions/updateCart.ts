@@ -2,12 +2,12 @@ import { core, db } from '@/app'
 import { CustomButtonBuilder } from '@/functions'
 import {
   ActionRowBuilder,
+  ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
   TextChannel,
   codeBlock,
   type APIEmbed,
-  type ButtonBuilder,
   type ButtonInteraction,
   type CacheType,
   type Message,
@@ -48,7 +48,7 @@ export class UpdateCart {
     core.info('<--------\\\\ updateCart //-------->'.green)
     const startBuild = Date.now()
     const { interaction, cartData } = this
-    const { message, channel } = options
+    const { message, channel, taxa } = options
     const { typeEmbed, products, properties } = cartData
     const { guildId, channelId } = interaction
 
@@ -67,7 +67,7 @@ export class UpdateCart {
     let setMessageId: string | undefined
 
     paymentEmbeds.push(
-      ...(await this.generateInfoEmbed())
+      ...(await this.generateInfoEmbed(taxa))
     )
 
     for (const product of products) {
@@ -200,7 +200,7 @@ export class UpdateCart {
     }
   }
 
-  public async generateInfoEmbed (): Promise<EmbedBuilder[]> {
+  public async generateInfoEmbed (taxa?: number): Promise<EmbedBuilder[]> {
     const { cartData, interaction } = this
     const { products, typeEmbed, typeRedeem, user } = cartData
     const { user: { id: userID }, guildId } = interaction
@@ -219,6 +219,11 @@ export class UpdateCart {
     const productTotal: number =
       products.reduce((allCount, product) => allCount + product.quantity, 0) ??
       0
+
+    const taxTotal: number = products.reduce(
+      (allTax, { amount }) => allTax + (amount * ((taxa ?? 0) / 100)), 0
+    ) ?? 0
+    console.log(taxTotal, taxa)
     const embeds: EmbedBuilder[] = []
     let title
     let description
@@ -245,7 +250,8 @@ export class UpdateCart {
         description,
         fields: [
           { name: '📦 Produtos:', value: String(productTotal ?? 'Indefinido') },
-          { name: '🛒 Valor Total', value: `R$${valorTotal}` }
+          { name: '🛒 Valor Total', value: `R$${valorTotal}` },
+          { name: '😓 Taxas', value: `R$${taxTotal > 0 ? (taxTotal - valorTotal) : taxTotal}` }
         ]
       }).setColor('Blue')
     )
@@ -467,8 +473,7 @@ export class UpdateCart {
     ]
 
     const Payment = [
-      new CustomButtonBuilder({
-        type: 'Cart',
+      new ButtonBuilder({
         label: 'Pagar',
         url: 'https://www.mercadopago.com.br/',
         style: ButtonStyle.Link
