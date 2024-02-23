@@ -22,6 +22,25 @@ export class TicketButtons implements TicketType {
     const sendChannel = guild?.channels.cache.find((c) => c.name === nome)
     const status: Record<string, boolean | undefined> | null = await db.system.get(`${guild?.id}.status`)
     const ticket = await db.guilds.get(`${guild?.id}.ticket`)
+    const tocketLimit = await db.guilds.get(`${guildId}.config.ticketsLimit`)
+    const usageDay = await db.system.get(`${guildId}.tickets.${user.id}`) as { date: Date, usage: number } | undefined
+    console.log(usageDay, (new Date(usageDay?.date) < new Date()), tocketLimit)
+
+    if (usageDay !== undefined) {
+      let muchRequest: boolean = false
+      if (new Date(usageDay.date) > new Date()) muchRequest = true
+      if (usageDay.usage >= tocketLimit ?? 1) muchRequest = true
+      if (muchRequest) {
+        await this.interaction.editReply({
+          embeds: [
+            new EmbedBuilder({
+              title: 'Você já usou o limite diario de tickets, por favor, não spame!'
+            }).setColor('Red')
+          ]
+        })
+        return
+      }
+    }
 
     if (sendChannel !== undefined) {
       await this.interaction.editReply({
@@ -116,6 +135,7 @@ export class TicketButtons implements TicketType {
       } else {
         await ch?.send({ embeds: [embed], components: [botao] }).catch(console.error)
       }
+      await db.system.set(`${guildId}.tickets.${user.id}`, { date: new Date(new Date().getDate() + 1), usage: usageDay?.usage !== undefined ? usageDay.usage + 1 : 1 })
     } catch (all) {
       console.error(all)
       await this.interaction.editReply({

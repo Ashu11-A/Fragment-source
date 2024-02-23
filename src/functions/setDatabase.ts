@@ -30,7 +30,7 @@ export class Database implements DatabaseType {
     const { interaction, pathDB, typeDB } = this
     const { user, guildId, channel } = interaction
     try {
-      if (typeof data === 'string') {
+      if (typeof data === 'string' || typeof data === 'number') {
         const { user, guildId, channel } = interaction
         await db[typeDB ?? 'guilds'].set(`${guildId}.${pathDB}`, data)
 

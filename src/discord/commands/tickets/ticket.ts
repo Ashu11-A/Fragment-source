@@ -2,7 +2,7 @@ import { EmbedBuilder, ApplicationCommandOptionType, ApplicationCommandType, typ
 import { Command } from '@/discord/base'
 import { db } from '@/app'
 import { TicketButtons, ticketButtonsConfig } from '@/discord/components/tickets'
-import { Discord } from '@/functions'
+import { Database, Discord } from '@/functions'
 
 new Command({
   name: 'ticket',
@@ -15,20 +15,37 @@ new Command({
       description: '[ADM] Envia a embed de configuração.',
       required: false,
       type: ApplicationCommandOptionType.Channel
+    },
+    {
+      name: 'limit',
+      description: '[ADM] Limita a quantidade tickets por 24h.',
+      required: false,
+      type: ApplicationCommandOptionType.Number
     }
   ],
   async run (interaction) {
     const { guild, guildId, channelId, options } = interaction
     const channel = options.getChannel('panel-embed')
+    const limit = options.getNumber('limit')
     const sendChannel = guild?.channels.cache.get(String(channel?.id)) as TextChannel
+
+    await interaction.deferReply({ ephemeral: true })
     const ticketConstructor = new TicketButtons({ interaction })
 
+    if (typeof limit === 'number') {
+      await new Database({
+        interaction,
+        pathDB: 'config.ticketsLimit',
+        typeDB: 'guilds'
+      }).set({
+        data: limit
+      })
+      return
+    }
     if (channel === null) {
       await ticketConstructor.createTicket({ about: 'Ticket aberto por meio do comando /ticket' })
       return
     }
-
-    await interaction.deferReply({ ephemeral: true })
 
     if (await Discord.Permission(interaction, 'Administrator')) return
 
