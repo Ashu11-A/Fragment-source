@@ -3,7 +3,7 @@ import { gen } from '@/functions'
 import { EmbedBuilder, type CacheType, type ModalSubmitInteraction } from 'discord.js'
 import { sendDM } from '../functions/sendDM'
 import { validator } from '../functions/validator'
-import { CtrlPanel } from '@/classes/ctrlPanel'
+import { CtrlPanel } from '@/classes/CtrlPanel'
 import { showError } from '../functions/showError'
 import { type UserData } from '@/interfaces'
 

@@ -85,6 +85,22 @@ export interface PaymentUserCTRL {
   role: string
 }
 
+export interface PaymentUserPtero {
+  id: number
+  name: string
+  email: string
+  root_admin: boolean
+}
+
+export interface PaymentServerPtero {
+  id: number
+  userId: number
+  identifier: string
+  name: string
+  suspended: boolean
+  createAt: number
+}
+
 export interface PaymentServerCTRL {
   userId: number
   pterodactylId: number

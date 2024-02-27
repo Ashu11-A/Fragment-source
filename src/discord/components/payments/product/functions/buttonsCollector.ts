@@ -5,7 +5,7 @@ import { type ModalSubmitInteraction, type CacheType, type ButtonInteraction, ty
 import { checkProduct } from '../../functions/checkConfig'
 import { type productData } from '@/interfaces'
 import { UpdateProduct } from './updateProduct'
-import { Pterodactyl } from '@/classes/pterodactyl'
+import { Pterodactyl } from '@/classes/Pterodactyl'
 import { validator } from '@/discord/components/account/functions/validator'
 
 interface ProductButtonType {

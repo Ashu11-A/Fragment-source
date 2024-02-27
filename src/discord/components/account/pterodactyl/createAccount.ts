@@ -3,7 +3,7 @@ import { gen } from '@/functions'
 import { type ModalSubmitInteraction, type CacheType, EmbedBuilder } from 'discord.js'
 import { sendDM } from '../functions/sendDM'
 import { validator } from '../functions/validator'
-import { Pterodactyl } from '@/classes/pterodactyl'
+import { Pterodactyl } from '@/classes/Pterodactyl'
 import { type UserObject } from '@/interfaces'
 import { showError } from '../functions/showError'
 

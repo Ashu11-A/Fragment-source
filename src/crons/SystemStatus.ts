@@ -1,6 +1,6 @@
 import { client, db } from '@/app'
 import { Crons } from '@/classes/Crons'
-import { Pterodactyl } from '@/classes/pterodactyl'
+import { Pterodactyl } from '@/classes/Pterodactyl'
 import axios from 'axios'
 import { EmbedBuilder, type TextChannel } from 'discord.js'
 

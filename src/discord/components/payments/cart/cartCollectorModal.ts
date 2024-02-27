@@ -4,7 +4,8 @@ import { validarEmail } from '@/functions'
 import { EmbedBuilder, codeBlock, type CacheType, type ModalSubmitInteraction } from 'discord.js'
 import { getModalData } from './functions/getModalData'
 import { PaymentFunction } from './functions/cartCollectorFunctions'
-import { CtrlPanel } from '@/classes/ctrlPanel'
+import { CtrlPanel } from '@/classes/CtrlPanel'
+import { Pterodactyl } from '@/classes/Pterodactyl'
 
 export default async function cartCollectorModal (options: {
   interaction: ModalSubmitInteraction<CacheType>
@@ -52,6 +53,71 @@ export default async function cartCollectorModal (options: {
 
         const CtrlPanelBuilder = new CtrlPanel({ url, token })
         const { status, userData } = await CtrlPanelBuilder.searchEmail({ email: dataInfo.email, guildId })
+
+        console.log(status, userData)
+
+        await msg.edit({
+          embeds: [
+            new EmbedBuilder({
+              title: (status && userData !== undefined) ? `👋 Olá ${userData[0].name}` : 'Desculpe-me, mas o E-mail informado não foi encontrado...',
+              description: (status && userData !== undefined) ? codeBlock(`Sabia que seu id é ${userData[0].id}?`) : undefined
+            })
+          ]
+        })
+
+        if (userData !== undefined) {
+          await db.payments.set(`${guildId}.process.${channelId}.user`, userData[0])
+
+          if (message !== null) {
+            const PaymentBuilder = new PaymentFunction({ interaction, key })
+
+            await db.payments.set(`${guildId}.process.${channelId}.typeRedeem`, key)
+            await db.payments.set(`${guildId}.process.${channelId}.properties.${key}`, true)
+            await db.payments.delete(`${guildId}.process.${channelId}.properties.Pterodactyl`)
+            await db.payments.delete(`${guildId}.process.${channelId}.properties.DM`)
+            await PaymentBuilder.NextOrBefore({ type: 'next', update: 'No' })
+
+            const cartData = await db.payments.get(`${guildId}.process.${channelId}`)
+            const cartBuilder = new UpdateCart({ interaction, cartData })
+            await interaction.deleteReply()
+            await cartBuilder.embedAndButtons({ message })
+          }
+        }
+      } else {
+        await interaction.reply({ ephemeral, content: messageInfo })
+      }
+      return
+    }
+    case 'Pterodactyl': {
+      if (dataInfo.email === undefined) return
+      const [validador, messageInfo] = validarEmail(dataInfo.email)
+      if (validador) {
+        core.info(`Solicitação para o E-mail: ${dataInfo.email}`)
+        const { tokenPanel, url } = await db.payments.get(`${guildId}.config.pterodactyl`)
+
+        if (tokenPanel === undefined || url === undefined) {
+          await interaction.reply({
+            ephemeral,
+            embeds: [
+              new EmbedBuilder({
+                title: '☹️ | Desculpe-me, mas o dono do servidor não configurou essa opção...'
+              }).setColor('Red')
+            ]
+          })
+          return
+        }
+
+        const msg = await interaction.reply({
+          embeds: [
+            new EmbedBuilder({
+              title: 'Aguarde, estou consultando os seus dados...',
+              description: '(Isso pode levar 1 minuto caso sua conta seja nova)'
+            }).setColor('Yellow')
+          ]
+        })
+
+        const PterodactylBuilder = new Pterodactyl({ url, token: tokenPanel })
+        const { status, userData } = await PterodactylBuilder.searchEmail({ email: dataInfo.email, guildId })
 
         console.log(status, userData)
 

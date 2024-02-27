@@ -3,7 +3,7 @@ import { type StringSelectMenuInteraction, type CacheType, ActionRowBuilder, typ
 import { ProductButtonCollector } from './buttonsCollector'
 import { TextChannel } from 'discord.js'
 import { UpdateProduct } from './updateProduct'
-import { Pterodactyl } from '@/classes/pterodactyl'
+import { Pterodactyl } from '@/classes/Pterodactyl'
 import { validator } from '@/discord/components/account/functions/validator'
 
 interface ProductSeletcType {

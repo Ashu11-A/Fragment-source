@@ -14,7 +14,7 @@
     }
   },
   "Auth": {
-    "username": "exemple",
+    "email": "exemple",
     "password": "exemple",
     "uuid": "exemple"
   },
