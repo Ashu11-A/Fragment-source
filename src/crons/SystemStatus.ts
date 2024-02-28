@@ -15,7 +15,9 @@ interface NodeData {
   memory_max: number
   disk_min: number
   disk_max: number
+  scheme: string
   ip: string
+  port: number
 }
 
 export async function genEmbeds (options: {
@@ -68,7 +70,9 @@ export async function genEmbeds (options: {
         memory_max: node.attributes.memory,
         disk_min: node.attributes.allocated_resources.disk,
         disk_max: node.attributes.disk,
-        ip: node.attributes.fqdn
+        ip: node.attributes.fqdn,
+        port: node.attributes.daemon_listen,
+        scheme: node.attributes.scheme
       }
 
       return body
@@ -112,7 +116,7 @@ export async function genEmbeds (options: {
 
   for (const node of nodeStats) {
     const status = (await checkStatus(
-      'https://' + node?.ip + ':8080'
+      `${node?.scheme}://${node?.ip}:${node?.port}`
     ))
       ? '🟢 Online'
       : '🔴 Offline'

@@ -7,7 +7,6 @@ import path from 'path'
  */
 export async function StructuralCrons (): Promise<void> {
   const CoreDIR = path.join(__dirname, '../')
-  console.log(CoreDIR)
   const paths = await glob(['crons/**/*.{ts,js}'], { cwd: CoreDIR })
 
   /**
