@@ -85,11 +85,24 @@ export interface PaymentUserCTRL {
   role: string
 }
 
-export interface PaymentUserPtero {
+export interface UserPtero {
   id: number
-  name: string
+  username: string
   email: string
   root_admin: boolean
+}
+export interface PaymentUserPtero {
+  object: 'user'
+  attributes: UserPtero
+}
+
+export interface PaymentMetadataPtero {
+  total: number
+  count: number
+  per_page: number
+  current_page: number
+  total_pages: number
+  links: object
 }
 
 export interface PaymentServerPtero {

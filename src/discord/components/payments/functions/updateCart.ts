@@ -347,10 +347,10 @@ export class UpdateCart {
       const { Emojis } = settings()
 
       embed.setDescription(`
-        ${cpu !== undefined ? `${Emojis?.cpu} | CPU: ${cpu}` : ''}
-        ${ram !== undefined ? `${Emojis?.ram} | Ram:  ${ram}` : ''}
-        ${time !== undefined ? `${Emojis?.time} | Duração do plano: ${time}` : ''}
-        ${disk !== undefined ? `${Emojis?.disk} | Disco: ${disk}` : ''}
+        ${cpu !== undefined ? `${Emojis?.cpu ?? '🖥️'} | CPU: ${cpu}` : ''}
+        ${ram !== undefined ? `${Emojis?.ram ?? '🎟'} | Ram:  ${ram}` : ''}
+        ${time !== undefined ? `${Emojis?.time ?? '⏳'} | Duração do plano: ${time}` : ''}
+        ${disk !== undefined ? `${Emojis?.disk ?? '💿'} | Disco: ${disk}` : ''}
         `)
       // ${port !== undefined ? `${Emojis?.port} | Portas: ${port}` : ''}
     }

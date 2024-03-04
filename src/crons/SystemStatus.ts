@@ -165,7 +165,7 @@ new Crons({
 
     for (const [, guild] of guilds.entries()) {
       const enabled = await db.system.get(`${guild.id}.status.PteroStatus`)
-      if (enabled === false) return
+      if (enabled !== undefined && enabled === false) return
       try {
         const embeds: EmbedBuilder[] = []
         const now = new Date()

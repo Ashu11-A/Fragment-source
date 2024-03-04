@@ -1,6 +1,6 @@
 import { core, db } from '@/app'
 import { numerosParaLetras, updateProgressAndEstimation } from '@/functions'
-import { type PaymentServerPtero, type PaymentUserPtero, type EggObject, type NestObject, type NodeConfigObject, type NodeObject, type Server, type UserObject } from '@/interfaces'
+import { type PaymentServerPtero, type PaymentUserPtero, type EggObject, type NestObject, type NodeConfigObject, type NodeObject, type Server, type UserObject, PaymentMetadataPtero, UserPtero } from '@/interfaces'
 import axios, { type AxiosError, type AxiosInstance } from 'axios'
 
 export class Pterodactyl {
@@ -223,7 +223,7 @@ export class Pterodactyl {
   }): Promise<{ status: boolean, userData: any[] | undefined }> {
     const { email, guildId } = options
 
-    let metadata = await db.ctrlPanel.table(`${numerosParaLetras(guildId)}_users`).get('metadata')
+    let metadata = await db.pterodactyl.table(`${numerosParaLetras(guildId)}_users`).get('metadata')
 
     if (metadata?.lastPage === undefined) {
       metadata = await this.updateDatabase({ guildId, type: 'users' })
@@ -238,7 +238,7 @@ export class Pterodactyl {
     }> {
       let status: { status: boolean, userData: any[] | undefined } = { status: false, userData: undefined }
       for (let page = 1; page <= metadata.lastPage; page++) {
-        const dataDB = await db.ctrlPanel.table(`${numerosParaLetras(guildId)}_users`).get(String(page))
+        const dataDB = await db.pterodactyl.table(`${numerosParaLetras(guildId)}_users`).get(String(page))
 
         if (Array.isArray(dataDB)) {
           foundUsers = dataDB.filter(
@@ -276,7 +276,7 @@ export class Pterodactyl {
     undefined> {
     const { guildId, type } = options
     const { url, token } = this
-    const usersData: PaymentUserPtero[] = []
+    const usersData: UserPtero[] = []
     const serversData: PaymentServerPtero[] = []
     const startTime = Date.now()
     let clientCount = 0
@@ -293,24 +293,26 @@ export class Pterodactyl {
 
         const data = response.data
         const users = data.data as PaymentUserPtero[]
+        const metadata = data.meta.pagination as PaymentMetadataPtero
 
         for (const user of users) {
-          const { id, name, email, root_admin } = user
+          const { id, username, email, root_admin } = user.attributes
           usersData.push({
             id,
-            name,
+            name: username,
             email,
             root_admin
           })
-          if (user.root_admin) {
+          if (root_admin) {
             teamCount++
           } else {
             clientCount++
           }
         }
 
-        if (data.current_page <= data.last_page) {
-          const dataBD = await db.ctrlPanel.table(`${numerosParaLetras(guildId)}_users`).get(String(data.current_page))
+        if (metadata.current_page <= metadata.total_pages) {
+          const dataBD = await db.pterodactyl.table(`${numerosParaLetras(guildId)}_users`).get(String(metadata.current_page))
+          console.log(usersData)
           if (dataBD?.length <= 50 || usersData?.length > 0) {
             let isDataChanged = false
 
@@ -327,36 +329,36 @@ export class Pterodactyl {
               }
             }
             if (isDataChanged) {
-              core.info(`Tabela: ${data.current_page}/${data.last_page} | Mesclando`)
-              await db.ctrlPanel.table(`${numerosParaLetras(guildId)}_users`).set(`${data.current_page}`, usersData)
+              core.info(`Tabela: ${metadata.current_page}/${metadata.total_pages} | Mesclando`)
+              await db.pterodactyl.table(`${numerosParaLetras(guildId)}_users`).set(`${metadata.current_page}`, usersData)
             } else {
-              core.info(`Tabela: ${data.current_page}/${data.last_page} | Sincronizado`)
+              core.info(`Tabela: ${metadata.current_page}/${metadata.total_pages} | Sincronizado`)
             }
 
-            if (data.current_page % 2 === 0) {
+            if (metadata.current_page % 2 === 0) {
               const { progress, estimatedTimeRemaining } = updateProgressAndEstimation({
-                totalTables: data.last_page,
-                currentTable: data.current_page,
+                totalTables: metadata.total_pages,
+                currentTable: metadata.current_page,
                 startTime
               })
-              core.log(`Tabelas: ${data.current_page}/${data.last_page}`, `Users: ${data.from} - ${data.to} / ${data.total}`, `${progress.toFixed(2)}% | Tempo Restante: ${estimatedTimeRemaining.toFixed(2)}s`)
+              core.log(`Tabelas: ${metadata.current_page}/${metadata.total_pages}`, `Users: ${metadata.total} - ${metadata.per_page * metadata.current_page} / ${metadata.total}`, `${progress.toFixed(2)}% | Tempo Restante: ${estimatedTimeRemaining.toFixed(2)}s`)
             }
           }
 
-          if (data.current_page === data.last_page) {
-            const { last_page: lastPage, per_page: perPage, total } = data
-            const metadata = {
+          if (metadata.current_page === metadata.total_pages) {
+            const { total_pages: lastPage, per_page: perPage, total } = metadata
+            const metadataData = {
               lastPage,
               perPage,
               total,
               clientCount,
               teamCount
             }
-            await db.ctrlPanel.table(`${numerosParaLetras(guildId)}_users`).set('metadata', metadata)
-            return metadata
+            await db.ctrlPanel.table(`${numerosParaLetras(guildId)}_users`).set('metadata', metadataData)
+            return metadataData
           } else if (data.next_page_url !== null) {
             usersData.length = 0
-            return await fetchUsers(data.next_page_url)
+            return await fetchUsers(`${url}/api/application/users?page=${metadata.current_page + 1}`)
           }
         }
       } catch (err) {
@@ -389,7 +391,7 @@ export class Pterodactyl {
         }
 
         if (data.current_page <= data.last_page) {
-          const dataBD = await db.ctrlPanel.table(`${numerosParaLetras(guildId)}_servers`).get(String(data.current_page))
+          const dataBD = await db.pterodactyl.table(`${numerosParaLetras(guildId)}_servers`).get(String(data.current_page))
           if (dataBD?.length <= 50 || serversData?.length > 0) {
             let isDataChanged = false
 
@@ -406,7 +408,7 @@ export class Pterodactyl {
             }
             if (isDataChanged) {
               core.info(`Tabela: ${data.current_page}/${data.last_page} | Mesclando`)
-              await db.ctrlPanel.table(`${numerosParaLetras(guildId)}_servers`).set(`${data.current_page}`, serversData)
+              await db.pterodactyl.table(`${numerosParaLetras(guildId)}_servers`).set(`${data.current_page}`, serversData)
             } else {
               core.info(`Tabela: ${data.current_page}/${data.last_page} | Sincronizado`)
             }
@@ -421,7 +423,7 @@ export class Pterodactyl {
               sincDate: Number(new Date())
             }
             console.log(metadata)
-            await db.ctrlPanel.table(`${numerosParaLetras(guildId)}_servers`).set('metadata', metadata)
+            await db.pterodactyl.table(`${numerosParaLetras(guildId)}_servers`).set('metadata', metadata)
             return metadata
           } else if (data.next_page_url !== null) {
             serversData.length = 0

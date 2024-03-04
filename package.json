@@ -26,8 +26,8 @@
     "build": "tsc && tscpaths -p tsconfig.json -s ./src -o ./dist",
     "build:test": "tsc --project ./tsconfig.json --declaration true -declarationDir dist/types && tsc-alias",
     "build:release": "npm run build && ts-node release.ts",
-    "lint": "eslint --ext .tsx,.ts --fix ./src -c .eslintrc.json",
-    "rollup": "npm run build:test && rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript --bundleConfigAsCjs"
+    "build:rollup": "npm run build:test && rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript --bundleConfigAsCjs",
+    "lint": "eslint --ext .tsx,.ts --fix ./src -c .eslintrc.json"
   },
   "keywords": [
     "Bot",

@@ -1,11 +1,10 @@
 // import { type OutputOptions } from 'rollup'
-import json from '@rollup/plugin-json'
-import terser from '@rollup/plugin-terser'
-import nodePolyfills from 'rollup-plugin-polyfill-node'
-import multi from '@rollup/plugin-multi-entry'
-import tsConfigPaths from 'rollup-plugin-tsconfig-paths'
-import nodeResolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
+import json from '@rollup/plugin-json'
+import multi from '@rollup/plugin-multi-entry'
+import nodeResolve from '@rollup/plugin-node-resolve'
+import nodePolyfills from 'rollup-plugin-polyfill-node'
+import tsConfigPaths from 'rollup-plugin-tsconfig-paths'
 
 export default {
   input: ['dist/**/*.js', 'dist/**/*.json'],
@@ -42,7 +41,7 @@ export default {
   plugins: [
     tsConfigPaths({ tsConfigPath: './tsconfig.build.json' }),
     nodeResolve({ preferBuiltins: false, extensions: ['.mjs', '.js', '.json', '.node'], browser: false, allowExportsFolderMapping: false }),
-    multi({ include: 'dist/lib', preserveModules: true }),
+    multi({ include: 'dist/lib', preserveModules: true, exclude: ['node_modules/**/*.node'] }),
     commonjs({ exclude: ['node_modules/**/*.node'] }),
     // terser({
     //   maxWorkers: 4,

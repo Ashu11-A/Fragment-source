@@ -139,7 +139,7 @@ export class GenAccount {
     const embed = new EmbedBuilder({
       title: `👋 Bem vindo ${interaction.user.username}.`,
       description:
-                'Abaixo se encontra os metodos atuais para realizar o Login em nossas plataformas'
+        'Abaixo se encontra os metodos atuais para realizar o Login em nossas plataformas'
     }).setColor('Blurple')
 
     const row = new ActionRowBuilder<ButtonBuilder>()

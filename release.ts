@@ -4,6 +4,7 @@ import path from 'path'
 import { minify } from 'terser'
 import { SingleBar, Presets } from 'cli-progress'
 import { exec } from '@yao-pkg/pkg'
+import {  } from  'rollup'
 
 async function carregarDados (options: {
   diretorio: string
@@ -31,7 +32,9 @@ async function carregarDados (options: {
 async function compress (): Promise<void> {
   const progressBar = new SingleBar({}, Presets.rect)
   const files = await carregarDados({ diretorio: 'dist' })
+
   progressBar.start(Object.entries(files).length, 0)
+
   for (const [filePath, fileContent] of Object.entries(files)) {
     progressBar.increment(1)
     const newPath = path.dirname(filePath).replace('dist', 'build')
@@ -47,13 +50,16 @@ async function compress (): Promise<void> {
         },
         ie8: false,
         keep_fnames: false,
-        mangle: true,
+        mangle: {
+          properties: true,
+          toplevel: true
+        },
         module: true,
         toplevel: true,
         output: {
           ascii_only: true,
           beautify: false,
-          comments: false
+          comments: false,
         },
         sourceMap: true
       })
@@ -69,6 +75,7 @@ async function compress (): Promise<void> {
       writeFileSync(`${newPath}/${fileName}`, fileContent, 'utf8')
     }
   }
+
   progressBar.stop()
 
   const args = ['.', '--no-bytecode', '--compress', 'Brotli', '--public-packages', '"*"', '--public']
