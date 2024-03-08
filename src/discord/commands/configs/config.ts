@@ -10,12 +10,11 @@ import {
   ActionRowBuilder,
   ApplicationCommandOptionType,
   ApplicationCommandType,
-  type ButtonBuilder,
+  ButtonStyle,
   ChannelType,
   EmbedBuilder,
   TextChannel,
-  type CategoryChannel,
-  ButtonStyle
+  type ButtonBuilder
 } from 'discord.js'
 
 new Command({
@@ -153,6 +152,14 @@ new Command({
           description: '[ ⚙️ ] Configurar sistemas de pagamentos desejado.',
           type: ApplicationCommandOptionType.String,
           choices: [{ name: 'Mercado Pago', value: 'mp' }]
+        },
+        {
+          name: 'logs',
+          description: '[ 📃 ] Configurar registro dos pagamentos',
+          type: ApplicationCommandOptionType.Channel,
+          channelTypes: [
+            ChannelType.GuildText
+          ]
         }
       ]
     },
@@ -298,13 +305,18 @@ new Command({
           break
         }
         case 'pagamentos': {
-          const addProduto = options.getChannel('add-produto') as TextChannel
-          const carrinho = options.getChannel('carrinho') as CategoryChannel
+          const addProduto = options.getChannel('add-produto')
+          const carrinho = options.getChannel('carrinho')
           const config = options.getString('config')
+          const logs = options.getChannel('logs')
+
+          if (config !== null) {
+            await MpModalconfig({ interaction })
+          }
 
           if (addProduto !== null) {
             await interaction.deferReply({ ephemeral: true })
-            await sendEmbed(interaction, addProduto)
+            await sendEmbed(interaction, addProduto as TextChannel)
           }
           if (carrinho !== null) {
             await interaction.deferReply({ ephemeral: true })
@@ -316,8 +328,16 @@ new Command({
               data: carrinho.id
             })
           }
-          if (config !== null) {
-            await MpModalconfig({ interaction })
+
+          if (logs !== null) {
+            await interaction.deferReply({ ephemeral: true })
+            await new Database({
+              interaction,
+              pathDB: 'config.logs',
+              typeDB: 'payments'
+            }).set({
+              data: logs.id
+            })
           }
 
           break

@@ -16,6 +16,7 @@ export default async function cartCollectorModal (options: {
 
   const { guildId, user, channel, message, fields, channelId } = interaction
   const { modalData, modalProperties } = getModalData(key)
+
   let dataInfo: Record<string, string> = {}
   for (const { customId } of modalData) {
     dataInfo = ({ ...dataInfo, [customId]: fields.getTextInputValue(customId) })

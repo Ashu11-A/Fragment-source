@@ -16,17 +16,22 @@ export default async function cartCollectorButtons (options: {
 
   const customIdHandlers: CustomIdHandlers = {
     Verify: async () => { await PaymentBuilder.verifyPayment() },
-    DM: async () => { await PaymentBuilder.DM() },
+
     WTF: async () => { await PaymentBuilder.WTF() },
+
     Add: async () => { await PaymentBuilder.AddOrRem({ type: 'Add' }) },
     Rem: async () => { await PaymentBuilder.AddOrRem({ type: 'Rem' }) },
     Remove: async () => { await PaymentBuilder.RemoveItem() },
-    Pix: async () => { await createPayment({ interaction, method: 'pix' }) },
-    Cancelar: async () => { await PaymentBuilder.Cancelar() },
+
     Next: async () => { await PaymentBuilder.NextOrBefore({ type: 'next' }) },
     Before: async () => { await PaymentBuilder.NextOrBefore({ type: 'before' }) },
+    Cancelar: async () => { await PaymentBuilder.Cancelar() },
+
+    Pix: async () => { await createPayment({ interaction, method: 'pix' }) },
     CardDebito: async () => { await createPayment({ interaction, method: 'debit_card' }) },
     CardCredito: async () => { await createPayment({ interaction, method: 'credit_card' }) },
+
+    DM: async () => { await PaymentBuilder.DM() },
     Registro: async () => { await PaymentBuilder.Registro() },
     Login: async () => { await PaymentBuilder.Login() }
   }

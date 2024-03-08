@@ -4,6 +4,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  type ChatInputCommandInteraction,
   EmbedBuilder,
   TextChannel,
   codeBlock,
@@ -18,7 +19,7 @@ import { type ProductCartData, type cartData } from '@/interfaces'
 import settings from '@/functions/getSettings'
 
 interface UpdateCartType {
-  interaction: ButtonInteraction<CacheType> | ModalSubmitInteraction<CacheType>
+  interaction: ButtonInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ChatInputCommandInteraction<CacheType>
   cartData: cartData
 }
 export class UpdateCart {
@@ -222,6 +223,8 @@ export class UpdateCart {
     const taxTotal: number = products.reduce(
       (allTax, { amount }) => allTax + (amount * ((taxa ?? 0) / 100)), 0
     ) ?? 0
+
+    console.log(taxTotal, valorTotal)
     const embeds: EmbedBuilder[] = []
     let title
     let description
@@ -249,7 +252,7 @@ export class UpdateCart {
         fields: [
           { name: '📦 Produtos:', value: String(productTotal ?? 'Indefinido') },
           { name: '🛒 Valor Total', value: `R$${valorTotal}` },
-          { name: '😓 Taxas', value: `R$${taxTotal > 0 ? (taxTotal - valorTotal) : taxTotal}` }
+          { name: '😓 Taxas', value: `R$${taxTotal}` }
         ]
       }).setColor('Blue')
     )
@@ -370,7 +373,7 @@ export class UpdateCart {
       new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Rem',
-        disabled: product.quantity <= 1,
+        disabled: ((product.quantity <= 1) || !product.isIncremental),
         emoji: { name: '➖' },
         style: ButtonStyle.Primary,
         isProtected: { user }
@@ -378,6 +381,7 @@ export class UpdateCart {
       new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Add',
+        disabled: !product.isIncremental,
         emoji: { name: '➕' },
         style: ButtonStyle.Primary,
         isProtected: { user }
@@ -393,6 +397,7 @@ export class UpdateCart {
       new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Remove',
+        disabled: !product.isIncremental,
         emoji: { name: '✖️' },
         style: ButtonStyle.Danger,
         isProtected: { user }
@@ -417,7 +422,7 @@ export class UpdateCart {
         label: 'Mensagem via DM',
         emoji: { name: '💬' },
         style: ButtonStyle.Success,
-        disabled: true,
+        disabled: !(data.products.some((product) => product.isEphemeral) ?? false),
         isProtected: { user }
       })
     ]
@@ -429,6 +434,7 @@ export class UpdateCart {
         label: 'Login',
         emoji: { name: '🗝️' },
         style: ButtonStyle.Success,
+        disabled: (data.products.some((product) => product.isEphemeral) ?? false),
         isProtected: { user }
       }),
       new CustomButtonBuilder({
@@ -437,6 +443,7 @@ export class UpdateCart {
         label: 'Registro',
         emoji: { name: '🔐' },
         style: ButtonStyle.Success,
+        disabled: (data.products.some((product) => product.isEphemeral) ?? false),
         isProtected: { user }
       })
     )

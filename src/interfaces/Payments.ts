@@ -5,6 +5,12 @@ export interface ProductCartData {
   name?: string
   amount: number
   quantity: number
+  isIncremental: boolean
+  isEphemeral: boolean
+  // Apenas para não dar problema na criação do ephemeral
+  properties?: undefined
+  role?: undefined
+  //
   coins?: number
   messageId?: string
   cupom?: {
@@ -27,12 +33,12 @@ export interface ProductCartData {
 
 export interface cartData {
   UUID?: string
+  userID: string
   channelId?: string
   products: ProductCartData[]
   messageId?: string
   typeEmbed: number
   typeRedeem?: 'CtrlPanel' | 'Pterodactyl' | 'DM'
-  role?: string
   paymentId?: number
   user?: PaymentUserCTRL
   properties?: Record<string, boolean> | undefined
@@ -59,10 +65,11 @@ export interface productData {
   id: string
   role: string
   embed: EmbedData
+  // Saber se o produto está ativado
   status: boolean
+  properties: Record<string, boolean>
   price?: number
   coins?: number
-  properties: Record<string, boolean>
   pterodactyl?: {
     egg: {
       name: string

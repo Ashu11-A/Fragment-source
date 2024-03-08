@@ -328,36 +328,57 @@ export class PaymentFunction {
     const { guildId, message, user, guild, member, channelId } = interaction
     const cartData = await db.payments.get(`${guildId}.process.${channelId}`) as cartData
     const tokenAuth = await db.tokens.get('token')
-    const mpToken = await db.payments.get(`${guildId}.config.mcToken`)
+    const { mcToken, logs } = await db.payments.get(`${guildId}.config`) as { mcToken: string | undefined, logs: string | undefined }
     const valorTotal: number = cartData.products.reduce((allValue, product) => allValue + (product.quantity * product.amount), 0) ?? 0
     const coinsTotal: number = cartData.products.reduce((allCoins, product) => allCoins + (((product?.coins ?? 0) * product.quantity) ?? 0), 0) ?? 0
     const productsTotal: string = cartData.products.map((product) => product.name).join(' - ')
+    const logChannel = guild.channels.cache.get(String(logs)) as TextChannel
 
     if (cartData?.paymentId !== undefined) {
       const pagamentoRes = await axios.post(`http://${settings().Express.ip}:${settings().Express.Port}/payment`, {
-        mpToken,
+        mpToken: mcToken,
         paymentId: cartData.paymentId
       })
-
-      if (pagamentoRes.status !== 200) {
-        await interaction.editReply({
-          embeds: [
-            new EmbedBuilder({
-              title: 'Ocorreu um erro na solicitação do back-end',
-              fields: [
-                { name: 'Status', value: (String(pagamentoRes?.status) ?? 'Indefinido') },
-                { name: 'Error', value: (pagamentoRes.statusText ?? 'Indefinido') }
-              ]
-            }).setColor('Red')
-          ]
+        .then((res) => res)
+        .catch(async (err) => {
+          console.log(err)
+          await interaction.editReply({
+            embeds: [
+              new EmbedBuilder({
+                title: 'Ocorreu um erro na solicitação do back-end',
+                fields: [
+                  { name: 'Status', value: (String(err?.status ?? 'Indefinido')) },
+                  { name: 'Error', value: (err.statusText ?? 'Indefinido') }
+                ]
+              }).setColor('Red')
+            ]
+          })
+          return undefined
         })
-        return
-      }
 
-      if (pagamentoRes.data.status === 'approved') {
+      if (pagamentoRes === undefined) return
+
+      if (pagamentoRes?.data?.status === 'approved') {
         const cartBuilder = new UpdateCart({ interaction, cartData })
         const components = await cartBuilder.typeButtons()
         components[0].components[1].setDisabled(true)
+        const embedsDM = [
+          new EmbedBuilder({
+            title: 'Compra efetuada com sucesso!',
+            description: `<@${user.id}> Agradecemos por escolher nossos produtos e serviços e esperamos atendê-lo novamente em breve.`,
+            fields: [
+              { name: `🛒 | Produto${cartData.products.length > 1 ? '(s)' : ''}: `, value: (productsTotal ?? 'Error') },
+              { name: '💵 | Valor: ', value: `R$${valorTotal}` },
+              {
+                name: '📆 | Data: ',
+                value: codeBlock(new Date(Date.now()).toLocaleString('pt-BR'))
+              },
+              { name: '🔑 | UUID:', value: codeBlock(String(cartData.paymentId)) }
+            ],
+            thumbnail: { url: 'https://cdn.discordapp.com/attachments/864381672882831420/1028234365248995368/aprove.gif' },
+            footer: { iconURL: (interaction?.guild?.iconURL({ size: 64 }) ?? undefined), text: `Atenciosamente, ${guild.name}` }
+          }).setColor('Green')
+        ]
 
         let voucherCode: string | undefined
         let voucherId: number | undefined
@@ -456,104 +477,96 @@ export class PaymentFunction {
             await message.edit({ components }) // Retira o desabilitar do botão verificar
             return
           }
-        } else {
-          const Post = {
-            token: tokenAuth,
-            guild: {
-              id: guild.id,
-              name: guild.name
-            },
-            user: {
-              id: user.id,
-              name: user.username
-            },
-            productId: cartData.paymentId,
-            credits: coinsTotal,
-            price: valorTotal,
-            name: productsTotal
-          }
-
-          const response = await axios.post(`http://${settings().Express.ip}:${settings().Express.Port}/ctrlpanel/voucher/create`, Post, {
-            headers: {
-              Accept: 'application/json'
+        } else if (cartData.typeRedeem === 'DM') {
+          // Caso seja uma compra Ephemera
+          if (cartData.products.some((product) => product.isEphemeral)) {
+            await user.send({ embeds: embedsDM })
+          } else if (cartData.products.some((product) => 'coins' in product)) {
+            // Caso a compra sejá pelo CtrlPanel
+            const Post = {
+              token: tokenAuth,
+              guild: {
+                id: guild.id,
+                name: guild.name
+              },
+              user: {
+                id: user.id,
+                name: user.username
+              },
+              productId: cartData.paymentId,
+              credits: coinsTotal,
+              price: valorTotal,
+              name: productsTotal
             }
-          })
-          voucherCode = response.data.code
-          voucherId = response.data.id
-          if ((response?.status !== 200) || (response?.data?.status !== undefined && response?.data?.status !== 200)) {
-            await interaction.channel?.send({
-              content: '@everyone',
-              embeds: [
+
+            const response = await axios.post(`http://${settings().Express.ip}:${settings().Express.Port}/ctrlpanel/voucher/create`, Post, {
+              headers: {
+                Accept: 'application/json'
+              }
+            })
+            voucherCode = response.data.code
+            voucherId = response.data.id
+            if ((response?.status !== 200) || (response?.data?.status !== undefined && response?.data?.status !== 200)) {
+              await interaction.channel?.send({
+                content: '@everyone',
+                embeds: [
+                  new EmbedBuilder({
+                    title: 'Ocorreu um erro, chame um moderador!',
+                    fields: [
+                      {
+                        name: 'ID:',
+                        value: `||${cartData.paymentId}||`
+                      },
+                      {
+                        name: 'UUID:',
+                        value: `||${cartData.UUID}||`
+                      }
+                    ],
+                    timestamp: new Date(),
+                    footer: { text: `Code Error: ${response?.data?.status ?? response.status}, Error ${response?.data?.error ?? response.statusText}` }
+                  }).setColor('Red')
+                ]
+              })
+              core.info(`Ocorreu um erro no Pagamento (ID: ${cartData.paymentId}) do usuário ${user.username} (ID: ${user.id})!`)
+              return
+            } else {
+              embedsDM[0].addFields({
+                name: '💰 | Créditos: ', value: (String(coinsTotal ?? 'Error'))
+              })
+              embedsDM.push(
                 new EmbedBuilder({
-                  title: 'Ocorreu um erro, chame um moderador!',
+                  title: 'Resgate o Código aqui!',
+                  description: 'Vá até loja, e clique em “Código de resgate” ',
                   fields: [
                     {
-                      name: 'ID:',
-                      value: `||${cartData.paymentId}||`
+                      name: '💎 | Código de resgate: ',
+                      value: response.data.code
                     },
                     {
-                      name: 'UUID:',
-                      value: `||${cartData.UUID}||`
+                      name: '🔑 | ID: ',
+                      value: codeBlock(response.data.id)
                     }
                   ],
-                  timestamp: new Date(),
-                  footer: { text: `Code Error: ${response?.data?.status ?? response.status}, Error ${response?.data?.error ?? response.statusText}` }
-                }).setColor('Red')
-              ]
-            })
-            core.info(`Ocorreu um erro no Pagamento (ID: ${cartData.paymentId}) do usuário ${user.username} (ID: ${user.id})!`)
-            return
-          } else {
-            const embeds = [
-              new EmbedBuilder({
-                title: 'Compra efetuada com sucesso!',
-                description: `<@${user.id}> Agradecemos por escolher nossos produtos e serviços e esperamos atendê-lo novamente em breve.`,
-                fields: [
-                  { name: `🛒 | Produto${cartData.products.length > 1 ? '(s)' : ''}: `, value: (productsTotal ?? 'Error') },
-                  { name: '💰 | Créditos: ', value: (String(coinsTotal ?? 'Error')) },
-                  { name: '💵 | Valor: ', value: `R$${valorTotal}` },
-                  {
-                    name: '📆 | Data: ',
-                    value: codeBlock(new Date(Date.now()).toLocaleString('pt-BR'))
-                  },
-                  { name: '🔑 | UUID:', value: codeBlock(String(cartData.paymentId)) }
-                ],
-                thumbnail: { url: 'https://cdn.discordapp.com/attachments/864381672882831420/1028234365248995368/aprove.gif' },
-                footer: { iconURL: (interaction?.guild?.iconURL({ size: 64 }) ?? undefined), text: `Atenciosamente, ${guild.name}` }
-              }).setColor('Green'),
+                  footer: { iconURL: (interaction?.guild?.iconURL({ size: 64 }) ?? undefined), text: 'No celular, pressione o código para copiar.' },
+                  url: 'https://dash.seventyhost.net',
+                  image: { url: 'https://cdn.discordapp.com/attachments/1031659863757041674/1161136544128700546/image.png' }
+                })
+                  .setColor('Blue'),
+                new EmbedBuilder().setURL('https://dash.seventyhost.net').setImage('https://cdn.discordapp.com/attachments/1031659863757041674/1161137302920253470/image.png')
+              )
 
-              new EmbedBuilder({
-                title: 'Resgate o Código aqui!',
-                description: 'Vá até loja, e clique em “Código de resgate” ',
-                fields: [
-                  {
-                    name: '💎 | Código de resgate: ',
-                    value: response.data.code
-                  },
-                  {
-                    name: '🔑 | ID: ',
-                    value: codeBlock(response.data.id)
-                  }
-                ],
-                footer: { iconURL: (interaction?.guild?.iconURL({ size: 64 }) ?? undefined), text: 'No celular, pressione o código para copiar.' },
-                url: 'https://dash.seventyhost.net',
-                image: { url: 'https://cdn.discordapp.com/attachments/1031659863757041674/1161136544128700546/image.png' }
+              await interaction?.channel?.send({
+                embeds: [
+                  new EmbedBuilder({
+                    title: 'O código de resgate foi enviado para o seu PV.'
+                  }).setColor('Purple')
+                ]
               })
-                .setColor('Blue'),
-              new EmbedBuilder().setURL('https://dash.seventyhost.net').setImage('https://cdn.discordapp.com/attachments/1031659863757041674/1161137302920253470/image.png')
-            ]
 
-            await interaction?.channel?.send({
-              embeds: [
-                new EmbedBuilder({
-                  title: 'O código de resgate foi enviado para o seu PV.'
-                }).setColor('Purple')
-              ]
-            })
-
-            await user.send({
-              embeds
-            })
+              await user.send({
+                embeds: embedsDM
+              })
+            }
           }
         }
 
@@ -569,8 +582,31 @@ export class PaymentFunction {
           voucherCode
         })
 
-        if (cartData.role !== undefined) {
-          member.roles.add(cartData.role).catch((err) => { console.log(err) })
+        for (const product of cartData.products) {
+          if (product.role !== undefined) {
+            member.roles.add(product.role).catch((err) => { console.log(err) })
+          }
+        }
+
+        if (typeof logs === 'string') {
+          await logChannel.send({
+            embeds: [
+              new EmbedBuilder({
+                title: '✅ Pagamento aprovado com sucesso!',
+                fields: [
+                  { name: '👀 | Nome do Usuário:', value: codeBlock(user.username) },
+                  { name: '🧐 | ID do Usuário:', value: codeBlock(user.id) },
+                  { name: '🛒 | Produto:', value: codeBlock(productsTotal) },
+                  { name: '💵 | Valor:', value: codeBlock(`R$${valorTotal}`) },
+                  { name: '⚙️ | UUID da Venda:', value: codeBlock(String(cartData.paymentId)) },
+                  { name: '⚙️ | UUID Interno:', value: codeBlock(String(cartData.UUID)) },
+                  { name: '🙀 | Status:', value: codeBlock(pagamentoRes.data.status) },
+                  { name: '📆 | Data:', value: codeBlock(new Date().toDateString()) }
+                ],
+                footer: ({ text: `Equipe ${guild?.name} | Todos os Direitos Reservados`, iconURL: (interaction?.guild?.iconURL({ size: 64 }) ?? undefined) })
+              }).setColor('Green')
+            ]
+          })
         }
 
         setTimeout(() => {
@@ -582,7 +618,7 @@ export class PaymentFunction {
         await interaction.editReply({
           embeds: [
             new EmbedBuilder({
-              title: 'Status atual da compra está como ' + '`' + pagamentoRes.data.status + '`',
+              title: 'Status atual da compra está como ' + '`' + (pagamentoRes?.data?.status ?? 'undefined') + '`',
               timestamp: new Date()
             }).setColor('Orange')
           ]
