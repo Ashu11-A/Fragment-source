@@ -9,7 +9,7 @@ export interface ProductCartData {
   isEphemeral: boolean
   // Apenas para não dar problema na criação do ephemeral
   properties?: undefined
-  role?: undefined
+  role?: string
   //
   coins?: number
   messageId?: string
@@ -94,7 +94,8 @@ export interface PaymentUserCTRL {
 
 export interface UserPtero {
   id: number
-  username: string
+  name?: string // only Local Database
+  username?: string
   email: string
   root_admin: boolean
 }

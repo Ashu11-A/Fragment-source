@@ -1,6 +1,6 @@
 import { core, db } from '@/app'
 import { numerosParaLetras, updateProgressAndEstimation } from '@/functions'
-import { type PaymentServerPtero, type PaymentUserPtero, type EggObject, type NestObject, type NodeConfigObject, type NodeObject, type Server, type UserObject, PaymentMetadataPtero, UserPtero } from '@/interfaces'
+import { type EggObject, type NestObject, type NodeConfigObject, type NodeObject, type PaymentMetadataPtero, type PaymentServerPtero, type PaymentUserPtero, type Server, type UserObject, type UserPtero } from '@/interfaces'
 import axios, { type AxiosError, type AxiosInstance } from 'axios'
 
 export class Pterodactyl {

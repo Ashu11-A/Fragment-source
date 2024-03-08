@@ -205,7 +205,6 @@ export async function createCart (interaction: ButtonInteraction<CacheType> | Ch
         UUID: genv4(),
         userID: client.id,
         channelId: paymentChannel.id,
-        role,
         typeEmbed: 0,
         products: [
           {
@@ -216,7 +215,8 @@ export async function createCart (interaction: ButtonInteraction<CacheType> | Ch
             coins,
             pterodactyl,
             isIncremental,
-            isEphemeral
+            isEphemeral,
+            role
           }
         ]
       })
