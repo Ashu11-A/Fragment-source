@@ -94,7 +94,7 @@ export class PaymentFunction {
           const paymentId = await db.payments.get(`${guildId}.process.${channelId}.paymentId`)
 
           if (paymentId !== undefined) {
-            const token = await db.payments.get(`${guildId}.config.mcToken`)
+            const token = await db.payments.get(`${guildId}.config.mpToken`)
 
             await axios.post(`http://${settings().Express.ip}:${settings().Express.Port}/payment/delete`, {
               mpToken: token,
@@ -328,7 +328,7 @@ export class PaymentFunction {
     const { guildId, message, user, guild, member, channelId } = interaction
     const cartData = await db.payments.get(`${guildId}.process.${channelId}`) as cartData
     const tokenAuth = await db.tokens.get('token')
-    const { mcToken, logs } = await db.payments.get(`${guildId}.config`) as { mcToken: string | undefined, logs: string | undefined }
+    const { mpToken, logs } = await db.payments.get(`${guildId}.config`) as { mpToken: string | undefined, logs: string | undefined }
     const valorTotal: number = cartData.products.reduce((allValue, product) => allValue + (product.quantity * product.amount), 0) ?? 0
     const coinsTotal: number = cartData.products.reduce((allCoins, product) => allCoins + (((product?.coins ?? 0) * product.quantity) ?? 0), 0) ?? 0
     const productsTotal: string = cartData.products.map((product) => product.name).join(' - ')
@@ -336,7 +336,7 @@ export class PaymentFunction {
 
     if (cartData?.paymentId !== undefined) {
       const pagamentoRes = await axios.post(`http://${settings().Express.ip}:${settings().Express.Port}/payment`, {
-        mpToken: mcToken,
+        mpToken,
         paymentId: cartData.paymentId
       })
         .then((res) => res)

@@ -38,7 +38,7 @@ export async function createPayment (options: {
     ) ?? 0
   const amountTax =
     Math.round((amount + amount * (Number(tax) / 100)) * 100) / 100 // Pode receber numeros quebrados por isso do "* 100) / 100"
-  const { mcToken, ipn } = await db.payments.get(`${guildId}.config`)
+  const { mpToken, ipn } = await db.payments.get(`${guildId}.config`)
   const PaymentBuilder = new PaymentFunction({ interaction })
 
   let embeds: Array<APIEmbed | JSONEncodable<APIEmbed>> = [] // Inicialize embeds como um array vazio
@@ -54,7 +54,7 @@ export async function createPayment (options: {
   const dataPix: infoPayment = {
     userName: user.username,
     userId: user.id,
-    mpToken: mcToken,
+    mpToken,
     channelId,
     guildId,
     UUID: cartData.UUID as string,
@@ -150,7 +150,7 @@ export async function createPayment (options: {
     const dataCart: infoPayment = {
       userName: user.username,
       userId: user.id,
-      mpToken: mcToken,
+      mpToken,
       channelId,
       guildId,
       UUID: cartData.UUID as string,

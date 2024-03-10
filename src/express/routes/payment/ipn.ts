@@ -20,7 +20,7 @@ class IPN {
           const cartData = await db.payments.get(`${guildId}.process.${channelId}`)
 
           if (cartData?.UUID === UUID) {
-            const token = await db.payments.get(`${guildId}.config.mcToken`)
+            const token = await db.payments.get(`${guildId}.config.mpToken`)
             const client = new MercadoPagoConfig({ accessToken: token })
             const status = await new Payment(client).get(data.id)
 

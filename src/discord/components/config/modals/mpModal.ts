@@ -24,11 +24,11 @@ export async function MpModalconfig (options: {
         custom_id: 'token',
         label: 'Token',
         placeholder:
-          data?.mcToken === undefined
+          data?.mpToken === undefined
             ? 'Não compartilhe isso com ninguém.'
             : 'Já configurado...',
         style: 1,
-        required: data?.mcToken === undefined
+        required: data?.mpToken === undefined
       })
     ]
   })

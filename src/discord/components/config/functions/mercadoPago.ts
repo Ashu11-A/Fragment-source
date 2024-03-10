@@ -17,7 +17,7 @@ export async function mcConfig (options: {
   const taxaCardCredit = fields.getTextInputValue('taxaCardCredit')
 
   if (token !== undefined && token !== '') {
-    await new Database({ interaction, pathDB: 'config.mcToken', typeDB: 'payments' }).set({
+    await new Database({ interaction, pathDB: 'config.mpToken', typeDB: 'payments' }).set({
       data: token,
       text: 'setado para autenticação'
     })
