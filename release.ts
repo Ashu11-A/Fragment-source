@@ -4,7 +4,7 @@ import path from 'path'
 import { minify } from 'terser'
 import { SingleBar, Presets } from 'cli-progress'
 import { exec } from '@yao-pkg/pkg'
-import {  } from  'rollup'
+import { obfuscate } from 'javascript-obfuscator'
 
 async function carregarDados (options: {
   diretorio: string
@@ -44,28 +44,21 @@ async function compress (): Promise<void> {
 
     if (fileExt === '.js') {
       await minify({ [filePath]: fileContent }, {
-        compress: true,
-        parse: {
-          bare_returns: true
-        },
-        ie8: false,
-        keep_fnames: false,
-        mangle: {
-          properties: true,
-          toplevel: true
-        },
-        module: true,
-        toplevel: true,
-        output: {
-          ascii_only: true,
-          beautify: false,
-          comments: false,
-        },
-        sourceMap: true
+        compress: true
       })
         .then((result) => {
-          if (typeof result.code !== 'string') return
-          writeFileSync(`${newPath}/${fileName}`, result.code, 'utf8')
+          if (result.code === undefined) return
+          const response = obfuscate(result.code, {
+            compact: false,
+            controlFlowFlattening: true,
+            controlFlowFlatteningThreshold: 1,
+            numbersToExpressions: true,
+            simplify: true,
+            stringArrayShuffle: true,
+            splitStrings: true,
+            stringArrayThreshold: 1
+          })
+          writeFileSync(`${newPath}/${fileName}`, response.getObfuscatedCode(), 'utf8')
         })
         .catch((err) => {
           console.log(`Não foi possivel comprimir o arquivo: ${filePath}`)
@@ -79,8 +72,8 @@ async function compress (): Promise<void> {
   progressBar.stop()
 
   const args = ['.', '--no-bytecode', '--compress', 'Brotli', '--public-packages', '"*"', '--public']
-  const platforms = ['alpine', 'linux', 'linuxstatic']
-  const archs = ['x64', 'arm64']
+  const platforms = ['linux']
+  const archs = ['x64']
   const nodeVersion = '20'
   const allBuild: string[] = []
 
