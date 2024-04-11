@@ -1,4 +1,3 @@
-import Loggings from '@/controllers/Loggings'
 import { dirCR, dirEX, jsonsv } from '@/functions'
 import { writeFileSync } from 'fs'
 import { join } from 'path'
@@ -6,6 +5,7 @@ import { QuickDB } from 'quick.db'
 import { createClient } from './discord/base'
 import { log, processEnv } from './settings'
 import axios from 'axios'
+import { Loggings } from 'loggings'
 export * from 'colors'
 
 const client = createClient()

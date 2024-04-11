@@ -6,7 +6,7 @@ release
 .env.development
 
 settings.json
-storage
+logs
 database
 
 *deprecated
