@@ -1,0 +1,5 @@
+{
+    "depcheck": {
+        "ignoreMatches": ["better-sqlite3", "tsconfig-paths", "sucrase"]
+    }
+}
