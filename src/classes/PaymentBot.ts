@@ -1,7 +1,7 @@
 import { core } from '@/app'
 import { type BotReturn, type LoginReturn } from '@/interfaces/PaymentBot'
 import internalDB from '@/settings/settings.json'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { writeFileSync } from 'fs'
 import path from 'path'
 import ck from 'chalk'
@@ -15,13 +15,12 @@ export class PaymentBot {
     this.tokens = null
   }
 
-  save ({ expired, enabled }: { expired?: boolean, enabled?: boolean }): void {
+  save (data?: BotReturn): void {
     const dbPath = path.join(__dirname, '../settings')
 
     writeFileSync(`${dbPath}/settings.json`, JSON.stringify({
       ...internalDB,
-      enabled: enabled ?? internalDB.enabled,
-      expired: expired ?? internalDB.expired,
+      ...data,
       Tokens: this.tokens ?? internalDB.Tokens
     }, null, 2))
   }
@@ -36,7 +35,7 @@ export class PaymentBot {
       .then((res: { data: LoginReturn }) => {
         const { accessToken: { token: accessToken }, refreshToken: { token: refreshToken } } = res.data
         this.tokens = { accessToken, refreshToken }
-        this.save({})
+        this.save()
         return res.data
       })
       .catch(() => {
@@ -49,19 +48,26 @@ export class PaymentBot {
     uuid: string
   }): Promise<BotReturn | undefined> {
     const { uuid } = options
-    return await axios.get(`${this.url}/bots/${uuid}`, {
+    const response = await axios.get(`${this.url}/bots/${uuid}`, {
       headers: {
         Authorization: `Bearer ${this.tokens?.accessToken}`
       }
     })
       .then((res: { data: BotReturn }) => {
-        this.save({ expired: res.data.expired, enabled: res.data.enabled })
+        console.log(res.data)
+        this.save(res.data)
         if (res.data.expired) core.warn(ck.red('Token Expirado'))
         return res.data
       })
-      .catch(() => {
-        new Error('Unauthorized', { cause: 'Expired token' })
-        return undefined
+      .catch((err) => {
+        if (err instanceof AxiosError) {
+          this.save({
+            expired: true,
+            enabled: false
+          })
+          throw new Error(err.code, { cause: err.cause })
+        }
       })
+    return response ?? undefined
   }
 }

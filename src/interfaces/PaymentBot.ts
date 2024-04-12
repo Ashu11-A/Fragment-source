@@ -14,10 +14,10 @@ export interface LoginReturn {
 }
 
 export interface BotReturn {
-  uuid: string
-  name: string
+  uuid?: string
+  name?: string
   enabled: boolean
   expired: boolean
-  expire_at: Date | string
-  created_at: Date | string
+  expire_at?: Date | string
+  created_at?: Date | string
 }
