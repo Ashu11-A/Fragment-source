@@ -65,7 +65,7 @@ export class PaymentBot {
             expired: true,
             enabled: false
           })
-          throw new Error(err.code, { cause: err.cause })
+          core.log('❌ API está offline!')
         }
       })
     return response ?? undefined
