@@ -1,11 +1,11 @@
 // Isso irá pegar todos os eventos que um botão é precionado e irá destrinjar ele para os seus reais ações
 import { core } from '@/app'
 import { CustomButtonBuilder, Discord } from '@/functions'
+import getSettings from '@/functions/getSettings'
+import internalDB from '@/settings/settings.json'
+import { EmbedBuilder } from 'discord.js'
 import { Event } from '../base'
 import { ButtonController } from './controller'
-import { EmbedBuilder } from 'discord.js'
-import internalDB from '@/settings/settings.json'
-import getSettings from '@/functions/getSettings'
 
 new Event({
   name: 'interactionCreate',
@@ -33,7 +33,15 @@ new Event({
     if (internalDB?.expired === undefined || internalDB.expired) {
       await interaction.reply({
         ephemeral,
-        embeds: [new EmbedBuilder({ title: '⚠️ Token ou Login invalidos.' }).setColor('Red')]
+        embeds: [new EmbedBuilder({ title: '⚠️ Licença do bot expirou!' }).setColor('Red')]
+      })
+      return
+    }
+
+    if (internalDB?.enabled === undefined || !internalDB.enabled) {
+      await interaction.reply({
+        ephemeral,
+        embeds: [new EmbedBuilder({ title: '⚠️ Bot desabilitado!' })]
       })
       return
     }
