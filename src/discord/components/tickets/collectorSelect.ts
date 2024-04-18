@@ -7,7 +7,6 @@ export async function ticketCollectorSelect (options: {
   key: string
 }): Promise<void> {
   const { interaction, key } = options
-  console.log(key)
   const ticketConstructor = new TicketSelects({ interaction })
 
   const customIdHandlers: CustomIdHandlers = {

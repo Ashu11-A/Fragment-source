@@ -35,7 +35,6 @@ export async function collectorEditModal (options: { interaction: ModalSubmitInt
 
       await db.messages.set(`${guildId}.${type}.${channelId}.messages.${message?.id}.${dataDB}`, messageModal)
       await db.messages.set(`${guildId}.${type}.${channelId}.messages.${message?.id}.properties.${button}`, true)
-      console.log(type, button)
       if (type === 'ticket') {
         await ticketButtonsConfig(interaction, message)
       } else if (type === 'payments') {

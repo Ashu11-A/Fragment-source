@@ -1,6 +1,6 @@
 import { db } from '@/app'
 import { CustomButtonBuilder, Discord, createRow } from '@/functions'
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, ComponentType, EmbedBuilder, ModalBuilder, PermissionsBitField, type StringSelectMenuInteraction, TextInputBuilder, type ButtonInteraction, type CacheType, type Collection, type CommandInteraction, type OverwriteResolvable, type Snowflake, type TextChannel } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type CommandInteraction, ComponentType, EmbedBuilder, ModalBuilder, type OverwriteResolvable, PermissionsBitField, type StringSelectMenuInteraction, type TextChannel, TextInputBuilder, codeBlock } from 'discord.js'
 import { getModalData } from './getModalData'
 import { buttonsUsers, ticketButtonsConfig } from './ticketUpdateConfig'
 
@@ -13,16 +13,18 @@ export class TicketButtons implements TicketType {
     this.interaction = interaction
   }
 
-  public async createTicket (options: {
+  public async createTicket ({ about }: {
     about: string
   }): Promise<void> {
-    const { about } = options
-    const { guild, user, guildId } = this.interaction
+    const { interaction } = this
+    if (!interaction.inCachedGuild()) return
+    const { guild, user, guildId } = interaction
     const nome = `🎫-${user.id}`
     const sendChannel = guild?.channels.cache.find((c) => c.name === nome)
     const status: Record<string, boolean | undefined> | null = await db.system.get(`${guild?.id}.status`)
     const ticket = await db.guilds.get(`${guild?.id}.ticket`)
     const ticketLimit = await db.guilds.get(`${guildId}.config.ticketsLimit`)
+    const supportRole = await db.guilds.get(`${guild.id}.config.ticketRole`) as string | undefined
     const usageDay = await db.system.get(`${guildId}.tickets.${user.id}`) as { date: Date, usage: number } | undefined
 
     if (usageDay !== undefined) {
@@ -75,18 +77,35 @@ export class TicketButtons implements TicketType {
     try {
       const permissionOverwrites = [
         {
-          id: guild?.id,
+          id: guild.id,
           deny: [PermissionsBitField.Flags.ViewChannel]
         },
         {
           id: user.id,
-          allow: [PermissionsBitField.Flags.ViewChannel]
+          allow: [
+            PermissionsBitField.Flags.ViewChannel,
+            PermissionsBitField.Flags.SendMessages,
+            PermissionsBitField.Flags.AttachFiles,
+            PermissionsBitField.Flags.AddReactions
+          ]
         }
-      ] as OverwriteResolvable[] | Collection<Snowflake, OverwriteResolvable>
+      ] as OverwriteResolvable[]
+
+      if (supportRole !== undefined) {
+        permissionOverwrites.push({
+          id: supportRole,
+          allow: [
+            PermissionsBitField.Flags.ViewChannel,
+            PermissionsBitField.Flags.SendMessages,
+            PermissionsBitField.Flags.AttachFiles,
+            PermissionsBitField.Flags.AddReactions
+          ]
+        })
+      }
 
       /* Cria o chat do Ticket */
-      const category = guild?.channels.cache.find(category => category.type === ChannelType.GuildCategory && category.id === ticket?.category)
-      const ch = await guild?.channels.create({
+      const category = guild.channels.cache.find(category => category.type === ChannelType.GuildCategory && category.id === ticket?.category)
+      const ch = await guild.channels.create({
         name: `🎫-${user.id}`,
         type: ChannelType.GuildText,
         topic: `Ticket do(a) ${user.username}, ID: ${user.id}`,
@@ -96,10 +115,10 @@ export class TicketButtons implements TicketType {
 
       await this.interaction.editReply({
         embeds: [
-          new EmbedBuilder()
-            .setTitle(`Olá ${user.username}`)
-            .setDescription('✅ | Seu ticket foi criado com sucesso!')
-            .setColor('Green')
+          new EmbedBuilder({
+            title: `Olá ${user.username}`,
+            description: '✅ | Seu ticket foi criado com sucesso!'
+          }).setColor('Green')
         ],
         components: [
           await Discord.buttonRedirect({
@@ -111,28 +130,37 @@ export class TicketButtons implements TicketType {
         ]
       })
       const embed = new EmbedBuilder({
+        title: `👋 Olá ${interaction.user.displayName}, boas vindas ao seu ticket.`,
         fields: [
-          { name: '📃・Tipo de Problema/Pedido:', value: about },
-          {
-            name: '😁・Solicitante:',
-            value: `<@${user.id}> | ID: ${user.id}`
-          },
-          {
-            name: '🕗・Aberto em:',
-            value: '```' + new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) + '```'
-          }
+          { name: '📃 Motivo:', value: codeBlock(about) }
         ],
-        footer: { text: `Equipe ${guild?.name}`, iconURL: (guild?.iconURL({ size: 64 }) ?? undefined) }
-      }).setColor('Purple')
+        footer: { text: `Equipe ${guild?.name} | ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`, iconURL: (guild?.iconURL({ size: 64 }) ?? undefined) }
+      })
 
       const botao = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new CustomButtonBuilder({
           type: 'Ticket',
           permission: 'User',
           customId: 'delTicket',
-          label: 'Fechar Ticket',
-          emoji: { name: '✖️' },
+          label: 'Fechar',
+          emoji: { name: '🔒' },
           style: ButtonStyle.Danger
+        }),
+        new CustomButtonBuilder({
+          type: 'Ticket',
+          permission: 'User',
+          customId: 'Panel',
+          label: 'Painel',
+          emoji: { name: '🖥️' },
+          style: ButtonStyle.Success
+        }),
+        new CustomButtonBuilder({
+          type: 'Ticket',
+          permission: 'User',
+          customId: 'PanelCart',
+          label: 'Painel vendas',
+          emoji: { name: '🛒' },
+          style: ButtonStyle.Primary
         })
       )
       if (ticket?.role !== undefined) {
@@ -231,7 +259,7 @@ export class TicketButtons implements TicketType {
       const clearData = { components: [], embeds: [] }
 
       if (subInteraction.customId === 'embed-cancel-button') {
-        await subInteraction.editReply({
+        await subInteraction.update({
           ...clearData,
           embeds: [
             new EmbedBuilder()

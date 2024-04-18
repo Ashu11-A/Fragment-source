@@ -4,6 +4,7 @@ import { Command } from '@/discord/base'
 import { setSystem } from '@/discord/commands/configs/utils/setSystem'
 import { MpModalconfig } from '@/discord/components/config/modals/mpModal'
 import { sendEmbed } from '@/discord/components/payments'
+import { ticketButtonsConfig } from '@/discord/components/tickets'
 import { Database, validarURL } from '@/functions'
 import { CustomButtonBuilder, Discord } from '@/functions/Discord'
 import {
@@ -237,6 +238,31 @@ new Command({
           type: ApplicationCommandOptionType.String
         }
       ]
+    },
+    {
+      name: 'ticket',
+      description: '[ 🎫 Ticket ] Configurar o sistema de Tickets',
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [
+        {
+          name: 'panel-embed',
+          description: '[ 🎫 Ticket ] Envia a embed de configuração.',
+          required: false,
+          type: ApplicationCommandOptionType.Channel
+        },
+        {
+          name: 'limit',
+          description: '[ 🎫 Ticket ] Limita a quantidade tickets por 24h.',
+          required: false,
+          type: ApplicationCommandOptionType.Number
+        },
+        {
+          name: 'support-role',
+          description: '[ 🎫 Ticket ] Definir cargo de suporte.',
+          required: false,
+          type: ApplicationCommandOptionType.Role
+        }
+      ]
     }
   ],
   async run (interaction) {
@@ -249,7 +275,7 @@ new Command({
     ) { return }
 
     if (!interaction.inCachedGuild()) return
-    const { options, guildId } = interaction
+    const { options, guildId, guild } = interaction
     try {
       switch (options.getSubcommand(true)) {
         case 'guild': {
@@ -540,6 +566,66 @@ new Command({
                   pathDB: 'minecraft.porta'
                 }).set({
                   data: porta
+                })
+              }
+              break
+            }
+            case 'ticket': {
+              await interaction.deferReply({ ephemeral })
+              const channel = options.getChannel('panel-embed')
+              const limit = options.getNumber('limit')
+              const role = options.getRole('support-role')
+
+              if (channel !== null) {
+                const sendChannel = guild?.channels.cache.get(String(channel?.id)) as TextChannel
+                const embed = new EmbedBuilder({
+                  title: 'Pedir suporte',
+                  description: 'Se você estiver precisando de ajuda clique no botão abaixo',
+                  footer: { text: `Equipe ${interaction.guild?.name}`, iconURL: (interaction?.guild?.iconURL({ size: 64 }) ?? undefined) }
+                }).setColor('Green')
+
+                if (sendChannel !== undefined) {
+                  await sendChannel.send({ embeds: [embed] })
+                    .then(async (msg) => {
+                      await db.messages.set(`${guildId}.ticket.${sendChannel.id}.messages.${msg.id}`, {
+                        id: msg.id,
+                        embed: embed.toJSON()
+                      })
+                      await ticketButtonsConfig(interaction, msg)
+                      await interaction.editReply({
+                        embeds: [
+                          new EmbedBuilder()
+                            .setDescription(`✅ | Mensagem enviada com sucesso ao chat: <#${sendChannel.id}>`)
+                            .setColor('Green')
+                        ],
+                        components: [
+                          await Discord.buttonRedirect({
+                            guildId,
+                            channelId: sendChannel.id,
+                            emoji: { name: '🗨️' },
+                            label: 'Ir ao canal'
+                          })
+                        ]
+                      })
+                    })
+                }
+              }
+              if (limit !== null) {
+                await new Database({
+                  interaction,
+                  pathDB: 'config.ticketsLimit',
+                  typeDB: 'guilds'
+                }).set({
+                  data: limit
+                })
+              }
+              if (role !== null) {
+                await new Database({
+                  interaction,
+                  pathDB: 'config.ticketRole',
+                  typeDB: 'guilds'
+                }).set({
+                  data: role.id
                 })
               }
             }

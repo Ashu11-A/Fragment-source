@@ -204,7 +204,6 @@ export default async function cartCollectorModal (options: {
     }
 
     default:
-      console.log(key)
       await interaction.deferReply({ ephemeral: true })
       await db.payments.set(`${guildId}.process.${channelId}.${modalProperties.db}`, Object.entries(dataInfo)[0][1])
       await channel?.messages.fetch(String(message?.id))

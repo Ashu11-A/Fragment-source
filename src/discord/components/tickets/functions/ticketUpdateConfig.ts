@@ -97,7 +97,7 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
         type: 'Ticket',
         permission: 'User',
         customId: 'Open',
-        emoji: { name: '📩' },
+        emoji: { name: '🎫' },
         label: 'Abra seu ticket',
         style: ButtonStyle.Success
       })
@@ -188,7 +188,7 @@ export async function buttonsUsers (interaction: CommandInteraction<CacheType> |
       type: 'Ticket',
       customId: 'Open',
       label: 'Abra seu ticket',
-      emoji: { name: '📩' },
+      emoji: { name: '🎫' },
       style: ButtonStyle.Success
     })
   )

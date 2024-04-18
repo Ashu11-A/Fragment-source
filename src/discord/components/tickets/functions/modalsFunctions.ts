@@ -89,9 +89,7 @@ export class TicketModals implements TicketType {
   public async setConfig (key: string): Promise<void> {
     const { fields, guildId, channelId, message, channel } = this.interaction
     const { db: dataDB } = getModalData(key)
-    console.log(fields)
     let messageModal = fields.getTextInputValue('content')
-    console.log('messageModal:', messageModal)
 
     if (messageModal.toLowerCase() === 'vazio') messageModal = ''
 
