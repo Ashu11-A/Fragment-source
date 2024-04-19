@@ -230,10 +230,6 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
       row: [genButtons(config), genButtons(config2)]
     },
     {
-      embed: telegramEmbed,
-      row: [genButtons(configTelegram)]
-    },
-    {
       embed: presenceEmbed,
       row: [genButtons(presence), genButtons(presence2)]
     },

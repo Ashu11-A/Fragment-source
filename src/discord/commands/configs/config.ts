@@ -460,22 +460,6 @@ new Command({
 
           break
         }
-        case 'telegram': {
-          await interaction.deferReply({ ephemeral: true })
-          const token = options.getString('token')
-
-          if (token !== null) {
-            await new Database({
-              interaction,
-              pathDB: 'config.telegram.token',
-              typeDB: 'guilds'
-            }).set({
-              data: token
-            })
-          }
-
-          break
-        }
       }
 
       switch (options.getSubcommandGroup(false)) {
