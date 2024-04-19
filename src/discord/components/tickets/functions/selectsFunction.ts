@@ -1,7 +1,8 @@
-import { type StringSelectMenuInteraction, type CacheType } from 'discord.js'
+import { type StringSelectMenuInteraction, type CacheType, EmbedBuilder, ButtonBuilder, ActionRowBuilder } from 'discord.js'
 import { TicketButtons } from './buttonsFunctions'
 import { db } from '@/app'
 import { ticketButtonsConfig } from './ticketUpdateConfig'
+import { type CustomIdHandlers } from '@/interfaces'
 
 interface TicketType {
   interaction: StringSelectMenuInteraction<CacheType>
@@ -49,5 +50,37 @@ export class TicketSelects implements TicketType {
     } else {
       console.error('Values is not an array. Handle this case appropriately.')
     }
+  }
+
+  /**
+   * name
+   */
+  public async PanelSelect (): Promise<void> {
+    const { values } = this.interaction
+    const Constructor = new TicketButtons({ interaction: this.interaction })
+
+    const customIdHandlers: CustomIdHandlers = {
+      CreateCall: async () => { await Constructor.CreateCall() },
+      AddUser: async () => {},
+      RemoveUser: async () => {},
+      Transcript: async () => {},
+      delTicket: async () => { await Constructor.delete({ type: 'delTicket' }) }
+    }
+
+    const customIdHandler = customIdHandlers[values[0]]
+
+    console.log(values[0])
+
+    if (typeof customIdHandler === 'function') {
+      await customIdHandler()
+      return
+    }
+
+    await this.interaction.reply({
+      ephemeral,
+      embeds: [new EmbedBuilder({
+        title: '❌ | Função inexistente.'
+      }).setColor('Red')]
+    })
   }
 }

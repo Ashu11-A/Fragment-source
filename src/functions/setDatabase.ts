@@ -5,7 +5,7 @@ import { Discord } from './Discord'
 
 export interface DatabaseType {
   interaction: CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType>
-  typeDB?: 'guilds' | 'payments' | 'messages' | 'staff' | 'system'
+  typeDB?: 'guilds' | 'payments' | 'messages' | 'staff' | 'system' | 'tickets'
   pathDB: string
 }
 export class Database implements DatabaseType {

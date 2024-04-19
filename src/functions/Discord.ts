@@ -84,7 +84,7 @@ export class Discord {
   }
 
   public static async Permission (
-    interaction: StringSelectMenuInteraction | ButtonInteraction | ModalSubmitInteraction | ChatInputCommandInteraction<CacheType>,
+    interaction: StringSelectMenuInteraction | ButtonInteraction | ModalSubmitInteraction | ChatInputCommandInteraction<CacheType> | CommandInteraction | ButtonInteraction | StringSelectMenuInteraction,
     typePermission: PermissionResolvable,
     typeLog?: string
   ): Promise<boolean> {

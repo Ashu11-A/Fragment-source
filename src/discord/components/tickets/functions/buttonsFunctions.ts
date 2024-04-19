@@ -1,6 +1,6 @@
 import { db } from '@/app'
 import { CustomButtonBuilder, Discord, createRow } from '@/functions'
-import { ActionRowBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type CommandInteraction, ComponentType, EmbedBuilder, ModalBuilder, type OverwriteResolvable, PermissionsBitField, type StringSelectMenuInteraction, type TextChannel, TextInputBuilder, codeBlock } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type CommandInteraction, ComponentType, EmbedBuilder, ModalBuilder, type OverwriteResolvable, PermissionsBitField, type SelectMenuComponentOptionData, StringSelectMenuBuilder, type StringSelectMenuInteraction, type TextChannel, TextInputBuilder, codeBlock } from 'discord.js'
 import { getModalData } from './getModalData'
 import { buttonsUsers, ticketButtonsConfig } from './ticketUpdateConfig'
 
@@ -22,23 +22,21 @@ export class TicketButtons implements TicketType {
     const nome = `🎫-${user.id}`
     const sendChannel = guild?.channels.cache.find((c) => c.name === nome)
     const status: Record<string, boolean | undefined> | null = await db.system.get(`${guild?.id}.status`)
-    const ticket = await db.guilds.get(`${guild?.id}.ticket`)
-    const ticketLimit = await db.guilds.get(`${guildId}.config.ticketsLimit`)
-    const supportRole = await db.guilds.get(`${guild.id}.config.ticketRole`) as string | undefined
-    const usageDay = await db.system.get(`${guildId}.tickets.${user.id}`) as { date: Date, usage: number } | undefined
+    const ticketConfig = await db.guilds.get(`${guild?.id}.config.ticket`)
+    const usageDay = await db.tickets.get(`${guildId}.use.${user.id}`) as { date: Date, usage: number } | undefined
 
     if (usageDay !== undefined) {
       const futureTime = new Date(usageDay.date)
       let muchRequest: boolean = false
       if (futureTime < new Date()) {
-        await db.system.delete(`${guildId}.tickets.${user.id}`)
-      } else if (usageDay.usage >= ticketLimit ?? 1) muchRequest = true
+        await db.tickets.delete(`${guildId}.tickets.${user.id}`)
+      } else if (usageDay.usage >= ticketConfig?.limit ?? 1) muchRequest = true
       if (muchRequest) {
         const futureTimeString = `<t:${Math.floor(futureTime.getTime() / 1000)}:f>`
         await this.interaction.editReply({
           embeds: [
             new EmbedBuilder({
-              title: `❌ | Você já usou o limite diario de tickets (${usageDay.usage}/${ticketLimit}), por favor, não spame!`,
+              title: `❌ | Você já usou o limite diario de tickets (${usageDay.usage}/${ticketConfig?.limit}), por favor, não spame!`,
               fields: [
                 { name: 'Tente novamente em:', value: futureTimeString }
               ]
@@ -91,9 +89,9 @@ export class TicketButtons implements TicketType {
         }
       ] as OverwriteResolvable[]
 
-      if (supportRole !== undefined) {
+      if (ticketConfig?.role !== undefined) {
         permissionOverwrites.push({
-          id: supportRole,
+          id: ticketConfig.role,
           allow: [
             PermissionsBitField.Flags.ViewChannel,
             PermissionsBitField.Flags.SendMessages,
@@ -104,7 +102,7 @@ export class TicketButtons implements TicketType {
       }
 
       /* Cria o chat do Ticket */
-      const category = guild.channels.cache.find(category => category.type === ChannelType.GuildCategory && category.id === ticket?.category)
+      const category = guild.channels.cache.find(category => category.type === ChannelType.GuildCategory && category.id === ticketConfig?.category)
       const ch = await guild.channels.create({
         name: `🎫-${user.id}`,
         type: ChannelType.GuildText,
@@ -163,16 +161,21 @@ export class TicketButtons implements TicketType {
           style: ButtonStyle.Primary
         })
       )
-      if (ticket?.role !== undefined) {
-        await ch?.send({ content: `<@&${ticket.role}>`, embeds: [embed], components: [botao] }).catch(console.error)
+      if (ticketConfig?.role !== undefined) {
+        await ch?.send({ content: `<@&${ticketConfig.role}>`, embeds: [embed], components: [botao] }).catch(console.error)
       } else {
         await ch?.send({ embeds: [embed], components: [botao] }).catch(console.error)
       }
       const date = new Date().setDate(new Date().getDate() + 1)
-      const getUsage = await db.system.get(`${guildId}.tickets.${user.id}`)
-      await db.system.set(`${guildId}.tickets.${user.id}`, { date, usage: getUsage?.usage !== undefined ? getUsage.usage + 1 : 1 })
+      const getUsage = await db.tickets.get(`${guildId}.use.${user.id}`)
+      await db.tickets.set(`${guildId}.use.${user.id}`, { date, usage: getUsage?.usage !== undefined ? getUsage.usage + 1 : 1 })
+      await db.tickets.set(`${guildId}.tickets.${ch.id}`, {
+        owner: interaction.user.id
+      })
     } catch (all) {
       console.error(all)
+      const channel = interaction.guild.channels.cache.find(channel => channel.name === `🎫-${user.id}`)
+      if (channel !== undefined) await channel.delete()
       await this.interaction.editReply({
         content: '❗️ Ocorreu um erro interno, tente mais tarde.'
       })
@@ -235,9 +238,11 @@ export class TicketButtons implements TicketType {
   public async delete (options: {
     type: 'delTicket' | 'EmbedDelete'
   }): Promise<void> {
-    if (!this.interaction.isButton()) return
     const { type } = options
-    const { guild, guildId, channelId, message, user } = this.interaction
+    const interaction = this.interaction
+    if (!interaction.inCachedGuild()) return
+
+    const { guild, guildId, channelId, user } = interaction
     const embed = new EmbedBuilder()
       .setColor('Gold')
     if (type === 'delTicket') {
@@ -283,11 +288,16 @@ export class TicketButtons implements TicketType {
           embeds: [embed]
         })
         if (type === 'delTicket') {
+          const tickets = await db.tickets.get(`${guild.id}.tickets`) as Record<string, { voiceId: string }>
           setTimeout(() => {
-            subInteraction?.channel?.delete().catch(console.error)
+            subInteraction.channel?.delete().catch(console.error)
+            const ticket = tickets[subInteraction.channelId]
+
+            if (ticket !== undefined) interaction.guild.channels.cache.find((channel) => channel.id === ticket.voiceId)?.delete().catch(console.error)
           }, 5000)
-        } else {
-          const { embedChannelID: channelEmbedID, embedMessageID: messageID } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message?.id}`)
+          await db.tickets.delete(`${guildId}.tickets.${subInteraction.channelId}`)
+        } else if (interaction.isButton()) {
+          const { embedChannelID: channelEmbedID, embedMessageID: messageID } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${interaction.message?.id}`)
 
           if (channelEmbedID !== undefined || messageID !== undefined) {
             try {
@@ -299,10 +309,142 @@ export class TicketButtons implements TicketType {
             }
           }
 
-          await db.messages.delete(`${guildId}.ticket.${channelId}.messages.${message?.id}`)
-          await message.delete()
+          await db.messages.delete(`${guildId}.ticket.${channelId}.messages.${interaction.message?.id}`)
+          await interaction.message?.delete()
         }
       }
+    })
+  }
+
+  public async panel (): Promise<void> {
+    const embed = new EmbedBuilder({
+      description: '✅ | Painel membro aberto com sucesso, escolha uma das opções abaixo:'
+    })
+
+    const optionsMenu: SelectMenuComponentOptionData[] = [
+      {
+        emoji: { name: '🔊' },
+        label: 'Criar call',
+        value: 'CreateCall'
+      },
+      {
+        emoji: { name: '👤' },
+        label: 'Adicionar usuário',
+        value: 'AddUser'
+      },
+      {
+        emoji: { name: '🗑️' },
+        label: 'Remover usuário',
+        value: 'RemoveUser'
+      },
+      {
+        emoji: { name: '💾' },
+        label: 'Salvar logs',
+        value: 'Transcript'
+      }
+    ]
+
+    if (!await Discord.Permission(this.interaction, 'Administrator')) {
+      optionsMenu.push(
+        {
+          emoji: { name: '🗑️' },
+          label: 'Deletar ticket',
+          value: 'delTicket'
+        }
+      )
+    }
+
+    const row = new ActionRowBuilder<StringSelectMenuBuilder>({
+      components: [
+        new StringSelectMenuBuilder({
+          placeholder: 'Escolha uma opção!',
+          customId: '-1_User_Ticket_PanelSelect',
+          options: optionsMenu
+        })
+      ]
+    })
+
+    await this.interaction.editReply({
+      embeds: [embed],
+      components: [row]
+    })
+  }
+
+  public async CreateCall (): Promise<void> {
+    if (!this.interaction.inCachedGuild()) return
+    const { guild, guildId, channelId, user } = this.interaction
+    const data = await db.tickets.get(`${guildId}.tickets.${channelId}`)
+    const ticketConfig = await db.guilds.get(`${guildId}.config.ticket`)
+    const name = `🔊-${data.owner}`
+    const existCall = this.interaction.guild.channels.cache.find((voiceChannel) => voiceChannel.name === name)
+
+    if (existCall !== undefined) {
+      await this.interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: `❌ | Usuário ${user.displayName ?? user.username}, já tem um ticket, caso queira continuar, delete o ticket atual.`
+        }).setColor('Red')],
+        components: [new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder({
+          label: '🔗 Acessar Call',
+          style: ButtonStyle.Link,
+          url: existCall.url
+        }))]
+      })
+      return
+    }
+
+    const permissionOverwrites = [
+      {
+        id: guild.id,
+        deny: [PermissionsBitField.Flags.ViewChannel]
+      },
+      {
+        id: user.id,
+        allow: [
+          PermissionsBitField.Flags.ViewChannel,
+          PermissionsBitField.Flags.Connect,
+          PermissionsBitField.Flags.Speak
+        ]
+      },
+      {
+        id: data.owner,
+        allow: [
+          PermissionsBitField.Flags.ViewChannel,
+          PermissionsBitField.Flags.Connect,
+          PermissionsBitField.Flags.Speak
+        ]
+      }
+    ] as OverwriteResolvable[]
+
+    if (ticketConfig?.role !== undefined) {
+      permissionOverwrites.push({
+        id: ticketConfig.role,
+        allow: [
+          PermissionsBitField.Flags.ViewChannel,
+          PermissionsBitField.Flags.Connect,
+          PermissionsBitField.Flags.Speak
+        ]
+      })
+    }
+
+    const voiceChannel = await this.interaction.guild?.channels.create({
+      name,
+      permissionOverwrites,
+      type: ChannelType.GuildVoice
+    })
+
+    await db.tickets.set(`${guildId}.tickets.${channelId}.voiceId`, voiceChannel.id)
+
+    await this.interaction.deleteReply()
+    await this.interaction.channel?.send({
+      embeds: [new EmbedBuilder({
+        title: '✅ | Call criada com sucesso!'
+      }).setColor('Green')
+      ],
+      components: [new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder({
+        label: '🔗 Acessar Call',
+        style: ButtonStyle.Link,
+        url: voiceChannel.url
+      }))]
     })
   }
 }

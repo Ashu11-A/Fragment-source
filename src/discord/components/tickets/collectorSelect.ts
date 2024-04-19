@@ -7,11 +7,12 @@ export async function ticketCollectorSelect (options: {
   key: string
 }): Promise<void> {
   const { interaction, key } = options
-  const ticketConstructor = new TicketSelects({ interaction })
+  const TicketSelectConstructor = new TicketSelects({ interaction })
 
   const customIdHandlers: CustomIdHandlers = {
-    RowSelect: async () => { await ticketConstructor.Debug() },
-    RowSelectProduction: async () => { await ticketConstructor.Product() }
+    RowSelect: async () => { await TicketSelectConstructor.Debug() },
+    RowSelectProduction: async () => { await TicketSelectConstructor.Product() },
+    PanelSelect: async () => { await TicketSelectConstructor.PanelSelect() }
   }
 
   const customIdHandler = customIdHandlers[key]

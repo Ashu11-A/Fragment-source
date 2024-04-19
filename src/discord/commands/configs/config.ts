@@ -23,6 +23,7 @@ new Command({
   description: '[ ⚙️ configurar ] Use esse comando para configurar o bot.',
   dmPermission,
   type: ApplicationCommandType.ChatInput,
+  defaultMemberPermissions: 'Administrator',
   options: [
     {
       name: 'guild',
@@ -249,6 +250,13 @@ new Command({
           description: '[ 🎫 Ticket ] Definir cargo de suporte.',
           required: false,
           type: ApplicationCommandOptionType.Role
+        },
+        {
+          name: 'category',
+          description: '[ 🎫 Ticket ] Definir categoria onde serão indexadas os tickets e calls',
+          required: false,
+          type: ApplicationCommandOptionType.Channel,
+          channelTypes: [ChannelType.GuildCategory]
         }
       ]
     }
@@ -547,6 +555,7 @@ new Command({
               const channel = options.getChannel('panel-embed')
               const limit = options.getNumber('limit')
               const role = options.getRole('support-role')
+              const category = options.getChannel('category')
 
               if (channel !== null) {
                 const sendChannel = guild?.channels.cache.get(String(channel?.id)) as TextChannel
@@ -585,7 +594,7 @@ new Command({
               if (limit !== null) {
                 await new Database({
                   interaction,
-                  pathDB: 'config.ticketsLimit',
+                  pathDB: 'config.ticket.limit',
                   typeDB: 'guilds'
                 }).set({
                   data: limit
@@ -594,10 +603,20 @@ new Command({
               if (role !== null) {
                 await new Database({
                   interaction,
-                  pathDB: 'config.ticketRole',
+                  pathDB: 'config.ticket.role',
                   typeDB: 'guilds'
                 }).set({
                   data: role.id
+                })
+              }
+
+              if (category !== null) {
+                await new Database({
+                  interaction,
+                  pathDB: 'config.ticket.category',
+                  typeDB: 'tickets'
+                }).set({
+                  data: category.id
                 })
               }
             }

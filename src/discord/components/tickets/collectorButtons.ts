@@ -41,8 +41,13 @@ export default async function ticketCollectorButtons (options: {
 
   const customIdHandlers: CustomIdHandlers = {
     Open: async () => { await Constructor.createTicket({ about: 'Não foi possível descobrir.' }) },
+
+    delTicket: async () => { await Constructor.delete({ type: 'delTicket' }) },
+    EmbedDelete: async () => { await Constructor.delete({ type: 'EmbedDelete' }) },
+
     SetSelect: async () => { await Constructor.setSystem({ type: 'select' }) },
     SetButton: async () => { await Constructor.setSystem({ type: 'button' }) },
+
     SendSave: async () => { await Constructor.sendSave(key) },
     AddSelect: async () => {
       const modal = new ModalBuilder({ customId, title: 'Adicionar Opções no Select Menu' })
@@ -65,8 +70,8 @@ export default async function ticketCollectorButtons (options: {
       })
       await interaction.showModal(modal)
     },
-    delTicket: async () => { await Constructor.delete({ type: 'delTicket' }) },
-    EmbedDelete: async () => { await Constructor.delete({ type: 'EmbedDelete' }) }
+
+    Panel: async () => { await Constructor.panel() }
   }
 
   const customIdHandler = customIdHandlers[key]
