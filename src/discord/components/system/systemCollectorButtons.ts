@@ -15,7 +15,6 @@ export async function systemCollectorButtons (options: {
     Welcomer: { info: 'Boas vindas' },
     Status: { info: 'Status' },
     DeleteServers: { info: 'Deletar Servidores' },
-    TelegramNotif: { info: 'Notificação via Telegram' },
     StatusMinecraft: { info: 'Status', remove: 'StatusString' },
     StatusString: { info: 'Status', remove: 'StatusMinecraft' },
     Logs: { info: 'Logs' },

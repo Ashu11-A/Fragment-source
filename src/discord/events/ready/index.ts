@@ -1,7 +1,6 @@
 import { Event } from '@/discord/base'
 import moduleExpress from '@/express/express'
 import { StructuralCrons } from '@/structural/Crons'
-// import { telegramNotify } from './telegram'
 
 export default new Event({
   name: 'ready',
@@ -11,6 +10,5 @@ export default new Event({
      */
     await StructuralCrons()
     await moduleExpress()
-    // await telegramNotify()
   }
 })

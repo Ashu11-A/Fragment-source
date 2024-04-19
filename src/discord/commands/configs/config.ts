@@ -228,18 +228,6 @@ new Command({
       ]
     },
     {
-      name: 'telegram',
-      description: '[ ✈️ ] Configurar aspectos do Telegram',
-      type: ApplicationCommandOptionType.Subcommand,
-      options: [
-        {
-          name: 'token',
-          description: 'Token do seu bot',
-          type: ApplicationCommandOptionType.String
-        }
-      ]
-    },
-    {
       name: 'ticket',
       description: '[ 🎫 Ticket ] Configurar o sistema de Tickets',
       type: ApplicationCommandOptionType.Subcommand,

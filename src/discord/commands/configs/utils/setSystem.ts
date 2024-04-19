@@ -45,14 +45,6 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
     color: 0x57f287
   })
 
-  const telegramEmbed = new EmbedBuilder({
-    title: '✈️ Telegram',
-    description: brBuilder(
-      'Notificações: Envia as mensagens de um channel selecionado para o Telegram.'
-    ),
-    color: 0x57f287
-  })
-
   const pterodactylEmbed = new EmbedBuilder({
     title: '🦖 Pterodactyl',
     description: brBuilder(
@@ -103,17 +95,6 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
       customId: 'DeleteServers',
       label: 'Delete Servers',
       emoji: { name: '🗑️' },
-      isProtected: { user }
-    })
-  ]
-
-  const configTelegram = [
-    new CustomButtonBuilder({
-      permission: 'Admin',
-      type: 'System',
-      customId: 'TelegramNotif',
-      label: 'Notificações',
-      emoji: { name: '📤' },
       isProtected: { user }
     })
   ]
@@ -218,7 +199,7 @@ export async function setSystem (interaction: CommandInteraction<CacheType> | Bu
     StatusNoPerturbe: 'dnd',
     StatusInvisível: 'invisible'
   }
-  const allConfigs = [...config, ...config2, ...configTelegram, ...presence, ...pteroButtons]
+  const allConfigs = [...config, ...config2, ...presence, ...pteroButtons]
 
   for (const value of allConfigs) {
     const { customId } = value
