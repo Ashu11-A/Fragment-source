@@ -1,6 +1,8 @@
 import { db } from '@/app'
-import { type CacheType, type StringSelectMenuInteraction } from 'discord.js'
-import { TicketButtons } from './buttonsFunctions'
+import { type CustomIdHandlers } from '@/interfaces'
+import { EmbedBuilder, type CacheType, type StringSelectMenuInteraction } from 'discord.js'
+import { TicketPanel } from './panelTicket'
+import { Ticket } from './ticket'
 import { ticketButtonsConfig } from './ticketUpdateConfig'
 
 interface TicketType {
@@ -19,11 +21,11 @@ export class TicketSelects implements TicketType {
     const { values, guildId } = this.interaction
     const [posição, channelId, messageID] = values[0].split('_')
     const { select: infos } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${messageID}`)
-    const ticketConstructor = new TicketButtons({ interaction: this.interaction })
+    const Constructor = new Ticket({ interaction: this.interaction })
 
     if (Number(posição) >= 0 && Number(posição) < infos.length) {
       const { title, description } = infos[Number(posição)]
-      await ticketConstructor.createTicket({ title, description })
+      await Constructor.create({ title, description })
     } else {
       console.log('Posição inválida no banco de dados.')
       await this.interaction.editReply({ content: '❌ | As informações do Banco de dados estão desatualizadas' })
@@ -49,5 +51,42 @@ export class TicketSelects implements TicketType {
     } else {
       console.error('Values is not an array. Handle this case appropriately.')
     }
+  }
+
+  /**
+   * name
+   */
+  async CollectorSelect (): Promise<void> {
+    const interaction = this.interaction
+    if (!interaction.isStringSelectMenu()) return
+
+    const { values } = interaction
+    const PanelConstructor = new TicketPanel({ interaction })
+    const Constructor = new Ticket({ interaction })
+
+    const customIdHandlers: CustomIdHandlers = {
+      CreateCall: async () => { await PanelConstructor.CreateCall() },
+      AddUser: async () => { await PanelConstructor.AddUser() },
+      RemoveUser: async () => {},
+      Transcript: async () => {},
+      delTicket: async () => { await Constructor.delete({ type: 'delTicket' }) }
+    }
+
+    const customIdHandler = customIdHandlers[values[0]]
+
+    console.log()
+
+    if (typeof customIdHandler === 'function') {
+      if (values[0] !== 'AddUser') await this.interaction.deferReply({ ephemeral })
+      await customIdHandler()
+      return
+    }
+
+    await this.interaction.reply({
+      ephemeral,
+      embeds: [new EmbedBuilder({
+        title: '❌ | Função inexistente.'
+      }).setColor('Red')]
+    })
   }
 }

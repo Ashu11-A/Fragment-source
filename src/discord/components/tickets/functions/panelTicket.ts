@@ -1,30 +1,21 @@
 import { db } from '@/app'
 import { Discord } from '@/functions'
-import { type CustomIdHandlers } from '@/interfaces'
 import { ActionRowBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type ChatInputCommandInteraction, EmbedBuilder, ModalBuilder, type ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, type SelectMenuComponentOptionData, StringSelectMenuBuilder, type StringSelectMenuInteraction, TextInputBuilder, TextInputStyle } from 'discord.js'
-import { TicketButtons } from './buttonsFunctions'
+import { Ticket } from './ticket'
 
 interface PanelTicketType {
   interaction: StringSelectMenuInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | ChatInputCommandInteraction<CacheType>
 }
 
-export class PanelTicket {
+export class TicketPanel {
   private readonly interaction
   constructor ({ interaction }: PanelTicketType) {
     this.interaction = interaction
   }
 
   async validator (): Promise<boolean> {
-    const { guildId, channelId } = this.interaction
-    if (await db.tickets.get(`${guildId}.tickets.${channelId}`) === null) {
-      await this.interaction.editReply({
-        embeds: [new EmbedBuilder({
-          title: '⚠️ Atenção, você não está em um ticket, tente usar esse comando apenas em tickets!'
-        }).setColor('Red')]
-      })
-      return true
-    }
-    return false
+    const Constructor = new Ticket({ interaction: this.interaction })
+    return await Constructor.validator()
   }
 
   async CreatePanel (): Promise<void> {
@@ -78,41 +69,6 @@ export class PanelTicket {
     await this.interaction.editReply({
       embeds: [embed],
       components: [row]
-    })
-  }
-
-  /**
-   * name
-   */
-  async CollectorSelect (): Promise<void> {
-    const interaction = this.interaction
-    if (!interaction.isStringSelectMenu()) return
-    const { values } = interaction
-    const Constructor = new TicketButtons({ interaction })
-
-    const customIdHandlers: CustomIdHandlers = {
-      CreateCall: async () => { await this.CreateCall() },
-      AddUser: async () => { await this.AddUser() },
-      RemoveUser: async () => {},
-      Transcript: async () => {},
-      delTicket: async () => { await Constructor.delete({ type: 'delTicket' }) }
-    }
-
-    const customIdHandler = customIdHandlers[values[0]]
-
-    console.log()
-
-    if (typeof customIdHandler === 'function') {
-      if (values[0] !== 'AddUser') await this.interaction.deferReply({ ephemeral })
-      await customIdHandler()
-      return
-    }
-
-    await this.interaction.reply({
-      ephemeral,
-      embeds: [new EmbedBuilder({
-        title: '❌ | Função inexistente.'
-      }).setColor('Red')]
     })
   }
 
@@ -239,14 +195,14 @@ export class PanelTicket {
 
     console.log(channel?.toJSON())
 
-    // if ((channel?.permissionsFor(userFetch)?.has(PermissionsBitField.Flags.ViewChannel)) ?? false) {
-    //   await interaction.editReply({
-    //     embeds: [new EmbedBuilder({
-    //       title: `❌ Usuário ${userFetch.displayName}, já tem acesso ao Ticket!`
-    //     }).setColor('Red')]
-    //   })
-    //   return
-    // }
+    if ((channel?.permissionsFor(userFetch)?.has(PermissionsBitField.Flags.ViewChannel)) ?? false) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: `❌ Usuário ${userFetch.displayName}, já tem acesso ao Ticket!`
+        }).setColor('Red')]
+      })
+      return
+    }
 
     const users = await db.tickets.get(`${guildId}.tickets.${channelId}.users`) ?? []
     const newUsers: any[] = []

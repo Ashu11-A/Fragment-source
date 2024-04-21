@@ -3,7 +3,8 @@ import { TicketButtons } from '@/discord/components/tickets'
 import { type CustomIdHandlers } from '@/interfaces'
 import { ActionRowBuilder, ModalBuilder, TextInputBuilder, type ButtonInteraction, type CacheType } from 'discord.js'
 import { getModalData } from './functions/getModalData'
-import { PanelTicket } from './functions/panelTicket'
+import { TicketPanel } from './functions/panelTicket'
+import { Ticket } from './functions/ticket'
 
 const listItens = {
   SetName: {
@@ -38,21 +39,22 @@ export default async function ticketCollectorButtons (options: {
 }): Promise<void> {
   const { interaction, key } = options
   const { guildId, message, channelId, customId } = interaction
-  const Constructor = new TicketButtons({ interaction })
-  const PanelConstructor = new PanelTicket({ interaction })
+  const Constructor = new Ticket({ interaction })
+  const ButtonConstructor = new TicketButtons({ interaction })
+  const PanelConstructor = new TicketPanel({ interaction })
 
   const customIdHandlers: CustomIdHandlers = {
-    Open: async () => { await Constructor.createTicket({ title: 'Não foi possível descobrir.' }) },
-    OpenModal: async () => { await Constructor.OpenModal() },
+    Open: async () => { await Constructor.create({ title: 'Não foi possível descobrir.' }) },
+    OpenModal: async () => { await ButtonConstructor.OpenModal() },
 
     delTicket: async () => { await Constructor.delete({ type: 'delTicket' }) },
     EmbedDelete: async () => { await Constructor.delete({ type: 'EmbedDelete' }) },
 
-    SetSelect: async () => { await Constructor.setSystem({ type: 'select' }) },
-    SetButton: async () => { await Constructor.setSystem({ type: 'button' }) },
-    SetModal: async () => { await Constructor.setSystem({ type: 'modal' }) },
+    SetSelect: async () => { await ButtonConstructor.setSystem({ type: 'select' }) },
+    SetButton: async () => { await ButtonConstructor.setSystem({ type: 'button' }) },
+    SetModal: async () => { await ButtonConstructor.setSystem({ type: 'modal' }) },
 
-    SendSave: async () => { await Constructor.sendSave(key) },
+    SendSave: async () => { await ButtonConstructor.sendSave(key) },
     AddSelect: async () => {
       const modal = new ModalBuilder({ customId, title: 'Adicionar Opções no Select Menu' })
       Object.entries(listItens).map(([, value]) => {

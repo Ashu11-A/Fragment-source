@@ -1,8 +1,8 @@
 import { db } from '@/app'
-import { type TextChannel, type CacheType, type ModalSubmitInteraction } from 'discord.js'
+import { type CacheType, type ModalSubmitInteraction, type TextChannel } from 'discord.js'
 import { getModalData } from './getModalData'
+import { Ticket } from './ticket'
 import { buttonsUsers, ticketButtonsConfig } from './ticketUpdateConfig'
-import { TicketButtons } from './buttonsFunctions'
 
 interface TicketType {
   interaction: ModalSubmitInteraction<CacheType>
@@ -123,10 +123,10 @@ export class TicketModals implements TicketType {
     if (!interaction.isModalSubmit()) return
 
     const { fields } = interaction
-    const ticketConstructor = new TicketButtons({ interaction })
+    const Constructor = new Ticket({ interaction })
     const title = fields.getTextInputValue('title')
     const description = fields.getTextInputValue('description')
 
-    await ticketConstructor.createTicket({ title, description })
+    await Constructor.create({ title, description })
   }
 }
