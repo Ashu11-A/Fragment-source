@@ -468,6 +468,78 @@ new Command({
 
           break
         }
+        case 'ticket': {
+          await interaction.deferReply({ ephemeral })
+          const channel = options.getChannel('panel-embed')
+          const limit = options.getNumber('limit')
+          const role = options.getRole('support-role')
+          const category = options.getChannel('category')
+          console.log('test', category)
+
+          if (channel !== null) {
+            const sendChannel = guild?.channels.cache.get(String(channel?.id)) as TextChannel
+            const embed = new EmbedBuilder({
+              title: 'Pedir suporte',
+              description: 'Se você estiver precisando de ajuda clique no botão abaixo',
+              footer: { text: `Equipe ${interaction.guild?.name}`, iconURL: (interaction?.guild?.iconURL({ size: 64 }) ?? undefined) }
+            }).setColor('Green')
+
+            if (sendChannel !== undefined) {
+              await sendChannel.send({ embeds: [embed] })
+                .then(async (msg) => {
+                  await db.messages.set(`${guildId}.ticket.${sendChannel.id}.messages.${msg.id}`, {
+                    id: msg.id,
+                    embed: embed.toJSON()
+                  })
+                  await ticketButtonsConfig(interaction, msg)
+                  await interaction.editReply({
+                    embeds: [
+                      new EmbedBuilder()
+                        .setDescription(`✅ | Mensagem enviada com sucesso ao chat: <#${sendChannel.id}>`)
+                        .setColor('Green')
+                    ],
+                    components: [
+                      await Discord.buttonRedirect({
+                        guildId,
+                        channelId: sendChannel.id,
+                        emoji: { name: '🗨️' },
+                        label: 'Ir ao canal'
+                      })
+                    ]
+                  })
+                })
+            }
+          }
+          if (limit !== null) {
+            await new Database({
+              interaction,
+              pathDB: 'config.ticket.limit',
+              typeDB: 'guilds'
+            }).set({
+              data: limit
+            })
+          }
+          if (role !== null) {
+            await new Database({
+              interaction,
+              pathDB: 'config.ticket.role',
+              typeDB: 'guilds'
+            }).set({
+              data: role.id
+            })
+          }
+
+          if (category !== null) {
+            await new Database({
+              interaction,
+              pathDB: 'config.ticket.category',
+              typeDB: 'guilds'
+            }).set({
+              data: category.id
+            })
+          }
+          break
+        }
       }
 
       switch (options.getSubcommandGroup(false)) {
@@ -549,76 +621,6 @@ new Command({
                 })
               }
               break
-            }
-            case 'ticket': {
-              await interaction.deferReply({ ephemeral })
-              const channel = options.getChannel('panel-embed')
-              const limit = options.getNumber('limit')
-              const role = options.getRole('support-role')
-              const category = options.getChannel('category')
-
-              if (channel !== null) {
-                const sendChannel = guild?.channels.cache.get(String(channel?.id)) as TextChannel
-                const embed = new EmbedBuilder({
-                  title: 'Pedir suporte',
-                  description: 'Se você estiver precisando de ajuda clique no botão abaixo',
-                  footer: { text: `Equipe ${interaction.guild?.name}`, iconURL: (interaction?.guild?.iconURL({ size: 64 }) ?? undefined) }
-                }).setColor('Green')
-
-                if (sendChannel !== undefined) {
-                  await sendChannel.send({ embeds: [embed] })
-                    .then(async (msg) => {
-                      await db.messages.set(`${guildId}.ticket.${sendChannel.id}.messages.${msg.id}`, {
-                        id: msg.id,
-                        embed: embed.toJSON()
-                      })
-                      await ticketButtonsConfig(interaction, msg)
-                      await interaction.editReply({
-                        embeds: [
-                          new EmbedBuilder()
-                            .setDescription(`✅ | Mensagem enviada com sucesso ao chat: <#${sendChannel.id}>`)
-                            .setColor('Green')
-                        ],
-                        components: [
-                          await Discord.buttonRedirect({
-                            guildId,
-                            channelId: sendChannel.id,
-                            emoji: { name: '🗨️' },
-                            label: 'Ir ao canal'
-                          })
-                        ]
-                      })
-                    })
-                }
-              }
-              if (limit !== null) {
-                await new Database({
-                  interaction,
-                  pathDB: 'config.ticket.limit',
-                  typeDB: 'guilds'
-                }).set({
-                  data: limit
-                })
-              }
-              if (role !== null) {
-                await new Database({
-                  interaction,
-                  pathDB: 'config.ticket.role',
-                  typeDB: 'guilds'
-                }).set({
-                  data: role.id
-                })
-              }
-
-              if (category !== null) {
-                await new Database({
-                  interaction,
-                  pathDB: 'config.ticket.category',
-                  typeDB: 'tickets'
-                }).set({
-                  data: category.id
-                })
-              }
             }
           }
         }

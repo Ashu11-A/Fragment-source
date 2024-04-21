@@ -4,7 +4,7 @@ import { CustomButtonBuilder } from '@/functions'
 import { ActionRowBuilder, type ButtonBuilder, ButtonStyle, type Message, type CommandInteraction, type CacheType, type ModalSubmitInteraction, type ButtonInteraction, StringSelectMenuBuilder, type StringSelectMenuInteraction } from 'discord.js'
 
 export async function ticketButtonsConfig (interaction: StringSelectMenuInteraction<CacheType> | CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | CommandInteraction<CacheType>, message: Message<boolean>): Promise<void> {
-  const { guildId, channelId, user } = interaction
+  const { guildId, channelId } = interaction
   const options: Array<{ label: string, description: string, value: string, emoji: string }> = []
   const data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message.id}`)
   const embedEdit = await createRowEdit(interaction, message, 'ticket')
@@ -16,16 +16,14 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
       type: 'Ticket',
       customId: 'SetRole',
       label: 'Add Cargo',
-      emoji: { name: '🛂' },
-      isProtected: { user }
+      emoji: { name: '🛂' }
     }),
     new CustomButtonBuilder({
       permission: 'Admin',
       type: 'Ticket',
       customId: 'SetSelect',
       label: 'SelectMenu',
-      emoji: { name: '🗄️' },
-      isProtected: { user }
+      emoji: { name: '🗄️' }
     }),
     new CustomButtonBuilder({
       permission: 'Admin',
@@ -33,16 +31,21 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
       customId: 'AddSelect',
       label: 'Add Select',
       emoji: { name: '📝' },
-      disabled: true,
-      isProtected: { user }
+      disabled: true
     }),
     new CustomButtonBuilder({
       permission: 'Admin',
       type: 'Ticket',
       customId: 'SetButton',
       label: 'Botão',
-      emoji: { name: '🔘' },
-      isProtected: { user }
+      emoji: { name: '🔘' }
+    }),
+    new CustomButtonBuilder({
+      permission: 'Admin',
+      type: 'Ticket',
+      customId: 'SetModal',
+      label: 'Modal',
+      emoji: { name: '📄' }
     })
   ]
 
@@ -53,8 +56,8 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
       customId: 'SendSave',
       label: 'Enviar',
       emoji: { name: '✔️' },
-      style: ButtonStyle.Success,
-      isProtected: { user }
+      style: ButtonStyle.Success
+
     }),
     new CustomButtonBuilder({
       permission: 'Admin',
@@ -62,8 +65,8 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
       customId: 'EmbedDelete',
       label: 'Apagar',
       emoji: { name: '✖️' },
-      style: ButtonStyle.Danger,
-      isProtected: { user }
+      style: ButtonStyle.Danger
+
     })
   ]
 
@@ -81,9 +84,7 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
   }
 
   let row4
-  const enabled = data?.properties?.SetSelect
-
-  if (enabled !== undefined && enabled === true) {
+  if (data?.properties?.SetSelect === true) {
     row4 = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
       new StringSelectMenuBuilder({
         custom_id: '-1_User_Ticket_RowSelect',
@@ -96,7 +97,7 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
       new CustomButtonBuilder({
         type: 'Ticket',
         permission: 'User',
-        customId: 'Open',
+        customId: data?.properties?.SetModal === true ? 'OpenModal' : 'Open',
         emoji: { name: '🎫' },
         label: 'Abra seu ticket',
         style: ButtonStyle.Success
@@ -112,7 +113,7 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
     if (customId === undefined) continue
 
     if (customId === 'AddSelect' || customId === 'RemSelect') {
-      value.setDisabled(!(enabled !== undefined && enabled === true))
+      value.setDisabled(!(data?.properties?.SetSelect === true))
     }
 
     value.setStyle(data?.properties !== undefined && data?.properties[customId] === true ? ButtonStyle.Primary : ButtonStyle.Secondary)
@@ -186,7 +187,7 @@ export async function buttonsUsers (interaction: CommandInteraction<CacheType> |
   const botao = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new CustomButtonBuilder({
       type: 'Ticket',
-      customId: 'Open',
+      customId: data?.properties?.SetModal === true ? 'OpenModal' : 'Open',
       label: 'Abra seu ticket',
       emoji: { name: '🎫' },
       style: ButtonStyle.Success

@@ -1,11 +1,11 @@
 import { db } from '@/app'
 import { CustomButtonBuilder, Discord, createRow } from '@/functions'
-import { ActionRowBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type CommandInteraction, ComponentType, EmbedBuilder, ModalBuilder, type OverwriteResolvable, PermissionsBitField, type SelectMenuComponentOptionData, StringSelectMenuBuilder, type StringSelectMenuInteraction, type TextChannel, TextInputBuilder, codeBlock } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type CommandInteraction, ComponentType, EmbedBuilder, ModalBuilder, type ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, type StringSelectMenuInteraction, type TextChannel, TextInputBuilder, TextInputStyle, codeBlock } from 'discord.js'
 import { getModalData } from './getModalData'
 import { buttonsUsers, ticketButtonsConfig } from './ticketUpdateConfig'
 
 interface TicketType {
-  interaction: CommandInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction
+  interaction: CommandInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction | ModalSubmitInteraction<CacheType>
 }
 export class TicketButtons implements TicketType {
   interaction
@@ -13,8 +13,22 @@ export class TicketButtons implements TicketType {
     this.interaction = interaction
   }
 
-  public async createTicket ({ about }: {
-    about: string
+  async validator (): Promise<boolean> {
+    const { guildId, channelId } = this.interaction
+    if (await db.tickets.get(`${guildId}.tickets.${channelId}`) === null) {
+      await this.interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: '⚠️ Atenção, você não está em um ticket, tente usar esse comando apenas em tickets!'
+        }).setColor('Red')]
+      })
+      return true
+    }
+    return false
+  }
+
+  public async createTicket ({ title, description }: {
+    title?: string
+    description?: string
   }): Promise<void> {
     const { interaction } = this
     if (!interaction.inCachedGuild()) return
@@ -129,11 +143,11 @@ export class TicketButtons implements TicketType {
       })
       const embed = new EmbedBuilder({
         title: `👋 Olá ${interaction.user.displayName}, boas vindas ao seu ticket.`,
-        fields: [
-          { name: '📃 Motivo:', value: codeBlock(about) }
-        ],
         footer: { text: `Equipe ${guild?.name} | ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`, iconURL: (guild?.iconURL({ size: 64 }) ?? undefined) }
       })
+
+      if (title !== undefined) embed.addFields({ name: '📃 Motivo:', value: codeBlock(title) })
+      if (description !== undefined) embed.addFields({ name: '📭 Descrição:', value: codeBlock(description) })
 
       const botao = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new CustomButtonBuilder({
@@ -182,8 +196,34 @@ export class TicketButtons implements TicketType {
     }
   }
 
+  async OpenModal (): Promise<void> {
+    const interaction = this.interaction
+    if (interaction.isModalSubmit()) return
+
+    const modal = new ModalBuilder({ customId: '-1_User_Ticket_OpenModalCollector', title: 'Abrir novo ticket' })
+    modal.components.push(
+      new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder({
+        customId: 'title',
+        label: 'Qual é o motivo do ticket?',
+        required,
+        maxLength: 150,
+        style: TextInputStyle.Short,
+        placeholder: 'Dúvida... Denúncia... Pedido...'
+      })),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder({
+        customId: 'description',
+        label: 'Qual a descrição?',
+        required: false,
+        maxLength: 255,
+        style: TextInputStyle.Paragraph,
+        placeholder: 'Queria saber mais informações sobre...'
+      }))
+    )
+    await interaction.showModal(modal)
+  }
+
   public async setSystem (options: {
-    type: 'select' | 'button'
+    type: 'select' | 'button' | 'modal'
   }): Promise<void> {
     if (!this.interaction.isButton()) return
     const { guildId, message, channelId } = this.interaction
@@ -191,6 +231,7 @@ export class TicketButtons implements TicketType {
 
     await db.messages.set(`${guildId}.ticket.${channelId}.messages.${message.id}.properties.SetSelect`, type === 'select')
     await db.messages.set(`${guildId}.ticket.${channelId}.messages.${message.id}.properties.SetButton`, type === 'button')
+    await db.messages.set(`${guildId}.ticket.${channelId}.messages.${message.id}.properties.SetModal`, type === 'modal')
     await this.interaction.editReply({ content: '⏱️ | Aguarde só um pouco...' })
     await ticketButtonsConfig(this.interaction, message)
   }
@@ -241,6 +282,8 @@ export class TicketButtons implements TicketType {
     const { type } = options
     const interaction = this.interaction
     if (!interaction.inCachedGuild()) return
+    if (await this.validator()) return
+    if (await Discord.Permission(interaction, 'Administrator')) return
 
     const { guild, guildId, channelId, user } = interaction
     const embed = new EmbedBuilder()
@@ -313,138 +356,6 @@ export class TicketButtons implements TicketType {
           await interaction.message?.delete()
         }
       }
-    })
-  }
-
-  public async panel (): Promise<void> {
-    const embed = new EmbedBuilder({
-      description: '✅ | Painel membro aberto com sucesso, escolha uma das opções abaixo:'
-    })
-
-    const optionsMenu: SelectMenuComponentOptionData[] = [
-      {
-        emoji: { name: '🔊' },
-        label: 'Criar call',
-        value: 'CreateCall'
-      },
-      {
-        emoji: { name: '👤' },
-        label: 'Adicionar usuário',
-        value: 'AddUser'
-      },
-      {
-        emoji: { name: '🗑️' },
-        label: 'Remover usuário',
-        value: 'RemoveUser'
-      },
-      {
-        emoji: { name: '💾' },
-        label: 'Salvar logs',
-        value: 'Transcript'
-      }
-    ]
-
-    if (!await Discord.Permission(this.interaction, 'Administrator')) {
-      optionsMenu.push(
-        {
-          emoji: { name: '🗑️' },
-          label: 'Deletar ticket',
-          value: 'delTicket'
-        }
-      )
-    }
-
-    const row = new ActionRowBuilder<StringSelectMenuBuilder>({
-      components: [
-        new StringSelectMenuBuilder({
-          placeholder: 'Escolha uma opção!',
-          customId: '-1_User_Ticket_PanelSelect',
-          options: optionsMenu
-        })
-      ]
-    })
-
-    await this.interaction.editReply({
-      embeds: [embed],
-      components: [row]
-    })
-  }
-
-  public async CreateCall (): Promise<void> {
-    if (!this.interaction.inCachedGuild()) return
-    const { guild, guildId, channelId, user } = this.interaction
-    const data = await db.tickets.get(`${guildId}.tickets.${channelId}`)
-    const ticketConfig = await db.guilds.get(`${guildId}.config.ticket`)
-    const name = `🔊-${data.owner}`
-    const existCall = this.interaction.guild.channels.cache.find((voiceChannel) => voiceChannel.name === name)
-
-    if (existCall !== undefined) {
-      await this.interaction.editReply({
-        embeds: [new EmbedBuilder({
-          title: `❌ | Usuário ${user.displayName ?? user.username}, já tem um ticket, caso queira continuar, delete o ticket atual.`
-        }).setColor('Red')],
-        components: [new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder({
-          label: '🔗 Acessar Call',
-          style: ButtonStyle.Link,
-          url: existCall.url
-        }))]
-      })
-      return
-    }
-
-    const permissionOverwrites = [
-      {
-        id: guild.id,
-        deny: [PermissionsBitField.Flags.ViewChannel]
-      },
-      {
-        id: user.id,
-        allow: [
-          PermissionsBitField.Flags.ViewChannel,
-          PermissionsBitField.Flags.Connect,
-          PermissionsBitField.Flags.Speak
-        ]
-      },
-      {
-        id: data.owner,
-        allow: [
-          PermissionsBitField.Flags.ViewChannel,
-          PermissionsBitField.Flags.Connect,
-          PermissionsBitField.Flags.Speak
-        ]
-      }
-    ] as OverwriteResolvable[]
-
-    if (ticketConfig?.role !== undefined) {
-      permissionOverwrites.push({
-        id: ticketConfig.role,
-        allow: [
-          PermissionsBitField.Flags.ViewChannel,
-          PermissionsBitField.Flags.Connect,
-          PermissionsBitField.Flags.Speak
-        ]
-      })
-    }
-
-    const voiceChannel = await this.interaction.guild?.channels.create({
-      name,
-      permissionOverwrites,
-      type: ChannelType.GuildVoice
-    })
-
-    await db.tickets.set(`${guildId}.tickets.${channelId}.voiceId`, voiceChannel.id)
-
-    await this.interaction.deleteReply()
-    await this.interaction.channel?.send({
-      embeds: [new EmbedBuilder({
-        title: '✅ | Call criada com sucesso!'
-      }).setColor('Green')
-      ],
-      components: [new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder({
-        label: '🔗 Acessar Call',
-        style: ButtonStyle.Link,
-        url: voiceChannel.url
-      }))]
     })
   }
 }

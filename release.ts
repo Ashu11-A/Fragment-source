@@ -44,21 +44,38 @@ async function compress (): Promise<void> {
 
     if (fileExt === '.js') {
       await minify({ [filePath]: fileContent }, {
-        compress: true
+        compress: true,
+        parse: {
+          bare_returns: true
+        },
+        ie8: false,
+        keep_fnames: false,
+        mangle: {
+          properties: true,
+          toplevel: true
+        },
+        module: true,
+        toplevel: true,
+        output: {
+          ascii_only: true,
+          beautify: false,
+          comments: false,
+        },
+        sourceMap: true
       })
         .then((result) => {
           if (result.code === undefined) return
-          const response = obfuscate(result.code, {
-            compact: false,
-            controlFlowFlattening: true,
-            controlFlowFlatteningThreshold: 1,
-            numbersToExpressions: true,
-            simplify: true,
-            stringArrayShuffle: true,
-            splitStrings: true,
-            stringArrayThreshold: 1
-          })
-          writeFileSync(`${newPath}/${fileName}`, response.getObfuscatedCode(), 'utf8')
+          // const response = obfuscate(result.code, {
+          //   compact: false,
+          //   controlFlowFlattening: true,
+          //   controlFlowFlatteningThreshold: 1,
+          //   numbersToExpressions: true,
+          //   simplify: true,
+          //   stringArrayShuffle: true,
+          //   splitStrings: true,
+          //   stringArrayThreshold: 1
+          // })
+          writeFileSync(`${newPath}/${fileName}`, result.code, 'utf8')
         })
         .catch((err) => {
           console.log(`Não foi possivel comprimir o arquivo: ${filePath}`)
@@ -71,7 +88,7 @@ async function compress (): Promise<void> {
 
   progressBar.stop()
 
-  const args = ['.', '--no-bytecode', '--compress', 'Brotli', '--public-packages', '"*"', '--public']
+  const args = ['.', '--no-bytecode', '--public-packages', '"*"', '--public']
   const platforms = ['linux']
   const archs = ['x64']
   const nodeVersion = '20'

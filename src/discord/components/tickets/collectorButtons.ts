@@ -3,6 +3,7 @@ import { TicketButtons } from '@/discord/components/tickets'
 import { type CustomIdHandlers } from '@/interfaces'
 import { ActionRowBuilder, ModalBuilder, TextInputBuilder, type ButtonInteraction, type CacheType } from 'discord.js'
 import { getModalData } from './functions/getModalData'
+import { PanelTicket } from './functions/panelTicket'
 
 const listItens = {
   SetName: {
@@ -38,15 +39,18 @@ export default async function ticketCollectorButtons (options: {
   const { interaction, key } = options
   const { guildId, message, channelId, customId } = interaction
   const Constructor = new TicketButtons({ interaction })
+  const PanelConstructor = new PanelTicket({ interaction })
 
   const customIdHandlers: CustomIdHandlers = {
-    Open: async () => { await Constructor.createTicket({ about: 'Não foi possível descobrir.' }) },
+    Open: async () => { await Constructor.createTicket({ title: 'Não foi possível descobrir.' }) },
+    OpenModal: async () => { await Constructor.OpenModal() },
 
     delTicket: async () => { await Constructor.delete({ type: 'delTicket' }) },
     EmbedDelete: async () => { await Constructor.delete({ type: 'EmbedDelete' }) },
 
     SetSelect: async () => { await Constructor.setSystem({ type: 'select' }) },
     SetButton: async () => { await Constructor.setSystem({ type: 'button' }) },
+    SetModal: async () => { await Constructor.setSystem({ type: 'modal' }) },
 
     SendSave: async () => { await Constructor.sendSave(key) },
     AddSelect: async () => {
@@ -71,13 +75,13 @@ export default async function ticketCollectorButtons (options: {
       await interaction.showModal(modal)
     },
 
-    Panel: async () => { await Constructor.panel() }
+    Panel: async () => { await PanelConstructor.CreatePanel() }
   }
 
   const customIdHandler = customIdHandlers[key]
 
   if (typeof customIdHandler === 'function') {
-    if (key !== 'AddSelect' && key !== 'SendSave') await interaction.deferReply({ ephemeral })
+    if (key !== 'AddSelect' && key !== 'SendSave' && key !== 'OpenModal') await interaction.deferReply({ ephemeral })
     await customIdHandler()
   } else {
     const { title, label, placeholder, style, type, maxLength, db: dataDB } = getModalData(key)
