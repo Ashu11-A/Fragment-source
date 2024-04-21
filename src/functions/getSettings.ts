@@ -1,7 +1,14 @@
-import { type Config } from '@/interfaces/ConfigJson'
+import { type Config, type InternalConfig } from '@/interfaces/ConfigJson'
 import { readFileSync } from 'fs'
+import { join, resolve } from 'path'
+import { cwd } from 'process'
 
-export default function getSettings (): Config {
-  const data = readFileSync('./settings.json', { encoding: 'utf-8' })
-  return JSON.parse(data) as Config
+export function getSettings (): Config {
+  const data = readFileSync(resolve(cwd(), './settings.json'), { encoding: 'utf-8' })
+  return JSON.parse(data)
+}
+
+export function getInternalSettings (): InternalConfig {
+  const data = readFileSync(resolve(join(__dirname, '../settings/settings.json')), { encoding: 'utf-8' })
+  return JSON.parse(data)
 }

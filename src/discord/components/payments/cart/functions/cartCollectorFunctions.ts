@@ -2,7 +2,7 @@ import { core, db } from '@/app'
 import { UpdateCart } from '@/discord/components/payments'
 import { type cartData } from '@/interfaces'
 import { ctrlPanel } from '@/functions/ctrlPanel'
-import settings from '@/functions/getSettings'
+import { getSettings } from '@/functions/getSettings'
 import { createRow } from '@magicyan/discord'
 import axios from 'axios'
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, codeBlock, type ButtonInteraction, type CacheType, TextChannel, Message, type ModalSubmitInteraction } from 'discord.js'
@@ -96,7 +96,7 @@ export class PaymentFunction {
           if (paymentId !== undefined) {
             const token = await db.payments.get(`${guildId}.config.mpToken`)
 
-            await axios.post(`http://${settings().Express.ip}:${settings().Express.Port}/payment/delete`, {
+            await axios.post(`http://${getSettings().Express.ip}:${getSettings().Express.Port}/payment/delete`, {
               mpToken: token,
               paymentId
             }).catch(async (err) => {
@@ -335,7 +335,7 @@ export class PaymentFunction {
     const logChannel = guild.channels.cache.get(String(logs)) as TextChannel
 
     if (cartData?.paymentId !== undefined) {
-      const pagamentoRes = await axios.post(`http://${settings().Express.ip}:${settings().Express.Port}/payment`, {
+      const pagamentoRes = await axios.post(`http://${getSettings().Express.ip}:${getSettings().Express.Port}/payment`, {
         mpToken,
         paymentId: cartData.paymentId
       })
@@ -499,7 +499,7 @@ export class PaymentFunction {
               name: productsTotal
             }
 
-            const response = await axios.post(`http://${settings().Express.ip}:${settings().Express.Port}/ctrlpanel/voucher/create`, Post, {
+            const response = await axios.post(`http://${getSettings().Express.ip}:${getSettings().Express.Port}/ctrlpanel/voucher/create`, Post, {
               headers: {
                 Accept: 'application/json'
               }

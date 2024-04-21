@@ -1,8 +1,7 @@
 import { core } from '@/app'
 import { Crons } from '@/classes/Crons'
 import { PaymentBot } from '@/classes/PaymentBot'
-import getSettings from '@/functions/getSettings'
-import internalDB from '@/settings/settings.json'
+import { getSettings, getInternalSettings } from '@/functions/getSettings'
 
 new Crons({
   name: 'Auth - Start',
@@ -27,7 +26,7 @@ new Crons({
 async function authUpdate (): Promise<void> {
   const { Auth } = getSettings()
   if (Auth?.email === undefined || Auth.password === undefined || Auth.uuid === undefined) { core.warn('Sistema de autenticação não configurado'); return }
-  const PaymentAuth = new PaymentBot({ url: internalDB.API })
+  const PaymentAuth = new PaymentBot({ url: getInternalSettings().API })
 
   await PaymentAuth.login({ email: Auth.email, password: Auth.password })
   await PaymentAuth.validate({ uuid: Auth.uuid })

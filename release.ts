@@ -1,5 +1,5 @@
 import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
-import os from 'os';
+import os from 'os'
 import path from 'path'
 import { minify } from 'terser'
 import { SingleBar, Presets } from 'cli-progress'
@@ -32,9 +32,7 @@ async function carregarDados (options: {
 async function compress (): Promise<void> {
   const progressBar = new SingleBar({}, Presets.rect)
   const files = await carregarDados({ diretorio: 'dist' })
-
   progressBar.start(Object.entries(files).length, 0)
-
   for (const [filePath, fileContent] of Object.entries(files)) {
     progressBar.increment(1)
     const newPath = path.dirname(filePath).replace('dist', 'build')
@@ -50,32 +48,29 @@ async function compress (): Promise<void> {
         },
         ie8: false,
         keep_fnames: false,
-        mangle: {
-          properties: true,
-          toplevel: true
-        },
+        mangle: true,
         module: true,
         toplevel: true,
         output: {
           ascii_only: true,
           beautify: false,
-          comments: false,
+          comments: false
         },
         sourceMap: true
       })
         .then((result) => {
-          if (result.code === undefined) return
-          // const response = obfuscate(result.code, {
-          //   compact: false,
-          //   controlFlowFlattening: true,
-          //   controlFlowFlatteningThreshold: 1,
-          //   numbersToExpressions: true,
-          //   simplify: true,
-          //   stringArrayShuffle: true,
-          //   splitStrings: true,
-          //   stringArrayThreshold: 1
-          // })
-          writeFileSync(`${newPath}/${fileName}`, result.code, 'utf8')
+          if (typeof result.code !== 'string') return
+          const response = obfuscate(fileContent, {
+            compact: false,
+            controlFlowFlattening: true,
+            controlFlowFlatteningThreshold: 1,
+            numbersToExpressions: true,
+            simplify: true,
+            stringArrayShuffle: true,
+            splitStrings: true,
+            stringArrayThreshold: 1
+          })
+          writeFileSync(`${newPath}/${fileName}`, response.getObfuscatedCode(), 'utf8')
         })
         .catch((err) => {
           console.log(`Não foi possivel comprimir o arquivo: ${filePath}`)
@@ -94,7 +89,7 @@ async function compress (): Promise<void> {
   const nodeVersion = '20'
   const allBuild: string[] = []
 
-  args.push("-t")
+  args.push('-t')
 
   if (os.platform() !== 'win32') {
     for (const platform of platforms) {

@@ -21,3 +21,19 @@ export interface Config {
   Emojis: Emoji
   Auth: Auth
 }
+
+interface TokenData {
+  accessToken: string
+  refreshToken: string
+}
+
+export interface InternalConfig {
+  API: string
+  Tokens: TokenData
+  expired: boolean
+  enabled: boolean
+  expire_at: string
+  created_at: string
+  uuid: string
+  name: string
+}

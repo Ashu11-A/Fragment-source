@@ -1,10 +1,10 @@
 import { core } from '@/app'
 import { type BotReturn, type LoginReturn } from '@/interfaces/PaymentBot'
-import internalDB from '@/settings/settings.json'
 import axios, { AxiosError } from 'axios'
 import { writeFileSync } from 'fs'
 import path from 'path'
 import ck from 'chalk'
+import { getInternalSettings } from '@/functions/getSettings'
 
 export class PaymentBot {
   private readonly url
@@ -19,9 +19,9 @@ export class PaymentBot {
     const dbPath = path.join(__dirname, '../settings')
 
     writeFileSync(`${dbPath}/settings.json`, JSON.stringify({
-      ...internalDB,
+      ...getInternalSettings(),
       ...data,
-      Tokens: this.tokens ?? internalDB.Tokens
+      Tokens: this.tokens ?? getInternalSettings().Tokens
     }, null, 2))
   }
 

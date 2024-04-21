@@ -28,6 +28,6 @@
     "skipDefaultLibCheck": true,
     "skipLibCheck": true
   },
-  "include": ["./src/**/*"],
+  "include": ["./src/**/*", "./release.ts"],
   "exclude": [""]
 }

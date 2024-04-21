@@ -1,17 +1,17 @@
 import { core } from '@/app'
 import { type Request, type Response, type NextFunction } from 'express'
-import settings from '@/functions/getSettings'
+import { getSettings } from '@/functions/getSettings'
 import cors from 'cors'
 
 export function corsMiddleware (req: Request, res: Response, next: NextFunction): void {
-  const { active } = settings().Express.cors
-  let { allow } = settings().Express.cors
+  const { active } = getSettings().Express.cors
+  let { allow } = getSettings().Express.cors
 
   if (active) {
     cors<Request>({
       origin (requestOrigin, callback) {
         if (allow === undefined) allow = ['']
-        allow.push(`${settings().Express.ip}:${settings().Express.Port}`)
+        allow.push(`${getSettings().Express.ip}:${getSettings().Express.Port}`)
 
         const origin = requestOrigin ?? req.headers.ip ?? req.headers['x-forwarded-for'] ?? req.socket.remoteAddress ?? req.ip
 
