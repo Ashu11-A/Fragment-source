@@ -2,7 +2,7 @@ import { type CustomIdHandlers } from '@/interfaces'
 import { type ButtonInteraction, type CacheType } from 'discord.js'
 import { delPresence, modalPresence } from './functions/Presence'
 
-export default async function buttonsCollector (options: {
+export async function configCollectorButtons (options: {
   interaction: ButtonInteraction<CacheType>
   key: string
 }): Promise<void> {

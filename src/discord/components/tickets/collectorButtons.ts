@@ -33,7 +33,7 @@ const listItens = {
   }
 }
 
-export default async function ticketCollectorButtons (options: {
+export async function ticketCollectorButtons (options: {
   interaction: ButtonInteraction<CacheType>
   key: string
 }): Promise<void> {

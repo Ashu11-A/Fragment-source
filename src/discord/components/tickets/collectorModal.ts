@@ -1,7 +1,7 @@
 import { TicketModals } from '@/discord/components/tickets'
 import { type CustomIdHandlers } from '@/interfaces'
 import { type CacheType, type ModalSubmitInteraction } from 'discord.js'
-import { PanelTicket } from './functions/panelTicket'
+import { TicketPanel } from './functions/panelTicket'
 
 export async function ticketCollectorModal (options: {
   interaction: ModalSubmitInteraction<CacheType>
@@ -9,7 +9,7 @@ export async function ticketCollectorModal (options: {
 }): Promise<void> {
   const { interaction, key } = options
   const ticketConstructor = new TicketModals({ interaction })
-  const panelTicket = new PanelTicket({ interaction })
+  const panelTicket = new TicketPanel({ interaction })
 
   const customIdHandlers: CustomIdHandlers = {
     AddSelect: async () => { await ticketConstructor.AddSelect(key) },

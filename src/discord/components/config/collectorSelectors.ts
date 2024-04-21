@@ -2,7 +2,7 @@ import { type CustomIdHandlers } from '@/interfaces'
 import { type StringSelectMenuInteraction } from 'discord.js'
 import { delModalPresence } from './functions/Presence'
 
-export default async function selectCollector (options: {
+export async function configCollectorSelect (options: {
   interaction: StringSelectMenuInteraction
   key: string
 }): Promise<void> {

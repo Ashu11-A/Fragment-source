@@ -2,18 +2,12 @@ import { EmbedBuilder, type AnySelectMenuInteraction, type ButtonInteraction, ty
 import { collectorEditButtons, collectorEditModal } from './SUEE'
 import { accountCollectorButtons, accountCollectorModal } from './account'
 import { cartCollectorButtons, cartCollectorModal } from './payments/cart'
-import { productCollectorButtons } from './payments/product/productCollectorButtons'
-import { productCollectorModal } from './payments/product/productCollectorModal'
+import { productCollectorButtons, productCollectorModal, productCollectorSelect } from './payments/product'
 import eventCollectorButtons from './events/eventCollectorButtons'
 import { systemCollectorButtons } from './system/systemCollectorButtons'
-import ticketCollectorButtons from './tickets/collectorButtons'
-import { ticketCollectorSelect } from './tickets/collectorSelect'
-import { ticketCollectorModal } from './tickets/collectorModal'
-import configCollectorButtons from './config/collectorButtons'
-import configCollectorModals from './config/collectorModals'
-import configCollectorSelect from './config/collectorSelectors'
+import { ticketCollectorButtons, ticketCollectorSelect, ticketCollectorModal } from './tickets'
+import { configCollectorButtons, configCollectorModals, configCollectorSelect } from './config'
 import { db } from '@/app'
-import { productCollectorSelect } from './payments/product/productCollectorSelect'
 
 export class ButtonController {
   public readonly interaction

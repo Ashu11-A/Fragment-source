@@ -3,7 +3,7 @@ import { type ModalSubmitInteraction, type CacheType } from 'discord.js'
 import { createAccount as createPteroAccount } from './pterodactyl/createAccount'
 import { createAccount as createCtrlAccount } from './ctrlPanel/createAccount'
 
-export default async function accountCollectorModal (options: {
+export async function accountCollectorModal (options: {
   interaction: ModalSubmitInteraction<CacheType>
   key: string
 }): Promise<void> {

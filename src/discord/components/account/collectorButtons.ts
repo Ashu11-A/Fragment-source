@@ -2,7 +2,7 @@ import { type CustomIdHandlers } from '@/interfaces'
 import { type ButtonInteraction, type CacheType } from 'discord.js'
 import { showModal } from './functions/showModal'
 
-export default async function accountCollectorButtons (options: {
+export async function accountCollectorButtons (options: {
   interaction: ButtonInteraction<CacheType>
   key: string
 }): Promise<void> {

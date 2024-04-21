@@ -7,7 +7,7 @@ import { PaymentFunction } from './functions/cartCollectorFunctions'
 import { CtrlPanel } from '@/classes/CtrlPanel'
 import { Pterodactyl } from '@/classes/Pterodactyl'
 
-export default async function cartCollectorModal (options: {
+export async function cartCollectorModal (options: {
   interaction: ModalSubmitInteraction<CacheType>
   key: string
 }): Promise<void> {

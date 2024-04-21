@@ -3,7 +3,7 @@ import { type ModalSubmitInteraction, type CacheType } from 'discord.js'
 import { mcConfig } from './functions/mercadoPago'
 import { setPresence } from './functions/Presence'
 
-export default async function modalsCollector (options: {
+export async function configCollectorModals (options: {
   interaction: ModalSubmitInteraction<CacheType>
   key: string
 }): Promise<void> {

@@ -5,7 +5,7 @@ import { PaymentFunction } from './functions/cartCollectorFunctions'
 import { getModalData } from './functions/getModalData'
 import { type CustomIdHandlers } from '@/interfaces'
 
-export default async function cartCollectorButtons (options: {
+export async function cartCollectorButtons (options: {
   interaction: ButtonInteraction<CacheType>
   key: string
 }): Promise<void> {
