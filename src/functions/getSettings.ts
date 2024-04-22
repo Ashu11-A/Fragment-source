@@ -9,6 +9,6 @@ export function getSettings (): Config {
 }
 
 export function getInternalSettings (): InternalConfig {
-  const data = readFileSync(resolve(join(__dirname, '../settings/settings.json')), { encoding: 'utf-8' })
+  const data = readFileSync(join(__dirname, '../settings/settings.json'), { encoding: 'utf-8' })
   return JSON.parse(data)
 }
