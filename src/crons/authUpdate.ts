@@ -25,9 +25,19 @@ new Crons({
 
 async function authUpdate (): Promise<void> {
   const { Auth } = getSettings()
-  if (Auth?.email === undefined || Auth.password === undefined || Auth.uuid === undefined) { core.warn('Sistema de autenticação não configurado'); return }
   const PaymentAuth = new PaymentBot({ url: getInternalSettings().API })
-
+  if (
+    Auth?.email === undefined || Auth?.email === '' ||
+    Auth.password === undefined || Auth?.password === '' ||
+    Auth.uuid === undefined || Auth?.uuid === ''
+  ) {
+    core.warn('Sistema de autenticação não configurado')
+    PaymentAuth.save({
+      expired: true,
+      enabled: false
+    })
+    return
+  }
   await PaymentAuth.login({ email: Auth.email, password: Auth.password })
   await PaymentAuth.validate({ uuid: Auth.uuid })
 }
