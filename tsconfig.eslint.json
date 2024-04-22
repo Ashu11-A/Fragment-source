@@ -1,7 +1,7 @@
 {
     "extends": "./tsconfig.json",
     "include": [
-      "rollup.config.ts", "compress.ts"
+      "rollup.config.ts", "compress.ts", "./release.ts"
     ]
   }
   

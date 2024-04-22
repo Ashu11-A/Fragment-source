@@ -5,6 +5,8 @@ import { minify } from 'terser'
 import { SingleBar, Presets } from 'cli-progress'
 import { exec } from '@yao-pkg/pkg'
 import { obfuscate } from 'javascript-obfuscator'
+import { Loggings } from 'loggings'
+import { formatBytes } from './src/functions/Format'
 
 async function carregarDados (options: {
   diretorio: string
@@ -30,6 +32,8 @@ async function carregarDados (options: {
 }
 
 async function compress (): Promise<void> {
+  const seed = Math.random()
+  const core = new Loggings()
   const progressBar = new SingleBar({}, Presets.rect)
   const files = await carregarDados({ diretorio: 'dist' })
   progressBar.start(Object.entries(files).length, 0)
@@ -55,20 +59,15 @@ async function compress (): Promise<void> {
           ascii_only: true,
           beautify: false,
           comments: false
-        },
-        sourceMap: true
+        }
       })
         .then((result) => {
           if (typeof result.code !== 'string') return
           const response = obfuscate(fileContent, {
-            compact: false,
-            controlFlowFlattening: true,
-            controlFlowFlatteningThreshold: 1,
-            numbersToExpressions: true,
-            simplify: true,
-            stringArrayShuffle: true,
-            splitStrings: true,
-            stringArrayThreshold: 1
+            optionsPreset: 'medium-obfuscation',
+            log: true,
+            seed,
+            disableConsoleOutput: false
           })
           writeFileSync(`${newPath}/${fileName}`, response.getObfuscatedCode(), 'utf8')
         })
@@ -83,13 +82,11 @@ async function compress (): Promise<void> {
 
   progressBar.stop()
 
-  const args = ['.', '--no-bytecode', '--public-packages', '"*"', '--public']
-  const platforms = ['linux']
-  const archs = ['x64']
+  const args = ['.', '--no-bytecode', '--compress', 'Brotli', '--public-packages', '"*"', '--public']
+  const platforms = ['alpine', 'linux', 'linuxstatic']
+  const archs = ['x64', 'arm64']
   const nodeVersion = '20'
   const allBuild: string[] = []
-
-  args.push('-t')
 
   if (os.platform() !== 'win32') {
     for (const platform of platforms) {
@@ -103,12 +100,34 @@ async function compress (): Promise<void> {
     }
   }
 
-  args.push(allBuild.join(','))
-
   console.log(os.platform())
-  console.log(args)
+  for (const build of allBuild) {
+    const startTime = Date.now()
+    const nameSplit = build.split('-')
+    const buildName = build.split('-')
+    buildName.splice(0, 1)
+    const buildType = nameSplit[1] === 'win'
+      ? `./release/paymentbot-[${buildName.join('-')}].exe`
+      : `./release/paymentbot-[${buildName.join('-')}]`
 
-  await exec(args)
+    const newArg: string[] = []
+    newArg.push(...args)
+    newArg.push('-t', build, '-o', buildType)
+    await exec(newArg)
+
+    const endTime = Date.now()
+    const timeSpent = (endTime - startTime) / 1000 + 's'
+    core.info(`Build | ${nameSplit[1]}-${nameSplit[2]} | ${timeSpent}`)
+
+    const file = readFileSync(buildType)
+    writeFileSync(`${buildType}.json`, JSON.stringify({
+      fileName: buildType.replace('./release/', ''),
+      platform: nameSplit[1],
+      arch: nameSplit[2],
+      size: formatBytes(file.byteLength),
+      timeBuild: timeSpent
+    }, null, 4))
+  }
 }
 
 void compress()
