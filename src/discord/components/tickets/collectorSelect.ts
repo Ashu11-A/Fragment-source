@@ -12,13 +12,15 @@ export async function ticketCollectorSelect (options: {
   const customIdHandlers: CustomIdHandlers = {
     RowSelect: async () => { await SelectConstructor.Debug() },
     RowSelectProduction: async () => { await SelectConstructor.Product() },
-    PanelSelect: async () => { await SelectConstructor.CollectorSelect() }
+    PanelSelect: async () => { await SelectConstructor.CollectorSelect() },
+    RemCategory: async () => { await SelectConstructor.RemCategory({}) },
+    SelectType: async () => { await SelectConstructor.SelectType() }
   }
 
   const customIdHandler = customIdHandlers[key]
 
   if (typeof customIdHandler === 'function') {
-    if (key !== 'PanelSelect') await interaction.deferReply({ ephemeral })
+    if (key !== 'PanelSelect' && key !== 'SelectType') await interaction.deferReply({ ephemeral })
     await customIdHandler()
   }
 }

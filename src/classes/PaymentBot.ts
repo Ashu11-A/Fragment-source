@@ -54,7 +54,6 @@ export class PaymentBot {
       }
     })
       .then((res: { data: BotReturn }) => {
-        console.log(res.data)
         this.save(res.data)
         if (res.data.expired) core.warn(ck.red('Token Expirado'))
         return res.data

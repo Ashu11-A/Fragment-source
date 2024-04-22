@@ -1,6 +1,7 @@
 import { db } from '@/app'
 import { createRow, CustomButtonBuilder, Discord } from '@/functions'
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, codeBlock, ComponentType, EmbedBuilder, type OverwriteResolvable, PermissionsBitField, type TextChannel, type ButtonInteraction, type CacheType, type ChatInputCommandInteraction, type ModalSubmitInteraction, type StringSelectMenuInteraction } from 'discord.js'
+import { type TicketConfig } from '@/interfaces/Ticket'
+import { ActionRowBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, type GuildBasedChannel, type ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, type StringSelectMenuInteraction, type TextChannel } from 'discord.js'
 
 interface TicketType {
   interaction: StringSelectMenuInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | ChatInputCommandInteraction<CacheType>
@@ -25,9 +26,10 @@ export class Ticket {
     return false
   }
 
-  public async create ({ title, description }: {
+  public async create ({ title, description, categoryName = 'Tickets' }: {
     title?: string
     description?: string
+    categoryName?: string
   }): Promise<void> {
     const { interaction } = this
     if (!interaction.inCachedGuild()) return
@@ -35,7 +37,7 @@ export class Ticket {
     const nome = `🎫-${user.id}`
     const sendChannel = guild?.channels.cache.find((c) => c.name === nome)
     const status: Record<string, boolean | undefined> | null = await db.system.get(`${guild?.id}.status`)
-    const ticketConfig = await db.guilds.get(`${guild?.id}.config.ticket`)
+    const ticketConfig = await db.guilds.get(`${guild?.id}.config.ticket`) as TicketConfig
     const usageDay = await db.tickets.get(`${guildId}.use.${user.id}`) as { date: Date, usage: number } | undefined
 
     if (usageDay !== undefined) {
@@ -102,20 +104,16 @@ export class Ticket {
         }
       ] as OverwriteResolvable[]
 
-      if (ticketConfig?.role !== undefined) {
-        permissionOverwrites.push({
-          id: ticketConfig.role,
-          allow: [
-            PermissionsBitField.Flags.ViewChannel,
-            PermissionsBitField.Flags.SendMessages,
-            PermissionsBitField.Flags.AttachFiles,
-            PermissionsBitField.Flags.AddReactions
-          ]
+      /* Cria o chat do Ticket */
+      let category: GuildBasedChannel | undefined
+      category = guild.channels.cache.find(category => category.type === ChannelType.GuildCategory && category.name === categoryName)
+      if (category === undefined) {
+        category = await guild.channels.create({
+          name: categoryName,
+          type: ChannelType.GuildCategory
         })
       }
 
-      /* Cria o chat do Ticket */
-      const category = guild.channels.cache.find(category => category.type === ChannelType.GuildCategory && category.id === ticketConfig?.category)
       const ch = await guild.channels.create({
         name: `🎫-${user.id}`,
         type: ChannelType.GuildText,
@@ -174,11 +172,7 @@ export class Ticket {
           style: ButtonStyle.Primary
         })
       )
-      if (ticketConfig?.role !== undefined) {
-        await ch?.send({ content: `<@&${ticketConfig.role}>`, embeds: [embed], components: [botao] }).catch(console.error)
-      } else {
-        await ch?.send({ embeds: [embed], components: [botao] }).catch(console.error)
-      }
+      await ch?.send({ embeds: [embed], components: [botao] }).catch(console.error)
       const date = new Date().setDate(new Date().getDate() + 1)
       const getUsage = await db.tickets.get(`${guildId}.use.${user.id}`)
       await db.tickets.set(`${guildId}.use.${user.id}`, { date, usage: getUsage?.usage !== undefined ? getUsage.usage + 1 : 1 })
@@ -275,6 +269,37 @@ export class Ticket {
           await interaction.message?.delete()
         }
       }
+    })
+  }
+
+  async PanelCategory (): Promise<void> {
+    const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents([
+      new CustomButtonBuilder({
+        permission: 'Admin',
+        type: 'Ticket',
+        customId: 'AddCategory',
+        label: 'Adicionar',
+        emoji: { name: '➕' },
+        style: ButtonStyle.Success
+      }),
+      new CustomButtonBuilder({
+        permission: 'Admin',
+        type: 'Ticket',
+        customId: 'RemCategory',
+        label: 'Remover',
+        emoji: { name: '➖' },
+        style: ButtonStyle.Danger
+      })
+    ])
+
+    const embed = new EmbedBuilder({
+      title: '🗂️ Gerenciar categorias dos tickets.',
+      description: 'Essas categorias são para classificar os tickets quando abertos pelos usuários'
+    })
+
+    await this.interaction.editReply({
+      embeds: [embed],
+      components: [buttons]
     })
   }
 }

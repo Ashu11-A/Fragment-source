@@ -77,7 +77,6 @@ export class TicketPanel {
     if (await this.validator()) return
     const { guild, guildId, channelId, user } = this.interaction
     const data = await db.tickets.get(`${guildId}.tickets.${channelId}`)
-    const ticketConfig = await db.guilds.get(`${guildId}.config.ticket`)
     const name = `🔊-${data.owner}`
     const existCall = this.interaction.guild.channels.cache.find((voiceChannel) => voiceChannel.name === name)
 
@@ -116,13 +115,6 @@ export class TicketPanel {
         allow
       }
     ] as OverwriteResolvable[]
-
-    if (ticketConfig?.role !== undefined) {
-      permissionOverwrites.push({
-        id: ticketConfig.role,
-        allow
-      })
-    }
 
     const voiceChannel = await this.interaction.guild?.channels.create({
       name,
@@ -190,7 +182,6 @@ export class TicketPanel {
     }
     const userFetch = await interaction.client.users.fetch(userId)
     const channel = interaction.guild?.channels.cache.find((channel) => channel.id === interaction.channelId)
-    const ticketConfig = await db.guilds.get(`${guildId}.config.ticket`)
     const ownerTicket = await db.tickets.get(`${guildId}.tickets.${channelId}.owner`)
 
     console.log(channel?.toJSON())
@@ -223,8 +214,6 @@ export class TicketPanel {
       { id: userId, allow },
       { id: ownerTicket, allow }
     ] as OverwriteResolvable[]
-
-    if (ticketConfig?.role !== undefined) permissionOverwrites.push({ id: ticketConfig.role, allow })
 
     for (const user of users) {
       if (remove === true && user.id === userId) continue

@@ -1,12 +1,14 @@
 import { db } from '@/app'
 import { type CustomIdHandlers } from '@/interfaces'
-import { EmbedBuilder, type CacheType, type StringSelectMenuInteraction } from 'discord.js'
+import { type TicketCategories } from '@/interfaces/Ticket'
+import { codeBlock, EmbedBuilder, type CacheType, type ChatInputCommandInteraction, type StringSelectMenuInteraction } from 'discord.js'
+import { TicketButtons } from './buttonsFunctions'
 import { TicketPanel } from './panelTicket'
 import { Ticket } from './ticket'
 import { ticketButtonsConfig } from './ticketUpdateConfig'
 
 interface TicketType {
-  interaction: StringSelectMenuInteraction<CacheType>
+  interaction: StringSelectMenuInteraction<CacheType> | ChatInputCommandInteraction<CacheType>
 }
 export class TicketSelects implements TicketType {
   interaction
@@ -18,14 +20,17 @@ export class TicketSelects implements TicketType {
    * Abre os tickets por meio do menu Select
    */
   public async Product (): Promise<void> {
-    const { values, guildId } = this.interaction
+    const interaction = this.interaction
+    if (!interaction.isStringSelectMenu()) return
+
+    const { values, guildId } = interaction
     const [posição, channelId, messageID] = values[0].split('_')
     const { select: infos } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${messageID}`)
     const Constructor = new Ticket({ interaction: this.interaction })
 
     if (Number(posição) >= 0 && Number(posição) < infos.length) {
       const { title, description } = infos[Number(posição)]
-      await Constructor.create({ title, description })
+      await Constructor.create({ title, description, categoryName: title })
     } else {
       console.log('Posição inválida no banco de dados.')
       await this.interaction.editReply({ content: '❌ | As informações do Banco de dados estão desatualizadas' })
@@ -36,11 +41,14 @@ export class TicketSelects implements TicketType {
    * Debug
    */
   public async Debug (): Promise<void> {
-    const { guildId, channelId, message } = this.interaction
+    const interaction = this.interaction
+    if (!interaction.isStringSelectMenu()) return
+
+    const { guildId, channelId, message } = interaction
     const { select: values } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message?.id}`)
 
     if (Array.isArray(values)) {
-      const deleteValues = this.interaction.values.map(Number)
+      const deleteValues = interaction.values.map(Number)
       const updatedValues = values.filter((_: string, index: number) => !deleteValues.includes(index))
 
       await db.messages.set(`${guildId}.ticket.${channelId}.messages.${message?.id}.select`, updatedValues)
@@ -88,5 +96,49 @@ export class TicketSelects implements TicketType {
         title: '❌ | Função inexistente.'
       }).setColor('Red')]
     })
+  }
+
+  async RemCategory ({ titles = [] }: { titles?: string[] }): Promise<void> {
+    const interaction = this.interaction
+    const { guildId } = interaction
+    if (interaction.isStringSelectMenu()) titles = interaction.values
+
+    let categories = await db.tickets.get(`${guildId}.system.categories`) as TicketCategories[] ?? []
+
+    for (const title of titles) {
+      categories = categories.filter((category) => category.title.toLowerCase() !== title.toLowerCase())
+    }
+
+    await db.tickets.set(`${guildId}.system.categories`, categories)
+    await interaction.editReply({
+      embeds: [new EmbedBuilder({
+        title: '✅ | Categorias deletadas com sucesso!',
+        description: `Categorias: ${codeBlock(titles.join(', '))}`
+      }).setColor('Green')]
+    })
+  }
+
+  async SelectType (): Promise<void> {
+    const interaction = this.interaction
+    if (!interaction.isStringSelectMenu()) return
+
+    const { values, guildId, user } = interaction
+    const split = values[0].split('-')
+    const Constructor = new Ticket({ interaction: this.interaction })
+    const ButtonConstructor = new TicketButtons({ interaction: this.interaction })
+
+    switch (split[1]) {
+      case 'button': {
+        await interaction.deferReply({ ephemeral })
+        await Constructor.create({ title: 'Não foi possível descobrir.', categoryName: split[0] })
+        await db.tickets.set(`${guildId}.users.${user.id}.preferences.category`, split[0])
+        break
+      }
+      case 'modal': {
+        await ButtonConstructor.OpenModal()
+        await db.tickets.set(`${guildId}.users.${user.id}.preferences.category`, split[0])
+        break
+      }
+    }
   }
 }

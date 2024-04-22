@@ -14,13 +14,6 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
     new CustomButtonBuilder({
       permission: 'Admin',
       type: 'Ticket',
-      customId: 'SetRole',
-      label: 'Add Cargo',
-      emoji: { name: '🛂' }
-    }),
-    new CustomButtonBuilder({
-      permission: 'Admin',
-      type: 'Ticket',
       customId: 'SetSelect',
       label: 'SelectMenu',
       emoji: { name: '🗄️' }
@@ -50,6 +43,22 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
   ]
 
   const saveDelete = [
+    new CustomButtonBuilder({
+      permission: 'Admin',
+      type: 'Ticket',
+      customId: 'SetRole',
+      label: 'Add Cargo',
+      emoji: { name: '🛂' },
+      style: ButtonStyle.Secondary
+    }),
+    new CustomButtonBuilder({
+      permission: 'Admin',
+      type: 'Ticket',
+      customId: 'EmbedCategory',
+      label: 'Panel Category',
+      emoji: { name: '🖥️' },
+      style: ButtonStyle.Secondary
+    }),
     new CustomButtonBuilder({
       permission: 'Admin',
       type: 'Ticket',
@@ -97,7 +106,7 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
       new CustomButtonBuilder({
         type: 'Ticket',
         permission: 'User',
-        customId: data?.properties?.SetModal === true ? 'OpenModal' : 'Open',
+        customId: 'SelectType',
         emoji: { name: '🎫' },
         label: 'Abra seu ticket',
         style: ButtonStyle.Success
@@ -132,6 +141,10 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
         value.setEmoji('📤')
         value.setLabel('Enviar')
       }
+    }
+
+    if (['EmbedCategory', 'SetRole'].includes(customId)) {
+      value.setStyle(data?.properties !== undefined && data?.properties[customId] === true ? ButtonStyle.Primary : ButtonStyle.Secondary)
     }
   }
 
@@ -187,7 +200,7 @@ export async function buttonsUsers (interaction: CommandInteraction<CacheType> |
   const botao = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new CustomButtonBuilder({
       type: 'Ticket',
-      customId: data?.properties?.SetModal === true ? 'OpenModal' : 'Open',
+      customId: 'SelectType',
       label: 'Abra seu ticket',
       emoji: { name: '🎫' },
       style: ButtonStyle.Success

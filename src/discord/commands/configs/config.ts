@@ -244,19 +244,6 @@ new Command({
           description: '[ 🎫 Ticket ] Limita a quantidade tickets por 24h.',
           required: false,
           type: ApplicationCommandOptionType.Number
-        },
-        {
-          name: 'support-role',
-          description: '[ 🎫 Ticket ] Definir cargo de suporte.',
-          required: false,
-          type: ApplicationCommandOptionType.Role
-        },
-        {
-          name: 'category',
-          description: '[ 🎫 Ticket ] Definir categoria onde serão indexadas os tickets e calls',
-          required: false,
-          type: ApplicationCommandOptionType.Channel,
-          channelTypes: [ChannelType.GuildCategory]
         }
       ]
     }
@@ -472,9 +459,6 @@ new Command({
           await interaction.deferReply({ ephemeral })
           const channel = options.getChannel('panel-embed')
           const limit = options.getNumber('limit')
-          const role = options.getRole('support-role')
-          const category = options.getChannel('category')
-          console.log('test', category)
 
           if (channel !== null) {
             const sendChannel = guild?.channels.cache.get(String(channel?.id)) as TextChannel
@@ -517,25 +501,6 @@ new Command({
               typeDB: 'guilds'
             }).set({
               data: limit
-            })
-          }
-          if (role !== null) {
-            await new Database({
-              interaction,
-              pathDB: 'config.ticket.role',
-              typeDB: 'guilds'
-            }).set({
-              data: role.id
-            })
-          }
-
-          if (category !== null) {
-            await new Database({
-              interaction,
-              pathDB: 'config.ticket.category',
-              typeDB: 'guilds'
-            }).set({
-              data: category.id
             })
           }
           break

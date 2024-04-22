@@ -33,7 +33,7 @@ new Event({
     if (internalDB?.expired === undefined || internalDB.expired) {
       await interaction.reply({
         ephemeral,
-        embeds: [new EmbedBuilder({ title: '⚠️ Licença do bot expirou!' }).setColor('Red')]
+        embeds: [new EmbedBuilder({ title: '⚠️ Bot sem licença!' }).setColor('Red')]
       })
       return
     }

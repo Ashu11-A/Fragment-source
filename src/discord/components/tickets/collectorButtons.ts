@@ -26,6 +26,25 @@ const listItens = {
   SetEmoji: {
     label: '❓| Qual será o Emoji? (somente um)',
     placeholder: 'Ex: 🎟️🎫💰🎲💵🗂️.',
+    valuee: '💰',
+    style: 1,
+    maxLength: 10,
+    type: 'emoji'
+  }
+}
+
+const listForAddCategory = {
+  SetName: {
+    label: '❓| Qual será o Nome?',
+    placeholder: 'Ex: Parceria',
+    style: 1,
+    valuee: undefined,
+    maxLength: 25,
+    type: 'title'
+  },
+  SetEmoji: {
+    label: '❓| Qual será o Emoji? (somente um)',
+    placeholder: 'Ex: 🎟️🎫💰🎲💵🗂️.',
     valuee: '🎟️',
     style: 1,
     maxLength: 10,
@@ -44,8 +63,7 @@ export async function ticketCollectorButtons (options: {
   const PanelConstructor = new TicketPanel({ interaction })
 
   const customIdHandlers: CustomIdHandlers = {
-    Open: async () => { await Constructor.create({ title: 'Não foi possível descobrir.' }) },
-    OpenModal: async () => { await ButtonConstructor.OpenModal() },
+    SelectType: async () => { await ButtonConstructor.SelectType() },
 
     delTicket: async () => { await Constructor.delete({ type: 'delTicket' }) },
     EmbedDelete: async () => { await Constructor.delete({ type: 'EmbedDelete' }) },
@@ -77,13 +95,37 @@ export async function ticketCollectorButtons (options: {
       await interaction.showModal(modal)
     },
 
-    Panel: async () => { await PanelConstructor.CreatePanel() }
+    Panel: async () => { await PanelConstructor.CreatePanel() },
+
+    EmbedCategory: async () => { await Constructor.PanelCategory() },
+    AddCategory: async () => {
+      const modal = new ModalBuilder({ customId, title: 'Adicionar Opções no Category Menu' })
+      Object.entries(listForAddCategory).map(([, value]) => {
+        const { label, placeholder, style, type, maxLength, valuee } = value
+        const content = new ActionRowBuilder<TextInputBuilder>({
+          components: [
+            new TextInputBuilder({
+              custom_id: type,
+              label,
+              placeholder,
+              style,
+              value: valuee,
+              required: true,
+              maxLength
+            })
+          ]
+        })
+        return modal.addComponents(content)
+      })
+      await interaction.showModal(modal)
+    },
+    RemCategory: async () => { await ButtonConstructor.RemCategory() }
   }
 
   const customIdHandler = customIdHandlers[key]
 
   if (typeof customIdHandler === 'function') {
-    if (key !== 'AddSelect' && key !== 'SendSave' && key !== 'OpenModal') await interaction.deferReply({ ephemeral })
+    if (key !== 'AddSelect' && key !== 'SendSave' && key !== 'OpenModal' && key !== 'AddCategory') await interaction.deferReply({ ephemeral })
     await customIdHandler()
   } else {
     const { title, label, placeholder, style, type, maxLength, db: dataDB } = getModalData(key)

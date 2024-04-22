@@ -8,16 +8,18 @@ export async function ticketCollectorModal (options: {
   key: string
 }): Promise<void> {
   const { interaction, key } = options
-  const ticketConstructor = new TicketModals({ interaction })
+  const ConstructorModal = new TicketModals({ interaction })
   const panelTicket = new TicketPanel({ interaction })
 
   const customIdHandlers: CustomIdHandlers = {
-    AddSelect: async () => { await ticketConstructor.AddSelect(key) },
-    SendSave: async () => { await ticketConstructor.sendSave(key) },
-    SetRole: async () => { await ticketConstructor.setConfig(key) },
+    AddSelect: async () => { await ConstructorModal.AddSelect(key) },
+    SendSave: async () => { await ConstructorModal.sendSave(key) },
+    SetRole: async () => { await ConstructorModal.setConfig(key) },
 
     AddUserModal: async () => { await panelTicket.EditChannelCollector({}) },
-    OpenModalCollector: async () => { await ticketConstructor.OpenModalCollector() }
+    OpenModalCollector: async () => { await ConstructorModal.OpenModalCollector() },
+
+    AddCategory: async () => { await ConstructorModal.AddCategory({}) }
   }
 
   const customIdHandler = customIdHandlers[key]
