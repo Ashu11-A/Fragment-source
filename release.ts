@@ -107,8 +107,8 @@ async function compress (): Promise<void> {
     const buildName = build.split('-')
     buildName.splice(0, 1)
     const buildType = nameSplit[1] === 'win'
-      ? `./release/paymentbot-[${buildName.join('-')}].exe`
-      : `./release/paymentbot-[${buildName.join('-')}]`
+      ? `./release/paymentbot-${buildName.join('-')}.exe`
+      : `./release/paymentbot-${buildName.join('-')}`
 
     const newArg: string[] = []
     newArg.push(...args)
