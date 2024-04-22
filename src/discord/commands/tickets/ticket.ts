@@ -1,7 +1,7 @@
 import { db } from '@/app'
 import { Command } from '@/discord/base'
-import { TicketButtons } from '@/discord/components/tickets'
-import { PanelTicket } from '@/discord/components/tickets/functions/panelTicket'
+import { TicketPanel } from '@/discord/components/tickets/functions/panelTicket'
+import { Ticket } from '@/discord/components/tickets/functions/ticket'
 import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType } from 'discord.js'
 
 new Command({
@@ -59,8 +59,8 @@ new Command({
   },
   async run (interaction) {
     const { options } = interaction
-    const ticketPanel = new PanelTicket({ interaction })
-    const ticketConstructor = new TicketButtons({ interaction })
+    const ticketPanel = new TicketPanel({ interaction })
+    const Constructor = new Ticket({ interaction })
     const addUser = options.getUser('add-user')
     const remUser = options.getString('remove-user')
     const createCall = options.getBoolean('create-call')
@@ -70,11 +70,11 @@ new Command({
     await interaction.deferReply({ ephemeral: true })
 
     if (addUser !== null) { await ticketPanel.EditChannelCollector({ userIdByCommand: addUser.id }) }
-    if (delTicket === true) { await ticketConstructor.delete({ type: 'delTicket' }) }
+    if (delTicket === true) { await Constructor.delete({ type: 'delTicket' }) }
     if (createCall === true) { await ticketPanel.CreateCall() }
     if (remUser !== null) { await ticketPanel.EditChannelCollector({ userIdByCommand: remUser, remove: true }) }
     if (remUser !== null || addUser !== null || delTicket !== null || createCall !== null || delAllTickets !== null) return
 
-    await ticketConstructor.createTicket({ title: 'Ticket aberto por meio do comando /ticket' })
+    await Constructor.create({ title: 'Ticket aberto por meio do comando /ticket' })
   }
 })
