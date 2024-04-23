@@ -1,4 +1,4 @@
-import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
+import { copyFile, copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import os from 'os'
 import path from 'path'
 import { minify } from 'terser'
@@ -37,6 +37,7 @@ async function compress (): Promise<void> {
   const progressBar = new SingleBar({}, Presets.rect)
   const files = await carregarDados({ diretorio: 'dist' })
   progressBar.start(Object.entries(files).length, 0)
+  copyFileSync('src/settings/settings.exemple.json', 'build/settings/settings.json')
   for (const [filePath, fileContent] of Object.entries(files)) {
     progressBar.increment(1)
     const newPath = path.dirname(filePath).replace('dist', 'build')
