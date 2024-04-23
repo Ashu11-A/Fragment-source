@@ -14,7 +14,8 @@ export async function ticketCollectorSelect (options: {
     RowSelectProduction: async () => { await SelectConstructor.Product() },
     PanelSelect: async () => { await SelectConstructor.CollectorSelect() },
     RemCategory: async () => { await SelectConstructor.RemCategory({}) },
-    SelectType: async () => { await SelectConstructor.SelectType() }
+    SelectType: async () => { await SelectConstructor.SelectType() },
+    RemoveUser: async () => { await SelectConstructor.RemoveUser() }
   }
 
   const customIdHandler = customIdHandlers[key]

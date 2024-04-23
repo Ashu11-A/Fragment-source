@@ -1,9 +1,9 @@
 import { db } from '@/app'
 import { Command } from '@/discord/base'
+import { type Ticket as TicketDBType, type TicketCategories } from '@/interfaces/Ticket'
 import { TicketModals, TicketSelects } from '@/discord/components/tickets'
 import { TicketPanel } from '@/discord/components/tickets/functions/panelTicket'
 import { Ticket } from '@/discord/components/tickets/functions/ticket'
-import { type TicketCategories } from '@/interfaces/Ticket'
 import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType } from 'discord.js'
 
 new Command({
@@ -115,28 +115,34 @@ new Command({
       }
     } else if (options.getSubcommand() !== null) {
       switch (options.getSubcommand()) {
-        case 'remove-user': {
-          const users = await db.tickets.get(`${guildId}.tickets.${channelId}.users`)
-          const user = options.getString('remove-user')
-          const respond: Array<ApplicationCommandOptionChoiceData<string | number>> = []
-          if (user !== null) {
-            for (const user of users) {
-              respond.push({ name: `${user.displayName} | ${user.name}`, value: user.id })
+        case 'manage': {
+          switch (options.data[0].options?.[0].name) {
+            case 'remove-user': {
+              const { users } = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
+              const user = options.getString('remove-user')
+              const respond: Array<ApplicationCommandOptionChoiceData<string | number>> = []
+              if (user !== null && users !== undefined) {
+                for (const user of users) {
+                  respond.push({ name: `${user.displayName} | ${user.name}`, value: user.id })
+                }
+              }
+              await interaction.respond(respond)
             }
           }
-          await interaction.respond(respond)
         }
       }
     }
   },
   async run (interaction) {
-    const { options } = interaction
+    const { options, channelId } = interaction
     await interaction.deferReply({ ephemeral: true })
 
     const Constructor = new Ticket({ interaction })
     const PanelConstructor = new TicketPanel({ interaction })
     const ModalConstructor = new TicketModals({ interaction })
     const SelectConstructor = new TicketSelects({ interaction })
+
+    console.log(options.getSubcommand())
 
     if (options.getSubcommandGroup() != null) {
       switch (options.getSubcommandGroup()) {
@@ -149,7 +155,7 @@ new Command({
               break
             }
             case 'rem': {
-              const title = options.getString('title', true)
+              const title = options.getString('category', true)
               await SelectConstructor.RemCategory({ titles: [title] })
             }
           }
@@ -158,12 +164,16 @@ new Command({
       return
     } else if (options.getSubcommand() !== null) {
       switch (options.getSubcommand()) {
-        case 'add-user': await PanelConstructor.EditChannelCollector({ userIdByCommand: options.getUser('add-user')?.id }); break
-        case 'remove-user': await PanelConstructor.EditChannelCollector({ userIdByCommand: options.getString('remove-user') ?? undefined, remove: true }); break
-        case 'create-call': await PanelConstructor.CreateCall(); break
-        case 'del-ticket': await Constructor.delete({ type: 'delTicket' }); break
-        case 'del-all-tickets':
-          break
+        case 'manage': {
+          switch (options.data[0].options?.[0].name) {
+            case 'add-user': await Constructor.Permissions({ userId: options.getUser('add-user', true).id, channelId }); break
+            case 'remove-user': await Constructor.Permissions({ userId: options.getString('remove-user', true), channelId, remove: true }); break
+            case 'create-call': await PanelConstructor.CreateCall(); break
+            case 'del-ticket': await Constructor.delete({ type: 'delTicket' }); break
+            case 'del-all-tickets':
+              break
+          }
+        }
       }
       return
     }

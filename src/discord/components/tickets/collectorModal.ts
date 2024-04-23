@@ -16,7 +16,7 @@ export async function ticketCollectorModal (options: {
     SendSave: async () => { await ConstructorModal.sendSave(key) },
     SetRole: async () => { await ConstructorModal.setConfig(key) },
 
-    AddUserModal: async () => { await panelTicket.EditChannelCollector({}) },
+    AddUserModal: async () => { await panelTicket.EditChannelCollector() },
     OpenModalCollector: async () => { await ConstructorModal.OpenModalCollector() },
 
     AddCategory: async () => { await ConstructorModal.AddCategory({}) }

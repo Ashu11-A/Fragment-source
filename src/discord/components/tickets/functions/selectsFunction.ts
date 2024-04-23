@@ -29,8 +29,8 @@ export class TicketSelects implements TicketType {
     const Constructor = new Ticket({ interaction: this.interaction })
 
     if (Number(posição) >= 0 && Number(posição) < infos.length) {
-      const { title, description } = infos[Number(posição)]
-      await Constructor.create({ title, description, categoryName: title })
+      const { title, description, emoji } = infos[Number(posição)]
+      await Constructor.create({ title, description, categoryEmoji: emoji, categoryName: title })
     } else {
       console.log('Posição inválida no banco de dados.')
       await this.interaction.editReply({ content: '❌ | As informações do Banco de dados estão desatualizadas' })
@@ -75,14 +75,12 @@ export class TicketSelects implements TicketType {
     const customIdHandlers: CustomIdHandlers = {
       CreateCall: async () => { await PanelConstructor.CreateCall() },
       AddUser: async () => { await PanelConstructor.AddUser() },
-      RemoveUser: async () => {},
+      RemoveUser: async () => { await PanelConstructor.RemoveUser() },
       Transcript: async () => {},
       delTicket: async () => { await Constructor.delete({ type: 'delTicket' }) }
     }
 
     const customIdHandler = customIdHandlers[values[0]]
-
-    console.log()
 
     if (typeof customIdHandler === 'function') {
       if (values[0] !== 'AddUser') await this.interaction.deferReply({ ephemeral })
@@ -96,6 +94,17 @@ export class TicketSelects implements TicketType {
         title: '❌ | Função inexistente.'
       }).setColor('Red')]
     })
+  }
+
+  async RemoveUser (): Promise<void> {
+    const interaction = this.interaction
+    if (!interaction.isStringSelectMenu()) return
+    const { values, channelId } = interaction
+    const Constructor = new Ticket({ interaction })
+
+    for (const value of values) {
+      await Constructor.Permissions({ userId: value, channelId, remove: true })
+    }
   }
 
   async RemCategory ({ titles = [] }: { titles?: string[] }): Promise<void> {
@@ -127,16 +136,16 @@ export class TicketSelects implements TicketType {
     const Constructor = new Ticket({ interaction: this.interaction })
     const ButtonConstructor = new TicketButtons({ interaction: this.interaction })
 
-    switch (split[1]) {
+    switch (split[2]) {
       case 'button': {
         await interaction.deferReply({ ephemeral })
-        await Constructor.create({ title: 'Não foi possível descobrir.', categoryName: split[0] })
-        await db.tickets.set(`${guildId}.users.${user.id}.preferences.category`, split[0])
+        await Constructor.create({ title: 'Não foi possível descobrir.', categoryEmoji: split[0], categoryName: split[1] })
+        await db.tickets.set(`${guildId}.users.${user.id}.preferences.category`, split[1])
         break
       }
       case 'modal': {
         await ButtonConstructor.OpenModal()
-        await db.tickets.set(`${guildId}.users.${user.id}.preferences.category`, split[0])
+        await db.tickets.set(`${guildId}.users.${user.id}.preferences.category`, split[1])
         break
       }
     }

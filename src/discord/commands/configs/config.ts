@@ -244,6 +244,12 @@ new Command({
           description: '[ 🎫 Ticket ] Limita a quantidade tickets por 24h.',
           required: false,
           type: ApplicationCommandOptionType.Number
+        },
+        {
+          name: 'claim-channel',
+          description: '[ 🎫 Ticket ] Chat onde seram enviadas os pedidos de ticket.',
+          type: ApplicationCommandOptionType.Channel,
+          channelTypes: [ChannelType.GuildText]
         }
       ]
     }
@@ -459,6 +465,7 @@ new Command({
           await interaction.deferReply({ ephemeral })
           const channel = options.getChannel('panel-embed')
           const limit = options.getNumber('limit')
+          const claimChannel = options.getChannel('claim-channel')
 
           if (channel !== null) {
             const sendChannel = guild?.channels.cache.get(String(channel?.id)) as TextChannel
@@ -502,6 +509,13 @@ new Command({
             }).set({
               data: limit
             })
+          }
+          if (claimChannel !== null) {
+            await new Database({
+              interaction,
+              pathDB: 'config.ticket.claimId',
+              typeDB: 'guilds'
+            }).set({ data: claimChannel.id })
           }
           break
         }

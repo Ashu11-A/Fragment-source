@@ -3,7 +3,7 @@ import { createRowEdit } from '@/discord/components/SUEE/functions/createRowEdit
 import { CustomButtonBuilder } from '@/functions'
 import { ActionRowBuilder, type ButtonBuilder, ButtonStyle, type Message, type CommandInteraction, type CacheType, type ModalSubmitInteraction, type ButtonInteraction, StringSelectMenuBuilder, type StringSelectMenuInteraction } from 'discord.js'
 
-export async function ticketButtonsConfig (interaction: StringSelectMenuInteraction<CacheType> | CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | CommandInteraction<CacheType>, message: Message<boolean>): Promise<void> {
+export async function ticketButtonsConfig (interaction: StringSelectMenuInteraction<CacheType> | CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | CommandInteraction<CacheType>, message: Message<boolean>, confirm: boolean = true): Promise<void> {
   const { guildId, channelId } = interaction
   const options: Array<{ label: string, description: string, value: string, emoji: string }> = []
   const data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message.id}`)
@@ -43,14 +43,6 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
   ]
 
   const saveDelete = [
-    new CustomButtonBuilder({
-      permission: 'Admin',
-      type: 'Ticket',
-      customId: 'SetRole',
-      label: 'Add Cargo',
-      emoji: { name: '🛂' },
-      style: ButtonStyle.Secondary
-    }),
     new CustomButtonBuilder({
       permission: 'Admin',
       type: 'Ticket',
@@ -143,7 +135,8 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
       }
     }
 
-    if (['EmbedCategory', 'SetRole'].includes(customId)) {
+    if (customId === 'EmbedCategory') {
+      console.log(data?.properties)
       value.setStyle(data?.properties !== undefined && data?.properties[customId] === true ? ButtonStyle.Primary : ButtonStyle.Secondary)
     }
   }
@@ -162,11 +155,11 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
 
   try {
     await message.edit({ embeds: [embed], components: [embedEdit, row2, row3, row4] })
-    await interaction.editReply({ content: '✅ | Salvado com sucesso!' })
+    if (confirm) await interaction.editReply({ content: '✅ | Salvado com sucesso!' })
   } catch (err) {
     console.log(err)
     await message.edit({ embeds: [embed], components: [embedEdit, row2, row3] })
-    await interaction.editReply({ content: '❌ | não foi possível renderizar o SelectMenu, pois ele não contem nenhum item...!' })
+    if (confirm) await interaction.editReply({ content: '❌ | não foi possível renderizar o SelectMenu, pois ele não contem nenhum item...!' })
   }
 }
 

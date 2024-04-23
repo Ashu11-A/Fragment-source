@@ -5,6 +5,7 @@ import { ActionRowBuilder, ModalBuilder, TextInputBuilder, type ButtonInteractio
 import { getModalData } from './functions/getModalData'
 import { TicketPanel } from './functions/panelTicket'
 import { Ticket } from './functions/ticket'
+import { TicketClaim } from './functions/claim'
 
 const listItens = {
   SetName: {
@@ -61,6 +62,7 @@ export async function ticketCollectorButtons (options: {
   const Constructor = new Ticket({ interaction })
   const ButtonConstructor = new TicketButtons({ interaction })
   const PanelConstructor = new TicketPanel({ interaction })
+  const ClaimConstructor = new TicketClaim({ interaction })
 
   const customIdHandlers: CustomIdHandlers = {
     SelectType: async () => { await ButtonConstructor.SelectType() },
@@ -119,10 +121,15 @@ export async function ticketCollectorButtons (options: {
       })
       await interaction.showModal(modal)
     },
-    RemCategory: async () => { await ButtonConstructor.RemCategory() }
+    RemCategory: async () => { await ButtonConstructor.RemCategory() },
+
+    /* Sistema de Claim */
+    Claim: async () => { await ClaimConstructor.Claim({ key }) },
+    SaveLogs: async () => { await ClaimConstructor.SaveLogs() },
+    Delete: async () => { await ClaimConstructor.Delete({ key }) }
   }
 
-  const customIdHandler = customIdHandlers[key]
+  const customIdHandler = customIdHandlers[key.split('-')[0]]
 
   if (typeof customIdHandler === 'function') {
     if (key !== 'AddSelect' && key !== 'SendSave' && key !== 'OpenModal' && key !== 'AddCategory') await interaction.deferReply({ ephemeral })

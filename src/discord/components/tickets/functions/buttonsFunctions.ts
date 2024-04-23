@@ -147,8 +147,8 @@ export class TicketButtons implements TicketType {
     if (!interaction.isButton()) return
     const { guildId, channelId, message, user } = interaction
     const categories = await db.tickets.get(`${guildId}.system.categories`) as TicketCategories[] ?? []
-    const data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message.id}`)
     const userTicket = await db.tickets.get(`${guildId}.users.${user.id}`) as TicketUser
+    const data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message.id}`)
     const Constructor = new Ticket({ interaction })
     const ButtonsConstructor = new TicketButtons({ interaction })
 
@@ -164,7 +164,7 @@ export class TicketButtons implements TicketType {
     for (const category of categories) {
       options.push({
         label: category.title,
-        value: `${category.title}-${data?.properties?.SetModal === true ? 'modal' : 'button'}`,
+        value: `${category.emoji}-${category.title}-${data?.properties?.SetModal === true ? 'modal' : 'button'}`,
         emoji: category.emoji,
         description: userTicket?.preferences?.category === category.title ? 'Seu último ticket aberto foi nessa categoria!' : undefined
       })
