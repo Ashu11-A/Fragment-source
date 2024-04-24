@@ -1,9 +1,8 @@
 import { db } from '@/app'
 import { type TicketCategories, type TicketUser } from '@/interfaces/Ticket'
-import { ActionRowBuilder, type ButtonInteraction, type CacheType, type CommandInteraction, EmbedBuilder, ModalBuilder, type ModalSubmitInteraction, type SelectMenuComponentOptionData, StringSelectMenuBuilder, type StringSelectMenuInteraction, type TextChannel, TextInputBuilder, TextInputStyle } from 'discord.js'
-import { getModalData } from './getModalData'
+import { ActionRowBuilder, type ButtonInteraction, type CacheType, type CommandInteraction, EmbedBuilder, ModalBuilder, type ModalSubmitInteraction, type SelectMenuComponentOptionData, StringSelectMenuBuilder, type StringSelectMenuInteraction, TextInputBuilder, TextInputStyle } from 'discord.js'
 import { Ticket } from './ticket'
-import { buttonsUsers, ticketButtonsConfig } from './ticketUpdateConfig'
+import { ticketButtonsConfig } from './ticketUpdateConfig'
 
 interface TicketType {
   interaction: CommandInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction | ModalSubmitInteraction<CacheType>
@@ -58,49 +57,7 @@ export class TicketButtons implements TicketType {
     await db.messages.set(`${guildId}.ticket.${channelId}.messages.${message.id}.properties.SetButton`, type === 'button')
     await db.messages.set(`${guildId}.ticket.${channelId}.messages.${message.id}.properties.SetModal`, type === 'modal')
     await this.interaction.editReply({ content: '⏱️ | Aguarde só um pouco...' })
-    await ticketButtonsConfig(this.interaction, message)
-  }
-
-  public async sendSave (key: string): Promise<void> {
-    const { guild, guildId, channelId } = this.interaction
-    const { label, maxLength, placeholder, style, title, type, db: dataDB } = getModalData(key)
-
-    if (this.interaction.isButton()) {
-      const { message, customId } = this.interaction
-
-      try {
-        const { embedChannelID, embedMessageID: messageID } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message?.id}`)
-        const channel = guild?.channels.cache.find((channel) => channel.id === embedChannelID) as TextChannel | undefined
-        const msg = channel?.messages.cache.find((message) => message.id === messageID)
-
-        if (channel === undefined || messageID === undefined || msg === undefined) throw new Error()
-
-        await buttonsUsers({
-          interaction: this.interaction,
-          originID: message.id,
-          messageSend: msg
-        })
-      } catch {
-        const textValue = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message.id}.${dataDB}`)
-        const modal = new ModalBuilder({ customId, title })
-        const content = new ActionRowBuilder<TextInputBuilder>({
-          components: [
-            new TextInputBuilder({
-              custom_id: 'content',
-              label,
-              placeholder,
-              value: textValue ?? null,
-              style,
-              required: true,
-              maxLength,
-              type
-            })
-          ]
-        })
-        modal.setComponents(content)
-        await this.interaction.showModal(modal)
-      }
-    }
+    await ticketButtonsConfig({ interaction: this.interaction })
   }
 
   async RemCategory (): Promise<void> {

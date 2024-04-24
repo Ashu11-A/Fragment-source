@@ -170,7 +170,6 @@ export async function panelCupons (options: {
   channel?: TextChannel
 }): Promise<void> {
   const { interaction, channel } = options
-  const { user } = interaction
   const embed = new EmbedBuilder({
     title: '🎟️ | Configurar Cupons',
     description: 'Crie, Remova ou Edite os cupons'

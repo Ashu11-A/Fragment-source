@@ -1,45 +1,17 @@
 import { db } from '@/app'
-import { type TicketUser, type TicketCategories } from '@/interfaces/Ticket'
-import { EmbedBuilder, type EmbedData, type CacheType, type ChatInputCommandInteraction, type ModalSubmitInteraction, type TextChannel } from 'discord.js'
+import { type TicketCategories, type TicketUser } from '@/interfaces/Ticket'
+import { EmbedBuilder, type CacheType, type EmbedData, type ModalSubmitInteraction } from 'discord.js'
 import { getModalData } from './getModalData'
 import { Ticket } from './ticket'
-import { buttonsUsers, ticketButtonsConfig } from './ticketUpdateConfig'
+import { ticketButtonsConfig } from './ticketUpdateConfig'
 
 interface TicketType {
-  interaction: ModalSubmitInteraction<CacheType> | ChatInputCommandInteraction<CacheType>
+  interaction: ModalSubmitInteraction<CacheType>
 }
 export class TicketModals implements TicketType {
   interaction
   constructor ({ interaction }: TicketType) {
     this.interaction = interaction
-  }
-
-  public async sendSave (key: string): Promise<void> {
-    const interaction = this.interaction
-    if (!interaction.isModalSubmit()) return
-
-    const { guild, guildId, channelId, message, fields } = interaction
-    const { db: dataDB } = getModalData(key)
-    const messageModal = fields.getTextInputValue('content')
-    const data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message?.id}`)
-    const channel = guild?.channels.cache.find((channel) => channel.id === messageModal) as TextChannel
-
-    await db.messages.set(`${guildId}.ticket.${channelId}.messages.${message?.id}.${dataDB}`, messageModal)
-
-    const updateEmbed = new EmbedBuilder(data.embed as EmbedData)
-    if (data.embed !== undefined && typeof data.embed.color === 'string') {
-      if (data.embed.color.startsWith('#') === true) {
-        updateEmbed.setColor(parseInt(data.embed.color.slice(1), 16))
-      }
-    }
-
-    const msg = await channel.send({ embeds: [updateEmbed] })
-    await db.messages.set(`${guildId}.ticket.${channelId}.messages.${message?.id}.embedMessageID`, msg.id)
-    await buttonsUsers({
-      interaction,
-      originID: message.id,
-      messageSend: msg
-    })
   }
 
   public async AddSelect (key: string): Promise<void> {
@@ -82,7 +54,10 @@ export class TicketModals implements TicketType {
           .then(async () => {
             await db.messages.set(`${guildId}.ticket.${channelId}.messages.${message?.id}.properties.${key}`, true)
               .then(async () => {
-                await ticketButtonsConfig(this.interaction, msg)
+                await ticketButtonsConfig({
+                  interaction: this.interaction,
+                  message: msg
+                })
               })
           })
       })
@@ -116,7 +91,10 @@ export class TicketModals implements TicketType {
           .then(async () => {
             await db.messages.set(`${guildId}.ticket.${channelId}.messages.${message?.id}.properties.${key}`, true)
               .then(async () => {
-                await ticketButtonsConfig(this.interaction, msg)
+                await ticketButtonsConfig({
+                  interaction: this.interaction,
+                  message: msg
+                })
                 await this.interaction.editReply({ content: '✅ | Elemento ' + '`' + dataDB + '`' + ' foi alterado com sucesso!' })
               })
           })

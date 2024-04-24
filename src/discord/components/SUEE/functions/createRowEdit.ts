@@ -6,7 +6,7 @@ import { ActionRowBuilder, type ButtonBuilder, ButtonStyle, type ButtonInteracti
 import { getTypeAndKey } from './getTypeAndKey'
 
 export async function createRowEdit (interaction: StringSelectMenuInteraction<CacheType> | CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | CommandInteraction<CacheType>, message: Message<boolean>, type: 'ticket' | 'payments'): Promise<ActionRowBuilder<ButtonBuilder>> {
-  const { guildId, channelId, user } = interaction
+  const { guildId, channelId } = interaction
   const data = await db.messages.get(`${guildId}.${type}.${channelId}.messages.${message.id}`)
 
   const rowButtons = [

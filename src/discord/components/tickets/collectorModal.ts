@@ -13,7 +13,6 @@ export async function ticketCollectorModal (options: {
 
   const customIdHandlers: CustomIdHandlers = {
     AddSelect: async () => { await ConstructorModal.AddSelect(key) },
-    SendSave: async () => { await ConstructorModal.sendSave(key) },
     SetRole: async () => { await ConstructorModal.setConfig(key) },
 
     AddUserModal: async () => { await panelTicket.EditChannelCollector() },
@@ -25,7 +24,7 @@ export async function ticketCollectorModal (options: {
   const customIdHandler = customIdHandlers[key]
 
   if (typeof customIdHandler === 'function') {
-    if (key !== 'SendSave') await interaction.deferReply({ ephemeral: true })
+    await interaction.deferReply({ ephemeral: true })
     await customIdHandler()
   }
 }

@@ -31,7 +31,7 @@ export class ProductButtonCollector {
     const { interaction, message } = this
     if (!interaction.isButton()) return
 
-    const { guildId, channelId, user } = interaction
+    const { guildId, channelId } = interaction
     const productData = (await db.messages.get(
           `${guildId}.payments.${channelId}.messages.${message.id}`
     )) as productData

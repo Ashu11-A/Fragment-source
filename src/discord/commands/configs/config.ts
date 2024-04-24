@@ -482,7 +482,10 @@ new Command({
                     id: msg.id,
                     embed: embed.toJSON()
                   })
-                  await ticketButtonsConfig(interaction, msg)
+                  await ticketButtonsConfig({
+                    interaction,
+                    message: msg
+                  })
                   await interaction.editReply({
                     embeds: [
                       new EmbedBuilder()

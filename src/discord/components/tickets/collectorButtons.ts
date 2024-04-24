@@ -1,5 +1,5 @@
 import { db } from '@/app'
-import { TicketButtons } from '@/discord/components/tickets'
+import { buttonsUsers, TicketButtons, ticketButtonsConfig } from '@/discord/components/tickets'
 import { type CustomIdHandlers } from '@/interfaces'
 import { ActionRowBuilder, ModalBuilder, TextInputBuilder, type ButtonInteraction, type CacheType } from 'discord.js'
 import { getModalData } from './functions/getModalData'
@@ -74,7 +74,8 @@ export async function ticketCollectorButtons (options: {
     SetButton: async () => { await ButtonConstructor.setSystem({ type: 'button' }) },
     SetModal: async () => { await ButtonConstructor.setSystem({ type: 'modal' }) },
 
-    SendSave: async () => { await ButtonConstructor.sendSave(key) },
+    Save: async () => { await buttonsUsers({ interaction }) },
+    Config: async () => { await ticketButtonsConfig({ interaction }) },
     AddSelect: async () => {
       const modal = new ModalBuilder({ customId, title: 'Adicionar Opções no Select Menu' })
       Object.entries(listItens).map(([, value]) => {
@@ -98,7 +99,6 @@ export async function ticketCollectorButtons (options: {
     },
 
     Panel: async () => { await PanelConstructor.CreatePanel() },
-
     EmbedCategory: async () => { await Constructor.PanelCategory() },
     AddCategory: async () => {
       const modal = new ModalBuilder({ customId, title: 'Adicionar Opções no Category Menu' })
@@ -132,7 +132,7 @@ export async function ticketCollectorButtons (options: {
   const customIdHandler = customIdHandlers[key.split('-')[0]]
 
   if (typeof customIdHandler === 'function') {
-    if (key !== 'AddSelect' && key !== 'SendSave' && key !== 'AddCategory') await interaction.deferReply({ ephemeral })
+    if (key !== 'AddSelect' && key !== 'AddCategory') await interaction.deferReply({ ephemeral })
     await customIdHandler()
   } else {
     const { title, label, placeholder, style, type, maxLength, db: dataDB } = getModalData(key)

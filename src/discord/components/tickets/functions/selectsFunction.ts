@@ -1,14 +1,15 @@
 import { db } from '@/app'
 import { type CustomIdHandlers } from '@/interfaces'
 import { type TicketCategories } from '@/interfaces/Ticket'
-import { codeBlock, EmbedBuilder, type CacheType, type ChatInputCommandInteraction, type StringSelectMenuInteraction } from 'discord.js'
+import { codeBlock, EmbedBuilder, type CacheType, type StringSelectMenuInteraction } from 'discord.js'
 import { TicketButtons } from './buttonsFunctions'
 import { TicketPanel } from './panelTicket'
 import { Ticket } from './ticket'
 import { ticketButtonsConfig } from './ticketUpdateConfig'
+import { Discord } from '@/functions'
 
 interface TicketType {
-  interaction: StringSelectMenuInteraction<CacheType> | ChatInputCommandInteraction<CacheType>
+  interaction: StringSelectMenuInteraction<CacheType>
 }
 export class TicketSelects implements TicketType {
   interaction
@@ -23,10 +24,15 @@ export class TicketSelects implements TicketType {
     const interaction = this.interaction
     if (!interaction.isStringSelectMenu()) return
 
-    const { values, guildId } = interaction
-    const [posição, channelId, messageID] = values[0].split('_')
-    const { select: infos } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${messageID}`)
+    const { values, guildId, channelId, message } = interaction
+    const posição = values[0]
+    const { select: infos } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message.id}`)
     const Constructor = new Ticket({ interaction: this.interaction })
+
+    if (posição === 'config') {
+      if (!await Discord.Permission(interaction, 'Administrator')) await ticketButtonsConfig({ interaction })
+      return
+    }
 
     if (Number(posição) >= 0 && Number(posição) < infos.length) {
       const { title, description, emoji } = infos[Number(posição)]
@@ -55,7 +61,7 @@ export class TicketSelects implements TicketType {
       await this.interaction.editReply({
         content: '✅ Valores removidos com sucesso!'
       })
-      await ticketButtonsConfig(this.interaction, message)
+      await ticketButtonsConfig({ interaction: this.interaction })
     } else {
       console.error('Values is not an array. Handle this case appropriately.')
     }

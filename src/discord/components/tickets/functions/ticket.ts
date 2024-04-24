@@ -1,12 +1,12 @@
 import { core, db } from '@/app'
 import { createRow, CustomButtonBuilder, delay, Discord } from '@/functions'
 import { type TicketConfig, type Ticket as TicketDBType } from '@/interfaces/Ticket'
-import { ActionRowBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, type GuildBasedChannel, type Message, type ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, type StringSelectMenuInteraction, type TextChannel } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, codeBlock, ComponentType, EmbedBuilder, type GuildBasedChannel, type Message, type ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, type StringSelectMenuInteraction, type TextChannel } from 'discord.js'
 import { TicketClaim } from './claim'
 import { ticketButtonsConfig } from './ticketUpdateConfig'
 
 interface TicketType {
-  interaction: StringSelectMenuInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | ChatInputCommandInteraction<CacheType>
+  interaction: StringSelectMenuInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType>
 }
 
 export class Ticket {
@@ -344,7 +344,7 @@ export class Ticket {
       components: [buttons]
     }).then(async () => {
       await db.messages.set(`${guildId}.ticket.${channelId}.messages.${message?.id}.properties.EmbedCategory`, true)
-      await ticketButtonsConfig(this.interaction, message, false)
+      await ticketButtonsConfig({ interaction: this.interaction, confirm: false })
     })
   }
 
