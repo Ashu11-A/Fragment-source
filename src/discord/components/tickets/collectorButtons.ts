@@ -65,7 +65,7 @@ export async function ticketCollectorButtons (options: {
   const ClaimConstructor = new TicketClaim({ interaction })
 
   const customIdHandlers: CustomIdHandlers = {
-    SelectType: async () => { await ButtonConstructor.SelectType(key) },
+    SelectType: async () => { await ButtonConstructor.SelectType() },
 
     delTicket: async () => { await Constructor.delete({ type: 'delTicket' }) },
     EmbedDelete: async () => { await Constructor.delete({ type: 'EmbedDelete' }) },

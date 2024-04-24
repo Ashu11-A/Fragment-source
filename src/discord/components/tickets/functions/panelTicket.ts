@@ -15,8 +15,16 @@ export class TicketPanel {
   }
 
   async validator (): Promise<boolean> {
-    const Constructor = new Ticket({ interaction: this.interaction })
-    return await Constructor.validator()
+    const { guildId, channelId } = this.interaction
+    if (await db.tickets.get(`${guildId}.tickets.${channelId}`) === null) {
+      await this.interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: '⚠️ Atenção, você não está em um ticket, tente usar esse comando apenas em tickets!'
+        }).setColor('Red')]
+      })
+      return true
+    }
+    return false
   }
 
   async CreatePanel (): Promise<void> {
@@ -77,9 +85,9 @@ export class TicketPanel {
     if (!this.interaction.inCachedGuild()) return
     if (await this.validator()) return
     const { guild, guildId, channelId, user } = this.interaction
-    const { owner, category: { title } } = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
-    const name = `🔊-${owner}`
-    const existCall = this.interaction.guild.channels.cache.find((voiceChannel) => voiceChannel.name === name)
+    const { owner, category: { title }, voice } = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
+    const existCall = this.interaction.guild.channels.cache.find((voiceChannel) => voiceChannel.id === voice?.id)
+    const userOwner = this.interaction.client.users.cache.find((user) => user.id === owner)
 
     /* Cria o chat do Ticket */
     let category: GuildBasedChannel | undefined
@@ -128,7 +136,7 @@ export class TicketPanel {
     ] as OverwriteResolvable[]
 
     const voiceChannel = await this.interaction.guild?.channels.create({
-      name,
+      name: `🔊・${userOwner?.username}`,
       permissionOverwrites,
       type: ChannelType.GuildVoice,
       parent: category.id
@@ -175,7 +183,7 @@ export class TicketPanel {
     const { guildId, channelId } = this.interaction
     const { users } = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
 
-    if (users === undefined) {
+    if ((users ?? [])?.length === 0) {
       await this.interaction.editReply({
         embeds: [new EmbedBuilder({
           title: '❌ | Não existem usuários adicionados ao ticket!'
@@ -186,7 +194,7 @@ export class TicketPanel {
 
     const options: SelectMenuComponentOptionData[] = []
 
-    for (const user of users) {
+    for (const user of (users ?? [])) {
       if (typeof options.find((option) => option.value === user.id) === 'object') continue
       options.push({
         label: user.displayName,

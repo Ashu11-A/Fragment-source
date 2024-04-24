@@ -1,7 +1,7 @@
 import { db } from '@/app'
 import { type CustomIdHandlers } from '@/interfaces'
 import { type TicketCategories } from '@/interfaces/Ticket'
-import { codeBlock, EmbedBuilder, type CacheType, type StringSelectMenuInteraction } from 'discord.js'
+import { type ChatInputCommandInteraction, codeBlock, EmbedBuilder, type CacheType, type StringSelectMenuInteraction } from 'discord.js'
 import { TicketButtons } from './buttonsFunctions'
 import { TicketPanel } from './panelTicket'
 import { Ticket } from './ticket'
@@ -9,7 +9,7 @@ import { ticketButtonsConfig } from './ticketUpdateConfig'
 import { Discord } from '@/functions'
 
 interface TicketType {
-  interaction: StringSelectMenuInteraction<CacheType>
+  interaction: StringSelectMenuInteraction<CacheType> | ChatInputCommandInteraction<CacheType>
 }
 export class TicketSelects implements TicketType {
   interaction

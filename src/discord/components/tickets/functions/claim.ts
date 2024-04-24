@@ -73,6 +73,7 @@ export class TicketClaim {
     const { guild, guildId } = this.interaction
     const { category: { emoji, title }, owner, createAt, team } = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
     const user = guild?.client.users.cache.find((user) => user.id === owner)
+    console.log(team)
     return new EmbedBuilder({
       title: '🎫 Um novo ticket foi aberto!',
       fields: [
@@ -82,7 +83,7 @@ export class TicketClaim {
         { name: '🕗 Aberto:', value: `<t:${createAt}:R>` }
       ],
       footer: ({ text: `Equipe ${guild?.name} | Todos os Direitos Reservados`, icon_url: (guild?.iconURL({ size: 64 }) ?? undefined) })
-    }).setColor((team ?? []).length === 0 ? 'Red' : 'Green').setColor('Red')
+    }).setColor((team ?? [])?.length === 0 ? 'Red' : 'Green')
   }
 
   async Claim ({ key }: { key: string }): Promise<void> {
@@ -93,6 +94,7 @@ export class TicketClaim {
     const channelTicket = guild?.channels.cache.find((channel) => channel.id === channelId) as TextChannel
     const { team, owner } = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
     const userTicket = guild?.client.users.cache.find((user) => user.id === owner)
+    const ticket = new Ticket({ interaction })
 
     if (userTicket === undefined) {
       await interaction.editReply({
@@ -121,27 +123,23 @@ export class TicketClaim {
     }
 
     await db.tickets.push(`${guildId}.tickets.${channelId}.team`, { name: user.username, displayName: user.displayName, id: user.id })
+    if (await ticket.Permissions({ channelId: channelTicket.id, userId: user.id, memberTeam: false })) return
     await message?.edit({ embeds: [await this.genEmbed({ channelId })] })
-    await this.interaction.editReply({
-      embeds: [
-        new EmbedBuilder({
-          title: `Olá ${user.username}`,
-          description: '✅ | Você foi adicionado ao ticket!'
-        }).setColor('Green')
-      ],
-      components: [goChannel]
-    })
     await interaction.channel?.send({
       embeds: [new EmbedBuilder({
         title: `Usuário ${user.displayName}, reivindicou o ticket do ${userTicket?.displayName}!`
       }).setColor('Green')]
     }).then(async (message) => {
       await db.tickets.push(`${guildId}.tickets.${channelId}.messages`, { channelId: this.interaction.channelId, messageId: message.id })
-    })
-    await channelTicket.send({
-      embeds: [new EmbedBuilder({
-        title: `Usuário ${user.displayName}, reivindicou o ticket!`
-      }).setColor('Green')]
+      await this.interaction.editReply({
+        embeds: [
+          new EmbedBuilder({
+            title: `Olá ${user.username}`,
+            description: '✅ | Você foi adicionado ao ticket!'
+          }).setColor('Green')
+        ],
+        components: [goChannel]
+      })
     })
   }
 

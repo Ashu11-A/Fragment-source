@@ -1,18 +1,19 @@
 import { db } from '@/app'
 import { createRowEdit } from '@/discord/components/SUEE/functions/createRowEdit'
 import { CustomButtonBuilder } from '@/functions'
-import { ActionRowBuilder, type ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, EmbedBuilder, type EmbedData, type Message, type ModalSubmitInteraction, StringSelectMenuBuilder, type StringSelectMenuInteraction } from 'discord.js'
+import { ActionRowBuilder, type ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, type ChatInputCommandInteraction, EmbedBuilder, type EmbedData, type Message, type ModalSubmitInteraction, StringSelectMenuBuilder, type StringSelectMenuInteraction } from 'discord.js'
 
 export async function ticketButtonsConfig ({
   interaction,
   message,
   confirm = true
 }: {
-  interaction: StringSelectMenuInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType>
+  interaction: StringSelectMenuInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | ChatInputCommandInteraction<CacheType>
   message?: Message<boolean>
   confirm?: boolean
 }): Promise<void> {
   const { guildId, channelId } = interaction
+  if (interaction.isChatInputCommand()) return
   if (message === undefined) message = interaction.message as Message<boolean>
 
   const options: Array<{ label: string, description: string, value: string, emoji: string }> = []

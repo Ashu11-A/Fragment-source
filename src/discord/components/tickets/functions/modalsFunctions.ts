@@ -1,12 +1,12 @@
 import { db } from '@/app'
 import { type TicketCategories, type TicketUser } from '@/interfaces/Ticket'
-import { EmbedBuilder, type CacheType, type EmbedData, type ModalSubmitInteraction } from 'discord.js'
+import { type ChatInputCommandInteraction, EmbedBuilder, type CacheType, type EmbedData, type ModalSubmitInteraction } from 'discord.js'
 import { getModalData } from './getModalData'
 import { Ticket } from './ticket'
 import { ticketButtonsConfig } from './ticketUpdateConfig'
 
 interface TicketType {
-  interaction: ModalSubmitInteraction<CacheType>
+  interaction: ModalSubmitInteraction<CacheType> | ChatInputCommandInteraction<CacheType>
 }
 export class TicketModals implements TicketType {
   interaction

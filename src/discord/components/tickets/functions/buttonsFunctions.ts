@@ -101,15 +101,14 @@ export class TicketButtons implements TicketType {
     })
   }
 
-  async SelectType (key: string): Promise<void> {
+  async SelectType (): Promise<void> {
     const interaction = this.interaction
     if (!interaction.isButton()) return
-    const { guildId, user } = interaction
+    const { guildId, user, channelId, message } = interaction
     const categories = await db.tickets.get(`${guildId}.system.categories`) as TicketCategories[] ?? []
     const userTicket = await db.tickets.get(`${guildId}.users.${user.id}`) as TicketUser
-    const [channelId, messageId] = key.split('-')
-    const data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${messageId}`)
-    console.log(key, data)
+    const data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message.id}`)
+    console.log(data)
     const Constructor = new Ticket({ interaction })
     const ButtonsConstructor = new TicketButtons({ interaction })
 
