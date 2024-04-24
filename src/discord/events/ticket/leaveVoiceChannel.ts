@@ -7,7 +7,9 @@ new Event({
   name: 'voiceStateUpdate',
   async run (oldState, newState) {
     const { guild } = newState
-    const tickets = await db.tickets.get(`${guild.id}.tickets`) as Record<string, Ticket>
+    const tickets = await db.tickets.get(`${guild.id}.tickets`) as undefined | Record<string, Ticket>
+    if (tickets === undefined) return
+
     const ticket = Object.values(tickets).find((ticket) => ticket.voice?.id === oldState?.channelId)
 
     if (ticket === undefined) return

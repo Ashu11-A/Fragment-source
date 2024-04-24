@@ -1,5 +1,4 @@
 import { db } from '@/app'
-import { User } from 'discord.js'
 import { NIL as nilUUID, v4 as uuidv4, v5 as uuidv5 } from 'uuid'
 import { json } from './Json'
 
@@ -16,17 +15,10 @@ export function genv5 (name: string, type: string): string {
 
 export function nill (): string { return nilUUID }
 
-export async function genButtonID (
-  options: { isProtected?: { user?: User } }
-): Promise<{ Id: string, dateExpire: Date }> {
+export async function genButtonID (): Promise<{ Id: string, dateExpire: Date }> {
   const Id = genv4()
-  let dataToSave: object = {}
-  const isProtected = options.isProtected
   const dateExpire = new Date(new Date().getTime() + 24 * 60 * 60 * 1000) // 24h
 
-  if (isProtected?.user instanceof User) {
-    dataToSave = { userId: isProtected.user.id }
-  }
-  await db.tokens.set(Id, { ...dataToSave, expireIn: dateExpire })
+  await db.tokens.set(Id, { expireIn: dateExpire })
   return { Id, dateExpire }
 }

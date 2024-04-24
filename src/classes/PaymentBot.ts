@@ -59,6 +59,7 @@ export class PaymentBot {
         return res.data
       })
       .catch((err) => {
+        console.log(err)
         if (err instanceof AxiosError) {
           this.save({
             expired: true,

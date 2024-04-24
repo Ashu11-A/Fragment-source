@@ -183,8 +183,7 @@ export async function panelCupons (options: {
       customId: 'Add',
       emoji: { name: '➕' },
       label: 'Adicionar',
-      style: ButtonStyle.Success,
-      isProtected: { user }
+      style: ButtonStyle.Success
     }),
     new CustomButtonBuilder({
       permission: 'Admin',
@@ -192,8 +191,7 @@ export async function panelCupons (options: {
       customId: 'Rem',
       emoji: { name: '✖️' },
       label: 'Remover',
-      style: ButtonStyle.Danger,
-      isProtected: { user }
+      style: ButtonStyle.Danger
     }),
     new CustomButtonBuilder({
       permission: 'Admin',
@@ -201,8 +199,7 @@ export async function panelCupons (options: {
       customId: 'List',
       emoji: { name: '🗒️' },
       label: 'Listar',
-      style: ButtonStyle.Secondary,
-      isProtected: { user }
+      style: ButtonStyle.Secondary
     })
   ]
 

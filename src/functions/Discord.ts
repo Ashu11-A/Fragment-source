@@ -1,6 +1,6 @@
 import { core, db } from '@/app'
 import { Component } from '@/discord/base'
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, ModalSubmitInteraction, StringSelectMenuInteraction, type User, codeBlock, type AnyComponentBuilder, type CacheType, type ChatInputCommandInteraction, type ColorResolvable, type CommandInteraction, type Guild, type MessageInteraction, type PermissionResolvable, type TextChannel, type Interaction, type APIMessageComponentEmoji } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, codeBlock, EmbedBuilder, ModalSubmitInteraction, StringSelectMenuInteraction, type AnyComponentBuilder, type APIMessageComponentEmoji, type CacheType, type ChatInputCommandInteraction, type ColorResolvable, type CommandInteraction, type Guild, type Interaction, type MessageInteraction, type PermissionResolvable, type TextChannel } from 'discord.js'
 import { genv4 } from './UuidGen'
 
 export function createRow<Component extends AnyComponentBuilder = AnyComponentBuilder> (...components: Component[]): ActionRowBuilder<Component> {
@@ -165,7 +165,6 @@ interface SharedButtonData {
 }
 
 interface ButtonType extends SharedButtonData {
-  isProtected?: { user: User }
   permission?: 'User' | 'Admin'
   type: 'Ticket' | 'Cart' | 'Product' | 'System' | 'Cupom' | 'SUEE' | 'Event' | 'Account' | 'Config'
 }
@@ -174,22 +173,20 @@ export class CustomButtonBuilder extends ButtonBuilder implements ButtonType {
   customId
   type
   permission
-  isProtected
 
-  constructor ({ customId, emoji, style, url, label, disabled, permission, type, isProtected }: ButtonType) {
+  constructor ({ customId, emoji, style, url, label, disabled, permission, type }: ButtonType) {
     super()
     this.type = type
     this.data.style = style
     this.data.label = label
     this.customId = customId
-    this.isProtected = isProtected
     this.permission = permission ?? 'User'
     this.data.disabled = disabled ?? false
     if (emoji !== undefined) this.data.emoji = emoji
     if (url !== undefined && customId === undefined) {
       this.setURL(url)
     }
-    this.setCustomId(`${genv4()}_${this.permission}_${type}_${customId}${this.isProtected?.user !== undefined ? `_${this.isProtected.user.id}` : '_undefined'}`)
+    this.setCustomId(`${genv4()}_${this.permission}_${type}_${customId}`)
   }
 
   static async verify (options: {

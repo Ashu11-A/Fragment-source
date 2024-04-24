@@ -1,6 +1,6 @@
 import { db } from '@/app'
 import { type TicketUser, type TicketCategories } from '@/interfaces/Ticket'
-import { EmbedBuilder, type CacheType, type ChatInputCommandInteraction, type ModalSubmitInteraction, type TextChannel } from 'discord.js'
+import { EmbedBuilder, type EmbedData, type CacheType, type ChatInputCommandInteraction, type ModalSubmitInteraction, type TextChannel } from 'discord.js'
 import { getModalData } from './getModalData'
 import { Ticket } from './ticket'
 import { buttonsUsers, ticketButtonsConfig } from './ticketUpdateConfig'
@@ -17,29 +17,29 @@ export class TicketModals implements TicketType {
   public async sendSave (key: string): Promise<void> {
     const interaction = this.interaction
     if (!interaction.isModalSubmit()) return
-    const { guild, guildId, channelId } = interaction
-    const { message, fields } = interaction
+
+    const { guild, guildId, channelId, message, fields } = interaction
     const { db: dataDB } = getModalData(key)
     const messageModal = fields.getTextInputValue('content')
-    let data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message?.id}`)
-    const channelVerify = guild?.channels.cache.get(data?.channelEmbedID) as TextChannel
+    const data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message?.id}`)
+    const channel = guild?.channels.cache.find((channel) => channel.id === messageModal) as TextChannel
 
-    try {
-      if (data?.channelEmbedID === undefined) {
-        await channelVerify?.messages.fetch(data?.messageID).catch(async (err) => { console.log(err) })
-        await db.messages.set(`${guildId}.ticket.${channelId}.messages.${message?.id}.${dataDB}`, messageModal)
+    await db.messages.set(`${guildId}.ticket.${channelId}.messages.${message?.id}.${dataDB}`, messageModal)
 
-        const channel = guild?.channels.cache.get(messageModal) as TextChannel
-        data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message?.id}`)
-
-        const msg = await channel.send({ embeds: [data?.embed] })
-        await db.messages.set(`${guildId}.ticket.${channelId}.messages.${message?.id}.embedMessageID`, msg.id)
-        await buttonsUsers(interaction, message?.id, msg)
+    const updateEmbed = new EmbedBuilder(data.embed as EmbedData)
+    if (data.embed !== undefined && typeof data.embed.color === 'string') {
+      if (data.embed.color.startsWith('#') === true) {
+        updateEmbed.setColor(parseInt(data.embed.color.slice(1), 16))
       }
-    } catch (err) {
-      console.log(err)
-      await this.interaction.reply({ content: '❌ | Ocorreu um erro, tente mais tarde!' })
     }
+
+    const msg = await channel.send({ embeds: [updateEmbed] })
+    await db.messages.set(`${guildId}.ticket.${channelId}.messages.${message?.id}.embedMessageID`, msg.id)
+    await buttonsUsers({
+      interaction,
+      originID: message.id,
+      messageSend: msg
+    })
   }
 
   public async AddSelect (key: string): Promise<void> {
@@ -106,12 +106,13 @@ export class TicketModals implements TicketType {
     await channel?.messages.fetch(String(message?.id))
       .then(async (msg) => {
         const { embed } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message?.id}`)
-        if (typeof embed?.color === 'string') {
-          if (embed?.color?.startsWith('#') === true) {
-            embed.color = parseInt(embed?.color.slice(1), 16)
+        const updateEmbed = new EmbedBuilder(embed as EmbedData)
+        if (embed !== undefined && typeof embed.color === 'string') {
+          if (embed.color.startsWith('#') === true) {
+            updateEmbed.setColor(parseInt(embed.color.slice(1), 16))
           }
         }
-        await msg.edit({ embeds: [embed] })
+        await msg.edit({ embeds: [updateEmbed] })
           .then(async () => {
             await db.messages.set(`${guildId}.ticket.${channelId}.messages.${message?.id}.properties.${key}`, true)
               .then(async () => {

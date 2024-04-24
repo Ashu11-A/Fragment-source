@@ -57,8 +57,7 @@ export class GenAccount {
           label: 'CtrlPanel',
           customId: 'CtrlPanel',
           style: ctrlUserDB !== undefined ? ButtonStyle.Success : ButtonStyle.Secondary,
-          emoji: { name: '🖥️' },
-          isProtected: { user: interaction.user }
+          emoji: { name: '🖥️' }
         })
       )
       // row2.addComponents(
@@ -80,8 +79,7 @@ export class GenAccount {
           label: 'Pterodactyl',
           customId: 'Pterodactyl',
           style: pteroUserDB !== undefined ? ButtonStyle.Success : ButtonStyle.Secondary,
-          emoji: { name: '🦖' },
-          isProtected: { user: interaction.user }
+          emoji: { name: '🦖' }
         })
       )
       // row2.addComponents(
@@ -153,8 +151,7 @@ export class GenAccount {
           label: 'CtrlPanel',
           customId: 'CtrlPanel',
           style: ctrlUserDB !== undefined ? ButtonStyle.Success : ButtonStyle.Secondary,
-          emoji: { name: '🖥️' },
-          isProtected: { user: interaction.user }
+          emoji: { name: '🖥️' }
         })
       )
       // row2.addComponents(
@@ -176,8 +173,7 @@ export class GenAccount {
           label: 'Pterodactyl',
           customId: 'Pterodactyl',
           style: pteroUserDB !== undefined ? ButtonStyle.Success : ButtonStyle.Secondary,
-          emoji: { name: '🦖' },
-          isProtected: { user: interaction.user }
+          emoji: { name: '🦖' }
         })
       )
       // row2.addComponents(

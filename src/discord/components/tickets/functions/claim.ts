@@ -23,7 +23,7 @@ export class TicketClaim {
     const ticketConfig = await db.guilds.get(`${guildId}.config.ticket`) as TicketConfig
     let channelClaim: TextChannel | undefined
 
-    channelClaim = interaction.guild.channels.cache.find((channel) => channel.id === ticketConfig.claimId && channel.isTextBased()) as TextChannel | undefined
+    channelClaim = interaction.guild.channels.cache.find((channel) => channel.id === ticketConfig?.claimId && channel.isTextBased()) as TextChannel | undefined
     if (channelClaim === undefined) {
       channelClaim = await guild.channels.create({
         name: '📨-tickets',
@@ -82,7 +82,7 @@ export class TicketClaim {
         { name: '🕗 Aberto:', value: `<t:${createAt}:R>` }
       ],
       footer: ({ text: `Equipe ${guild?.name} | Todos os Direitos Reservados`, icon_url: (guild?.iconURL({ size: 64 }) ?? undefined) })
-    }).setColor((team ?? []).length === 0 ? 'Red' : 'Green')
+    }).setColor((team ?? []).length === 0 ? 'Red' : 'Green').setColor('Red')
   }
 
   async Claim ({ key }: { key: string }): Promise<void> {

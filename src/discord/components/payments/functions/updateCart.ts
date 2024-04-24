@@ -366,7 +366,6 @@ export class UpdateCart {
     properties: Record<string, boolean> | undefined
   }): Promise<ActionRowBuilder<ButtonBuilder>> {
     const { properties, product } = options
-    const { user } = this.interaction
     const start = Date.now()
     const components = new ActionRowBuilder<ButtonBuilder>()
     const productComponents = [
@@ -375,32 +374,28 @@ export class UpdateCart {
         customId: 'Rem',
         disabled: ((product.quantity <= 1) || !product.isIncremental),
         emoji: { name: '➖' },
-        style: ButtonStyle.Primary,
-        isProtected: { user }
+        style: ButtonStyle.Primary
       }),
       new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Add',
         disabled: !product.isIncremental,
         emoji: { name: '➕' },
-        style: ButtonStyle.Primary,
-        isProtected: { user }
+        style: ButtonStyle.Primary
       }),
       new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Cupom',
         disabled: properties?.cupom,
         emoji: { name: '🎫' },
-        style: ButtonStyle.Primary,
-        isProtected: { user }
+        style: ButtonStyle.Primary
       }),
       new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Remove',
         disabled: !product.isIncremental,
         emoji: { name: '✖️' },
-        style: ButtonStyle.Danger,
-        isProtected: { user }
+        style: ButtonStyle.Danger
       })
     ]
     const end = Date.now()
@@ -410,8 +405,7 @@ export class UpdateCart {
   }
 
   public async typeButtons (): Promise<Array<ActionRowBuilder<ButtonBuilder>>> {
-    const { cartData: data, interaction } = this
-    const { user } = interaction
+    const { cartData: data } = this
     const { typeEmbed: type } = data
     const start = Date.now()
 
@@ -422,8 +416,7 @@ export class UpdateCart {
         label: 'Mensagem via DM',
         emoji: { name: '💬' },
         style: ButtonStyle.Success,
-        disabled: !(data.products.some((product) => product.isEphemeral) ?? false),
-        isProtected: { user }
+        disabled: !(data.products.some((product) => product.isEphemeral) ?? false)
       })
     ]
 
@@ -434,8 +427,7 @@ export class UpdateCart {
         label: 'Login',
         emoji: { name: '🗝️' },
         style: ButtonStyle.Success,
-        disabled: (data.products.some((product) => product.isEphemeral) ?? false),
-        isProtected: { user }
+        disabled: (data.products.some((product) => product.isEphemeral) ?? false)
       }),
       new CustomButtonBuilder({
         type: 'Cart',
@@ -443,8 +435,7 @@ export class UpdateCart {
         label: 'Registro',
         emoji: { name: '🔐' },
         style: ButtonStyle.Success,
-        disabled: (data.products.some((product) => product.isEphemeral) ?? false),
-        isProtected: { user }
+        disabled: (data.products.some((product) => product.isEphemeral) ?? false)
       })
     )
 
@@ -454,8 +445,7 @@ export class UpdateCart {
         customId: 'Pix',
         label: 'PIX',
         emoji: { name: '💠' },
-        style: ButtonStyle.Success,
-        isProtected: { user }
+        style: ButtonStyle.Success
       }),
       new CustomButtonBuilder({
         type: 'Cart',
@@ -463,8 +453,7 @@ export class UpdateCart {
         label: 'Cartão de Débito',
         emoji: { name: '💳' },
         style: ButtonStyle.Success,
-        disabled: true,
-        isProtected: { user }
+        disabled: true
       }),
       new CustomButtonBuilder({
         type: 'Cart',
@@ -472,8 +461,7 @@ export class UpdateCart {
         label: 'Cartão de Crédito',
         emoji: { name: '💳' },
         style: ButtonStyle.Success,
-        disabled: true,
-        isProtected: { user }
+        disabled: true
       })
     ]
 
@@ -488,16 +476,14 @@ export class UpdateCart {
         customId: 'Verify',
         label: 'Verificar Pagamento',
         emoji: { name: '✔️' },
-        style: ButtonStyle.Success,
-        isProtected: { user }
+        style: ButtonStyle.Success
       }),
       new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Cancelar',
         label: 'Cancelar',
         emoji: { name: '✖️' },
-        style: ButtonStyle.Danger,
-        isProtected: { user }
+        style: ButtonStyle.Danger
       })
     ]
 
@@ -507,32 +493,28 @@ export class UpdateCart {
         customId: 'Before',
         label: 'Voltar',
         emoji: { name: '⬅️' },
-        style: ButtonStyle.Secondary,
-        isProtected: { user }
+        style: ButtonStyle.Secondary
       }),
       new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Next',
         label: 'Proximo',
         emoji: { name: '➡️' },
-        style: ButtonStyle.Success,
-        isProtected: { user }
+        style: ButtonStyle.Success
       }),
       new CustomButtonBuilder({
         type: 'Cart',
         customId: 'WTF',
         label: 'Saiba Mais 🔔',
         emoji: { name: '❔' },
-        style: ButtonStyle.Primary,
-        isProtected: { user }
+        style: ButtonStyle.Primary
       }),
       new CustomButtonBuilder({
         type: 'Cart',
         customId: 'Cancelar',
         label: 'Cancelar',
         emoji: { name: '✖️' },
-        style: ButtonStyle.Danger,
-        isProtected: { user }
+        style: ButtonStyle.Danger
       })
     ]
 

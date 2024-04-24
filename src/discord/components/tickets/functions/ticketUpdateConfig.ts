@@ -1,7 +1,7 @@
 import { db } from '@/app'
 import { createRowEdit } from '@/discord/components/SUEE/functions/createRowEdit'
 import { CustomButtonBuilder } from '@/functions'
-import { ActionRowBuilder, type ButtonBuilder, ButtonStyle, type Message, type CommandInteraction, type CacheType, type ModalSubmitInteraction, type ButtonInteraction, StringSelectMenuBuilder, type StringSelectMenuInteraction } from 'discord.js'
+import { ActionRowBuilder, type ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, type CommandInteraction, EmbedBuilder, type EmbedData, type Message, type ModalSubmitInteraction, StringSelectMenuBuilder, type StringSelectMenuInteraction } from 'discord.js'
 
 export async function ticketButtonsConfig (interaction: StringSelectMenuInteraction<CacheType> | CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | CommandInteraction<CacheType>, message: Message<boolean>, confirm: boolean = true): Promise<void> {
   const { guildId, channelId } = interaction
@@ -9,6 +9,13 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
   const data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message.id}`)
   const embedEdit = await createRowEdit(interaction, message, 'ticket')
   const { embed } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message?.id}`)
+  const updateEmbed = new EmbedBuilder(embed as EmbedData)
+
+  if (embed !== undefined && typeof embed.color === 'string') {
+    if (embed.color.startsWith('#') === true) {
+      updateEmbed.setColor(parseInt(embed.color.slice(1), 16))
+    }
+  }
 
   const setSystem = [
     new CustomButtonBuilder({
@@ -98,7 +105,7 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
       new CustomButtonBuilder({
         type: 'Ticket',
         permission: 'User',
-        customId: 'SelectType',
+        customId: `SelectType-${channelId}-${message.id}`,
         emoji: { name: '🎫' },
         label: 'Abra seu ticket',
         style: ButtonStyle.Success
@@ -136,7 +143,6 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
     }
 
     if (customId === 'EmbedCategory') {
-      console.log(data?.properties)
       value.setStyle(data?.properties !== undefined && data?.properties[customId] === true ? ButtonStyle.Primary : ButtonStyle.Secondary)
     }
   }
@@ -154,20 +160,29 @@ export async function ticketButtonsConfig (interaction: StringSelectMenuInteract
   }
 
   try {
-    await message.edit({ embeds: [embed], components: [embedEdit, row2, row3, row4] })
+    await message.edit({ embeds: [updateEmbed], components: [embedEdit, row2, row3, row4] })
     if (confirm) await interaction.editReply({ content: '✅ | Salvado com sucesso!' })
   } catch (err) {
     console.log(err)
-    await message.edit({ embeds: [embed], components: [embedEdit, row2, row3] })
+    await message.edit({ embeds: [updateEmbed], components: [embedEdit, row2, row3] })
     if (confirm) await interaction.editReply({ content: '❌ | não foi possível renderizar o SelectMenu, pois ele não contem nenhum item...!' })
   }
 }
 
-export async function buttonsUsers (interaction: CommandInteraction<CacheType> | ButtonInteraction<CacheType> | ModalSubmitInteraction<CacheType>, originID: string | undefined, messageSend: Message<boolean>): Promise<void> {
+export async function buttonsUsers ({
+  interaction,
+  originID,
+  messageSend
+}: {
+  interaction: CommandInteraction<CacheType> | ButtonInteraction<CacheType> | ModalSubmitInteraction<CacheType>
+  originID: string | undefined
+  messageSend: Message<boolean>
+}): Promise<void> {
   const { guildId, channelId } = interaction
 
   const options: Array<{ label: string, description: string, value: string, emoji: string }> = []
   const data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${originID}`)
+  const updateEmbed = new EmbedBuilder(data?.embed as EmbedData)
 
   let number = 0
   if (data?.select !== undefined) {
@@ -182,6 +197,12 @@ export async function buttonsUsers (interaction: CommandInteraction<CacheType> |
     })
   }
 
+  if (data?.embed !== undefined && typeof data.embed.color === 'string') {
+    if (data.embed.color.startsWith('#') === true) {
+      updateEmbed.setColor(parseInt(data.embed.color.slice(1), 16))
+    }
+  }
+
   const row1Buttons = [
     new StringSelectMenuBuilder({
       custom_id: '-1_User_Ticket_RowSelectProduction',
@@ -193,7 +214,7 @@ export async function buttonsUsers (interaction: CommandInteraction<CacheType> |
   const botao = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new CustomButtonBuilder({
       type: 'Ticket',
-      customId: 'SelectType',
+      customId: `SelectType-${channelId}-${originID}`,
       label: 'Abra seu ticket',
       emoji: { name: '🎫' },
       style: ButtonStyle.Success
@@ -202,16 +223,15 @@ export async function buttonsUsers (interaction: CommandInteraction<CacheType> |
 
   const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(...row1Buttons)
 
-  await messageSend.edit({ components: [] })
   try {
     if (data?.properties?.SetSelect === true && data?.select !== undefined) {
-      await messageSend.edit({ embeds: [data?.embed], components: [selectRow] })
+      await messageSend.edit({ embeds: [updateEmbed], components: [selectRow] })
         .then(async () => {
           await interaction.reply({ content: '✅ | Mensagem atualizada com sucesso', ephemeral: true })
             .catch(async () => await interaction.followUp({ content: '✅ | Mensagem atualizada com sucesso', ephemeral: true }))
         })
     } else {
-      await messageSend.edit({ embeds: [data?.embed], components: [botao] })
+      await messageSend.edit({ embeds: [updateEmbed], components: [botao] })
         .then(async () => {
           await interaction.reply({ content: '✅ | Mensagem atualizada com sucesso', ephemeral: true })
             .catch(async () => await interaction.followUp({ content: '✅ | Mensagem atualizada com sucesso', ephemeral: true }))

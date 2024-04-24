@@ -65,7 +65,7 @@ export async function ticketCollectorButtons (options: {
   const ClaimConstructor = new TicketClaim({ interaction })
 
   const customIdHandlers: CustomIdHandlers = {
-    SelectType: async () => { await ButtonConstructor.SelectType() },
+    SelectType: async () => { await ButtonConstructor.SelectType(key) },
 
     delTicket: async () => { await Constructor.delete({ type: 'delTicket' }) },
     EmbedDelete: async () => { await Constructor.delete({ type: 'EmbedDelete' }) },
@@ -132,7 +132,7 @@ export async function ticketCollectorButtons (options: {
   const customIdHandler = customIdHandlers[key.split('-')[0]]
 
   if (typeof customIdHandler === 'function') {
-    if (key !== 'AddSelect' && key !== 'SendSave' && key !== 'OpenModal' && key !== 'AddCategory') await interaction.deferReply({ ephemeral })
+    if (key !== 'AddSelect' && key !== 'SendSave' && key !== 'AddCategory') await interaction.deferReply({ ephemeral })
     await customIdHandler()
   } else {
     const { title, label, placeholder, style, type, maxLength, db: dataDB } = getModalData(key)

@@ -242,15 +242,17 @@ export class Ticket {
           ]
         })
       } else if (subInteraction.customId === 'embed-confirm-button') {
-        const embed = new EmbedBuilder()
-          .setColor('Red')
+        const now = new Date()
+        const futureTime = new Date(now.getTime() + 15000)
+        const futureTimeString = `<t:${Math.floor(futureTime.getTime() / 1000)}:R>`
+        const embed = new EmbedBuilder().setColor('Red')
+
         if (type === 'delTicket') {
           embed
             .setTitle(`👋 | Olá ${user.username}`)
-            .setDescription('❗️ | Esse ticket será excluído em 5 segundos.')
+            .setDescription(`❗️ | Esse ticket será excluído em ${futureTimeString} segundos.`)
         } else {
-          embed
-            .setDescription('Deletando Banco de dados e Mensagens...')
+          embed.setDescription('Deletando Banco de dados e Mensagens...')
         }
         await subInteraction.update({
           ...clearData,
@@ -259,7 +261,7 @@ export class Ticket {
         if (type === 'delTicket') {
           const tickets = await db.tickets.get(`${guild.id}.tickets`) as Record<string, TicketDBType> ?? []
           const ticket = tickets[channelDel ?? subInteraction.channelId]
-          const channel = guild.channels.cache.find((channel) => channel.id === ticket.channelId) as TextChannel
+          const channel = guild.channels.cache.find((channel) => channel.id === ticket?.channelId) as TextChannel
 
           await delay(5000)
 

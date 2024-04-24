@@ -66,37 +66,39 @@ export class TicketButtons implements TicketType {
     const { label, maxLength, placeholder, style, title, type, db: dataDB } = getModalData(key)
 
     if (this.interaction.isButton()) {
-      try {
-        const { message, customId } = this.interaction
-        const { embedChannelID: channelEmbedID, embedMessageID: messageID } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message?.id}`)
-        const channel = guild?.channels.cache.get(channelEmbedID) as TextChannel
-        const msg = await channel?.messages.fetch(messageID)
+      const { message, customId } = this.interaction
 
-        if (typeof channelEmbedID === 'string' && messageID !== undefined) {
-          await buttonsUsers(this.interaction, message.id, msg)
-        } else {
-          const textValue = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message.id}.${dataDB}`)
-          const modal = new ModalBuilder({ customId, title })
-          const content = new ActionRowBuilder<TextInputBuilder>({
-            components: [
-              new TextInputBuilder({
-                custom_id: 'content',
-                label,
-                placeholder,
-                value: textValue ?? null,
-                style,
-                required: true,
-                maxLength,
-                type
-              })
-            ]
-          })
-          modal.setComponents(content)
-          await this.interaction.showModal(modal)
-        }
-      } catch (err) {
-        console.log(err)
-        await this.interaction.editReply({ content: '❌ | Ocorreu um erro, tente mais tarde!' })
+      try {
+        const { embedChannelID, embedMessageID: messageID } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message?.id}`)
+        const channel = guild?.channels.cache.find((channel) => channel.id === embedChannelID) as TextChannel | undefined
+        const msg = channel?.messages.cache.find((message) => message.id === messageID)
+
+        if (channel === undefined || messageID === undefined || msg === undefined) throw new Error()
+
+        await buttonsUsers({
+          interaction: this.interaction,
+          originID: message.id,
+          messageSend: msg
+        })
+      } catch {
+        const textValue = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message.id}.${dataDB}`)
+        const modal = new ModalBuilder({ customId, title })
+        const content = new ActionRowBuilder<TextInputBuilder>({
+          components: [
+            new TextInputBuilder({
+              custom_id: 'content',
+              label,
+              placeholder,
+              value: textValue ?? null,
+              style,
+              required: true,
+              maxLength,
+              type
+            })
+          ]
+        })
+        modal.setComponents(content)
+        await this.interaction.showModal(modal)
       }
     }
   }
@@ -142,13 +144,15 @@ export class TicketButtons implements TicketType {
     })
   }
 
-  async SelectType (): Promise<void> {
+  async SelectType (key: string): Promise<void> {
     const interaction = this.interaction
     if (!interaction.isButton()) return
-    const { guildId, channelId, message, user } = interaction
+    const { guildId, user } = interaction
     const categories = await db.tickets.get(`${guildId}.system.categories`) as TicketCategories[] ?? []
     const userTicket = await db.tickets.get(`${guildId}.users.${user.id}`) as TicketUser
-    const data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message.id}`)
+    const [channelId, messageId] = key.split('-')
+    const data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${messageId}`)
+    console.log(key, data)
     const Constructor = new Ticket({ interaction })
     const ButtonsConstructor = new TicketButtons({ interaction })
 

@@ -62,8 +62,7 @@ export class ProductButtonCollector {
         type: 'Product',
         customId: 'Config',
         style: ButtonStyle.Secondary,
-        emoji: { name: '⚙️' },
-        isProtected: { user }
+        emoji: { name: '⚙️' }
       })
     ]
 

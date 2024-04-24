@@ -15,40 +15,35 @@ export async function createRowEdit (interaction: StringSelectMenuInteraction<Ca
       type: 'SUEE',
       customId: `${type}-SetName`,
       label: 'Nome',
-      emoji: { name: '📝' },
-      isProtected: { user }
+      emoji: { name: '📝' }
     }),
     new CustomButtonBuilder({
       permission: 'Admin',
       type: 'SUEE',
       customId: `${type}-SetDesc`,
       label: 'Descrição',
-      emoji: { name: '📑' },
-      isProtected: { user }
+      emoji: { name: '📑' }
     }),
     new CustomButtonBuilder({
       permission: 'Admin',
       type: 'SUEE',
       customId: `${type}-SetMiniature`,
       label: 'Miniatura',
-      emoji: { name: '🖼️' },
-      isProtected: { user }
+      emoji: { name: '🖼️' }
     }),
     new CustomButtonBuilder({
       permission: 'Admin',
       type: 'SUEE',
       customId: `${type}-SetBanner`,
       label: 'Banner',
-      emoji: { name: '🌄' },
-      isProtected: { user }
+      emoji: { name: '🌄' }
     }),
     new CustomButtonBuilder({
       permission: 'Admin',
       type: 'SUEE',
       customId: `${type}-SetColor`,
       label: 'Cor',
-      emoji: { name: '🎨' },
-      isProtected: { user }
+      emoji: { name: '🎨' }
     })
   ]
   const componetUpdate: string[] = []
