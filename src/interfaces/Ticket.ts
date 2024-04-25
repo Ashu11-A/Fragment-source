@@ -8,13 +8,29 @@ export interface Ticket {
   users?: Array<{ name: string, displayName: string, id: string }>
   team?: Array<{ name: string, displayName: string, id: string }>
   category: TicketCategories
+  description?: string
   messages: Messages[]
-  createAt: string
+  history: History[]
+  createAt: number
 }
 
 export interface Messages {
   channelId: string
   messageId: string
+}
+
+export interface History {
+  role: string
+  user: {
+    id: string
+    name: string
+  }
+  message: {
+    id: string
+    content: string
+  }
+  date: Date
+  deleted: boolean
 }
 
 export interface TicketCategories {

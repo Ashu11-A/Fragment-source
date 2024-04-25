@@ -52,10 +52,9 @@ export class TicketClaim {
         new CustomButtonBuilder({
           emoji: { name: '📃' },
           label: 'Salvar Logs',
-          customId: `SaveLogs-${channelId}`,
+          customId: `Transcript-${channelId}`,
           type: 'Ticket',
-          style: ButtonStyle.Primary,
-          disabled: true
+          style: ButtonStyle.Primary
         }),
         new CustomButtonBuilder({
           emoji: { name: '🗑️' },
@@ -71,16 +70,20 @@ export class TicketClaim {
 
   async genEmbed ({ channelId }: { channelId: string }): Promise<EmbedBuilder> {
     const { guild, guildId } = this.interaction
-    const { category: { emoji, title }, owner, createAt, team } = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
+    const { category: { emoji, title }, owner, createAt, team, description } = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
     const user = guild?.client.users.cache.find((user) => user.id === owner)
     console.log(team)
     return new EmbedBuilder({
       title: '🎫 Um novo ticket foi aberto!',
       fields: [
-        { name: '🙋‍♂️ User:', value: codeBlock(`Name: ${user?.displayName ?? 'Saiu do servidor'}, Id: ${owner}`) },
-        { name: '🗂️ Categoria', value: codeBlock(`${emoji} ${title}`) },
-        { name: '👨🏻‍💻 Team support:', value: codeBlock(team?.map((user) => user.displayName).join(', ') ?? 'Ninguém reivindicou esse ticket ainda!') },
-        { name: '🕗 Aberto:', value: `<t:${createAt}:R>` }
+        { name: '🙋‍♂️ User:', value: codeBlock(`Name: ${user?.displayName ?? 'Saiu do servidor'}`), inline },
+        { name: '🪪 ID:', value: codeBlock(owner), inline },
+        { name: '\u200E', value: '\u200E', inline },
+        { name: '❓ Motivo:', value: codeBlock(`${emoji} ${title}`), inline },
+        { name: '📃 Descrição:', value: codeBlock(description ?? 'Nada foi dito'), inline },
+        { name: '\u200E', value: '\u200E', inline },
+        { name: '👨🏻‍💻 Team support:', value: codeBlock(team?.map((user) => user.displayName).join(', ') ?? 'Ninguém reivindicou esse ticket ainda!'), inline },
+        { name: '🕗 Aberto:', value: `<t:${Math.floor(createAt / 1000)}:R>` }
       ],
       footer: ({ text: `Equipe ${guild?.name} | Todos os Direitos Reservados`, icon_url: (guild?.iconURL({ size: 64 }) ?? undefined) })
     }).setColor((team ?? [])?.length === 0 ? 'Red' : 'Green')
@@ -122,8 +125,18 @@ export class TicketClaim {
       return
     }
 
+    if ((team ?? []).length >= 1) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: '😔 Desculpe-me, mas apenas uma pessoa pode reivindicar o ticket!',
+          description: `O usuário ${team?.[0].displayName} já tem a posse desse ticket.`
+        }).setColor('Red')]
+      })
+      return
+    }
+
     await db.tickets.push(`${guildId}.tickets.${channelId}.team`, { name: user.username, displayName: user.displayName, id: user.id })
-    if (await ticket.Permissions({ channelId: channelTicket.id, userId: user.id, memberTeam: false })) return
+    if (await ticket.Permissions({ channelId: channelTicket.id, userId: user.id, memberTeam: true })) return
     await message?.edit({ embeds: [await this.genEmbed({ channelId })] })
     await interaction.channel?.send({
       embeds: [new EmbedBuilder({

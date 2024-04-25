@@ -123,6 +123,8 @@ export async function ticketCollectorButtons (options: {
     },
     RemCategory: async () => { await ButtonConstructor.RemCategory() },
 
+    Transcript: async () => { await Constructor.Transcript({ channelId: key.split('-')[1] }) },
+
     /* Sistema de Claim */
     Claim: async () => { await ClaimConstructor.Claim({ key }) },
     SaveLogs: async () => { await ClaimConstructor.SaveLogs() },

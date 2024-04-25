@@ -1,7 +1,7 @@
 import { core, db } from '@/app'
 import { createRow, CustomButtonBuilder, delay, Discord } from '@/functions'
 import { type TicketConfig, type Ticket as TicketDBType } from '@/interfaces/Ticket'
-import { ActionRowBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, type GuildBasedChannel, type ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, type StringSelectMenuInteraction, type TextChannel } from 'discord.js'
+import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, type GuildBasedChannel, type ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, type StringSelectMenuInteraction, type TextChannel } from 'discord.js'
 import { TicketClaim } from './claim'
 import { ticketButtonsConfig } from './ticketUpdateConfig'
 
@@ -42,7 +42,7 @@ export class Ticket {
     const sendChannel = guild?.channels.cache.find((c) => c.name === nome)
     const status: Record<string, boolean | undefined> | null = await db.system.get(`${guild?.id}.status`)
     const ticketConfig = await db.guilds.get(`${guild?.id}.config.ticket`) as TicketConfig
-    const usageDay = await db.tickets.get(`${guildId}.use.${user.id}`) as { date: Date, usage: number } | undefined
+    const usageDay = await db.tickets.get(`${guildId}.users.${user.id}.usage`) as { date: Date, usage: number } | undefined
 
     if (usageDay !== undefined) {
       const futureTime = new Date(usageDay.date)
@@ -179,16 +179,17 @@ export class Ticket {
       )
       await ch.send({ embeds: [embed], components: [botao] })
       const date = new Date().setDate(new Date().getDate() + 1)
-      const getUsage = await db.tickets.get(`${guildId}.use.${user.id}`)
-      await db.tickets.set(`${guildId}.use.${user.id}`, { date, usage: getUsage?.usage !== undefined ? getUsage.usage + 1 : 1 })
+      const getUsage = await db.tickets.get(`${guildId}.users.${user.id}.usage`)
+      await db.tickets.set(`${guildId}.users.${user.id}.usage`, { date, usage: getUsage?.usage !== undefined ? getUsage.usage + 1 : 1 })
       await db.tickets.set(`${guildId}.tickets.${ch.id}`, {
         owner: interaction.user.id,
+        description,
         channelId: ch.id,
         category: {
           title: categoryName,
           emoji: categoryEmoji
         },
-        createAt: Math.floor(Date.now() / 1000)
+        createAt: Date.now()
       })
       await claimConstructor.create({ channelId: ch.id })
     } catch (all) {
@@ -464,5 +465,63 @@ export class Ticket {
         })
         return true
       })
+  }
+
+  async Transcript ({ channelId }: { channelId: string }): Promise<void> {
+    const { guildId, client } = this.interaction
+    const ticket = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
+    const teamUser = client.users.cache.find((user) => user.id === ticket.team?.[0].id)
+    const user = client.users.cache.find((user) => user.id === ticket.owner)
+
+    console.log(ticket)
+
+    const embed = new EmbedBuilder({
+      title: '📄 Historico do ticket',
+      fields: [
+        { name: '🧑🏻‍💻 Usuário:', value: codeBlock(user?.displayName ?? 'Saiu do servidor...'), inline },
+        { name: '🪪 ID:', value: codeBlock(ticket.owner), inline },
+
+        { name: '\u200E', value: '\u200E', inline },
+
+        { name: '🤝 Claim:', value: codeBlock(teamUser?.displayName ?? 'Ninguém reivindicou o ticket'), inline },
+        { name: '🪪 ID:', value: codeBlock(teamUser?.id ?? 'None'), inline },
+
+        { name: '\u200E', value: '\u200E', inline },
+
+        { name: '❓ Motivo:', value: codeBlock(ticket.category.title), inline },
+        { name: '📃 Descrição:', value: codeBlock(ticket?.description ?? 'Nada foi dito'), inline },
+
+        { name: '\u200E', value: '\u200E', inline },
+
+        { name: '🔎 Ticket ID:', value: codeBlock(ticket.channelId), inline },
+        { name: '🤝 Convidados:', value: codeBlock(ticket.users?.map((user) => user.displayName)?.join(', ') ?? 'Não houve convidados!'), inline },
+        { name: '\u200E', value: '\u200E', inline },
+
+        { name: '📅 Data:', value: codeBlock(new Date(ticket.createAt).toLocaleString()), inline },
+        { name: '\u200E', value: '\u200E', inline },
+        { name: '\u200E', value: '\u200E', inline }
+      ]
+    })
+
+    const files: AttachmentBuilder[] = []
+
+    let text = ''
+
+    for (const message of (ticket.history ?? [])) {
+      if (message === undefined) continue
+      text += `[${message.role} - ${new Date(message.date).toLocaleString()}] ${message.deleted ? '{{ DELETED }} ' : ''}\n${message.user.name}: ${message.message.content}\n\n`
+    }
+
+    files.push(
+      new AttachmentBuilder(Buffer.from(text === '' ? 'Nenhuma conversa...' : text), { name: `${ticket.owner}.log`, description: `Transcript do usuário ${user?.displayName ?? ticket.owner}` })
+    )
+    files.push(
+      new AttachmentBuilder(Buffer.from(JSON.stringify(ticket.history ?? { aviso: 'Nenhuma mensagem enviada!' }, null, 4)), { name: `${ticket.owner}.json`, description: `Transcript do usuário ${user?.displayName ?? ticket.owner}` })
+    )
+
+    await this.interaction.editReply({
+      embeds: [embed],
+      files
+    })
   }
 }
