@@ -8,8 +8,8 @@ export interface Ticket {
     id: string
     messageId: string
   }
-  users?: User[]
-  team?: User[]
+  users: User[]
+  team: User[]
   category: TicketCategories
   description?: string
   messages: Messages[]

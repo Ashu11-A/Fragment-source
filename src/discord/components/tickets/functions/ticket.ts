@@ -157,6 +157,8 @@ export class Ticket {
         channelId: ch.id,
         messageId: message.id,
         closed: false,
+        team: [],
+        users: [],
         history: [],
         messages: [],
         description,
@@ -636,7 +638,7 @@ export class Ticket {
       return
     }
 
-    const teamUser = ticket.team?.[0].id !== undefined ? await client.users.fetch(ticket.team?.[0].id) : undefined
+    const teamUser = ticket.team?.[0]?.id !== undefined ? await client.users.fetch(ticket.team[0].id) : undefined
     const user = await client.guilds.cache.get(String(guildId))?.members.fetch(ticket.owner)
 
     const embed = new EmbedBuilder({
@@ -658,7 +660,7 @@ export class Ticket {
         { name: '\u200E', value: '\u200E', inline },
 
         { name: '🔎 Ticket ID:', value: codeBlock(ticket.channelId), inline },
-        { name: '🤝 Convidados:', value: codeBlock(ticket.users?.map((user) => user.displayName)?.join(', ') ?? 'Não houve convidados!'), inline },
+        { name: '🤝 Convidados:', value: codeBlock(ticket.users.length === 0 ? 'Não houve convidados!' : ticket.users?.map((user) => user.displayName)?.join(', ')), inline },
         { name: '\u200E', value: '\u200E', inline },
 
         { name: '📅 Data:', value: codeBlock(new Date(ticket.createAt).toLocaleString()), inline },
@@ -691,8 +693,8 @@ export class Ticket {
     }
 
     const files: AttachmentBuilder[] = [
-      new AttachmentBuilder(Buffer.from(text === '' ? 'Nenhuma conversa...' : text), { name: `${ticket.owner}.log`, description: `Transcript do usuário ${user?.displayName ?? ticket.owner}` }),
-      new AttachmentBuilder(Buffer.from(JSON.stringify(ticket.history ?? { aviso: 'Nenhuma mensagem enviada!' }, null, 4)), { name: `${ticket.owner}.json`, description: `Transcript do usuário ${user?.displayName ?? ticket.owner}` })
+      new AttachmentBuilder(Buffer.from(text), { name: `${ticket.owner}.log`, description: `Transcript do usuário ${user?.displayName ?? ticket.owner}` }),
+      new AttachmentBuilder(Buffer.from(JSON.stringify(ticket.history.length === 0 ? { aviso: 'Nenhuma mensagem enviada!' } : ticket.history, null, 4)), { name: `${ticket.owner}.json`, description: `Transcript do usuário ${user?.displayName ?? ticket.owner}` })
     ]
 
     await logs.send({ embeds: [embed] })

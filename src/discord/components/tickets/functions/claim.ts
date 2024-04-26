@@ -98,7 +98,6 @@ export class TicketClaim {
   async buttons ({ channelId }: { channelId: string }): Promise<ActionRowBuilder<ButtonBuilder>> {
     const { guildId } = this.interaction
     const ticket = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
-    console.log(ticket, `${guildId}.tickets.${channelId}`)
     const row = new ActionRowBuilder<ButtonBuilder>()
     row.addComponents(
       new CustomButtonBuilder({
