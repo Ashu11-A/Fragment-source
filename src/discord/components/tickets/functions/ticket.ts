@@ -37,9 +37,7 @@ export class Ticket {
     const { interaction } = this
     if (!interaction.inCachedGuild()) return
     const { guild, user, guildId } = interaction
-    const nome = `${categoryEmoji}-${user.id}`
     const claimConstructor = new TicketClaim({ interaction })
-    const sendChannel = guild?.channels.cache.find((c) => c.name === nome)
     const status: Record<string, boolean | undefined> | null = await db.system.get(`${guild?.id}.status`)
     const ticketConfig = await db.guilds.get(`${guild?.id}.config.ticket`) as TicketConfig
     const usageDay = await db.tickets.get(`${guildId}.users.${user.id}.usage`) as { date: Date, usage: number } | undefined
@@ -64,26 +62,6 @@ export class Ticket {
         })
         return
       }
-    }
-
-    if (sendChannel !== undefined) {
-      await this.interaction.editReply({
-        embeds: [
-          new EmbedBuilder()
-            .setTitle(`Olá ${user.username}`)
-            .setDescription('❌ | Você já possui um ticket aberto!')
-            .setColor('Red')
-        ],
-        components: [
-          await Discord.buttonRedirect({
-            guildId,
-            channelId: sendChannel.id,
-            emoji: { name: '🎫' },
-            label: 'Ir ao Ticket'
-          })
-        ]
-      })
-      return
     }
 
     if (status?.Ticket === false) {
@@ -230,6 +208,37 @@ export class Ticket {
 
     await message.edit({ components: [this.buttons({ isOpen: !ticket.closed })] })
     return channel
+  }
+
+  async check (): Promise<boolean> {
+    const { guildId, user } = this.interaction
+    const tickets = await db.tickets.get(`${guildId}.tickets`) as Record<string, TicketDBType>
+    let ticketOpenId
+
+    for (const [channelId, ticket] of Object.entries(tickets)) {
+      if (ticket.owner === user.id) ticketOpenId = channelId
+    }
+
+    if (ticketOpenId !== undefined) {
+      await this.interaction.editReply({
+        embeds: [
+          new EmbedBuilder({
+            title: `Olá ${user.username}`,
+            description: '❌ | Você já possui um ticket aberto!'
+          }).setColor('Red')
+        ],
+        components: [
+          await Discord.buttonRedirect({
+            guildId,
+            channelId: ticketOpenId,
+            emoji: { name: '🎫' },
+            label: 'Ir ao Ticket'
+          })
+        ]
+      })
+      return true
+    }
+    return false
   }
 
   buttons ({ isOpen }: { isOpen: boolean }): ActionRowBuilder<ButtonBuilder> {

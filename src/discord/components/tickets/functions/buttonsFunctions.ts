@@ -104,13 +104,16 @@ export class TicketButtons implements TicketType {
   async SelectType (): Promise<void> {
     const interaction = this.interaction
     if (!interaction.isButton()) return
+
     const { guildId, user, channelId, message } = interaction
+    const Constructor = new Ticket({ interaction })
+    const ButtonsConstructor = new TicketButtons({ interaction })
+
+    if (await Constructor.check()) return
+
     const categories = await db.tickets.get(`${guildId}.system.categories`) as TicketCategories[] ?? []
     const userTicket = await db.tickets.get(`${guildId}.users.${user.id}`) as TicketUser
     const data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message.id}`)
-    console.log(data)
-    const Constructor = new Ticket({ interaction })
-    const ButtonsConstructor = new TicketButtons({ interaction })
 
     if (categories.length === 0) {
       data?.properties?.SetModal === true
