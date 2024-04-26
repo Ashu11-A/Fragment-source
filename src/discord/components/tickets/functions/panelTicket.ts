@@ -117,7 +117,8 @@ export class TicketPanel {
       PermissionsBitField.Flags.ViewChannel,
       PermissionsBitField.Flags.SendMessages,
       PermissionsBitField.Flags.AttachFiles,
-      PermissionsBitField.Flags.AddReactions
+      PermissionsBitField.Flags.AddReactions,
+      PermissionsBitField.Flags.ReadMessageHistory
     ]
 
     const permissionOverwrites = [

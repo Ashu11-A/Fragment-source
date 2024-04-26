@@ -16,7 +16,7 @@ new Event({
         ? 'team'
         : ticket.users?.find((user) => user.id === author.id)?.id !== undefined
           ? 'guest'
-          : 'undefined'
+          : 'admin'
 
     await db.tickets.push(`${guildId}.tickets.${channelId}.history`, {
       role,

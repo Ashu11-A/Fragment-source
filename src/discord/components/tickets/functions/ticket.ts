@@ -1,7 +1,7 @@
-import { core, db } from '@/app'
+import { db } from '@/app'
 import { createRow, CustomButtonBuilder, delay, Discord } from '@/functions'
-import { type TicketConfig, type Ticket as TicketDBType } from '@/interfaces/Ticket'
-import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, type GuildBasedChannel, type ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, type StringSelectMenuInteraction, type TextChannel } from 'discord.js'
+import { type Claim, type TicketConfig, type Ticket as TicketDBType, type User } from '@/interfaces/Ticket'
+import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, type GuildBasedChannel, type ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, type StringSelectMenuInteraction, TextChannel } from 'discord.js'
 import { TicketClaim } from './claim'
 import { ticketButtonsConfig } from './ticketUpdateConfig'
 
@@ -49,7 +49,7 @@ export class Ticket {
       let muchRequest: boolean = false
       if (futureTime < new Date()) {
         await db.tickets.delete(`${guildId}.tickets.${user.id}`)
-      } else if (usageDay.usage >= ticketConfig?.limit ?? 1) muchRequest = true
+      } else if (usageDay.usage >= (ticketConfig?.limit ?? 999)) muchRequest = true
       if (muchRequest) {
         const futureTimeString = `<t:${Math.floor(futureTime.getTime() / 1000)}:f>`
         await this.interaction.editReply({
@@ -103,7 +103,8 @@ export class Ticket {
             PermissionsBitField.Flags.ViewChannel,
             PermissionsBitField.Flags.SendMessages,
             PermissionsBitField.Flags.AttachFiles,
-            PermissionsBitField.Flags.AddReactions
+            PermissionsBitField.Flags.AddReactions,
+            PermissionsBitField.Flags.ReadMessageHistory
           ]
         }
       ] as OverwriteResolvable[]
@@ -150,48 +151,46 @@ export class Ticket {
       if (title !== undefined) embed.addFields({ name: '📃 Motivo:', value: codeBlock(title) })
       if (description !== undefined) embed.addFields({ name: '📭 Descrição:', value: codeBlock(description) })
 
-      const botao = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new CustomButtonBuilder({
-          type: 'Ticket',
-          permission: 'User',
-          customId: 'delTicket',
-          label: 'Fechar',
-          emoji: { name: '🔒' },
-          style: ButtonStyle.Danger
-        }),
-        new CustomButtonBuilder({
-          type: 'Ticket',
-          permission: 'User',
-          customId: 'Panel',
-          label: 'Painel',
-          emoji: { name: '🖥️' },
-          style: ButtonStyle.Success
-        }),
-        new CustomButtonBuilder({
-          type: 'Ticket',
-          permission: 'User',
-          customId: 'PanelCart',
-          label: 'Painel vendas',
-          emoji: { name: '🛒' },
-          disabled: true,
-          style: ButtonStyle.Primary
-        })
-      )
-      await ch.send({ embeds: [embed], components: [botao] })
-      const date = new Date().setDate(new Date().getDate() + 1)
-      const getUsage = await db.tickets.get(`${guildId}.users.${user.id}.usage`)
-      await db.tickets.set(`${guildId}.users.${user.id}.usage`, { date, usage: getUsage?.usage !== undefined ? getUsage.usage + 1 : 1 })
+      const message = await ch.send({ embeds: [embed], components: [this.buttons({ isOpen: true })] })
       await db.tickets.set(`${guildId}.tickets.${ch.id}`, {
         owner: interaction.user.id,
-        description,
         channelId: ch.id,
+        messageId: message.id,
+        closed: false,
+        history: [],
+        messages: [],
+        description,
         category: {
           title: categoryName,
           emoji: categoryEmoji
         },
         createAt: Date.now()
-      })
-      await claimConstructor.create({ channelId: ch.id })
+      } satisfies TicketDBType)
+
+      const claimMessage = await claimConstructor.create({ channelId: ch.id })
+
+      if (claimMessage === undefined) {
+        await interaction.editReply({
+          embeds: [
+            new EmbedBuilder({
+              title: '❌ Ocorreu em erro ao enviar a embed de claim!'
+            }).setColor('Random')
+          ]
+        })
+        await ch.delete()
+        await db.tickets.delete(`${guildId}.tickets.${ch.id}`)
+        return
+      }
+
+      const date = new Date().setDate(new Date().getDate() + 1)
+      const getUsage = await db.tickets.get(`${guildId}.users.${user.id}.usage`)
+
+      await db.tickets.set(`${guildId}.users.${user.id}.usage`, { date, usage: getUsage?.usage !== undefined ? getUsage.usage + 1 : 1 })
+      await db.tickets.set(`${guildId}.tickets.${ch.id}.claim`, {
+        channelId: claimMessage.channelId,
+        messageId: claimMessage.id
+      } satisfies Claim)
+      await db.tickets.push(`${guildId}.tickets.${ch.id}.messages`, { channelId: claimMessage?.channelId, messageId: claimMessage?.id })
     } catch (all) {
       console.error(all)
       const channel = interaction.guild.channels.cache.find(channel => channel.name === `🎫-${user.id}`)
@@ -200,6 +199,121 @@ export class Ticket {
         content: '❗️ Ocorreu um erro interno, tente mais tarde.'
       })
     }
+  }
+
+  async edit ({ channelId, messageId }: { channelId: string, messageId: string }): Promise<TextChannel | undefined> {
+    const { guild, guildId } = this.interaction
+    const ticket = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
+    const channel = await guild?.channels.fetch(channelId)
+
+    if (!(channel instanceof TextChannel)) {
+      await this.interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: '❌ Não consegui achar o ticket!'
+        }).setColor('Red')]
+      })
+      return
+    }
+
+    const message = await channel.messages.fetch(messageId).catch(() => undefined)
+
+    if (message === undefined) {
+      await this.interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: '❌ A embed de gerenciamento do ticket foi possivelmente apagada... Não é possivel prosseguir.'
+        }).setColor('Red')]
+      })
+      return
+    }
+
+    await message.edit({ components: [this.buttons({ isOpen: !ticket.closed })] })
+    return channel
+  }
+
+  buttons ({ isOpen }: { isOpen: boolean }): ActionRowBuilder<ButtonBuilder> {
+    const row = new ActionRowBuilder<ButtonBuilder>()
+    row.addComponents(
+      new CustomButtonBuilder({
+        type: 'Ticket',
+        permission: 'User',
+        customId: 'Switch',
+        label: isOpen ? 'Fechar' : 'Abrir',
+        emoji: { name: isOpen ? '🔓' : '🔒' },
+        style: isOpen ? ButtonStyle.Danger : ButtonStyle.Success
+      })
+    )
+    if (!isOpen) {
+      row.addComponents(
+        new CustomButtonBuilder({
+          type: 'Ticket',
+          permission: 'User',
+          customId: 'delTicket',
+          label: 'Deletar',
+          emoji: { name: '🗑️' },
+          style: ButtonStyle.Danger
+        })
+      )
+    }
+    row.addComponents(
+      new CustomButtonBuilder({
+        type: 'Ticket',
+        permission: 'User',
+        customId: 'Panel',
+        label: 'Painel',
+        emoji: { name: '🖥️' },
+        style: ButtonStyle.Success
+      }),
+      new CustomButtonBuilder({
+        type: 'Ticket',
+        permission: 'User',
+        customId: 'PanelCart',
+        label: 'Painel vendas',
+        emoji: { name: '🛒' },
+        disabled: true,
+        style: ButtonStyle.Primary
+      })
+    )
+    return row
+  }
+
+  async switch ({ channelId }: { channelId: string }): Promise<void> {
+    const { guildId, user } = this.interaction
+    const ticket = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
+    const ClaimConstructor = new TicketClaim({ interaction: this.interaction })
+
+    if (!((ticket.team ?? []).some((userTeam) => userTeam.id === user.id) ?? false) && user.id !== ticket.owner) {
+      await this.interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: '❌ Você não ter permissão para fazer isso!'
+        }).setColor('Red')]
+      })
+      return
+    }
+
+    const isOpen = ticket?.closed ?? false
+    await db.tickets.set(`${guildId}.tickets.${channelId}.closed`, !isOpen)
+    await this.Permissions({ channelId })
+    const ticketChannel = await this.edit({ channelId, messageId: ticket.messageId })
+    await ticketChannel?.send({
+      embeds: [
+        new EmbedBuilder({
+          title: isOpen ? '🔓 Ticket aberto!' : '🔒 Ticket fechado!',
+          footer: { text: `Por: ${user.displayName} | Id: ${user.id}`, iconURL: user?.avatarURL() ?? undefined }
+        }).setColor(isOpen ? 'Green' : 'Red')
+      ]
+    })
+
+    if (ticket.claim?.channelId === undefined || ticket.claim?.messageId === undefined) {
+      await this.interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: '❌ Sistema de claim inexistente!?'
+        }).setColor('Red')]
+      })
+      return
+    }
+
+    await ClaimConstructor.edit({ channelId: ticket.claim?.channelId, messageId: ticket.claim?.messageId, channelTicketId: channelId })
+    await this.interaction.deleteReply()
   }
 
   public async delete (options: {
@@ -349,10 +463,10 @@ export class Ticket {
     })
   }
 
-  async Permissions ({ userId, channelId, remove = false, memberTeam = false }: { userId: string, channelId: string, remove?: boolean, memberTeam?: boolean }): Promise<boolean> {
+  async Permissions ({ userId = null, channelId, remove = false, memberTeam = false }:
+  { userId?: string | null, channelId: string, remove?: boolean, memberTeam?: boolean }): Promise<boolean> {
     const interaction = this.interaction
     const { guildId, user } = interaction
-    const userFetch = await interaction.client.users.fetch(userId)
     const channel = interaction.guild?.channels.cache.find((channel) => channel.id === channelId) as TextChannel
 
     if (channel === undefined) {
@@ -364,47 +478,60 @@ export class Ticket {
       return true
     }
 
-    const { owner, channelId: channelTicket } = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
-
-    if ((channel.permissionsFor(userFetch)?.has(PermissionsBitField.Flags.ViewChannel) ?? false) && !remove) {
-      await interaction.editReply({
-        embeds: [new EmbedBuilder({
-          title: user.id === userId ? '❌ | Você já está atendendo este ticket!' : `❌ Usuário ${userFetch.displayName} já tem acesso ao Ticket!`
-        }).setColor('Red')],
-        components: [await Discord.buttonRedirect({
-          guildId,
-          channelId,
-          emoji: { name: '🎫' },
-          label: 'Ir ao Ticket'
-        })]
-      })
-      return true
-    }
-
-    const { users, team } = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType ?? []
-    const PermUsers: any[] = []
-    const PermTeamMember: any[] = []
+    const { users, team, closed, owner } = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType ?? []
+    const PermUsers: User[] = []
+    const PermTeamMember: User[] = []
 
     const allow = [
       PermissionsBitField.Flags.ViewChannel,
       PermissionsBitField.Flags.SendMessages,
       PermissionsBitField.Flags.AttachFiles,
-      PermissionsBitField.Flags.AddReactions
+      PermissionsBitField.Flags.AddReactions,
+      PermissionsBitField.Flags.ReadMessageHistory
     ]
 
     const permissionOverwrites = [
       {
         id: guildId,
         deny: [PermissionsBitField.Flags.ViewChannel]
-      },
-      { id: owner, allow }
+      }
     ] as OverwriteResolvable[]
 
-    if (users !== undefined) {
-      for (const user of users) {
-        if (remove && user.id === userId) continue
-        permissionOverwrites.push({ id: user.id, allow })
-        PermUsers.push(user)
+    if (userId !== null) {
+      const userFetch = await interaction.client.users.fetch(userId)
+      if (!remove) {
+        if ((channel.permissionsFor(userFetch)?.has(PermissionsBitField.Flags.ViewChannel) ?? false) && !remove) {
+          await interaction.editReply({
+            embeds: [new EmbedBuilder({
+              title: user.id === userId ? '❌ | Você já está atendendo este ticket!' : `❌ Usuário ${userFetch.displayName} já tem acesso ao Ticket!`
+            }).setColor('Red')],
+            components: [await Discord.buttonRedirect({
+              guildId,
+              channelId,
+              emoji: { name: '🎫' },
+              label: 'Ir ao Ticket'
+            })]
+          })
+          return true
+        }
+        permissionOverwrites.push({ id: userFetch.id, allow })
+        if (memberTeam) {
+          PermTeamMember.push({ name: userFetch.username, displayName: userFetch.displayName, id: userFetch.id })
+        } else {
+          PermUsers.push({ name: userFetch.username, displayName: userFetch.displayName, id: userFetch.id })
+        }
+      }
+    }
+
+    if (!(closed ?? false)) {
+      permissionOverwrites.push({ id: owner, allow })
+
+      if (users !== undefined) {
+        for (const user of users) {
+          if (remove && user.id === userId) continue
+          permissionOverwrites.push({ id: user.id, allow })
+          PermUsers.push(user)
+        }
       }
     }
     if (team !== undefined) {
@@ -415,24 +542,28 @@ export class Ticket {
       }
     }
 
-    if (!remove) {
-      permissionOverwrites.push({ id: userFetch.id, allow })
-      PermUsers.push({ name: userFetch.username, displayName: userFetch.displayName, id: userFetch.id })
-    }
-
-    console.log(PermTeamMember, PermUsers)
+    const changeUsers: User[] = []
+    changeUsers.push(
+      ...(users?.filter((item) => !PermUsers.includes(item))
+        .concat(...PermUsers.filter((item) => !users.includes(item))) ?? [])
+    )
+    changeUsers.push(
+      ...(team?.filter((item) => !PermTeamMember.includes(item))
+        .concat(...PermTeamMember.filter((item) => !team.includes(item))) ?? [])
+    )
 
     return await channel.edit({ permissionOverwrites })
       .then(async () => {
         await db.tickets.set(`${guildId}.tickets.${channelId}.users`, PermUsers)
         await db.tickets.set(`${guildId}.tickets.${channelId}.team`, PermTeamMember)
-        core.info(`Usuário ${userFetch.displayName}, adicionado ao ticket: ${channelTicket}`)
+
+        if (userId === null) return false
 
         await interaction.deleteReply()
         if (remove) {
           await channel.send({
             embeds: [new EmbedBuilder({
-              title: `❗ Usuário ${userFetch.displayName} foi removido do Ticket.`,
+              title: `❗ Usuário ${changeUsers.map((user) => user.displayName).join(', ')} foi removido do Ticket.`,
               timestamp: new Date(),
               footer: { text: `Por: ${interaction.user.displayName} | ${interaction.user.id}`, iconURL: interaction.user?.avatarURL() ?? undefined }
             }).setColor('Red')]
@@ -447,7 +578,7 @@ export class Ticket {
           } else {
             await channel.send({
               embeds: [new EmbedBuilder({
-                title: `✅ Usuário ${userFetch.displayName} foi adicionado ao Ticket!`,
+                title: `✅ Usuário ${changeUsers.map((user) => user.displayName).join(', ')} foi adicionado ao Ticket!`,
                 timestamp: new Date(),
                 footer: { text: `Por: ${interaction.user.displayName} | ${interaction.user.id}`, iconURL: interaction.user?.avatarURL() ?? undefined }
               }).setColor('Green')]
@@ -468,12 +599,45 @@ export class Ticket {
   }
 
   async Transcript ({ channelId }: { channelId: string }): Promise<void> {
-    const { guildId, client } = this.interaction
+    const { guildId, client, guild } = this.interaction
     const ticket = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
-    const teamUser = client.users.cache.find((user) => user.id === ticket.team?.[0].id)
-    const user = client.users.cache.find((user) => user.id === ticket.owner)
+    const config = await db.guilds.get(`${guildId}.config.ticket`) as TicketConfig
 
-    console.log(ticket)
+    if (config?.logsId === undefined) {
+      await this.interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: '⚠️ Atenção, o sistema de logs dos tickets não está configurado!',
+          description: 'Um novo canal será criado para enviar as logs!',
+          fields: [
+            { name: 'Use o comando:', value: codeBlock('/config ticket logs-channel') }
+          ]
+        }).setColor('Orange')]
+      })
+    }
+
+    const logs = config?.logsId !== undefined
+      ? await guild?.channels.fetch(config.logsId)
+      : await guild?.channels.create({
+        name: '🎫・logs-tickets',
+        type: ChannelType.GuildText,
+        permissionOverwrites: [
+          { id: guild.id, deny: [PermissionsBitField.Flags.ViewChannel] }
+        ]
+      })
+    if (config?.logsId === undefined && logs?.id !== undefined) await db.guilds.set(`${guildId}.config.ticket.logsId`, logs.id)
+
+    if (!(logs instanceof TextChannel)) {
+      await this.interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: '⚠️ Atenção, não encontrei o channel onde serão enviadas as logs!',
+          description: 'Use o comando: `/config ticket logs-channel:`'
+        }).setColor('Orange')]
+      })
+      return
+    }
+
+    const teamUser = ticket.team?.[0].id !== undefined ? await client.users.fetch(ticket.team?.[0].id) : undefined
+    const user = await client.guilds.cache.get(String(guildId))?.members.fetch(ticket.owner)
 
     const embed = new EmbedBuilder({
       title: '📄 Historico do ticket',
@@ -501,27 +665,42 @@ export class Ticket {
         { name: '\u200E', value: '\u200E', inline },
         { name: '\u200E', value: '\u200E', inline }
       ]
-    })
+    }).setColor(user?.roles.color?.hexColor ?? null)
 
-    const files: AttachmentBuilder[] = []
+    let text = `📄 Historico do ${user?.displayName}\n\n`
+    let dayCache
+    let elements = 0
 
-    let text = ''
+    for (const { name, value } of (embed.data.fields ?? [])) {
+      if (value === '\u200E' || name === '\u200E') continue
+      text += ((`${name} ${value.replace(/```/g, '')}`.replace(/(\r\n|\n|\r)/gm, '')) + (((elements % 2) !== 0) ? '\n\n' : '\n'))
+      elements++
+    }
 
     for (const message of (ticket.history ?? [])) {
       if (message === undefined) continue
-      text += `[${message.role} - ${new Date(message.date).toLocaleString()}] ${message.deleted ? '{{ DELETED }} ' : ''}\n${message.user.name}: ${message.message.content}\n\n`
+      const data = new Date(message.date)
+      const ano = data.getFullYear()
+      const mes = (data.getMonth() + 1).toString().padStart(2, '0') // adiciona zero à esquerda, se necessário
+      const dia = data.getDate().toString().padStart(2, '0')
+
+      text += dia !== dayCache ? `\n\n[${ano}:${mes}:${dia}]\n\n` : ''
+      text += `[${data.getHours()}:${data.getMinutes()}] [${message.role}]${message.deleted ? ' [DELETED] ' : ''} ${message.user.name}: ${message.message.content}\n`
+
+      dayCache = dia
     }
 
-    files.push(
-      new AttachmentBuilder(Buffer.from(text === '' ? 'Nenhuma conversa...' : text), { name: `${ticket.owner}.log`, description: `Transcript do usuário ${user?.displayName ?? ticket.owner}` })
-    )
-    files.push(
+    const files: AttachmentBuilder[] = [
+      new AttachmentBuilder(Buffer.from(text === '' ? 'Nenhuma conversa...' : text), { name: `${ticket.owner}.log`, description: `Transcript do usuário ${user?.displayName ?? ticket.owner}` }),
       new AttachmentBuilder(Buffer.from(JSON.stringify(ticket.history ?? { aviso: 'Nenhuma mensagem enviada!' }, null, 4)), { name: `${ticket.owner}.json`, description: `Transcript do usuário ${user?.displayName ?? ticket.owner}` })
-    )
+    ]
 
+    await logs.send({ embeds: [embed] })
+    await logs.send({ files })
     await this.interaction.editReply({
-      embeds: [embed],
-      files
+      embeds: [new EmbedBuilder({
+        title: '✅ Logs salvas com sucesso'
+      }).setColor('Green')]
     })
   }
 }

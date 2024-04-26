@@ -4,9 +4,9 @@ import { type History } from '@/interfaces/Ticket'
 
 new Event({
   name: 'messageDelete',
-  async run ({ channelId, guildId, id, author, createdAt }) {
+  async run ({ channelId, guildId, id }) {
     const history = await db.tickets.get(`${guildId}.tickets.${channelId}.history`) as History[] ?? []
-    if (history === undefined) return
+    if (history.length <= 0) return
     const index = history.findIndex((log) => log.message.id === id)
     console.log(history)
 

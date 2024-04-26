@@ -250,6 +250,12 @@ new Command({
           description: '[ 🎫 Ticket ] Chat onde seram enviadas os pedidos de ticket.',
           type: ApplicationCommandOptionType.Channel,
           channelTypes: [ChannelType.GuildText]
+        },
+        {
+          name: 'logs-channel',
+          description: '[ 🎫 Ticket ] Chat onde seram enviadas as logs dos tickets.',
+          type: ApplicationCommandOptionType.Channel,
+          channelTypes: [ChannelType.GuildText]
         }
       ]
     }
@@ -466,6 +472,7 @@ new Command({
           const channel = options.getChannel('panel-embed')
           const limit = options.getNumber('limit')
           const claimChannel = options.getChannel('claim-channel')
+          const logs = options.getChannel('logs-channel')
 
           if (channel !== null) {
             const sendChannel = guild?.channels.cache.get(String(channel?.id)) as TextChannel
@@ -519,6 +526,13 @@ new Command({
               pathDB: 'config.ticket.claimId',
               typeDB: 'guilds'
             }).set({ data: claimChannel.id })
+          }
+          if (logs !== null) {
+            await new Database({
+              interaction,
+              pathDB: 'config.ticket.logsId',
+              typeDB: 'guilds'
+            }).set({ data: logs.id })
           }
           break
         }

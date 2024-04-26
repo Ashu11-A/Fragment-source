@@ -1,17 +1,30 @@
 export interface Ticket {
   owner: string
+  closed: boolean
   channelId: string
+  messageId: string
+  claim?: Claim
   voice?: {
     id: string
     messageId: string
   }
-  users?: Array<{ name: string, displayName: string, id: string }>
-  team?: Array<{ name: string, displayName: string, id: string }>
+  users?: User[]
+  team?: User[]
   category: TicketCategories
   description?: string
   messages: Messages[]
   history: History[]
   createAt: number
+}
+
+export interface Claim {
+  messageId: string
+  channelId: string
+}
+export interface User {
+  name: string
+  displayName: string
+  id: string
 }
 
 export interface Messages {
@@ -45,6 +58,7 @@ export interface TicketUser {
 }
 
 export interface TicketConfig {
-  limit: number
-  claimId: string
+  limit?: number
+  claimId?: string
+  logsId?: string
 }

@@ -1,7 +1,7 @@
 import { db } from '@/app'
 import { CustomButtonBuilder, Discord } from '@/functions'
-import { type Ticket as TicketDBType, type TicketConfig } from '@/interfaces/Ticket'
-import { ActionRowBuilder, type ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type ChatInputCommandInteraction, codeBlock, EmbedBuilder, type ModalSubmitInteraction, PermissionsBitField, type StringSelectMenuInteraction, type TextChannel } from 'discord.js'
+import { type TicketConfig, type Ticket as TicketDBType } from '@/interfaces/Ticket'
+import { ActionRowBuilder, type ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type ChatInputCommandInteraction, codeBlock, EmbedBuilder, type Message, type ModalSubmitInteraction, PermissionsBitField, type StringSelectMenuInteraction, TextChannel } from 'discord.js'
 import { Ticket } from './ticket'
 
 interface TicketClaimType {
@@ -16,7 +16,7 @@ export class TicketClaim {
 
   async create ({ channelId }: {
     channelId: string
-  }): Promise<void> {
+  }): Promise<Message<true> | undefined> {
     const interaction = this.interaction
     if (!interaction.inCachedGuild()) return
     const { guild, guildId } = interaction
@@ -37,42 +37,48 @@ export class TicketClaim {
       })
       await db.guilds.set(`${guildId}.config.ticket.claimId`, channelClaim.id)
     }
-    const embed = await this.genEmbed({ channelId })
+    const embed = await this.embed({ channelId })
+    const buttons = await this.buttons({ channelId })
 
     const message = await channelClaim.send({
       embeds: [embed],
-      components: [new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new CustomButtonBuilder({
-          emoji: { name: '🛎️' },
-          label: 'Responder',
-          customId: `Claim-${channelId}`,
-          type: 'Ticket',
-          style: ButtonStyle.Success
-        }),
-        new CustomButtonBuilder({
-          emoji: { name: '📃' },
-          label: 'Salvar Logs',
-          customId: `Transcript-${channelId}`,
-          type: 'Ticket',
-          style: ButtonStyle.Primary
-        }),
-        new CustomButtonBuilder({
-          emoji: { name: '🗑️' },
-          label: 'Deletar',
-          customId: `Delete-${channelId}`,
-          type: 'Ticket',
-          style: ButtonStyle.Danger
-        })
-      )]
+      components: [buttons]
     })
-    await db.tickets.push(`${guildId}.tickets.${channelId}.messages`, { channelId: message?.channelId, messageId: message?.id })
+    return message
   }
 
-  async genEmbed ({ channelId }: { channelId: string }): Promise<EmbedBuilder> {
+  async edit ({ channelId, messageId, channelTicketId }: { channelId: string, messageId: string, channelTicketId: string }): Promise<void> {
+    const { guild } = this.interaction
+    const channelClaim = await guild?.channels.fetch(channelId)
+
+    if (!(channelClaim instanceof TextChannel)) {
+      await this.interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: '❌ Não consegui achar o channel do claim!'
+        }).setColor('Red')]
+      })
+      return
+    }
+
+    const messageClaim = await channelClaim.messages.fetch(messageId).catch(() => undefined)
+
+    if (messageClaim === undefined) {
+      await this.interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: '❌ A embed de gerenciamento do claim foi possivelmente apagada... Não é possivel prosseguir.'
+        }).setColor('Red')]
+      })
+      return
+    }
+
+    await messageClaim?.edit({ components: [await this.buttons({ channelId: channelTicketId })] })
+  }
+
+  async embed ({ channelId }: { channelId: string }): Promise<EmbedBuilder> {
     const { guild, guildId } = this.interaction
     const { category: { emoji, title }, owner, createAt, team, description } = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
     const user = guild?.client.users.cache.find((user) => user.id === owner)
-    console.log(team)
+
     return new EmbedBuilder({
       title: '🎫 Um novo ticket foi aberto!',
       fields: [
@@ -87,6 +93,45 @@ export class TicketClaim {
       ],
       footer: ({ text: `Equipe ${guild?.name} | Todos os Direitos Reservados`, icon_url: (guild?.iconURL({ size: 64 }) ?? undefined) })
     }).setColor((team ?? [])?.length === 0 ? 'Red' : 'Green')
+  }
+
+  async buttons ({ channelId }: { channelId: string }): Promise<ActionRowBuilder<ButtonBuilder>> {
+    const { guildId } = this.interaction
+    const ticket = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
+    console.log(ticket, `${guildId}.tickets.${channelId}`)
+    const row = new ActionRowBuilder<ButtonBuilder>()
+    row.addComponents(
+      new CustomButtonBuilder({
+        emoji: { name: '🛎️' },
+        label: 'Responder',
+        customId: `Claim-${channelId}`,
+        type: 'Ticket',
+        style: ButtonStyle.Success
+      }),
+      new CustomButtonBuilder({
+        emoji: { name: '📃' },
+        label: 'Salvar Logs',
+        customId: `Transcript-${channelId}`,
+        type: 'Ticket',
+        style: ButtonStyle.Primary
+      }),
+      new CustomButtonBuilder({
+        type: 'Ticket',
+        permission: 'User',
+        customId: `Switch-${channelId}`,
+        label: ticket.closed ? 'Abrir' : 'Fechar',
+        emoji: { name: ticket.closed ? '🔒' : '🔓' },
+        style: ticket.closed ? ButtonStyle.Success : ButtonStyle.Danger
+      }),
+      new CustomButtonBuilder({
+        emoji: { name: '🗑️' },
+        label: 'Deletar',
+        customId: `Delete-${channelId}`,
+        type: 'Ticket',
+        style: ButtonStyle.Danger
+      })
+    )
+    return row
   }
 
   async Claim ({ key }: { key: string }): Promise<void> {
@@ -135,9 +180,8 @@ export class TicketClaim {
       return
     }
 
-    await db.tickets.push(`${guildId}.tickets.${channelId}.team`, { name: user.username, displayName: user.displayName, id: user.id })
     if (await ticket.Permissions({ channelId: channelTicket.id, userId: user.id, memberTeam: true })) return
-    await message?.edit({ embeds: [await this.genEmbed({ channelId })] })
+    await message?.edit({ embeds: [await this.embed({ channelId })] })
     await interaction.channel?.send({
       embeds: [new EmbedBuilder({
         title: `Usuário ${user.displayName}, reivindicou o ticket do ${userTicket?.displayName}!`

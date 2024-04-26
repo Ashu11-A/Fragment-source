@@ -67,6 +67,7 @@ export async function ticketCollectorButtons (options: {
   const customIdHandlers: CustomIdHandlers = {
     SelectType: async () => { await ButtonConstructor.SelectType() },
 
+    Switch: async () => { await Constructor.switch({ channelId: key.split('-')[1] ?? channelId }) },
     delTicket: async () => { await Constructor.delete({ type: 'delTicket' }) },
     EmbedDelete: async () => { await Constructor.delete({ type: 'EmbedDelete' }) },
 

@@ -74,7 +74,7 @@ export class TicketSelects implements TicketType {
     const interaction = this.interaction
     if (!interaction.isStringSelectMenu()) return
 
-    const { values } = interaction
+    const { values, channelId } = interaction
     const PanelConstructor = new TicketPanel({ interaction })
     const Constructor = new Ticket({ interaction })
 
@@ -82,7 +82,7 @@ export class TicketSelects implements TicketType {
       CreateCall: async () => { await PanelConstructor.CreateCall() },
       AddUser: async () => { await PanelConstructor.AddUser() },
       RemoveUser: async () => { await PanelConstructor.RemoveUser() },
-      Transcript: async () => {},
+      Transcript: async () => { await Constructor.Transcript({ channelId }) },
       delTicket: async () => { await Constructor.delete({ type: 'delTicket' }) }
     }
 

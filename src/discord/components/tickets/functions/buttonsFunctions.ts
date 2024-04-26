@@ -37,7 +37,7 @@ export class TicketButtons implements TicketType {
       new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder({
         customId: 'description',
         label: 'Qual a descrição?',
-        required: false,
+        required: true,
         maxLength: 255,
         style: TextInputStyle.Paragraph,
         placeholder: 'Queria saber mais informações sobre...'
