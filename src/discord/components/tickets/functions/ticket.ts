@@ -215,8 +215,11 @@ export class Ticket {
     const tickets = await db.tickets.get(`${guildId}.tickets`) as Record<string, TicketDBType>
     let ticketOpenId
 
-    for (const [channelId, ticket] of Object.entries(tickets)) {
-      if (ticket.owner === user.id) ticketOpenId = channelId
+    for (const [channelId, ticket] of Object.entries((tickets ?? []))) {
+      if (ticket?.owner === user.id) {
+        ticketOpenId = channelId
+        console.log(ticket)
+      }
     }
 
     if (ticketOpenId !== undefined) {
@@ -331,15 +334,25 @@ export class Ticket {
     type: 'delTicket' | 'EmbedDelete'
     channelId?: string // Apenas se for deletar algo que está fora do channel
   }): Promise<void> {
-    const { type, channelId: channelDel } = options
+    const { type } = options
+    let channelId = options.channelId
     const interaction = this.interaction
     if (!interaction.inCachedGuild()) return
     if (await this.validator()) return
-    if (await Discord.Permission(interaction, 'Administrator')) return
 
-    const { guild, guildId, channelId, user } = interaction
+    if (channelId === undefined) channelId = interaction.channelId ?? undefined
+    if (channelId === undefined) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: '❌ Não foi possivel determinal o channelId!'
+        }).setColor('Red')]
+      })
+      return
+    }
+
+    const { guild, guildId, user } = interaction
     const embed = new EmbedBuilder()
-      .setColor('Gold')
+      .setColor('Orange')
     if (type === 'delTicket') {
       embed.setDescription('Tem certeza que deseja fechar o Ticket?')
     } else {
@@ -369,7 +382,7 @@ export class Ticket {
         })
       } else if (subInteraction.customId === 'embed-confirm-button') {
         const now = new Date()
-        const futureTime = new Date(now.getTime() + 15000)
+        const futureTime = new Date(now.getTime() + 5000)
         const futureTimeString = `<t:${Math.floor(futureTime.getTime() / 1000)}:R>`
         const embed = new EmbedBuilder().setColor('Red')
 
@@ -386,37 +399,35 @@ export class Ticket {
         })
         if (type === 'delTicket') {
           const tickets = await db.tickets.get(`${guild.id}.tickets`) as Record<string, TicketDBType> ?? []
-          const ticket = tickets[channelDel ?? subInteraction.channelId]
-          const channel = guild.channels.cache.find((channel) => channel.id === ticket?.channelId) as TextChannel
+          const ticket = tickets[channelId] as TicketDBType | undefined
+
+          if (ticket === undefined) {
+            await interaction.editReply({
+              embeds: [new EmbedBuilder({
+                title: '❌ Não foi possivel encontrar o channel do ticket!'
+              }).setColor('Red')]
+            })
+            return
+          }
+
+          const channel = await guild.channels.fetch(ticket.channelId)
 
           await delay(5000)
+          if (channel !== null) await channel.delete()
 
-          channel.delete()
-            .then(async () => {
-              /* Apagar as mensagens atrelasdas ao ticket */
-              for (const { channelId, messageId } of ticket.messages) {
-                const channel = interaction.guild.channels.cache.find((channel) => channel.id === channelId) as TextChannel | undefined
-                if (channel === undefined) continue
+          /* Apagar as mensagens atrelasdas ao ticket */
+          for (const { channelId, messageId } of ticket.messages) {
+            const channel = await interaction.guild.channels.fetch(channelId)
+            if (channel === undefined) continue
+            if (!(channel instanceof TextChannel)) return
 
-                await channel.messages.fetch(messageId).then(async (message) => {
-                  await message.delete()
-                })
-              }
-              if (ticket !== undefined) {
-                const voiceChannel = interaction.guild.channels.cache.find((channel) => channel.id === ticket.voice?.id)
-                if (voiceChannel !== undefined) voiceChannel.delete().catch(console.error)
-              }
-              await db.tickets.delete(`${guildId}.tickets.${subInteraction.channelId}`)
+            await channel.messages.fetch(messageId).then(async (message) => {
+              await message.delete()
             })
-            .catch(async (err) => {
-              console.log(err)
-              await subInteraction.update({
-                ...clearData,
-                embeds: [new EmbedBuilder({
-                  title: 'Ocorreu um erro ao tentar deletar o ticket!'
-                }).setColor('Red')]
-              })
-            })
+          }
+
+          if (ticket.voice?.id !== undefined) await (await guild.channels.fetch(ticket.voice.id))?.delete()
+          await db.tickets.delete(`${guildId}.tickets.${channelId}`)
         } else if (interaction.isButton()) {
           const { embedChannelID: channelEmbedID, embedMessageID: messageID } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${interaction.message?.id}`)
 

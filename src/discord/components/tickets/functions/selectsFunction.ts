@@ -1,4 +1,4 @@
-import { db } from '@/app'
+import { core, db } from '@/app'
 import { type CustomIdHandlers } from '@/interfaces'
 import { type TicketCategories } from '@/interfaces/Ticket'
 import { type ChatInputCommandInteraction, codeBlock, EmbedBuilder, type CacheType, type StringSelectMenuInteraction } from 'discord.js'
@@ -25,7 +25,7 @@ export class TicketSelects implements TicketType {
     if (!interaction.isStringSelectMenu()) return
 
     const { values, guildId, channelId, message } = interaction
-    const posição = values[0]
+    let posição: string | number = values[0]
     const { select: infos } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message.id}`)
     const Constructor = new Ticket({ interaction: this.interaction })
 
@@ -34,11 +34,13 @@ export class TicketSelects implements TicketType {
       return
     }
 
-    if (Number(posição) >= 0 && Number(posição) < infos.length) {
+    if (await Constructor.check()) return
+    posição = Number(posição) - 1 // posição - 1, pois o config conta como um
+    if (posição >= 0 && posição < infos.length) {
       const { title, description, emoji } = infos[Number(posição)]
       await Constructor.create({ title, description, categoryEmoji: emoji, categoryName: title })
     } else {
-      console.log('Posição inválida no banco de dados.')
+      core.warn('Posição inválida no banco de dados.')
       await this.interaction.editReply({ content: '❌ | As informações do Banco de dados estão desatualizadas' })
     }
   }

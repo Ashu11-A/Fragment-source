@@ -204,10 +204,8 @@ export class TicketClaim {
   }
 
   async Delete ({ key }: { key: string }): Promise<void> {
-    const { guild } = this.interaction
     const channelId = key.split('-')[1]
-    const channelTicket = guild?.channels.cache.find((channel) => channel.id === channelId) as TextChannel
     const Constructor = new Ticket({ interaction: this.interaction })
-    await Constructor.delete({ type: 'delTicket', channelId: channelTicket.id })
+    await Constructor.delete({ type: 'delTicket', channelId })
   }
 }
