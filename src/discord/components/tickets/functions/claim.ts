@@ -88,11 +88,11 @@ export class TicketClaim {
         { name: '❓ Motivo:', value: codeBlock(`${emoji} ${title}`), inline },
         { name: '📃 Descrição:', value: codeBlock(description ?? 'Nada foi dito'), inline },
         { name: '\u200E', value: '\u200E', inline },
-        { name: '👨🏻‍💻 Team support:', value: codeBlock(team?.map((user) => user.displayName).join(', ') ?? 'Ninguém reivindicou esse ticket ainda!'), inline },
+        { name: '👨🏻‍💻 Team support:', value: codeBlock(team.length === 0 ? 'Ninguém reivindicou esse ticket ainda!' : team.map((user) => user.displayName).join(', ')), inline },
         { name: '🕗 Aberto:', value: `<t:${Math.floor(createAt / 1000)}:R>` }
       ],
       footer: ({ text: `Equipe ${guild?.name} | Todos os Direitos Reservados`, icon_url: (guild?.iconURL({ size: 64 }) ?? undefined) })
-    }).setColor((team ?? [])?.length === 0 ? 'Red' : 'Green')
+    }).setColor(team.length === 0 ? 'Red' : 'Green')
   }
 
   async buttons ({ channelId }: { channelId: string }): Promise<ActionRowBuilder<ButtonBuilder>> {
