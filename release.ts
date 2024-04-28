@@ -1,11 +1,12 @@
-import { copyFile, copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
+import { exec } from '@yao-pkg/pkg'
+import { Presets, SingleBar } from 'cli-progress'
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
+import { copyFile, readFile } from 'fs/promises'
+import { obfuscate } from 'javascript-obfuscator'
+import { Loggings } from 'loggings'
 import os from 'os'
 import path from 'path'
 import { minify } from 'terser'
-import { SingleBar, Presets } from 'cli-progress'
-import { exec } from '@yao-pkg/pkg'
-import { obfuscate } from 'javascript-obfuscator'
-import { Loggings } from 'loggings'
 import { formatBytes } from './src/functions/Format'
 
 async function carregarDados (options: {
@@ -37,7 +38,6 @@ async function compress (): Promise<void> {
   const progressBar = new SingleBar({}, Presets.rect)
   const files = await carregarDados({ diretorio: 'dist' })
   progressBar.start(Object.entries(files).length, 0)
-  copyFileSync('src/settings/settings.exemple.json', 'build/settings/settings.json')
   for (const [filePath, fileContent] of Object.entries(files)) {
     progressBar.increment(1)
     const newPath = path.dirname(filePath).replace('dist', 'build')
@@ -82,12 +82,20 @@ async function compress (): Promise<void> {
   }
 
   progressBar.stop()
+  await copyFile('./src/settings/settings.exemple.json', './build/settings/settings.json')
 
   const args = ['.', '--no-bytecode', '--compress', 'Brotli', '--public-packages', '"*"', '--public']
   const platforms = ['alpine', 'linux', 'linuxstatic']
   const archs = ['x64', 'arm64']
   const nodeVersion = '20'
   const allBuild: string[] = []
+  const manifest: Array<{
+    path: string
+    platform: string
+    arch: string
+    size: string
+    timeBuild: string
+  }> = []
 
   if (os.platform() !== 'win32') {
     for (const platform of platforms) {
@@ -120,15 +128,17 @@ async function compress (): Promise<void> {
     const timeSpent = (endTime - startTime) / 1000 + 's'
     core.info(`Build | ${nameSplit[1]}-${nameSplit[2]} | ${timeSpent}`)
 
-    const file = readFileSync(buildType)
-    writeFileSync(`${buildType}.json`, JSON.stringify({
-      fileName: buildType.replace('./release/', ''),
+    const file = await readFile(buildType)
+    manifest.push({
+      path: buildType.replace('./release/', ''),
       platform: nameSplit[1],
       arch: nameSplit[2],
       size: formatBytes(file.byteLength),
       timeBuild: timeSpent
-    }, null, 4))
+    })
   }
+
+  writeFileSync('release/manifest.json', JSON.stringify(manifest, null, 4))
 }
 
 void compress()
