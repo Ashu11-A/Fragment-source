@@ -1,11 +1,3 @@
 {
-  "API": "http://node.seventyhost.net:24398",
-  "Tokens": {
-    "accessToken": "",
-    "refreshToken": ""
-  },
-  "expired": true,
-  "enabled": false,
-  "expire_at": "",
-  "created_at": ""
+  "token": ""
 }

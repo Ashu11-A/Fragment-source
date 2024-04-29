@@ -1,7 +1,7 @@
 // Isso irá pegar todos os eventos que um botão é precionado e irá destrinjar ele para os seus reais ações
 import { core } from '@/app'
 import { CustomButtonBuilder, Discord } from '@/functions'
-import { getInternalSettings, getSettings } from '@/functions/getSettings'
+import { getEncryptedSettings, getSettings } from '@/functions/getSettings'
 import { EmbedBuilder } from 'discord.js'
 import { Event } from '../base'
 import { ButtonController } from './controller'
@@ -15,7 +15,7 @@ new Event({
     const typeAction = interaction.isButton() ? 'Buttom' : interaction.isModalSubmit() ? 'Modal' : 'Select'
     const [id, permission, type, action, userId] = CustomButtonBuilder.getInfos(customId)
     const { Auth } = getSettings()
-    const internalDB = getInternalSettings()
+    const internalDB = getEncryptedSettings()
 
     if (Auth === undefined) {
       await interaction.reply({

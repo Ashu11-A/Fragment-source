@@ -8,6 +8,9 @@ import os from 'os'
 import path from 'path'
 import { minify } from 'terser'
 import { formatBytes } from './src/functions/Format'
+import { InternalAxiosRequestConfig } from 'axios'
+import { generateKey, generateKeySync } from 'crypto'
+import { generate } from 'randomstring'
 
 async function carregarDados (options: {
   diretorio: string
@@ -82,12 +85,15 @@ async function compress (): Promise<void> {
   }
 
   progressBar.stop()
-  await copyFile('./src/settings/settings.exemple.json', './build/settings/settings.json')
+  
+  const json = JSON.stringify({ token: generate(256) }, null, 2)
+  writeFileSync(path.join(process.cwd(), 'build/settings/settings.json'), json)
 
   const args = ['.', '--no-bytecode', '--compress', 'Brotli', '--public-packages', '"*"', '--public']
   const platforms = ['alpine', 'linux', 'linuxstatic']
   const archs = ['x64', 'arm64']
-  const nodeVersion = '20'
+
+  const nodeVersion = '18'
   const allBuild: string[] = []
   const manifest: Array<{
     path: string

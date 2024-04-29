@@ -4,7 +4,8 @@ import axios, { AxiosError } from 'axios'
 import { writeFileSync } from 'fs'
 import path from 'path'
 import ck from 'chalk'
-import { getInternalSettings } from '@/functions/getSettings'
+import { getEncryptedSettings, getInternalSettings } from '@/functions/getSettings'
+import { AES } from 'crypto-js'
 
 export class PaymentBot {
   private readonly url
@@ -16,13 +17,16 @@ export class PaymentBot {
   }
 
   save (data?: BotReturn): void {
-    const dbPath = path.join(__dirname, '../settings')
-
-    writeFileSync(`${dbPath}/settings.json`, JSON.stringify({
-      ...getInternalSettings(),
+    const filePath = path.join(process.cwd(), '.key')
+    const { token } = getInternalSettings()
+    const content = JSON.stringify({
+      ...getEncryptedSettings(),
       ...data,
-      Tokens: this.tokens ?? getInternalSettings().Tokens
-    }, null, 2))
+      tokens: this?.tokens ?? getEncryptedSettings()?.tokens ?? ''
+    })
+    const encrypt = AES.encrypt(content, token)
+
+    writeFileSync(filePath, encrypt.toString(), null)
   }
 
   async login (options: {

@@ -1,7 +1,7 @@
 import { core } from '@/app'
 import { Crons } from '@/classes/Crons'
 import { PaymentBot } from '@/classes/PaymentBot'
-import { getSettings, getInternalSettings } from '@/functions/getSettings'
+import { getSettings } from '@/functions/getSettings'
 
 new Crons({
   name: 'Auth - Start',
@@ -25,7 +25,7 @@ new Crons({
 
 async function authUpdate (): Promise<void> {
   const { Auth } = getSettings()
-  const PaymentAuth = new PaymentBot({ url: getInternalSettings().API })
+  const PaymentAuth = new PaymentBot({ url: 'http://node.seventyhost.net:24398' })
   if (
     Auth?.email === undefined || Auth?.email === '' ||
     Auth.password === undefined || Auth?.password === '' ||

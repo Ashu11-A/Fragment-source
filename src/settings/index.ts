@@ -1,11 +1,23 @@
 import dotenv from 'dotenv'
-import { existsSync } from 'fs'
-import { resolve } from 'path'
+import { existsSync, writeFileSync } from 'fs'
+import path, { resolve } from 'path'
+import { generate } from 'randomstring'
 import { Signale } from 'signale'
 import './constants'
 
 const developmentEnvPath = resolve(process.cwd(), '.env.development')
 const dev = existsSync(developmentEnvPath)
+
+if (dev) {
+  const pathSettings = resolve(path.join(process.cwd(), 'src/settings/settings.json'))
+  if (!existsSync(pathSettings)) {
+    writeFileSync(
+      path.join(process.cwd(), 'src/settings/settings.json'),
+      JSON.stringify({ token: generate(256) }, null)
+    )
+  }
+}
+
 const { parsed: parsedEnv } = dotenv.config({
   path: existsSync(developmentEnvPath)
     ? developmentEnvPath

@@ -27,13 +27,17 @@ interface TokenData {
   refreshToken: string
 }
 
-export interface InternalConfig {
-  API: string
-  Tokens: TokenData
+export interface EncryptedConfig {
+  api: string
+  tokens: TokenData
   expired: boolean
   enabled: boolean
   expire_at: string
   created_at: string
   uuid: string
   name: string
+}
+
+export interface InternalConfig {
+  token: string
 }
