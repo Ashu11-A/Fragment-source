@@ -135,7 +135,7 @@ export class TicketButtons implements TicketType {
 
     const row = new ActionRowBuilder<StringSelectMenuBuilder>({
       components: [new StringSelectMenuBuilder({
-        customId: '-1_Admin_Ticket_SelectType',
+        customId: '-1_User_Ticket_SelectType',
         placeholder: 'Selecione a categoria do seu Ticket',
         minValues: 1,
         maxValues: 1,

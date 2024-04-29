@@ -47,27 +47,7 @@ new Event({
     }
 
     if (id === undefined || action === undefined) { console.log('Nenhuma ação foi expecificada no botão'); return }
-    // <-- Verifica a interação -->
-    if (userId !== undefined && userId !== 'undefined' && !(await CustomButtonBuilder.verify({ userId, interaction }))) {
-      await interaction.reply({
-        ephemeral,
-        embeds: [
-          new EmbedBuilder({
-            title: 'O botão ``' + action + '`` está protegido contra interações desconhecidas!'
-          }).setColor('Red')
-        ]
-      })
-      core.warn(`Usuário ${username} tentou clicar no botão ${action}, mas ele não tem permição para isso!`)
-      await Discord.sendLog({
-        interaction,
-        guild,
-        cause: 'noButtonPermission',
-        type: 'warn',
-        color: 'Orange',
-        infos: [{ type, action }]
-      })
-      return
-    }
+
     // <-- Verifica a permição -->
     if (permission !== 'User') if (await Discord.Permission(interaction, 'Administrator', 'noPermission')) return
     core.info(`${username} | Id: ${id} | Permission: ${permission} | Type: ${type} | typeAction: ${typeAction} | Action: ${action} | userID: ${userId}`)

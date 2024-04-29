@@ -92,7 +92,9 @@ export class Discord {
       const guild = interaction.guild as Guild
       if ((interaction?.memberPermissions?.has(typePermission)) === false) {
         await interaction.reply({
-          content: '**❌ - Você não possui permissão para executar essa ação.**',
+          embeds: [new EmbedBuilder({
+            title: '**❌ - Você não possui permissão para executar essa ação!**',
+          }).setColor('Red')],
           ephemeral: true
         })
         await Discord.sendLog({
@@ -187,17 +189,6 @@ export class CustomButtonBuilder extends ButtonBuilder implements ButtonType {
       this.setURL(url)
     }
     this.setCustomId(`${genv4()}_${this.permission}_${type}_${customId}`)
-  }
-
-  static async verify (options: {
-    userId: string | null
-    interaction: Interaction
-  }): Promise<boolean> {
-    const { userId, interaction } = options
-    if (userId === interaction.user.id || interaction.memberPermissions?.has('Administrator') === true) {
-      return true
-    }
-    return false
   }
 
   static getInfos = (customId: string): string[] | undefined[] => {

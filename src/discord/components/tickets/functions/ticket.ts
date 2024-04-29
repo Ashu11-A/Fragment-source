@@ -211,7 +211,7 @@ export class Ticket {
   }
 
   async check (): Promise<boolean> {
-    const { guildId, user } = this.interaction
+    const { guildId, user, guild } = this.interaction
     const tickets = await db.tickets.get(`${guildId}.tickets`) as Record<string, TicketDBType>
     let ticketOpenId
 
@@ -223,6 +223,13 @@ export class Ticket {
     }
 
     if (ticketOpenId !== undefined) {
+      const channel = await guild?.channels.fetch(ticketOpenId).catch(() => undefined)
+
+      if (!(channel instanceof TextChannel)) { 
+        await db.tickets.delete(`${guildId}.tickets.${ticketOpenId}`)
+        return false
+      }
+
       await this.interaction.editReply({
         embeds: [
           new EmbedBuilder({
