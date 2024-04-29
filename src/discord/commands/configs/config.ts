@@ -14,6 +14,7 @@ import {
   ButtonStyle,
   ChannelType,
   EmbedBuilder,
+  PermissionsBitField,
   TextChannel,
   type ButtonBuilder
 } from 'discord.js'
@@ -23,7 +24,7 @@ new Command({
   description: '[ ⚙️ configurar ] Use esse comando para configurar o bot.',
   dmPermission,
   type: ApplicationCommandType.ChatInput,
-  defaultMemberPermissions: 'Administrator',
+  defaultMemberPermissions: PermissionsBitField.Flags.Administrator,
   options: [
     {
       name: 'guild',

@@ -3,9 +3,9 @@ import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, cod
 
 new Command({
   name: 'id',
-  description: '[ 🆔 ] Pega o id de algo',
+  description: '[ 🪄 Utilidades ] Pega o id de algo',
   descriptionLocalizations: {
-    'en-US': '[ 🆔 ] Get the id of something'
+    'en-US': '[ 🪄 Utilidades ] Get the id of something'
   },
   dmPermission,
   type: ApplicationCommandType.ChatInput,
@@ -62,21 +62,21 @@ new Command({
       if (user !== null) {
         embed.addFields({
           name: `User: ${user?.username}`,
-          value: codeBlock(`ID: ${user.id}`)
+          value: codeBlock(user.id)
         })
       }
 
       if (cargo !== null) {
         embed.addFields({
           name: `Role: ${cargo?.name}`,
-          value: codeBlock(`ID: ${cargo.id}`)
+          value: codeBlock(cargo.id)
         })
       }
 
       if (canal !== null) {
         embed.addFields({
           name: `Channel: ${canal?.name}`,
-          value: codeBlock(`ID: ${canal.id}`)
+          value: codeBlock(canal.id)
         })
       }
 

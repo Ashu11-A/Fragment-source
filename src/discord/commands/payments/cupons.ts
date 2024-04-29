@@ -5,7 +5,7 @@ import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, typ
 
 new Command({
   name: 'cupons',
-  description: '[ 🎟️ ] Gerenciar Cupons',
+  description: '[ 🛒 Payments ] Gerenciar Cupons',
   dmPermission,
   type: ApplicationCommandType.ChatInput,
   options: [

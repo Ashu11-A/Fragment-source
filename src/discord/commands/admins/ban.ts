@@ -1,4 +1,4 @@
-import { EmbedBuilder, ApplicationCommandOptionType, ApplicationCommandType, type TextChannel, GuildMember, codeBlock } from 'discord.js'
+import { EmbedBuilder, ApplicationCommandOptionType, ApplicationCommandType, type TextChannel, GuildMember, codeBlock, PermissionsBitField } from 'discord.js'
 import { Command } from '@/discord/base'
 import { client, db } from '@/app'
 import { Discord } from '@/functions'
@@ -8,6 +8,7 @@ new Command({
   dmPermission,
   description: '[ 💎 Moderação ] Bane um usuário do servidor',
   type: ApplicationCommandType.ChatInput,
+  defaultMemberPermissions: PermissionsBitField.Flags.BanMembers,
   options: [
     {
       name: 'usuário',

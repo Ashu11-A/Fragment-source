@@ -1,12 +1,13 @@
 import { client, db } from '@/app'
 import { Command } from '@/discord/base'
 import { Discord } from '@/functions'
-import { EmbedBuilder, ApplicationCommandType, ApplicationCommandOptionType, type TextChannel, codeBlock } from 'discord.js'
+import { EmbedBuilder, ApplicationCommandType, ApplicationCommandOptionType, type TextChannel, codeBlock, PermissionsBitField } from 'discord.js'
 
 new Command({
   name: 'kick',
   dmPermission,
   description: '[ 💎 Moderação ] Expulsa um usuário do servidor',
+  defaultMemberPermissions: PermissionsBitField.Flags.KickMembers,
   type: ApplicationCommandType.ChatInput,
   options: [
     {

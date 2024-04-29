@@ -1,4 +1,4 @@
-import { EmbedBuilder, ApplicationCommandOptionType, ApplicationCommandType, type TextChannel } from 'discord.js'
+import { EmbedBuilder, ApplicationCommandOptionType, ApplicationCommandType, type TextChannel, PermissionsBitField } from 'discord.js'
 import { Command } from '@/discord/base'
 import { db } from '@/app'
 import { Discord } from '@/functions'
@@ -8,6 +8,7 @@ new Command({
   dmPermission,
   description: '[ 💎 Moderação ] Add/Rem alguém da equipe',
   type: ApplicationCommandType.ChatInput,
+  defaultMemberPermissions: PermissionsBitField.Flags.ManageRoles,
   options: [
     {
       name: 'usuário',

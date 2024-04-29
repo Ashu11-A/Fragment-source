@@ -1,4 +1,4 @@
-import { EmbedBuilder, ApplicationCommandOptionType, ApplicationCommandType, type TextChannel, codeBlock } from 'discord.js'
+import { EmbedBuilder, ApplicationCommandOptionType, ApplicationCommandType, type TextChannel, codeBlock, PermissionsBitField } from 'discord.js'
 import { Command } from '@/discord/base'
 import { db } from '@/app'
 import { brBuilder } from '@magicyan/discord'
@@ -9,6 +9,7 @@ new Command({
   description: '[ 💎 Moderação ] Desbane um usuário do servidor',
   dmPermission,
   type: ApplicationCommandType.ChatInput,
+  defaultMemberPermissions: PermissionsBitField.Flags.BanMembers,
   options: [
     {
       name: 'usuário',

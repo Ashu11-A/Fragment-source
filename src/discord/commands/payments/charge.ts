@@ -1,7 +1,7 @@
 import { Command } from '@/discord/base'
 import { createCart } from '@/discord/components/payments'
 import { genv4 } from '@/functions'
-import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, TextChannel } from 'discord.js'
+import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, PermissionsBitField, TextChannel } from 'discord.js'
 
 new Command({
   name: 'cobrar',

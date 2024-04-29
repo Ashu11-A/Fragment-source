@@ -1,7 +1,7 @@
 import { Command, Component } from '@/discord/base'
 import { Discord } from '@/functions'
 import { brBuilder, createModalInput, createRow } from '@magicyan/discord'
-import { ApplicationCommandOptionType, ApplicationCommandType, AttachmentBuilder, ButtonBuilder, ButtonStyle, Collection, ComponentType, EmbedBuilder, ModalBuilder, TextInputStyle, codeBlock, type Attachment, type ColorResolvable, type TextChannel } from 'discord.js'
+import { ApplicationCommandOptionType, ApplicationCommandType, AttachmentBuilder, ButtonBuilder, ButtonStyle, Collection, ComponentType, EmbedBuilder, ModalBuilder, PermissionsBitField, TextInputStyle, codeBlock, type Attachment, type ColorResolvable, type TextChannel } from 'discord.js'
 
 const members = new Collection<string, { channelId: string, image: Attachment | null }>()
 
@@ -9,6 +9,7 @@ new Command({
   name: 'anunciar',
   description: '[ 💎 Moderação ] Enviar uma mensagem ao chat especificado.',
   dmPermission: false,
+  defaultMemberPermissions: PermissionsBitField.Flags.Administrator,
   type: ApplicationCommandType.ChatInput,
   options: [
     {

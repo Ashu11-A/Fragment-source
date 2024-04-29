@@ -1,13 +1,14 @@
 import { Command } from '@/discord/base'
 import { Discord } from '@/functions'
 import { brBuilder } from '@magicyan/discord'
-import { ApplicationCommandOptionType, ApplicationCommandType, codeBlock, type TextChannel } from 'discord.js'
+import { ApplicationCommandOptionType, ApplicationCommandType, PermissionsBitField, codeBlock, type TextChannel } from 'discord.js'
 
 new Command({
   name: 'limpar',
   description: '[ 💎 Moderação ] Comando de limpar mensagens',
   dmPermission,
   type: ApplicationCommandType.ChatInput,
+  defaultMemberPermissions: PermissionsBitField.Flags.ManageMessages,
   options: [
     {
       name: 'quantidade',
