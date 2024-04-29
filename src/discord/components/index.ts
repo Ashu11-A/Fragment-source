@@ -11,7 +11,7 @@ new Event({
   async run (interaction) {
     if (!interaction.isButton() && !interaction.isStringSelectMenu() && !interaction.isModalSubmit()) return
     const start = Date.now() // Mostrar delay
-    const { customId, user: { username }, guild } = interaction
+    const { customId, user: { username } } = interaction
     const typeAction = interaction.isButton() ? 'Buttom' : interaction.isModalSubmit() ? 'Modal' : 'Select'
     const [id, permission, type, action, userId] = CustomButtonBuilder.getInfos(customId)
     const { Auth } = getSettings()

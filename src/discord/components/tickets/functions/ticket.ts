@@ -225,7 +225,7 @@ export class Ticket {
     if (ticketOpenId !== undefined) {
       const channel = await guild?.channels.fetch(ticketOpenId).catch(() => undefined)
 
-      if (!(channel instanceof TextChannel)) { 
+      if (!(channel instanceof TextChannel)) {
         await db.tickets.delete(`${guildId}.tickets.${ticketOpenId}`)
         return false
       }
@@ -299,10 +299,10 @@ export class Ticket {
 
   async switch ({ channelId }: { channelId: string }): Promise<void> {
     const { guildId, user } = this.interaction
-    const ticket = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
+    const { team, owner, messageId, closed, claim } = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
     const ClaimConstructor = new TicketClaim({ interaction: this.interaction })
 
-    if (!((ticket.team ?? []).some((userTeam) => userTeam.id === user.id) ?? false) && user.id !== ticket.owner) {
+    if (!(team.some((userTeam) => userTeam.id === user.id) ?? false) && user.id !== owner) {
       await this.interaction.editReply({
         embeds: [new EmbedBuilder({
           title: '❌ Você não ter permissão para fazer isso!'
@@ -311,10 +311,10 @@ export class Ticket {
       return
     }
 
-    const isOpen = ticket?.closed ?? false
+    const isOpen = closed ?? false
     await db.tickets.set(`${guildId}.tickets.${channelId}.closed`, !isOpen)
     await this.Permissions({ channelId })
-    const ticketChannel = await this.edit({ channelId, messageId: ticket.messageId })
+    const ticketChannel = await this.edit({ channelId, messageId })
     await ticketChannel?.send({
       embeds: [
         new EmbedBuilder({
@@ -324,7 +324,7 @@ export class Ticket {
       ]
     })
 
-    if (ticket.claim?.channelId === undefined || ticket.claim?.messageId === undefined) {
+    if (claim?.channelId === undefined || claim?.messageId === undefined) {
       await this.interaction.editReply({
         embeds: [new EmbedBuilder({
           title: '❌ Sistema de claim inexistente!?'
@@ -333,7 +333,7 @@ export class Ticket {
       return
     }
 
-    await ClaimConstructor.edit({ channelId: ticket.claim?.channelId, messageId: ticket.claim?.messageId, channelTicketId: channelId })
+    await ClaimConstructor.edit({ channelId: claim?.channelId, messageId: claim?.messageId, channelTicketId: channelId })
     await this.interaction.deleteReply()
   }
 

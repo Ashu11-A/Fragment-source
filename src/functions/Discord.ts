@@ -1,6 +1,6 @@
 import { core, db } from '@/app'
 import { Component } from '@/discord/base'
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, codeBlock, EmbedBuilder, ModalSubmitInteraction, StringSelectMenuInteraction, type AnyComponentBuilder, type APIMessageComponentEmoji, type CacheType, type ChatInputCommandInteraction, type ColorResolvable, type CommandInteraction, type Guild, type Interaction, type MessageInteraction, type PermissionResolvable, type TextChannel } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, EmbedBuilder, ModalSubmitInteraction, StringSelectMenuInteraction, codeBlock, type APIMessageComponentEmoji, type AnyComponentBuilder, type CacheType, type ChatInputCommandInteraction, type ColorResolvable, type CommandInteraction, type Guild, type MessageInteraction, type PermissionResolvable, type TextChannel } from 'discord.js'
 import { genv4 } from './UuidGen'
 
 export function createRow<Component extends AnyComponentBuilder = AnyComponentBuilder> (...components: Component[]): ActionRowBuilder<Component> {
@@ -93,7 +93,7 @@ export class Discord {
       if ((interaction?.memberPermissions?.has(typePermission)) === false) {
         await interaction.reply({
           embeds: [new EmbedBuilder({
-            title: '**❌ - Você não possui permissão para executar essa ação!**',
+            title: '**❌ - Você não possui permissão para executar essa ação!**'
           }).setColor('Red')],
           ephemeral: true
         })

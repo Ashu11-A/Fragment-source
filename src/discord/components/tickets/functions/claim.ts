@@ -159,7 +159,7 @@ export class TicketClaim {
       label: 'Ir ao Ticket'
     })
 
-    if ((team ?? []).find((userTeam) => userTeam.id === user.id) !== undefined ?? false) {
+    if (team.find((userTeam) => userTeam.id === user.id) !== undefined ?? false) {
       await interaction.editReply({
         embeds: [new EmbedBuilder({
           title: '❌ | Você já está atendendo este ticket!'
@@ -169,7 +169,7 @@ export class TicketClaim {
       return
     }
 
-    if ((team ?? []).length >= 1) {
+    if (team.length >= 1) {
       await interaction.editReply({
         embeds: [new EmbedBuilder({
           title: '😔 Desculpe-me, mas apenas uma pessoa pode reivindicar o ticket!',
