@@ -5,91 +5,59 @@ on:
     tags:
       - "v*"
 jobs:
-  publish:
-    name: Publish Release for multi-platform
-    runs-on: ${{ matrix.os }}
+  prepare:
+    name: Prepare job
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [18.x]
-        include:
-          - os: ubuntu-latest
-
     steps:
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Set output
+        id: vars
+        run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
 
-    - name: Set output
-      id: vars
-      run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+      - name: Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          check-latest: true
 
-    - name: Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        check-latest: true
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Install dependencies
-      run: npm ci
+  build:
+    name: Build job
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build
+        run: npm run build
 
-    - name: Config Project
-      run: |
-          mv settings.exemple.json settings.json
-          mv src/settings/settings.exemple.json src/settings/settings.json
-
-    - name: Build release
-      run: npm run build:release
-
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: release/*
-        tag: ${{ github.ref }}
-        overwrite: true
-        file_glob: true
-
-  publish-win:
-    name: Publish for ${{ matrix.os }}
+  build_multi_arch:
+    name: Build Multi Archs
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node-version: [18.x]
-        include:
-          - os: windows-latest
-
+        os: [ubuntu-latest, windows-latest]
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-    - name: Set output
-      id: vars
-      run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+      - name: Rebuild Modules
+        run: npm rebuild
 
-    - name: Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        check-latest: true
+      - name: Build Release
+        run: npm run build:release
 
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Config Project
-      run: mv settings.exemple.json settings.json
-
-    - name: Build release
-      run: npm run build:release
-
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: release/*
-        tag: ${{ github.ref }}
-        overwrite: true
-        file_glob: true
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: release/*
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
