@@ -28,11 +28,15 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build
+        run: npm run build
         
       - name: Pre-build
         run: npm run build:release -- --pre-build
 
       - uses: actions/upload-artifact@v4
+        name: Upload artifact
         with:
           name: pre-build
           path: ./
