@@ -218,6 +218,7 @@ class Build {
   }
 }
 
+const args = process.argv.slice(2)
 const build = new Build({
   path: 'dist',
   pathBuild: 'build',
@@ -226,4 +227,20 @@ const build = new Build({
   nodeVersion: '18'
 })
 
-void build.start()
+async function start (): Promise<void> {
+  switch (args[0].replace('--', '')) {
+    case 'pre-build':
+      await build.loadFiles()
+      await build.compress()
+      await build.obfuscate()
+      break
+    case 'only-build':
+      await build.initialConfig()
+      await build.release()
+      break
+    default:
+      await build.start()
+  }
+}
+
+void start()

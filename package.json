@@ -27,7 +27,7 @@
     "update": "npx npm-check -u",
     "build": "tsc && tscpaths -p tsconfig.json -s ./src -o ./dist",
     "build:test": "tsc --project ./tsconfig.json --declaration true -declarationDir dist/types && tsc-alias",
-    "build:release": "npm run build && ts-node release.ts",
+    "build:release": "ts-node release.ts",
     "lint": "eslint --ext .tsx,.ts --fix ./src -c .eslintrc.json"
   },
   "keywords": [

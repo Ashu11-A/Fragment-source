@@ -30,12 +30,12 @@ jobs:
         run: npm ci
 
   build:
-    name: Build job
+    name: Pre-Build job
     needs: prepare
     runs-on: ubuntu-latest
     steps:
       - name: Build
-        run: npm run build
+        run: npm run build:release -- --pre-build
 
   build_multi_arch:
     name: Build Multi Archs
@@ -51,7 +51,7 @@ jobs:
         run: npm rebuild
 
       - name: Build Release
-        run: npm run build:release
+        run: npm run build:release -- --only-build
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
