@@ -1,5 +1,6 @@
 import { exec } from '@yao-pkg/pkg'
 import { Presets, SingleBar } from 'cli-progress'
+import { createHash } from 'crypto'
 import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'fs'
 import { readFile, rmdir, writeFile } from 'fs/promises'
 import { obfuscate } from 'javascript-obfuscator'
@@ -9,7 +10,6 @@ import path from 'path'
 import { generate } from 'randomstring'
 import { minify } from 'terser'
 import { formatBytes } from './src/functions/Format'
-import { createHash } from 'crypto'
 
 interface BuildType {
   path: string
@@ -33,19 +33,18 @@ interface BuildInfo {
 type BuildManifest = Record<string, BuildInfo>
 
 class Build {
-  files: Record<string, string> = {}
-  private readonly path
-  private readonly pathBuild
-  private readonly platforms
-  private readonly archs
-  private readonly nodeVersion
+  private readonly path: string
+  private readonly pathBuild: string
+  private readonly platforms: Array<'linux' | 'alpine' | 'linuxstatic' | 'macos'>
+  private readonly archs: Array<'x64' | 'arm64'>
+  private readonly nodeVersion: string
   private readonly removePaths: boolean
 
+  private files: Record<string, string> = {}
   private readonly filesCompress: Array<Record<string, string | undefined >> = []
 
-  private readonly core: Loggings
-  private readonly seed: number
-  private readonly progressBar
+  private readonly core: Loggings = new Loggings()
+  private readonly progressBar = new SingleBar({}, Presets.rect)
 
   constructor ({ archs, nodeVersion, path, pathBuild, platforms, removePaths = false }: BuildType) {
     this.path = path
@@ -54,10 +53,6 @@ class Build {
     this.archs = archs
     this.nodeVersion = nodeVersion
     this.removePaths = removePaths
-
-    this.progressBar = new SingleBar({}, Presets.rect)
-    this.core = new Loggings()
-    this.seed = Math.random()
   }
 
   async start (): Promise<void> {
@@ -102,19 +97,21 @@ class Build {
       if (fileExt === '.js') {
         const result = await minify({ [filePath]: fileContent }, {
           compress: true,
+          module: true,
+          toplevel: true,
           parse: {
             bare_returns: true
           },
-          ie8: false,
-          keep_fnames: false,
-          mangle: true,
-          module: true,
-          toplevel: true,
-          output: {
-            ascii_only: true,
-            beautify: false,
-            comments: false
-          }
+          format: {
+            braces: true,
+            comments: 'some',
+            keep_quoted_props: true,
+            preamble: '/* @ Paymentybot By ashu11 */',
+            wrap_iife: true
+          },
+          nameCache: {},
+          keep_classnames: true,
+          keep_fnames: true
         })
         this.filesCompress.push({ [`${newPath}/${fileName}`]: result.code })
       }
@@ -127,13 +124,15 @@ class Build {
     this.core.debug('Iniciando Ofuscamento...\n\n')
     this.progressBar.start(Object.entries(this.files).length, 0)
 
+    const seed = Math.random()
+
     for (const fileData of this.filesCompress) {
       for (const [key, value] of Object.entries(fileData)) {
         if (value === undefined) throw new Error(`Ocorreu um erro ao tentar ofuscar o arquivo: ${key}`)
         const response = obfuscate(value, {
           optionsPreset: 'medium-obfuscation',
           // log: true,
-          seed: this.seed,
+          seed,
           disableConsoleOutput: false
         })
         writeFileSync(key, response.getObfuscatedCode(), 'utf8')
@@ -219,16 +218,22 @@ class Build {
 }
 
 const args = process.argv.slice(2)
+const version = process.version.split('.')[0].replace('v', '')
+
+if (!(version === '18' || version === '20')) {
+  throw new Error(`Versão do nodejs invalida!\nVersão atual: ${version}, Versões suportadas: [18, 20]`)
+}
+
 const build = new Build({
   path: 'dist',
   pathBuild: 'build',
   archs: ['x64', 'arm64'],
   platforms: ['linux'],
-  nodeVersion: '18'
+  nodeVersion: version
 })
 
 async function start (): Promise<void> {
-  switch (args[0].replace('--', '')) {
+  switch (args[0]?.replace('--', '')) {
     case 'pre-build':
       await build.loadFiles()
       await build.compress()
