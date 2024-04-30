@@ -39,6 +39,7 @@ jobs:
 
   build_multi_arch:
     name: Build Multi Archs
+    needs: build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
