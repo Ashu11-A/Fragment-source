@@ -34,10 +34,8 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     steps:
-      - name: Rollback path
-        run: cd ..
       - name: Build
-        run: npm run build:release -- --pre-build
+        run: cd .. && npm run build:release -- --pre-build
 
   build_multi_arch:
     name: Build Multi Archs
