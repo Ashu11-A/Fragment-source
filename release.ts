@@ -1,150 +1,229 @@
 import { exec } from '@yao-pkg/pkg'
 import { Presets, SingleBar } from 'cli-progress'
-import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
-import { copyFile, readFile } from 'fs/promises'
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'fs'
+import { readFile, rmdir, writeFile } from 'fs/promises'
 import { obfuscate } from 'javascript-obfuscator'
 import { Loggings } from 'loggings'
 import os from 'os'
 import path from 'path'
+import { generate } from 'randomstring'
 import { minify } from 'terser'
 import { formatBytes } from './src/functions/Format'
-import { InternalAxiosRequestConfig } from 'axios'
-import { generateKey, generateKeySync } from 'crypto'
-import { generate } from 'randomstring'
+import { createHash } from 'crypto'
 
-async function carregarDados (options: {
-  diretorio: string
-}): Promise<Record<string, string>> {
-  const { diretorio } = options
-  const files: Record<string, string> = {}
-
-  function scanDirectory (diretorio: string): void {
-    readdirSync(diretorio).forEach((file) => {
-      const fullPath = path.join(diretorio, file)
-
-      if (lstatSync(fullPath).isDirectory()) {
-        scanDirectory(fullPath)
-      } else if (path.extname(fullPath) === '.js' || path.extname(fullPath) === '.json') {
-        const code = readFileSync(fullPath, 'utf8')
-        files[fullPath] = code
-      }
-    })
-  }
-  scanDirectory(diretorio)
-
-  return files
+interface BuildType {
+  path: string
+  pathBuild: string
+  platforms: Array<'linux' | 'alpine' | 'linuxstatic' | 'macos'>
+  archs: Array<'x64' | 'arm64'>
+  nodeVersion: '18' | '20'
+  removePaths?: boolean
 }
 
-async function compress (): Promise<void> {
-  const seed = Math.random()
-  const core = new Loggings()
-  const progressBar = new SingleBar({}, Presets.rect)
-  const files = await carregarDados({ diretorio: 'dist' })
-  progressBar.start(Object.entries(files).length, 0)
-  for (const [filePath, fileContent] of Object.entries(files)) {
-    progressBar.increment(1)
-    const newPath = path.dirname(filePath).replace('dist', 'build')
-    const fileName = path.basename(filePath)
-    const fileExt = path.extname(filePath)
-    if (!existsSync(newPath)) { mkdirSync(newPath, { recursive: true }) }
+interface BuildInfo {
+  path: string
+  platform: string
+  arch: string
+  size: string
+  timeBuild: string
+  hashMD5: string
+  hashSHA: string
+}
 
-    if (fileExt === '.js') {
-      await minify({ [filePath]: fileContent }, {
-        compress: true,
-        parse: {
-          bare_returns: true
-        },
-        ie8: false,
-        keep_fnames: false,
-        mangle: true,
-        module: true,
-        toplevel: true,
-        output: {
-          ascii_only: true,
-          beautify: false,
-          comments: false
+type BuildManifest = Record<string, BuildInfo>
+
+class Build {
+  files: Record<string, string> = {}
+  private readonly path
+  private readonly pathBuild
+  private readonly platforms
+  private readonly archs
+  private readonly nodeVersion
+  private readonly removePaths: boolean
+
+  private readonly filesCompress: Array<Record<string, string | undefined >> = []
+
+  private readonly core: Loggings
+  private readonly seed: number
+  private readonly progressBar
+
+  constructor ({ archs, nodeVersion, path, pathBuild, platforms, removePaths = false }: BuildType) {
+    this.path = path
+    this.pathBuild = pathBuild
+    this.platforms = platforms
+    this.archs = archs
+    this.nodeVersion = nodeVersion
+    this.removePaths = removePaths
+
+    this.progressBar = new SingleBar({}, Presets.rect)
+    this.core = new Loggings()
+    this.seed = Math.random()
+  }
+
+  async start (): Promise<void> {
+    await this.loadFiles()
+    await this.compress()
+    await this.obfuscate()
+    await this.initialConfig()
+    await this.release()
+    if (this.removePaths) await this.remove()
+  }
+
+  async loadFiles (): Promise<void> {
+    const files: Record<string, string> = {}
+
+    function scanDirectory (diretorio: string): void {
+      readdirSync(diretorio).forEach((file) => {
+        const fullPath = path.join(diretorio, file)
+
+        if (lstatSync(fullPath).isDirectory()) {
+          scanDirectory(fullPath)
+        } else if (path.extname(fullPath) === '.js' || path.extname(fullPath) === '.json') {
+          const code = readFileSync(fullPath, 'utf8')
+          files[fullPath] = code
         }
       })
-        .then((result) => {
-          if (typeof result.code !== 'string') return
-          const response = obfuscate(fileContent, {
-            optionsPreset: 'medium-obfuscation',
-            log: true,
-            seed,
-            disableConsoleOutput: false
-          })
-          writeFileSync(`${newPath}/${fileName}`, response.getObfuscatedCode(), 'utf8')
-        })
-        .catch((err) => {
-          console.log(`Não foi possivel comprimir o arquivo: ${filePath}`)
-          console.error(err)
-        })
-    } else {
-      writeFileSync(`${newPath}/${fileName}`, fileContent, 'utf8')
     }
+    scanDirectory(this.path)
+
+    this.files = files
   }
 
-  progressBar.stop()
-  
-  const json = JSON.stringify({ token: generate(256) }, null, 2)
-  writeFileSync(path.join(process.cwd(), 'build/settings/settings.json'), json)
+  async compress (): Promise<void> {
+    this.core.debug('Iniciando Compreção...\n\n')
+    this.progressBar.start(Object.entries(this.files).length, 0)
+    for (const [filePath, fileContent] of Object.entries(this.files)) {
+      const newPath = path.dirname(filePath).replace(this.path, this.pathBuild)
+      const fileName = path.basename(filePath)
+      const fileExt = path.extname(filePath)
 
-  const args = ['.', '--no-bytecode', '--compress', 'Brotli', '--public-packages', '"*"', '--public']
-  const platforms = ['alpine', 'linux', 'linuxstatic']
-  const archs = ['x64', 'arm64']
+      if (!existsSync(newPath)) { mkdirSync(newPath, { recursive: true }) }
 
-  const nodeVersion = '18'
-  const allBuild: string[] = []
-  const manifest: Array<{
-    path: string
-    platform: string
-    arch: string
-    size: string
-    timeBuild: string
-  }> = []
+      if (fileExt === '.js') {
+        const result = await minify({ [filePath]: fileContent }, {
+          compress: true,
+          parse: {
+            bare_returns: true
+          },
+          ie8: false,
+          keep_fnames: false,
+          mangle: true,
+          module: true,
+          toplevel: true,
+          output: {
+            ascii_only: true,
+            beautify: false,
+            comments: false
+          }
+        })
+        this.filesCompress.push({ [`${newPath}/${fileName}`]: result.code })
+      }
+      this.progressBar.increment()
+    }
+    this.progressBar.stop()
+  }
 
-  if (os.platform() !== 'win32') {
-    for (const platform of platforms) {
-      for (const arch of archs) {
-        allBuild.push(`node${nodeVersion}-${platform}-${arch}`)
+  async obfuscate (): Promise<void> {
+    this.core.debug('Iniciando Ofuscamento...\n\n')
+    this.progressBar.start(Object.entries(this.files).length, 0)
+
+    for (const fileData of this.filesCompress) {
+      for (const [key, value] of Object.entries(fileData)) {
+        if (value === undefined) throw new Error(`Ocorreu um erro ao tentar ofuscar o arquivo: ${key}`)
+        const response = obfuscate(value, {
+          optionsPreset: 'medium-obfuscation',
+          // log: true,
+          seed: this.seed,
+          disableConsoleOutput: false
+        })
+        writeFileSync(key, response.getObfuscatedCode(), 'utf8')
+        this.progressBar.increment()
       }
     }
-  } else {
-    for (const arch of archs) {
-      allBuild.push(`node${nodeVersion}-win-${arch}`)
+
+    this.progressBar.stop()
+  }
+
+  async initialConfig (): Promise<void> {
+    this.core.debug('Setando configurações inicias...\n\n')
+    const json = JSON.stringify({ token: generate(256) }, null, 2)
+    await writeFile(path.join(process.cwd(), 'build/settings/settings.json'), json)
+  }
+
+  async release (): Promise<void> {
+    const args = ['.', '--compress', 'Brotli', '--no-bytecode', '--public-packages', '"*"', '--public']
+    const builds: string[] = []
+    const manifests: BuildManifest[] = []
+
+    if (os.platform() !== 'win32') {
+      for (const platform of this.platforms) {
+        for (const arch of this.archs) {
+          builds.push(`node${this.nodeVersion}-${platform}-${arch}`)
+        }
+      }
+    } else {
+      for (const arch of this.archs) {
+        builds.push(`node${this.nodeVersion}-win-${arch}`)
+      }
+    }
+
+    for (const build of builds) {
+      const startTime = Date.now()
+      const nameSplit = build.split('-')
+      const buildName = `./release/paymentbot-${nameSplit[1]}-${nameSplit[2]}${nameSplit[1] === 'win' ? '.exe' : nameSplit[1] === 'macos' ? '.app' : ''}`
+      const newArg: string[] = []
+
+      if (existsSync(buildName)) rmSync(buildName)
+      if (existsSync(`release/manifest-${nameSplit[1]}.json`)) rmSync(`release/manifest-${nameSplit[1]}.json`)
+
+      newArg.push(...args, '-t', build, '-o', buildName)
+      this.core.debug('Iniciando Build...\n\n')
+      await exec(newArg)
+
+      const timeSpent = (Date.now() - startTime) / 1000 + 's'
+      this.core.info(`Build | ${nameSplit[1]}-${nameSplit[2]} | ${timeSpent}`)
+
+      const file = await readFile(buildName)
+      const hashMD5 = createHash('md5').update(file).digest('hex')
+      const hashSHA = createHash('sha256').update(file).digest('hex')
+
+      manifests.push({
+        [nameSplit[1]]: {
+          path: buildName.replace('./release/', ''),
+          platform: nameSplit[1],
+          arch: nameSplit[2],
+          size: formatBytes(file.byteLength),
+          timeBuild: timeSpent,
+          hashMD5,
+          hashSHA
+        }
+      })
+    }
+
+    for (const manifest of manifests) {
+      for (const [key, value] of Object.entries(manifest)) {
+        const values = [value]
+        if (existsSync(`release/manifest-${key}.json`)) {
+          const existContent = JSON.parse(await readFile(`release/manifest-${key}.json`, { encoding: 'utf-8' })) as BuildInfo[]
+          values.push(...existContent)
+          console.log(values)
+        }
+        writeFileSync(`release/manifest-${key}.json`, JSON.stringify(values, null, 4))
+      }
     }
   }
 
-  console.log(os.platform())
-  for (const build of allBuild) {
-    const startTime = Date.now()
-    const nameSplit = build.split('-')
-    const buildName = build.split('-')
-    buildName.splice(0, 1)
-    const buildType = nameSplit[1] === 'win'
-      ? `./release/paymentbot-${buildName.join('-')}.exe`
-      : `./release/paymentbot-${buildName.join('-')}`
-
-    const newArg: string[] = []
-    newArg.push(...args)
-    newArg.push('-t', build, '-o', buildType)
-    await exec(newArg)
-
-    const endTime = Date.now()
-    const timeSpent = (endTime - startTime) / 1000 + 's'
-    core.info(`Build | ${nameSplit[1]}-${nameSplit[2]} | ${timeSpent}`)
-
-    const file = await readFile(buildType)
-    manifest.push({
-      path: buildType.replace('./release/', ''),
-      platform: nameSplit[1],
-      arch: nameSplit[2],
-      size: formatBytes(file.byteLength),
-      timeBuild: timeSpent
-    })
+  async remove (): Promise<void> {
+    await rmdir(this.pathBuild)
   }
-
-  writeFileSync('release/manifest.json', JSON.stringify(manifest, null, 4))
 }
 
-void compress()
+const build = new Build({
+  path: 'dist',
+  pathBuild: 'build',
+  archs: ['x64', 'arm64'],
+  platforms: ['linux'],
+  nodeVersion: '18'
+})
+
+void build.start()
