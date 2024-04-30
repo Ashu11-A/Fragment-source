@@ -50,6 +50,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     steps:
       - name: Set up QEMU
+        if: matrix.os == 'ubuntu-latest'
         uses: docker/setup-qemu-action@v3
 
       - uses: actions/download-artifact@v4
