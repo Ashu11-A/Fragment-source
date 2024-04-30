@@ -28,18 +28,18 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        
+      - name: Pre-build
+        run: npm run build:release -- --pre-build
 
-  build:
-    name: Pre-Build job
-    needs: prepare
-    runs-on: ubuntu-latest
-    steps:
-      - name: Build
-        run: cd .. && npm run build:release -- --pre-build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pre-build
+          path: ./
 
   build_multi_arch:
     name: Build Multi Archs
-    needs: build
+    needs: prepare
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -48,11 +48,16 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: pre-build
+          path: ./
+
       - name: Rebuild Modules
-        run: cd .. && npm rebuild
+        run: npm rebuild
 
       - name: Build Release
-        run: cd .. && npm run build:release -- --only-build
+        run: npm run build:release -- --only-build
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
