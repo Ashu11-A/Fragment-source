@@ -202,10 +202,4 @@ export class TicketClaim {
   async SaveLogs (): Promise<void> {
 
   }
-
-  async Delete ({ key }: { key: string }): Promise<void> {
-    const channelId = key.split('-')[1]
-    const Constructor = new Ticket({ interaction: this.interaction })
-    await Constructor.delete({ type: 'delTicket', channelId })
-  }
 }

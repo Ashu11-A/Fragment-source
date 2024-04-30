@@ -161,4 +161,16 @@ export class TicketModals implements TicketType {
         })
       })
   }
+
+  async Question (): Promise<void> {
+    const interaction = this.interaction
+    if (!interaction.isModalSubmit()) return
+
+    const { fields } = interaction
+    const observation = fields.getTextInputValue('observation')
+    const reason = fields.getTextInputValue('reason')
+    const Constructor = new Ticket({ interaction })
+
+    await Constructor.delete({ observation, reason, ask: false })
+  }
 }

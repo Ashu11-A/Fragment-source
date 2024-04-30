@@ -147,4 +147,31 @@ export class TicketButtons implements TicketType {
       components: [row]
     })
   }
+
+  async Question (): Promise<void> {
+    const interaction = this.interaction
+    if (interaction.isModalSubmit()) return
+
+    const modal = new ModalBuilder({ customId: '-1_User_Ticket_QuestionCollector', title: 'Conclução do atendimento' })
+    modal.components.push(
+      new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder({
+        customId: 'observation',
+        label: 'Observação?',
+        required: true,
+        maxLength: 255,
+        style: TextInputStyle.Paragraph,
+        placeholder: 'O player de boa-fé entregou o item...'
+      })),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder({
+        customId: 'reason',
+        label: 'Motivo do atendimento?',
+        required: true,
+        maxLength: 255,
+        style: TextInputStyle.Paragraph,
+        placeholder: 'O player abriu ticket para informar que...'
+      }))
+    )
+
+    await interaction.showModal(modal)
+  }
 }

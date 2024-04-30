@@ -60,7 +60,7 @@ export class TicketPanel {
         {
           emoji: { name: '🗑️' },
           label: 'Deletar ticket',
-          value: 'delTicket'
+          value: 'Delete'
         }
       )
     }

@@ -2,10 +2,10 @@ import { db } from '@/app'
 import { buttonsUsers, TicketButtons, ticketButtonsConfig } from '@/discord/components/tickets'
 import { type CustomIdHandlers } from '@/interfaces'
 import { ActionRowBuilder, ModalBuilder, TextInputBuilder, type ButtonInteraction, type CacheType } from 'discord.js'
+import { TicketClaim } from './functions/claim'
 import { getModalData } from './functions/getModalData'
 import { TicketPanel } from './functions/panelTicket'
 import { Ticket } from './functions/ticket'
-import { TicketClaim } from './functions/claim'
 
 const listItens = {
   SetName: {
@@ -68,8 +68,10 @@ export async function ticketCollectorButtons (options: {
     SelectType: async () => { await ButtonConstructor.SelectType() },
 
     Switch: async () => { await Constructor.switch({ channelId: key.split('-')[1] ?? channelId }) },
-    delTicket: async () => { await Constructor.delete({ type: 'delTicket' }) },
-    EmbedDelete: async () => { await Constructor.delete({ type: 'EmbedDelete' }) },
+    Question: async () => { await ButtonConstructor.Question() },
+
+    Delete: async () => { await Constructor.delete({ ask: true }) },
+    DeleteTemplate: async () => { await Constructor.DeleteTemplate() },
 
     SetSelect: async () => { await ButtonConstructor.setSystem({ type: 'select' }) },
     SetButton: async () => { await ButtonConstructor.setSystem({ type: 'button' }) },
@@ -128,14 +130,13 @@ export async function ticketCollectorButtons (options: {
 
     /* Sistema de Claim */
     Claim: async () => { await ClaimConstructor.Claim({ key }) },
-    SaveLogs: async () => { await ClaimConstructor.SaveLogs() },
-    Delete: async () => { await ClaimConstructor.Delete({ key }) }
+    SaveLogs: async () => { await ClaimConstructor.SaveLogs() }
   }
 
   const customIdHandler = customIdHandlers[key.split('-')[0]]
 
   if (typeof customIdHandler === 'function') {
-    if (key !== 'AddSelect' && key !== 'AddCategory') await interaction.deferReply({ ephemeral })
+    if (key !== 'AddSelect' && key !== 'AddCategory' && key !== 'Question') await interaction.deferReply({ ephemeral })
     await customIdHandler()
   } else {
     const { title, label, placeholder, style, type, maxLength, db: dataDB } = getModalData(key)

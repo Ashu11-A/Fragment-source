@@ -261,21 +261,7 @@ export class Ticket {
         label: isOpen ? 'Fechar' : 'Abrir',
         emoji: { name: isOpen ? '🔓' : '🔒' },
         style: isOpen ? ButtonStyle.Danger : ButtonStyle.Success
-      })
-    )
-    if (!isOpen) {
-      row.addComponents(
-        new CustomButtonBuilder({
-          type: 'Ticket',
-          permission: 'User',
-          customId: 'delTicket',
-          label: 'Deletar',
-          emoji: { name: '🗑️' },
-          style: ButtonStyle.Danger
-        })
-      )
-    }
-    row.addComponents(
+      }),
       new CustomButtonBuilder({
         type: 'Ticket',
         permission: 'User',
@@ -283,17 +269,37 @@ export class Ticket {
         label: 'Painel',
         emoji: { name: '🖥️' },
         style: ButtonStyle.Success
-      }),
-      new CustomButtonBuilder({
-        type: 'Ticket',
-        permission: 'User',
-        customId: 'PanelCart',
-        label: 'Painel vendas',
-        emoji: { name: '🛒' },
-        disabled: true,
-        style: ButtonStyle.Primary
       })
+      // new CustomButtonBuilder({
+      //   type: 'Ticket',
+      //   permission: 'User',
+      //   customId: 'PanelCart',
+      //   label: 'Painel vendas',
+      //   emoji: { name: '🛒' },
+      //   disabled: true,
+      //   style: ButtonStyle.Primary
+      // })
     )
+    if (!isOpen) {
+      row.addComponents(
+        new CustomButtonBuilder({
+          type: 'Ticket',
+          permission: 'User',
+          customId: 'Question',
+          label: 'Relatorio',
+          emoji: { name: '🛒' },
+          style: ButtonStyle.Primary
+        }),
+        new CustomButtonBuilder({
+          type: 'Ticket',
+          permission: 'User',
+          customId: 'Delete', // 'Delete',
+          label: 'Deletar',
+          emoji: { name: '🗑️' },
+          style: ButtonStyle.Danger
+        })
+      )
+    }
     return row
   }
 
@@ -302,7 +308,10 @@ export class Ticket {
     const { team, owner, messageId, closed, claim } = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
     const ClaimConstructor = new TicketClaim({ interaction: this.interaction })
 
-    if (!(team.some((userTeam) => userTeam.id === user.id) ?? false) && user.id !== owner) {
+    if ((!(team.some((userTeam) => userTeam.id === user.id) ||
+      user.id !== owner ||
+      (this.interaction.memberPermissions?.has('Administrator') ?? false))
+    )) {
       await this.interaction.editReply({
         embeds: [new EmbedBuilder({
           title: '❌ Você não ter permissão para fazer isso!'
@@ -338,11 +347,13 @@ export class Ticket {
   }
 
   public async delete (options: {
-    type: 'delTicket' | 'EmbedDelete'
+    reason?: string
+    observation?: string
+    ask: boolean
     channelId?: string // Apenas se for deletar algo que está fora do channel
   }): Promise<void> {
-    const { type } = options
-    let channelId = options.channelId
+    let channelId = options?.channelId
+    const { observation, reason, ask } = options
     const interaction = this.interaction
     if (!interaction.inCachedGuild()) return
     if (await this.validator()) return
@@ -358,13 +369,92 @@ export class Ticket {
     }
 
     const { guild, guildId, user } = interaction
-    const embed = new EmbedBuilder()
-      .setColor('Orange')
-    if (type === 'delTicket') {
-      embed.setDescription('Tem certeza que deseja fechar o Ticket?')
-    } else {
-      embed.setDescription('Tem certeza que deseja deletar esse templete de Ticket?\nIsso irá deletar as informações do Banco de dados e Embeds.')
+
+    const action = async (): Promise<void> => {
+      const tickets = await db.tickets.get(`${guild.id}.tickets`) as Record<string, TicketDBType> ?? []
+      const ticket = tickets[channelId] as TicketDBType | undefined
+
+      if (ticket === undefined) {
+        await interaction.editReply({
+          embeds: [new EmbedBuilder({
+            title: '❌ Não foi possivel encontrar o channel do ticket!'
+          }).setColor('Red')]
+        })
+        return
+      }
+
+      const channel = await guild.channels.fetch(ticket.channelId)
+      await this.Transcript({ channelId, reason, ephemeral: true, observation })
+
+      if (channel !== null) await channel.delete()
+
+      /* Apagar as mensagens atrelasdas ao ticket */
+      for (const { channelId, messageId } of ticket.messages) {
+        const channel = await interaction.guild.channels.fetch(channelId)
+        if (channel === undefined) continue
+        if (!(channel instanceof TextChannel)) return
+
+        await channel.messages.fetch(messageId).then(async (message) => {
+          await message.delete()
+        })
+      }
+
+      if (ticket.voice?.id !== undefined) await (await guild.channels.fetch(ticket.voice.id))?.delete()
+      await db.tickets.delete(`${guildId}.tickets.${channelId}`)
     }
+
+    if (ask) {
+      const messagePrimary = await this.interaction.editReply({
+        embeds: [new EmbedBuilder({
+          description: 'Tem certeza que deseja fechar o Ticket?'
+        }).setColor('Orange')],
+        components: [createRow(
+          new ButtonBuilder({ customId: 'embed-confirm-button', label: 'Confirmar', style: ButtonStyle.Success }),
+          new ButtonBuilder({ customId: 'embed-cancel-button', label: 'Cancelar', style: ButtonStyle.Danger })
+        )]
+      })
+      const collector = messagePrimary.createMessageComponentCollector({ componentType: ComponentType.Button })
+      collector.on('collect', async (subInteraction) => {
+        collector.stop()
+        const clearData = { components: [], embeds: [] }
+
+        if (subInteraction.customId === 'embed-cancel-button') {
+          await subInteraction.update({
+            ...clearData,
+            embeds: [
+              new EmbedBuilder()
+                .setDescription('Você cancelou a ação')
+                .setColor('Green')
+            ]
+          })
+        } else if (subInteraction.customId === 'embed-confirm-button') {
+          const now = new Date()
+          const futureTime = new Date(now.getTime() + 5000)
+          const futureTimeString = `<t:${Math.floor(futureTime.getTime() / 1000)}:R>`
+
+          await subInteraction.update({
+            ...clearData,
+            embeds: [new EmbedBuilder({
+              title: `👋 | Olá ${user.username}`,
+              description: `❗️ | Esse ticket será excluído em ${futureTimeString} segundos.`
+            }).setColor('Red')]
+          })
+          await delay(5000)
+          await action()
+        }
+      })
+    } else {
+      await action()
+    }
+  }
+
+  async DeleteTemplate (): Promise<void> {
+    if (!this.interaction.isButton()) return
+    const { guild, guildId, message, channelId } = this.interaction
+
+    const embed = new EmbedBuilder({
+      description: 'Tem certeza que deseja deletar esse templete de Ticket?\nIsso irá deletar as informações do Banco de dados e Embeds.'
+    })
 
     const messagePrimary = await this.interaction.editReply({
       embeds: [embed],
@@ -373,6 +463,7 @@ export class Ticket {
         new ButtonBuilder({ customId: 'embed-cancel-button', label: 'Cancelar', style: ButtonStyle.Danger })
       )]
     })
+
     const collector = messagePrimary.createMessageComponentCollector({ componentType: ComponentType.Button })
     collector.on('collect', async (subInteraction) => {
       collector.stop()
@@ -388,69 +479,27 @@ export class Ticket {
           ]
         })
       } else if (subInteraction.customId === 'embed-confirm-button') {
-        const now = new Date()
-        const futureTime = new Date(now.getTime() + 5000)
-        const futureTimeString = `<t:${Math.floor(futureTime.getTime() / 1000)}:R>`
-        const embed = new EmbedBuilder().setColor('Red')
-
-        if (type === 'delTicket') {
-          embed
-            .setTitle(`👋 | Olá ${user.username}`)
-            .setDescription(`❗️ | Esse ticket será excluído em ${futureTimeString} segundos.`)
-        } else {
-          embed.setDescription('Deletando Banco de dados e Mensagens...')
-        }
         await subInteraction.update({
           ...clearData,
-          embeds: [embed]
+          embeds: [new EmbedBuilder({
+            description: 'Deletando Banco de dados e Mensagens...'
+          }).setColor('Red')]
         })
-        if (type === 'delTicket') {
-          const tickets = await db.tickets.get(`${guild.id}.tickets`) as Record<string, TicketDBType> ?? []
-          const ticket = tickets[channelId] as TicketDBType | undefined
 
-          if (ticket === undefined) {
-            await interaction.editReply({
-              embeds: [new EmbedBuilder({
-                title: '❌ Não foi possivel encontrar o channel do ticket!'
-              }).setColor('Red')]
-            })
-            return
+        const { embedChannelID: channelEmbedID, embedMessageID: messageID } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message?.id}`)
+
+        if (channelEmbedID !== undefined || messageID !== undefined) {
+          try {
+            const channel = guild?.channels.cache.get(channelEmbedID) as TextChannel
+            const msg = await channel?.messages.fetch(messageID)
+            await msg.delete()
+          } catch (err) {
+            console.log(err)
           }
-
-          const channel = await guild.channels.fetch(ticket.channelId)
-
-          await delay(5000)
-          if (channel !== null) await channel.delete()
-
-          /* Apagar as mensagens atrelasdas ao ticket */
-          for (const { channelId, messageId } of ticket.messages) {
-            const channel = await interaction.guild.channels.fetch(channelId)
-            if (channel === undefined) continue
-            if (!(channel instanceof TextChannel)) return
-
-            await channel.messages.fetch(messageId).then(async (message) => {
-              await message.delete()
-            })
-          }
-
-          if (ticket.voice?.id !== undefined) await (await guild.channels.fetch(ticket.voice.id))?.delete()
-          await db.tickets.delete(`${guildId}.tickets.${channelId}`)
-        } else if (interaction.isButton()) {
-          const { embedChannelID: channelEmbedID, embedMessageID: messageID } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${interaction.message?.id}`)
-
-          if (channelEmbedID !== undefined || messageID !== undefined) {
-            try {
-              const channel = guild?.channels.cache.get(channelEmbedID) as TextChannel
-              const msg = await channel?.messages.fetch(messageID)
-              await msg.delete()
-            } catch (err) {
-              console.log(err)
-            }
-          }
-
-          await db.messages.delete(`${guildId}.ticket.${channelId}.messages.${interaction.message?.id}`)
-          await interaction.message?.delete()
         }
+
+        await db.messages.delete(`${guildId}.ticket.${channelId}.messages.${message?.id}`)
+        await message?.delete()
       }
     })
   }
@@ -627,12 +676,13 @@ export class Ticket {
       })
   }
 
-  async Transcript ({ channelId }: { channelId: string }): Promise<void> {
+  async Transcript (options: { channelId: string, reason?: string, observation?: string, ephemeral?: boolean | undefined }): Promise<void> {
+    const { channelId, observation, reason, ephemeral } = options
     const { guildId, client, guild } = this.interaction
     const ticket = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
     const config = await db.guilds.get(`${guildId}.config.ticket`) as TicketConfig
 
-    if (config?.logsId === undefined) {
+    if (config?.logsId === undefined && ephemeral !== true) {
       await this.interaction.editReply({
         embeds: [new EmbedBuilder({
           title: '⚠️ Atenção, o sistema de logs dos tickets não está configurado!',
@@ -695,6 +745,9 @@ export class Ticket {
         { name: '\u200E', value: '\u200E', inline }
       ]
     }).setColor(user?.roles.color?.hexColor ?? null)
+
+    if (typeof observation === 'string') embed.addFields({ name: '📝 Observação', value: codeBlock(observation) })
+    if (typeof reason === 'string') embed.addFields({ name: '👉 Motivo do atendimento', value: codeBlock(reason) })
 
     let text = `📄 Historico do ${user?.displayName}\n\n`
     let dayCache

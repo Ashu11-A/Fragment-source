@@ -85,7 +85,7 @@ export class TicketSelects implements TicketType {
       AddUser: async () => { await PanelConstructor.AddUser() },
       RemoveUser: async () => { await PanelConstructor.RemoveUser() },
       Transcript: async () => { await Constructor.Transcript({ channelId }) },
-      delTicket: async () => { await Constructor.delete({ type: 'delTicket' }) }
+      Delete: async () => { await Constructor.delete({ ask: true }) }
     }
 
     const customIdHandler = customIdHandlers[values[0]]

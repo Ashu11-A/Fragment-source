@@ -18,7 +18,9 @@ export async function ticketCollectorModal (options: {
     AddUserModal: async () => { await panelTicket.EditChannelCollector() },
     OpenModalCollector: async () => { await ConstructorModal.OpenModalCollector() },
 
-    AddCategory: async () => { await ConstructorModal.AddCategory({}) }
+    AddCategory: async () => { await ConstructorModal.AddCategory({}) },
+
+    QuestionCollector: async () => { await ConstructorModal.Question() }
   }
 
   const customIdHandler = customIdHandlers[key]

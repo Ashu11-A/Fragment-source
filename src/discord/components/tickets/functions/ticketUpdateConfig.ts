@@ -81,7 +81,7 @@ export async function ticketButtonsConfig ({
     new CustomButtonBuilder({
       permission: 'Admin',
       type: 'Ticket',
-      customId: 'EmbedDelete',
+      customId: 'DeleteTemplate',
       label: 'Apagar',
       emoji: { name: '✖️' },
       style: ButtonStyle.Danger

@@ -169,7 +169,7 @@ new Command({
             case 'add-user': await Constructor.Permissions({ userId: options.getUser('add-user', true).id, channelId }); break
             case 'remove-user': await Constructor.Permissions({ userId: options.getString('remove-user', true), channelId, remove: true }); break
             case 'create-call': await PanelConstructor.CreateCall(); break
-            case 'del-ticket': await Constructor.delete({ type: 'delTicket' }); break
+            case 'del-ticket': await Constructor.delete({ ask: true }); break
             case 'del-all-tickets':
               break
           }
