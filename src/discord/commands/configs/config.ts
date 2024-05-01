@@ -7,8 +7,10 @@ import { sendEmbed } from '@/discord/components/payments'
 import { ticketButtonsConfig } from '@/discord/components/tickets'
 import { Database, validarURL } from '@/functions'
 import { CustomButtonBuilder, Discord } from '@/functions/Discord'
+import { type RoleForConfig } from '@/interfaces/Ticket'
 import {
   ActionRowBuilder,
+  type ApplicationCommandOptionChoiceData,
   ApplicationCommandOptionType,
   ApplicationCommandType,
   ButtonStyle,
@@ -257,10 +259,44 @@ new Command({
           description: '[ 🎫 Ticket ] Chat onde seram enviadas as logs dos tickets.',
           type: ApplicationCommandOptionType.Channel,
           channelTypes: [ChannelType.GuildText]
+        },
+        {
+          name: 'add-role-team',
+          required: false,
+          description: '[ 🎫 Ticket ] Adicionar cargos do suporte.',
+          type: ApplicationCommandOptionType.Role
+        },
+        {
+          name: 'rem-role-team',
+          description: '[ 🎫 Ticket ] Remover cargos',
+          type: ApplicationCommandOptionType.String,
+          required: false,
+          autocomplete: true
         }
       ]
     }
   ],
+  async autoComplete (interaction) {
+    const { options, guildId } = interaction
+
+    switch (options.getSubcommand()) {
+      case 'ticket': {
+        switch (options.data[0].options?.[0].name) {
+          case 'rem-role-team': {
+            const roles = await db.guilds.get(`${guildId}.config.ticket.roles`) as RoleForConfig[]
+            const respond: Array<ApplicationCommandOptionChoiceData<string | number>> = []
+            if (roles !== undefined) {
+              for (const role of roles) {
+                respond.push({ name: `${role.name} | ${role.id}`, value: role.id })
+              }
+            }
+            await interaction.respond(respond)
+            break
+          }
+        }
+      }
+    }
+  },
   async run (interaction) {
     if (
       await Discord.Permission(
@@ -474,6 +510,49 @@ new Command({
           const limit = options.getNumber('limit')
           const claimChannel = options.getChannel('claim-channel')
           const logs = options.getChannel('logs-channel')
+          const addRole = options.getRole('add-role-team')
+          const remRole = options.getString('rem-role-team')
+
+          if (addRole !== null) {
+            const roles = await db.guilds.get(`${guildId}.config.ticket.roles`) as RoleForConfig[]
+
+            if ((roles ?? []).some((role) => role.id === addRole.id)) {
+              await interaction.editReply({
+                embeds: [new EmbedBuilder({
+                  title: '❌ Esse cargo já está na lista!'
+                }).setColor('Red')]
+              })
+              return
+            }
+
+            const newRoles = [
+              ...(roles ?? []),
+              { name: addRole.name, id: addRole.id }
+            ] satisfies RoleForConfig[]
+
+            console.log(roles, newRoles)
+
+            await new Database({
+              interaction,
+              pathDB: 'config.ticket.roles',
+              typeDB: 'guilds'
+            }).set({
+              data: newRoles
+            })
+          }
+
+          if (remRole !== null) {
+            const roles = await db.guilds.get(`${guildId}.config.ticket.roles`) as RoleForConfig[]
+            const removedRole = roles.filter((role) => role.id !== remRole)
+
+            await new Database({
+              interaction,
+              pathDB: 'config.ticket.roles',
+              typeDB: 'guilds'
+            }).set({
+              data: removedRole
+            })
+          }
 
           if (channel !== null) {
             const sendChannel = guild?.channels.cache.get(String(channel?.id)) as TextChannel

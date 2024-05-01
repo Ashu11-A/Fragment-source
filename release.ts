@@ -150,7 +150,7 @@ class Build {
   }
 
   async release (): Promise<void> {
-    const args = ['.', '--compress', 'Brotli', '--no-bytecode', '--public-packages', '"*"', '--public']
+    const args = ['.', '--no-bytecode', '--public-packages', '"*"', '--public']
     const builds: string[] = []
     const manifests: BuildManifest[] = []
 
