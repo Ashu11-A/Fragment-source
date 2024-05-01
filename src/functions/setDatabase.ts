@@ -23,22 +23,22 @@ export class Database implements DatabaseType {
    * Seta inforamções no database
    */
   public async set (options: {
-    data: TextChannel | CategoryChannel | string | number
+    data: TextChannel | CategoryChannel | string | number | any[]
     text?: string
   }): Promise<void> {
     const { data, text } = options
     const { interaction, pathDB, typeDB } = this
     const { user, guildId, channel } = interaction
     try {
-      if (typeof data === 'string' || typeof data === 'number') {
+      if (typeof data === 'string' || typeof data === 'number' || Array.isArray(data)) {
         const { user, guildId, channel } = interaction
         await db[typeDB ?? 'guilds'].set(`${guildId}.${pathDB}`, data)
 
         try {
-          const embedCategoriaSet = new EmbedBuilder()
-            .setDescription('**✅ - Informação ' + '``' + data + '`` ' + `${text ?? 'foi atribuído a propriedade'} ${pathDB}!**`)
-            .setColor('Green')
-            .setAuthor({ name: `${user.username}`, iconURL: `${user.displayAvatarURL()}` })
+          const embedCategoriaSet = new EmbedBuilder({
+            description: `**✅ - Informação ${Array.isArray(data) ? '*Array*' : data} ${text ?? 'foi atribuído a propriedade'} ${pathDB}!**`,
+            author: { name: user.username, iconURL: user.displayAvatarURL() }
+          }).setColor('Green')
 
           await interaction.editReply({ embeds: [embedCategoriaSet] })
         } catch (error) {

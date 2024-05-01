@@ -57,8 +57,14 @@ export interface TicketUser {
   }
 }
 
+export interface RoleForConfig {
+  id: string
+  name: string
+}
+
 export interface TicketConfig {
   limit?: number
   claimId?: string
   logsId?: string
+  roles?: RoleForConfig[]
 }

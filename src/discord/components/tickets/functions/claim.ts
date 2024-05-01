@@ -41,6 +41,7 @@ export class TicketClaim {
     const buttons = await this.buttons({ channelId })
 
     const message = await channelClaim.send({
+      content: (ticketConfig?.roles ?? []).length > 0 ? ticketConfig.roles?.map((role) => `<@&${role.id}>`).join(' ') : undefined,
       embeds: [embed],
       components: [buttons]
     })
@@ -197,9 +198,5 @@ export class TicketClaim {
         components: [goChannel]
       })
     })
-  }
-
-  async SaveLogs (): Promise<void> {
-
   }
 }

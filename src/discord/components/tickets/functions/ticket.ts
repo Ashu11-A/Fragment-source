@@ -1,7 +1,7 @@
 import { db } from '@/app'
 import { createRow, CustomButtonBuilder, delay, Discord } from '@/functions'
-import { type Claim, type TicketConfig, type Ticket as TicketDBType, type User } from '@/interfaces/Ticket'
-import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, type GuildBasedChannel, type ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, type StringSelectMenuInteraction, TextChannel } from 'discord.js'
+import { type History, type Claim, type TicketConfig, type Ticket as TicketDBType, type User } from '@/interfaces/Ticket'
+import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, type GuildBasedChannel, type Message, type ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, type StringSelectMenuInteraction, TextChannel } from 'discord.js'
 import { TicketClaim } from './claim'
 import { ticketButtonsConfig } from './ticketUpdateConfig'
 
@@ -331,6 +331,17 @@ export class Ticket {
           footer: { text: `Por: ${user.displayName} | Id: ${user.id}`, iconURL: user?.avatarURL() ?? undefined }
         }).setColor(isOpen ? 'Green' : 'Red')
       ]
+    }).then(async (message) => {
+      await db.tickets.push(`${guildId}.tickets.${channelId}.history`, {
+        role: 'bot',
+        message: {
+          id: message.id,
+          content: `Usuário ${user.username}, ${isOpen ? 'abriu o ticket' : 'fechou o ticket'}!`
+        },
+        date: message.createdAt,
+        deleted: false,
+        user: { id: this.interaction.client.user.id, name: this.interaction.client.user.username }
+      } satisfies History)
     })
 
     if (claim?.channelId === undefined || claim?.messageId === undefined) {
@@ -647,11 +658,16 @@ export class Ticket {
             }).setColor('Red')]
           })
         } else {
+          let content: string = ''
+          let messageSend: Message<true> | undefined
           if (memberTeam) {
             await channel.send({
               embeds: [new EmbedBuilder({
                 title: `Usuário ${user.displayName}, reivindicou o ticket!`
               }).setColor('Green')]
+            }).then((message) => {
+              content += `Usuário ${user.displayName}, reivindicou o ticket!`
+              messageSend = message
             })
           } else {
             await channel.send({
@@ -660,8 +676,21 @@ export class Ticket {
                 timestamp: new Date(),
                 footer: { text: `Por: ${interaction.user.displayName} | ${interaction.user.id}`, iconURL: interaction.user?.avatarURL() ?? undefined }
               }).setColor('Green')]
+            }).then(async (message) => {
+              content += `Usuário ${changeUsers.map((user) => user.displayName).join(', ')} adicionado ao Ticket!`
+              messageSend = message
             })
           }
+          await db.tickets.push(`${guildId}.tickets.${channelId}.history`, {
+            role: 'bot',
+            message: {
+              id: messageSend?.id ?? '0',
+              content
+            },
+            date: messageSend?.createdAt ?? new Date(),
+            deleted: false,
+            user: { id: interaction.client.user.id, name: interaction.client.user.username }
+          } satisfies History)
         }
         return false
       })
@@ -737,7 +766,7 @@ export class Ticket {
         { name: '\u200E', value: '\u200E', inline },
 
         { name: '🔎 Ticket ID:', value: codeBlock(ticket.channelId), inline },
-        { name: '🤝 Convidados:', value: codeBlock(ticket.users.length === 0 ? 'Não houve convidados!' : ticket.users?.map((user) => user.displayName)?.join(', ')), inline },
+        { name: '🤝 Convidados:', value: codeBlock(ticket.users.length === 0 ? 'Não houve convidados!' : ticket.users?.map((user) => `\n\nUser: ${user.displayName} \nId: ${user.id}`)?.join(', ')), inline },
         { name: '\u200E', value: '\u200E', inline },
 
         { name: '📅 Data:', value: codeBlock(new Date(ticket.createAt).toLocaleString()), inline },
@@ -767,7 +796,11 @@ export class Ticket {
       const dia = data.getDate().toString().padStart(2, '0')
 
       text += dia !== dayCache ? `\n\n[${ano}:${mes}:${dia}]\n\n` : ''
-      text += `[${data.getHours()}:${data.getMinutes()}] [${message.role}]${message.deleted ? ' [DELETED] ' : ''} ${message.user.name}: ${message.message.content}\n`
+      if (message.role === 'bot') {
+        text += `\n\n[${data.getHours()}:${data.getMinutes()}] ${message.message.content}\n\n`
+      } else {
+        text += `[${data.getHours()}:${data.getMinutes()}] [${message.role}]${message.deleted ? ' [DELETED] ' : ''} ${message.user.name}: ${message.message.content}\n`
+      }
 
       dayCache = dia
     }

@@ -70,7 +70,7 @@ export async function ticketCollectorButtons (options: {
     Switch: async () => { await Constructor.switch({ channelId: key.split('-')[1] ?? channelId }) },
     Question: async () => { await ButtonConstructor.Question() },
 
-    Delete: async () => { await Constructor.delete({ ask: true }) },
+    Delete: async () => { await Constructor.delete({ ask: true, channelId: key.split('-')[1] ?? channelId }) },
     DeleteTemplate: async () => { await Constructor.DeleteTemplate() },
 
     SetSelect: async () => { await ButtonConstructor.setSystem({ type: 'select' }) },
@@ -129,8 +129,7 @@ export async function ticketCollectorButtons (options: {
     Transcript: async () => { await Constructor.Transcript({ channelId: key.split('-')[1] }) },
 
     /* Sistema de Claim */
-    Claim: async () => { await ClaimConstructor.Claim({ key }) },
-    SaveLogs: async () => { await ClaimConstructor.SaveLogs() }
+    Claim: async () => { await ClaimConstructor.Claim({ key }) }
   }
 
   const customIdHandler = customIdHandlers[key.split('-')[0]]

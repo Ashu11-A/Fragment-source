@@ -13,8 +13,15 @@ export async function ticketButtonsConfig ({
   confirm?: boolean
 }): Promise<void> {
   const { guildId, channelId } = interaction
-  if (interaction.isChatInputCommand()) return
-  if (message === undefined) message = interaction.message as Message<boolean>
+  if (message === undefined && !interaction.isChatInputCommand()) message = interaction.message as Message<boolean>
+  if (message === undefined) {
+    await interaction.editReply({
+      embeds: [new EmbedBuilder({
+        title: '❌ | Não foi possivel estimar a mensagem onde os botões serão implementados!'
+      }).setColor('Red')]
+    })
+    return
+  }
 
   const options: Array<{ label: string, description: string, value: string, emoji: string }> = []
   const data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message.id}`)
