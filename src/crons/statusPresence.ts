@@ -19,7 +19,7 @@ new Crons({
       const typeStatus = await db.system.get(`${guild.id}.status.systemStatusMinecraft`)
 
       if (typeStatus !== undefined && typeStatus === true) {
-        const ip = await db.guilds.get(`${guild.id}.minecraft.ip`)
+        const ip = await db.guilds.get(`${guild.id}.config.minecraft.ipJava`)
         await mineStatus(ip, type)
       } else if (typeStatus === undefined || typeStatus === false) {
         const messages = await db.messages.get(`${guild.id}.system.status.messages`)

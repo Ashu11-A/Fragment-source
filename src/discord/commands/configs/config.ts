@@ -118,14 +118,14 @@ new Command({
               required: false
             },
             {
-              name: 'ip',
-              description: '[ 🔗 ] IP do servidor.',
+              name: 'ip-java',
+              description: '[ 🔗 ] IP do servidor java.',
               type: ApplicationCommandOptionType.String,
               required: false
             },
             {
-              name: 'porta',
-              description: '[ 🚪 ] Porta do servidor.',
+              name: 'ip-bedrock',
+              description: '[ 🔗 ] IP do servidor bedrock.',
               type: ApplicationCommandOptionType.String,
               required: false
             }
@@ -660,40 +660,28 @@ new Command({
               await interaction.deferReply({ ephemeral: true })
               const canal = options.getChannel('canal') as TextChannel
               const desc = options.getString('desc') as string
-              const ip = options.getString('ip') as string
-              const porta = options.getString('porta') as string
+              const ipJava = options.getString('ip-java') as string
+              const ipBedrock = options.getString('ip-bedrock') as string
 
               if (canal !== null) {
-                await new Database({
-                  interaction,
-                  typeDB: 'guilds',
-                  pathDB: 'channel.minecraft'
-                }).set({
+                await new Database({ interaction, pathDB: 'config.minecraft.channel' }).set({
                   data: canal,
                   text: 'setado para o status do servidor de minecraft'
                 })
               }
               if (desc !== null) {
-                await new Database({
-                  interaction,
-                  pathDB: 'minecraft.desc'
-                }).set({
+                await new Database({ interaction, pathDB: 'config.minecraft.desc' }).set({
                   data: desc
                 })
               }
-              if (ip !== null) {
-                await new Database({ interaction, pathDB: 'minecraft.ip' }).set(
-                  {
-                    data: ip
-                  }
-                )
+              if (ipJava !== null) {
+                await new Database({ interaction, pathDB: 'config.minecraft.ipJava' }).set({
+                  data: ipJava
+                })
               }
-              if (porta !== null) {
-                await new Database({
-                  interaction,
-                  pathDB: 'minecraft.porta'
-                }).set({
-                  data: porta
+              if (ipBedrock !== null) {
+                await new Database({ interaction, pathDB: 'config.minecraft.ipBedrock' }).set({
+                  data: ipBedrock
                 })
               }
               break
