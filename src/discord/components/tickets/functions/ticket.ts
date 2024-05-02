@@ -806,7 +806,7 @@ export class Ticket {
 
     const files: AttachmentBuilder[] = [
       new AttachmentBuilder(Buffer.from(text), { name: `${ticket.owner}.log`, description: `Transcript do usuário ${user?.displayName ?? ticket.owner}` }),
-      new AttachmentBuilder(Buffer.from(JSON.stringify(ticket.history.length === 0 ? { aviso: 'Nenhuma mensagem enviada!' } : ticket.history, null, 4)), { name: `${ticket.owner}.json`, description: `Transcript do usuário ${user?.displayName ?? ticket.owner}` })
+      // new AttachmentBuilder(Buffer.from(JSON.stringify(ticket.history.length === 0 ? { aviso: 'Nenhuma mensagem enviada!' } : ticket.history, null, 4)), { name: `${ticket.owner}.json`, description: `Transcript do usuário ${user?.displayName ?? ticket.owner}` })
     ]
 
     await logs.send({ embeds: [embed] })
