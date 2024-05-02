@@ -240,7 +240,8 @@ new Command({
           name: 'panel-embed',
           description: '[ 🎫 Ticket ] Envia a embed de configuração.',
           required: false,
-          type: ApplicationCommandOptionType.Channel
+          type: ApplicationCommandOptionType.Channel,
+          channelTypes: [ChannelType.GuildText]
         },
         {
           name: 'limit',
