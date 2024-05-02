@@ -92,6 +92,8 @@ new Command({
 
       if (icon !== undefined) attachment.push(new AttachmentBuilder(Buffer.from(icon, 'base64'), { name: 'image.png' }))
 
+      const bannerURL = `http://status.mclive.eu/${(guild?.name ?? ip.ipJava) + `#${Date.now()}`}/${ip.ipJava}/${ip.ipJava.split(':')[1] ?? '25565'}/banner.png`
+
       const embed: EmbedBuilder = new EmbedBuilder({
         author: { name: 'Status do Servidor', iconURL: (icon !== undefined) ? 'attachment://image.png' : undefined },
         fields: [
@@ -99,7 +101,7 @@ new Command({
           { name: '**💎 Players Conectados:**', value: codeBlock(`${players?.online ?? 0}/${players?.max ?? 0}`), inline },
           { name: '\u200E', value: '\u200E', inline }
         ],
-        image: { url: `http://status.mclive.eu/${guild?.name ?? ip.ipJava}/${ip.ipJava}/${ip.ipJava.split(':')[1] ?? '25565'}/banner.png` }
+        image: { url: bannerURL }
       }).setColor(online ? 'Green' : 'Red')
 
       if (ip?.ipBedrock !== undefined) {
