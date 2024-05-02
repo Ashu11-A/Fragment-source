@@ -81,7 +81,7 @@ export class TicketClaim {
     const user = guild?.client.users.cache.find((user) => user.id === owner)
 
     return new EmbedBuilder({
-      title: '🎫 Um novo ticket foi aberto!',
+      title: team.length === 0 ? '🎫 Um novo ticket foi aberto!' : '🎫 Ticket reivindicado!',
       fields: [
         { name: '🙋‍♂️ User:', value: codeBlock(`Name: ${user?.displayName ?? 'Saiu do servidor'}`), inline },
         { name: '🪪 ID:', value: codeBlock(owner), inline },
@@ -93,7 +93,7 @@ export class TicketClaim {
         { name: '🕗 Aberto:', value: `<t:${Math.floor(createAt / 1000)}:R>` }
       ],
       footer: ({ text: `Equipe ${guild?.name} | Todos os Direitos Reservados`, icon_url: (guild?.iconURL({ size: 64 }) ?? undefined) })
-    }).setColor(team.length === 0 ? 'Red' : 'Green')
+    }).setColor(team.length === 0 ? 'Red' : 'Orange')
   }
 
   async buttons ({ channelId }: { channelId: string }): Promise<ActionRowBuilder<ButtonBuilder>> {
@@ -106,7 +106,8 @@ export class TicketClaim {
         label: 'Responder',
         customId: `Claim-${channelId}`,
         type: 'Ticket',
-        style: ButtonStyle.Success
+        style: ButtonStyle.Success,
+        disabled: ticket.team.length !== 0
       }),
       new CustomButtonBuilder({
         emoji: { name: '📃' },
@@ -181,7 +182,7 @@ export class TicketClaim {
     }
 
     if (await ticket.Permissions({ channelId: channelTicket.id, userId: user.id, memberTeam: true })) return
-    await message?.edit({ embeds: [await this.embed({ channelId })] })
+    await message?.edit({ embeds: [await this.embed({ channelId })], components: [await this.buttons({ channelId })] })
     await interaction.channel?.send({
       embeds: [new EmbedBuilder({
         title: `Usuário ${user.displayName}, reivindicou o ticket do ${userTicket?.displayName}!`
