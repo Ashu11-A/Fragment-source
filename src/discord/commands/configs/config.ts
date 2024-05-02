@@ -571,7 +571,8 @@ new Command({
                   })
                   await ticketButtonsConfig({
                     interaction,
-                    message: msg
+                    message: msg,
+                    channelId: sendChannel.id
                   })
                   await interaction.editReply({
                     embeds: [

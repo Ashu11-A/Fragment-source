@@ -6,15 +6,18 @@ import { ActionRowBuilder, type ButtonBuilder, type ButtonInteraction, ButtonSty
 export async function ticketButtonsConfig ({
   interaction,
   message,
+  channelId,
   confirm = true
 }: {
   interaction: StringSelectMenuInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | ChatInputCommandInteraction<CacheType>
   message?: Message<boolean>
+  channelId?: string | null
   confirm?: boolean
 }): Promise<void> {
-  const { guildId, channelId } = interaction
+  const { guildId } = interaction
   if (message === undefined && !interaction.isChatInputCommand()) message = interaction.message as Message<boolean>
-  if (message === undefined) {
+  if (channelId === undefined) channelId = interaction.channelId
+  if (message === undefined || channelId === undefined) {
     await interaction.editReply({
       embeds: [new EmbedBuilder({
         title: '❌ | Não foi possivel estimar a mensagem onde os botões serão implementados!'
@@ -25,13 +28,23 @@ export async function ticketButtonsConfig ({
 
   const options: Array<{ label: string, description: string, value: string, emoji: string }> = []
   const data = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message.id}`)
-  const embedEdit = await createRowEdit(interaction, message, 'ticket')
-  const { embed } = await db.messages.get(`${guildId}.ticket.${channelId}.messages.${message?.id}`)
-  const updateEmbed = new EmbedBuilder(embed as EmbedData)
 
-  if (embed !== undefined && typeof embed.color === 'string') {
-    if (embed.color.startsWith('#') === true) {
-      updateEmbed.setColor(parseInt(embed.color.slice(1), 16))
+  if (data?.embed === undefined) {
+    await interaction.editReply({
+      embeds: [new EmbedBuilder({
+        title: '❌ Embed não foi salva no banco de dados! Apagando mensagem...'
+      }).setColor('Red')]
+    })
+    await message.delete()
+    return
+  }
+
+  const embedEdit = await createRowEdit(interaction, message, 'ticket')
+  const updateEmbed = new EmbedBuilder(data?.embed as EmbedData)
+
+  if (data?.embed !== undefined && typeof data?.embed.color === 'string') {
+    if (data?.embed.color.startsWith('#') === true) {
+      updateEmbed.setColor(parseInt(data?.embed.color.slice(1), 16))
     }
   }
 
