@@ -1,7 +1,7 @@
 import { db } from '@/app'
 import { Command } from '@/discord/base'
 import { Discord } from '@/functions'
-import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder } from 'discord.js'
+import { ApplicationCommandOptionType, ApplicationCommandType, ChannelType, EmbedBuilder } from 'discord.js'
 
 new Command({
   name: 'cloudflare',
@@ -34,6 +34,12 @@ new Command({
       description: '[ ☁️ Cloudflare ] Gerencie o sistema de atualização',
       type: ApplicationCommandOptionType.Subcommand,
       options: [
+        {
+          name: 'channel-logs',
+          description: '[ ☁️ Cloudflare ] Logs de alteração de ip ficaram aqui!',
+          type: ApplicationCommandOptionType.Channel,
+          channelTypes: [ChannelType.GuildText]
+        },
         {
           name: 'old-ip',
           description: '[ ☁️ Cloudflare ] Definir o ip antigo, isso permite implementar outros records a atualização!',
@@ -73,6 +79,10 @@ new Command({
               }).setColor('Green')]
             })
             break
+          }
+          case 'channel-logs': {
+            const channel = options.getChannel('channel-logs', true)
+            await db.cloudflare.set(`${guildId}.config.channelId`, channel.id)
           }
         }
         break

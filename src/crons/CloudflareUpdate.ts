@@ -2,6 +2,7 @@ import { client, core, db } from '@/app'
 import { Crons } from '@/classes/Crons'
 import axios from 'axios'
 import Cloudflare from 'cloudflare'
+import { codeBlock, EmbedBuilder, TextChannel } from 'discord.js'
 import { existsSync } from 'fs'
 import { resolve } from 'path'
 
@@ -47,11 +48,19 @@ new Crons({
 
     for (const guild of guilds.values()) {
       const { ipString: oldIp } = (await db.cloudflare.get(`${guild.id}.saved`) ?? { ipString: undefined, ipType: undefined }) as Response
-      await db.cloudflare.set(`${guild.id}.saved`, response.data)
 
       if (oldIp !== undefined && oldIp !== newIp) {
+        await db.cloudflare.set(`${guild.id}.saved`, response.data)
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         const { email, global_api_key } = (await db.cloudflare.get(`${guild.id}.keys`) ?? { email: undefined, global_api_key: undefined }) as DataTokens
+        const channelId = await db.cloudflare.get(`${guild.id}.config.channelId`) as string | undefined
+        let channel: TextChannel | undefined | null
+        const records: Record<string, Array<{ name: string, type: string, id: string }>> = {}
+
+        if (channelId !== undefined) {
+          channel = await guild.channels.fetch(channelId) as TextChannel | null
+        }
+
         core.warn(`Houve uma alteração no ip! ${oldIp} --> ${newIp}`)
 
         if (email === undefined || global_api_key === undefined) return
@@ -76,10 +85,27 @@ new Crons({
               name,
               type,
               zone_id: zone_id ?? zone.id
-            }).then(() => {
+            }).then(async () => {
+              records[zone.name] = [
+                ...records[zone_id ?? zone.id],
+                { name, type, id }
+              ]
               core.info(`Alterando o ip do records: ${name}!`)
             })
           }
+        }
+
+        if (channel instanceof TextChannel) {
+          const embed = new EmbedBuilder({
+            title: '🔄 **Mudança de IP**',
+            description: `A alteração pode levar alguns minutos para entrar em vigor!\n\n⏳ **Horário da Mudança:** <t:${Math.floor(Date.now() / 1000)}:R>\n**IP Antigo:** ${oldIp} ➡️ **IP Novo:** ${newIp} 🌐`
+          })
+
+          for (const [zoneName, values] of Object.entries(records)) {
+            embed.addFields({ name: zoneName, value: codeBlock(values.map((value) => value.name).join('\n')) })
+          }
+
+          await channel.send({ embeds: [embed] })
         }
       }
     }
