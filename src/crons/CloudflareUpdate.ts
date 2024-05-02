@@ -48,13 +48,13 @@ new Crons({
 
     for (const guild of guilds.values()) {
       const { ipString: oldIp } = (await db.cloudflare.get(`${guild.id}.saved`) ?? { ipString: undefined, ipType: undefined }) as Response
+      await db.cloudflare.set(`${guild.id}.saved`, response.data)
 
       if (oldIp !== undefined && oldIp !== newIp) {
         const cloudKeys = await db.cloudflare.get(`${guild.id}.keys`) as DataTokens | undefined
         core.warn(`Houve uma alteração no ip! ${oldIp} --> ${newIp}`)
 
         if (cloudKeys === undefined) return
-        if (cloudKeys.zone_id === undefined) return
 
         const cloudflare = new Cloudflare({
           apiEmail: cloudKeys.email,
@@ -82,7 +82,6 @@ new Crons({
           }
         }
       }
-      await db.cloudflare.set(`${guild.id}.saved`, response.data)
     }
   }
 })

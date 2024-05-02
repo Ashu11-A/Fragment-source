@@ -1,5 +1,6 @@
 import { db } from '@/app'
 import { Command } from '@/discord/base'
+import { Discord } from '@/functions'
 import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder } from 'discord.js'
 
 new Command({
@@ -7,6 +8,7 @@ new Command({
   description: '[ ☁️ Cloudflare ] Configurar propriedades do cloudflare.',
   dmPermission,
   type: ApplicationCommandType.ChatInput,
+  defaultMemberPermissions: 'Administrator',
   options: [
     {
       name: 'keys',
@@ -43,6 +45,8 @@ new Command({
   ],
   async run (interaction) {
     const { options, guildId } = interaction
+    if (await Discord.Permission(interaction, 'Administrator')) return
+
     await interaction.deferReply({ ephemeral })
 
     switch (options.getSubcommand()) {
