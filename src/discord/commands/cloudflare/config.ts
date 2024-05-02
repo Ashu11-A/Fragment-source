@@ -79,7 +79,6 @@ new Command({
       }
       case 'keys': {
         for (const option of (options.data.filter((option) => option.name === 'keys')[0]?.options ?? [])) {
-          console.log(option)
           if (typeof option?.value === 'undefined') continue
 
           await db.cloudflare.set(`${guildId}.keys.${option.name}`, option?.value)

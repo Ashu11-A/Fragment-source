@@ -13,7 +13,6 @@ interface Response {
 interface DataTokens {
   email?: string
   global_api_key?: string
-  zone_id?: string
 }
 
 let warn: boolean = true
@@ -51,14 +50,15 @@ new Crons({
       await db.cloudflare.set(`${guild.id}.saved`, response.data)
 
       if (oldIp !== undefined && oldIp !== newIp) {
-        const cloudKeys = await db.cloudflare.get(`${guild.id}.keys`) as DataTokens | undefined
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        const { email, global_api_key } = (await db.cloudflare.get(`${guild.id}.keys`) ?? { email: undefined, global_api_key: undefined }) as DataTokens
         core.warn(`Houve uma alteração no ip! ${oldIp} --> ${newIp}`)
 
-        if (cloudKeys === undefined) return
+        if (email === undefined || global_api_key === undefined) return
 
         const cloudflare = new Cloudflare({
-          apiEmail: cloudKeys.email,
-          apiKey: cloudKeys.global_api_key
+          apiEmail: email,
+          apiKey: global_api_key
         })
 
         const zones = await cloudflare.zones.list({ per_page: 999 })
