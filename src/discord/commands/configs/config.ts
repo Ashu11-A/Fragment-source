@@ -253,7 +253,16 @@ new Command({
           name: 'claim-channel',
           description: '[ 🎫 Ticket ] Chat onde seram enviadas os pedidos de ticket.',
           type: ApplicationCommandOptionType.Channel,
-          channelTypes: [ChannelType.GuildText]
+          channelTypes: [ChannelType.GuildText],
+          required: false
+        },
+        {
+          name: 'claim-limit',
+          description: '[ 🎫 Ticket ] Limita a quantidade de tickets que pode se revindicar',
+          type: ApplicationCommandOptionType.Number,
+          minValue: 1,
+          maxValue: 999,
+          required: false
         },
         {
           name: 'logs-channel',
@@ -510,9 +519,20 @@ new Command({
           const channel = options.getChannel('panel-embed')
           const limit = options.getNumber('limit')
           const claimChannel = options.getChannel('claim-channel')
+          const claimLimit = options.getNumber('claim-limit')
           const logs = options.getChannel('logs-channel')
           const addRole = options.getRole('add-role-team')
           const remRole = options.getString('rem-role-team')
+
+          if (claimLimit !== null) {
+            await new Database({
+              interaction,
+              pathDB: 'config.ticket.claimLimit',
+              typeDB: 'guilds'
+            }).set({
+              data: claimLimit
+            })
+          }
 
           if (addRole !== null) {
             const roles = await db.guilds.get(`${guildId}.config.ticket.roles`) as RoleForConfig[]

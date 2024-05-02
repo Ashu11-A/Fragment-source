@@ -63,6 +63,7 @@ export interface RoleForConfig {
 }
 
 export interface TicketConfig {
+  claimLimit?: number
   limit?: number
   claimId?: string
   logsId?: string

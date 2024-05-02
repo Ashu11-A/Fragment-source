@@ -142,13 +142,34 @@ export class TicketClaim {
     const channelId = key.split('-')[1]
     const channelTicket = guild?.channels.cache.find((channel) => channel.id === channelId) as TextChannel
     const { team, owner } = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
-    const userTicket = guild?.client.users.cache.find((user) => user.id === owner)
+    const ticketConfig = await db.guilds.get(`${guildId}.config.ticket`) as TicketConfig
+    const tickets = await db.tickets.get(`${guildId}.tickets`) as Record<string, TicketDBType>
+    const userTicket = await guild?.client.users.fetch(owner).catch(() => undefined)
     const ticket = new Ticket({ interaction })
 
     if (userTicket === undefined) {
       await interaction.editReply({
         embeds: [new EmbedBuilder({
           title: '⚠️ | Usuário não se encontra mais no servidor, você pode apenas apagar o ticket!'
+        }).setColor('Red')]
+      })
+      return
+    }
+
+    const ticketClaim = []
+
+    for (const [, values] of Object.entries(tickets)) {
+      const claim = values.team.filter((teamMember) => teamMember.id === user.id)
+      if (claim.length > 0) {
+        ticketClaim.push(claim)
+      }
+    }
+
+    if (ticketClaim.length >= (ticketConfig?.claimLimit ?? 999)) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: `Você já deu claim em ${ticketClaim.length} ticket(s), mas o máximo permitido é de ${ticketConfig?.claimLimit ?? 999}`,
+          description: 'Termine de atender os seus tickets!'
         }).setColor('Red')]
       })
       return

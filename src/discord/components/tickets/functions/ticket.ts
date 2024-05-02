@@ -218,7 +218,6 @@ export class Ticket {
     for (const [channelId, ticket] of Object.entries((tickets ?? []))) {
       if (ticket?.owner === user.id) {
         ticketOpenId = channelId
-        console.log(ticket)
       }
     }
 
