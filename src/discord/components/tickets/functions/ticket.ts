@@ -743,7 +743,6 @@ export class Ticket {
       return
     }
 
-    const teamUser = ticket.team?.[0]?.id !== undefined ? await client.users.fetch(ticket.team[0].id) : undefined
     const user = await client.guilds.cache.get(String(guildId))?.members.fetch(ticket.owner)
 
     const embed = new EmbedBuilder({
@@ -751,27 +750,21 @@ export class Ticket {
       fields: [
         { name: '🧑🏻‍💻 Usuário:', value: codeBlock(user?.displayName ?? 'Saiu do servidor...'), inline },
         { name: '🪪 ID:', value: codeBlock(ticket.owner), inline },
-
         { name: '\u200E', value: '\u200E', inline },
 
-        { name: '🤝 Claim:', value: codeBlock(teamUser?.displayName ?? 'Ninguém reivindicou o ticket'), inline },
-        { name: '🪪 ID:', value: codeBlock(teamUser?.id ?? 'None'), inline },
-
+        { name: '🤝 Claim:', value: codeBlock(ticket.team.length > 0 ? ticket.team.map((user) => user.displayName).join(', ') : 'Ninguém reivindicou o ticket'), inline },
+        { name: '🪪 ID:', value: codeBlock(ticket.team.length > 0 ? ticket.team.map((user) => user.id).join(', ') : 'None'), inline },
         { name: '\u200E', value: '\u200E', inline },
 
         { name: '❓ Motivo:', value: codeBlock(ticket.category.title), inline },
         { name: '📃 Descrição:', value: codeBlock(ticket?.description ?? 'Nada foi dito'), inline },
-
         { name: '\u200E', value: '\u200E', inline },
 
         { name: '🔎 Ticket ID:', value: codeBlock(ticket.channelId), inline },
         { name: '🤝 Convidados:', value: codeBlock(ticket.users.length === 0 ? 'Não houve convidados!' : ticket.users?.map((user) => `\n\nUser: ${user.displayName} \nId: ${user.id}`)?.join(', ')), inline },
-        { name: '\u200E', value: '\u200E', inline },
-
-        { name: '📅 Data:', value: codeBlock(new Date(ticket.createAt).toLocaleString()), inline },
-        { name: '\u200E', value: '\u200E', inline },
         { name: '\u200E', value: '\u200E', inline }
-      ]
+      ],
+      footer: { text: `📅 Data:  ${new Date(ticket.createAt).toLocaleString()}` }
     }).setColor(user?.roles.color?.hexColor ?? null)
 
     if (typeof observation === 'string') embed.addFields({ name: '📝 Observação', value: codeBlock(observation) })
