@@ -7,13 +7,13 @@ import { obfuscate } from 'javascript-obfuscator'
 import { Loggings } from 'loggings'
 import os from 'os'
 import path from 'path'
-import { generate } from 'randomstring'
+import { gen } from './src/functions'
 import { minify } from 'terser'
 import { formatBytes } from './src/functions/Format'
 
 interface BuildType {
   path: string
-  pathBuild: string
+  outputPath: string
   platforms: Array<'linux' | 'alpine' | 'linuxstatic' | 'macos'>
   archs: Array<'x64' | 'arm64'>
   nodeVersion: '18' | '20'
@@ -34,7 +34,7 @@ type BuildManifest = Record<string, BuildInfo>
 
 class Build {
   private readonly path: string
-  private readonly pathBuild: string
+  private readonly outputPath: string
   private readonly platforms: Array<'linux' | 'alpine' | 'linuxstatic' | 'macos'>
   private readonly archs: Array<'x64' | 'arm64'>
   private readonly nodeVersion: string
@@ -46,9 +46,9 @@ class Build {
   private readonly core: Loggings = new Loggings()
   private readonly progressBar = new SingleBar({}, Presets.rect)
 
-  constructor ({ archs, nodeVersion, path, pathBuild, platforms, removePaths = false }: BuildType) {
+  constructor ({ archs, nodeVersion, path, outputPath, platforms, removePaths = false }: BuildType) {
     this.path = path
-    this.pathBuild = pathBuild
+    this.outputPath = outputPath
     this.platforms = platforms
     this.archs = archs
     this.nodeVersion = nodeVersion
@@ -59,7 +59,7 @@ class Build {
     await this.loadFiles()
     await this.compress()
     await this.obfuscate()
-    await this.initialConfig()
+    await this.config()
     await this.release()
     if (this.removePaths) await this.remove()
   }
@@ -88,7 +88,7 @@ class Build {
     this.core.debug('Iniciando Compreção...\n\n')
     this.progressBar.start(Object.entries(this.files).length, 0)
     for (const [filePath, fileContent] of Object.entries(this.files)) {
-      const newPath = path.dirname(filePath).replace(this.path, this.pathBuild)
+      const newPath = path.dirname(filePath).replace(this.path, `${this.outputPath}/src`)
       const fileName = path.basename(filePath)
       const fileExt = path.extname(filePath)
 
@@ -143,9 +143,9 @@ class Build {
     this.progressBar.stop()
   }
 
-  async initialConfig (): Promise<void> {
+  async config (): Promise<void> {
     this.core.debug('Setando configurações inicias...\n\n')
-    const json = JSON.stringify({ token: generate(256) }, null, 2)
+    const json = JSON.stringify({ token: gen(256) }, null, 2)
     await writeFile(path.join(process.cwd(), 'build/settings/settings.json'), json)
   }
 
@@ -213,7 +213,7 @@ class Build {
   }
 
   async remove (): Promise<void> {
-    await rmdir(this.pathBuild)
+    await rmdir(this.outputPath)
   }
 }
 
@@ -226,7 +226,7 @@ if (!(version === '18' || version === '20')) {
 
 const build = new Build({
   path: 'dist',
-  pathBuild: 'build',
+  outputPath: 'build',
   archs: ['x64', 'arm64'],
   platforms: ['linux'],
   nodeVersion: version
@@ -240,7 +240,7 @@ async function start (): Promise<void> {
       await build.obfuscate()
       break
     case 'only-build':
-      await build.initialConfig()
+      await build.config()
       await build.release()
       break
     default:
