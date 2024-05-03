@@ -14,6 +14,7 @@ import axios from 'axios'
 import { getSettings } from '@/functions/getSettings'
 import { PaymentFunction } from '../cart/functions/cartCollectorFunctions'
 import { type cartData, type infoPayment } from '@/interfaces'
+import MercadoPagoConfig, { Payment } from 'mercadopago'
 
 export async function createPayment (options: {
   interaction: ButtonInteraction<CacheType>
@@ -51,39 +52,38 @@ export async function createPayment (options: {
   }).setColor('Red')
 
   const files: AttachmentBuilder[] = []
-  const dataPix: infoPayment = {
-    userName: user.username,
-    userId: user.id,
-    mpToken,
-    channelId,
-    guildId,
-    UUID: cartData.UUID as string,
-    price: amountTax
-  }
 
   if (method === 'pix') {
     try {
-      const paymentCreate = await axios
-        .post(
-          `http://${getSettings().Express.ip}:${getSettings().Express.Port}/payment/create/pix`,
-          dataPix
-        )
-        .catch(async (error) => {
-          console.log(error)
-          if (error.message !== undefined) {
-            embedErr.addFields([{ name: '❌ Error:', value: error.message }])
-          }
-          err = true
-          return undefined
-        })
-      if (paymentCreate === undefined) return
-      const { unixTimestamp, paymentData } = paymentCreate.data
+      const date = new Date()
+      date.setDate(date.getDate() + 1)
+      const isoDate = date.toISOString()
+      const client = new MercadoPagoConfig({ accessToken: mpToken })
+      const paymentData = await new Payment(client).create({
+        body: {
+          payer: {
+            first_name: user.username,
+            last_name: user.id,
+            email: `${user.id}@gmail.com`
+          },
+          description: `Pagamento Via Discord | ${user.username} | R$${(amountTax).toFixed(2)}`,
+          transaction_amount: Math.round(amountTax * 100) / 100,
+          payment_method_id: 'pix',
+          installments: 0
+        }
+      })
 
-      const buf = Buffer.from(
-        paymentData.point_of_interaction.transaction_data.qr_code_base64,
-        'base64'
-      )
+      const dateStr = paymentData?.date_of_expiration ?? isoDate
+      const expirationDate = new Date(dateStr)
+      expirationDate.setMinutes(expirationDate.getMinutes())
+      const unixTimestamp = Math.floor(expirationDate.getTime() / 1000)
       const id = paymentData.id
+
+      let buffer: undefined | Buffer
+
+      if (paymentData?.point_of_interaction?.transaction_data?.qr_code_base64 !== undefined) {
+        buffer = Buffer.from(paymentData.point_of_interaction.transaction_data.qr_code_base64, 'base64')
+      }
 
       await PaymentBuilder.NextOrBefore({ type: 'next', update: 'No' })
 
@@ -104,7 +104,8 @@ export async function createPayment (options: {
       embeds = newEmbeds
       components = newComponents
 
-      const attachment = new AttachmentBuilder(buf, { name: `${id}.png` })
+      if (buffer !== undefined) files.push(new AttachmentBuilder(buffer, { name: `${id}.png` }))
+
       const pixEmbed = new EmbedBuilder({
         title: '✅ QR Code gerado com sucesso!',
         description:
@@ -124,7 +125,7 @@ export async function createPayment (options: {
 
       embeds.push(pixEmbed.toJSON())
 
-      const pixCode = paymentData.point_of_interaction.transaction_data.qr_code
+      const pixCode = paymentData?.point_of_interaction?.transaction_data?.qr_code
       if (pixCode !== undefined) {
         const pixCodeEmbed = new EmbedBuilder({
           title: 'Pix copia e cola',
@@ -137,11 +138,7 @@ export async function createPayment (options: {
         embeds.push(pixCodeEmbed.toJSON())
       }
 
-      files.push(attachment)
-
-      components[0].components[0].setURL(
-        paymentData.point_of_interaction.transaction_data.ticket_url
-      )
+      components[0].components[0].setURL(paymentData?.point_of_interaction?.transaction_data?.ticket_url ?? 'https://www.mercadopago.com.br/developers/pt/docs/checkout-bricks/additional-content/possible-errors')
     } catch (error) {
       console.log(error)
       err = true
