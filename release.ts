@@ -7,7 +7,7 @@ import { obfuscate } from 'javascript-obfuscator'
 import { Loggings } from 'loggings'
 import os from 'os'
 import path from 'path'
-import { gen } from './src/functions'
+import { generate } from 'randomstring'
 import { minify } from 'terser'
 import { formatBytes } from './src/functions/Format'
 
@@ -145,7 +145,7 @@ class Build {
 
   async config (): Promise<void> {
     this.core.debug('Setando configurações inicias...\n\n')
-    const json = JSON.stringify({ token: gen(256) }, null, 2)
+    const json = JSON.stringify({ token: generate(256) }, null, 2)
     await writeFile(path.join(process.cwd(), 'build/settings/settings.json'), json)
   }
 
