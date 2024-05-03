@@ -80,20 +80,32 @@ export class TicketClaim {
     const { category: { emoji, title }, owner, createAt, team, description } = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
     const user = guild?.client.users.cache.find((user) => user.id === owner)
 
-    return new EmbedBuilder({
+    const embed = new EmbedBuilder({
       title: team.length === 0 ? '🎫 Um novo ticket foi aberto!' : '🎫 Ticket reivindicado!',
       fields: [
-        { name: '🙋‍♂️ User:', value: codeBlock(`Name: ${user?.displayName ?? 'Saiu do servidor'}`), inline },
+        { name: '🧑🏻‍💻 User:', value: codeBlock(`Name: ${user?.displayName ?? 'Saiu do servidor'}`), inline },
         { name: '🪪 ID:', value: codeBlock(owner), inline },
-        { name: '\u200E', value: '\u200E', inline },
-        { name: '❓ Motivo:', value: codeBlock(`${emoji} ${title}`), inline },
-        { name: '📃 Descrição:', value: codeBlock(description ?? 'Nada foi dito'), inline },
-        { name: '\u200E', value: '\u200E', inline },
-        { name: '👨🏻‍💻 Team support:', value: codeBlock(team.length === 0 ? 'Ninguém reivindicou esse ticket ainda!' : team.map((user) => user.displayName).join(', ')), inline },
-        { name: '🕗 Aberto:', value: `<t:${Math.floor(createAt / 1000)}:R>` }
+        { name: '\u200E', value: '\u200E', inline }
       ],
       footer: ({ text: `Equipe ${guild?.name} | Todos os Direitos Reservados`, icon_url: (guild?.iconURL({ size: 64 }) ?? undefined) })
     }).setColor(team.length === 0 ? 'Red' : 'Orange')
+
+    if (team.length === 0) {
+      embed.data.fields = [
+        ...(embed.data.fields ?? []),
+        { name: '❓ Motivo:', value: codeBlock(`${emoji} ${title}`), inline },
+        { name: '📃 Descrição:', value: codeBlock(description ?? 'Nada foi dito'), inline },
+        { name: '\u200E', value: '\u200E', inline }
+      ]
+    }
+
+    embed.data.fields = [
+      ...(embed.data.fields ?? []),
+      { name: '👨🏻‍💻 Team support:', value: codeBlock(team.length === 0 ? 'Ninguém reivindicou esse ticket ainda!' : team.map((user) => user.displayName).join(', ')), inline },
+      { name: '🕗 Aberto:', value: `<t:${Math.floor(createAt / 1000)}:R>` }
+    ]
+
+    return embed
   }
 
   async buttons ({ channelId }: { channelId: string }): Promise<ActionRowBuilder<ButtonBuilder>> {
