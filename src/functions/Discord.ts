@@ -203,6 +203,6 @@ export class CustomButtonBuilder extends ButtonBuilder implements ButtonType {
 
   static getAction (customId: string): string {
     const parts = customId.split('_')
-    return parts[parts.length - 2]
+    return parts[parts.length - 1]
   }
 }
