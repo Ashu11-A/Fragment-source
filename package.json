@@ -3,18 +3,18 @@
   "description": "Bot da SeventyHost, só que agora de código aberto e feito em TypeScript.",
   "version": "2.0.0",
   "main": "dist/app.js",
-  "bin": "build/app.js",
+  "bin": "build/src/app.js",
   "pkg": {
     "scripts": [
-      "build/**/*.js",
-      "build/**/*.json",
-      "package.json"
+      "build/src/**/*.js",
+      "build/src/**/*.json",
+      "build/package.json"
     ],
     "assets": [
-      "node_modules/**/*.js",
-      "node_modules/**/*.cjs",
-      "node_modules/**/*.json",
-      "node_modules/**/*.node"
+      "build/node_modules/**/*.js",
+      "build/node_modules/**/*.cjs",
+      "build/node_modules/**/*.json",
+      "build/node_modules/**/*.node"
     ],
     "outputPath": "release"
   },

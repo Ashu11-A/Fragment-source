@@ -1,24 +1,15 @@
 import { exec } from '@yao-pkg/pkg'
+import { exec as processChild } from 'child_process'
 import { Presets, SingleBar } from 'cli-progress'
 import { createHash } from 'crypto'
-import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'fs'
-import { readFile, rmdir, writeFile } from 'fs/promises'
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs'
+import { readFile, rm, stat, writeFile } from 'fs/promises'
+import { glob } from 'glob'
 import { obfuscate } from 'javascript-obfuscator'
-import { Loggings } from 'loggings'
 import os from 'os'
 import path from 'path'
 import { generate } from 'randomstring'
 import { minify } from 'terser'
-import { formatBytes } from './src/functions/Format'
-
-interface BuildType {
-  path: string
-  outputPath: string
-  platforms: Array<'linux' | 'alpine' | 'linuxstatic' | 'macos'>
-  archs: Array<'x64' | 'arm64'>
-  nodeVersion: '18' | '20'
-  removePaths?: boolean
-}
 
 interface BuildInfo {
   path: string
@@ -32,137 +23,227 @@ interface BuildInfo {
 
 type BuildManifest = Record<string, BuildInfo>
 
+interface Compress {
+  directory: string,
+  outdir: string
+}
+
+interface BuildConstructor {
+  /**
+   * Directory of Typescript Resources
+   */
+  directory: string;
+  /**
+   * Outdir of build
+   */
+  outdir: string;
+  /**
+   * Plataforms of builds
+   */
+  platforms: Array<'linux' | 'alpine' | 'linuxstatic' | 'macos'>;
+  /**
+   * Archs of build
+   */
+  archs: Array<'x64' | 'arm64'>;
+  /**
+   * Node version of build
+   */
+  nodeVersion: '18' | '20';
+  /**
+ * Compress build? (default:true)
+ */
+  compress?: boolean;
+  /**
+   * Obfuscate build? (default:true)
+   */
+  obfuscate?: boolean;
+  /**
+   * Make application build? (default:true)
+   */
+  pkgbuild?: boolean;
+}
+
 class Build {
-  private readonly path: string
-  private readonly outputPath: string
-  private readonly platforms: Array<'linux' | 'alpine' | 'linuxstatic' | 'macos'>
-  private readonly archs: Array<'x64' | 'arm64'>
-  private readonly nodeVersion: string
-  private readonly removePaths: boolean
+  private readonly options: BuildConstructor
 
-  private files: Record<string, string> = {}
-  private readonly filesCompress: Array<Record<string, string | undefined >> = []
-
-  private readonly core: Loggings = new Loggings()
   private readonly progressBar = new SingleBar({}, Presets.rect)
 
-  constructor ({ archs, nodeVersion, path, outputPath, platforms, removePaths = false }: BuildType) {
-    this.path = path
-    this.outputPath = outputPath
-    this.platforms = platforms
-    this.archs = archs
-    this.nodeVersion = nodeVersion
-    this.removePaths = removePaths
+  constructor (options: BuildConstructor) {
+    this.options = options
   }
 
   async start (): Promise<void> {
-    await this.loadFiles()
-    await this.compress()
+    await this.compress({ directory: this.options.directory, outdir: `${this.options.outdir}/src` })
     await this.obfuscate()
     await this.config()
-    await this.release()
-    if (this.removePaths) await this.remove()
+    await this.pkgbuild()
   }
 
-  async loadFiles (): Promise<void> {
-    const files: Record<string, string> = {}
-
-    function scanDirectory (diretorio: string): void {
-      readdirSync(diretorio).forEach((file) => {
-        const fullPath = path.join(diretorio, file)
-
-        if (lstatSync(fullPath).isDirectory()) {
-          scanDirectory(fullPath)
-        } else if (path.extname(fullPath) === '.js' || path.extname(fullPath) === '.json') {
-          const code = readFileSync(fullPath, 'utf8')
-          files[fullPath] = code
-        }
-      })
-    }
-    scanDirectory(this.path)
-
-    this.files = files
+  formatBytes (bytes: number, decimals = 2): string {
+    if (bytes === 0) return '0 Bytes'
+  
+    const k = 1024
+    const dm = decimals < 0 ? 0 : decimals
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+  
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+  
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
   }
 
-  async compress (): Promise<void> {
-    this.core.debug('Iniciando Compreção...\n\n')
-    this.progressBar.start(Object.entries(this.files).length, 0)
-    for (const [filePath, fileContent] of Object.entries(this.files)) {
-      const newPath = path.dirname(filePath).replace(this.path, `${this.outputPath}/src`)
-      const fileName = path.basename(filePath)
-      const fileExt = path.extname(filePath)
+  async compress ({ directory, outdir }: Compress): Promise<void> {
+    console.debug('\n\nIniciando Compressão...')
+    let cacheBuilded = {} as Record<string, { size: number }>
+    const paths = await glob([`${directory}/**/*.js`])
+    const builded: Record<string, { size: number }> = {}
+    
+    if (existsSync('release/build.json')) cacheBuilded = JSON.parse(await readFile('release/build.json', { encoding: 'utf-8'}))
+    
+    this.progressBar.start(paths.length, 0)
 
-      if (!existsSync(newPath)) { mkdirSync(newPath, { recursive: true }) }
-
-      if (fileExt === '.js') {
-        const result = await minify({ [filePath]: fileContent }, {
-          compress: true,
-          module: true,
-          toplevel: true,
-          parse: {
-            bare_returns: true
-          },
-          format: {
-            braces: true,
-            comments: 'some',
-            keep_quoted_props: true,
-            preamble: '/* @ Paymentybot By ashu11 */',
-            wrap_iife: true
-          },
-          nameCache: {},
-          keep_classnames: true,
-          keep_fnames: true
-        })
-        this.filesCompress.push({ [`${newPath}/${fileName}`]: result.code })
+    for (const filePath of paths) {
+      if (!(await stat(filePath)).isFile() || filePath.includes('bindings')) {
+        console.log(filePath)
+        this.progressBar.increment()
+        continue
       }
+      const newPath = path.dirname(filePath).replace(directory, outdir)
+      const fileContent = await readFile(filePath)
+      const fileName = path.basename(filePath)
+
+      if (cacheBuilded[`${newPath}/${fileName}`]?.size === (await readFile(`${newPath}/${fileName}`).catch(() => new Buffer(''))).byteLength) {
+        console.log(`Arquivo: ${filePath} já foi comprimido!`)
+        this.progressBar.increment()
+        continue
+      }
+
+
+      if (!existsSync(newPath)) mkdirSync(newPath, { recursive: true })
+
+      const result = await minify({ [filePath]: fileContent.toString('utf-8') }, {
+        compress: true,
+        module: true,
+        toplevel: true,
+        parse: {
+          bare_returns: true
+        },
+        format: {
+          braces: true,
+          comments: 'some',
+          keep_quoted_props: true,
+          wrap_iife: true
+        },
+        nameCache: {},
+        keep_classnames: true,
+        keep_fnames: true
+      })
+
+      if (result.code === undefined) {
+        this.progressBar.increment()
+        continue
+      }
+
+      await writeFile(`${newPath}/${fileName}`, result.code, { encoding: 'utf-8' })
+      const file = await readFile(`${newPath}/${fileName}`)
+      builded[`${newPath}/${fileName}`] = { size: file.byteLength }
       this.progressBar.increment()
     }
+    await writeFile('release/build.json', JSON.stringify({
+      ...cacheBuilded,
+      ...builded
+    }, null, 2), { encoding: 'utf-8' })
     this.progressBar.stop()
   }
 
   async obfuscate (): Promise<void> {
-    this.core.debug('Iniciando Ofuscamento...\n\n')
-    this.progressBar.start(Object.entries(this.files).length, 0)
+    console.debug('\n\nIniciando Ofuscamento...')
+    let paths: string[]
+
+    if (this.options.compress === false) {
+      paths = await glob([`${this.options.directory}/src/**/*.js`])
+    } else {
+      paths = await glob([`${this.options.outdir}/src/**/*.js`])
+    }
+
+    this.progressBar.start(paths.length, 0)
 
     const seed = Math.random()
 
-    for (const fileData of this.filesCompress) {
-      for (const [key, value] of Object.entries(fileData)) {
-        if (value === undefined) throw new Error(`Ocorreu um erro ao tentar ofuscar o arquivo: ${key}`)
-        const response = obfuscate(value, {
-          optionsPreset: 'medium-obfuscation',
-          // log: true,
-          seed,
-          disableConsoleOutput: false
-        })
-        writeFileSync(key, response.getObfuscatedCode(), 'utf8')
-        this.progressBar.increment()
-      }
-    }
+    for (const filePath of paths) {
+      const fileContent = await readFile(filePath, { encoding: 'utf-8' })
+      const response = obfuscate(fileContent, {
+        optionsPreset: 'medium-obfuscation',
+        // log: true,
+        seed,
+        disableConsoleOutput: false
+      })
 
+      writeFileSync(filePath, response.getObfuscatedCode(), 'utf8')
+      this.progressBar.increment()
+      }
     this.progressBar.stop()
   }
 
   async config (): Promise<void> {
-    this.core.debug('Setando configurações inicias...\n\n')
+    console.debug('\n\nSetando configurações inicias...')
     const json = JSON.stringify({ token: generate(256) }, null, 2)
-    await writeFile(path.join(process.cwd(), 'build/settings/settings.json'), json)
+    await writeFile(path.join(process.cwd(), 'build/src/settings/settings.json'), json)
+
+    console.debug('Configurando package.json')
+    const packageJson = JSON.parse(await readFile(path.join(process.cwd(), 'package.json'), { encoding: 'utf-8' })) as Record<string, string | Object | null>
+    packageJson['main'] = 'src/app.js'
+    packageJson['bin'] = 'src/app.js'
+    const remove = ['devDependencies', 'scripts', 'keywords', 'pkg']
+
+    for (const name of remove) {
+      delete packageJson[name]
+    }
+
+    await writeFile(path.join(process.cwd(), 'build/package.json'), JSON.stringify(packageJson, null, 2))
   }
 
-  async release (): Promise<void> {
-    const args = ['.', '--no-bytecode', '--public-packages', '"*"', '--public']
+  async installModules() {
+    console.debug('Baixando node_modules, sem as devDependencies\n\n')
+    await new Promise<void>((resolve, reject) => {
+      processChild(`cd ${this.options.outdir} && npm i && npm rebuild`, (error, stdout, stderr) => {
+        if (error !== null || stderr !== '') {
+          reject(error ?? stderr)
+        }
+        resolve()
+      })
+    })
+  }
+
+  async clearModules (): Promise<void> {
+    const removeModules = await glob([`${this.options.outdir}/node_modules/**/*`], {
+      ignore: ['/**/*.js', '/**/*.json', '/**/*.cjs', '/**/*.node', '/**/*.yml'],
+    });    
+
+    console.debug('\n\nRemovendo arquivos inúteis...')
+    this.progressBar.start(removeModules.length, 0)
+
+    for (const file of removeModules) {
+      if ((await stat(file)).isFile()) await rm(file)
+      this.progressBar.increment()
+    }
+
+    this.progressBar.stop
+  }
+
+  async pkgbuild (): Promise<void> {
+    const args = ['.', '--compress', 'Brotli', '--no-bytecode', '--public-packages', '"*"', '--public']
     const builds: string[] = []
     const manifests: BuildManifest[] = []
 
     if (os.platform() !== 'win32') {
-      for (const platform of this.platforms) {
-        for (const arch of this.archs) {
-          builds.push(`node${this.nodeVersion}-${platform}-${arch}`)
+      for (const platform of this.options.platforms) {
+        for (const arch of this.options.archs) {
+          builds.push(`node${this.options.nodeVersion}-${platform}-${arch}`)
         }
       }
     } else {
-      for (const arch of this.archs) {
-        builds.push(`node${this.nodeVersion}-win-${arch}`)
+      for (const arch of this.options.archs) {
+        builds.push(`node${this.options.nodeVersion}-win-${arch}`)
       }
     }
 
@@ -176,11 +257,16 @@ class Build {
       if (existsSync(`release/manifest-${nameSplit[1]}.json`)) rmSync(`release/manifest-${nameSplit[1]}.json`)
 
       newArg.push(...args, '-t', build, '-o', buildName)
-      this.core.debug('Iniciando Build...\n\n')
+
+      await this.installModules()
+      await this.clearModules()
+      await this.compress({ directory: `${this.options.outdir}/node_modules`, outdir: `${this.options.outdir}/node_modules` })
+
+      console.debug(`\n\nIniciando Build ${nameSplit[2]}...`)
       await exec(newArg)
 
       const timeSpent = (Date.now() - startTime) / 1000 + 's'
-      this.core.info(`Build | ${nameSplit[1]}-${nameSplit[2]} | ${timeSpent}`)
+      console.info(`Build | ${nameSplit[1]}-${nameSplit[2]} | ${timeSpent}`)
 
       const file = await readFile(buildName)
       const hashMD5 = createHash('md5').update(file).digest('hex')
@@ -191,7 +277,7 @@ class Build {
           path: buildName.replace('./release/', ''),
           platform: nameSplit[1],
           arch: nameSplit[2],
-          size: formatBytes(file.byteLength),
+          size: this.formatBytes(file.byteLength),
           timeBuild: timeSpent,
           hashMD5,
           hashSHA
@@ -199,21 +285,18 @@ class Build {
       })
     }
 
+    console.log(...manifests)
+
     for (const manifest of manifests) {
       for (const [key, value] of Object.entries(manifest)) {
         const values = [value]
         if (existsSync(`release/manifest-${key}.json`)) {
           const existContent = JSON.parse(await readFile(`release/manifest-${key}.json`, { encoding: 'utf-8' })) as BuildInfo[]
           values.push(...existContent)
-          console.log(values)
         }
-        writeFileSync(`release/manifest-${key}.json`, JSON.stringify(values, null, 4))
+        await writeFile(`release/manifest-${key}.json`, JSON.stringify(values, null, 4))
       }
     }
-  }
-
-  async remove (): Promise<void> {
-    await rmdir(this.outputPath)
   }
 }
 
@@ -225,8 +308,8 @@ if (!(version === '18' || version === '20')) {
 }
 
 const build = new Build({
-  path: 'dist',
-  outputPath: 'build',
+  directory: 'dist',
+  outdir: 'build',
   archs: ['x64', 'arm64'],
   platforms: ['linux'],
   nodeVersion: version
@@ -235,13 +318,13 @@ const build = new Build({
 async function start (): Promise<void> {
   switch (args[0]?.replace('--', '')) {
     case 'pre-build':
-      await build.loadFiles()
-      await build.compress()
+      await build.compress({ directory: 'dist', outdir: 'build' })
       await build.obfuscate()
       break
     case 'only-build':
       await build.config()
-      await build.release()
+      await build.pkgbuild()
+      await rm('release/build.json')
       break
     default:
       await build.start()

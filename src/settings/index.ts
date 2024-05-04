@@ -9,10 +9,10 @@ const developmentEnvPath = resolve(process.cwd(), '.env.development')
 const dev = existsSync(developmentEnvPath)
 
 if (dev) {
-  const pathSettings = resolve(path.join(process.cwd(), 'src/settings/settings.json'))
+  const pathSettings = resolve(path.join(__dirname, 'settings.json'))
   if (!existsSync(pathSettings)) {
     writeFileSync(
-      path.join(process.cwd(), 'src/settings/settings.json'),
+      path.join(__dirname, 'settings.json'),
       JSON.stringify({ token: generate(256) }, null)
     )
   }
