@@ -58,11 +58,22 @@ jobs:
           name: pre-build
           path: ./
 
-      - name: Rebuild Modules
-        run: npm rebuild
+      - name: Rebuild Modules Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: rm -rf node_modules && npm ci
+
+      - name: Rebuild Modules Windows
+        if: matrix.os == 'windows-latest'
+        run: rm -r node_modules && npm ci
 
       - name: Build Release
         run: npm run build:release -- --only-build
+
+      - uses: actions/upload-artifact@v4
+        name: Upload artifact
+        with:
+          name: build-${{ matrix.os }}
+          path: ./
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2

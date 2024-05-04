@@ -24,8 +24,8 @@ interface BuildInfo {
 type BuildManifest = Record<string, BuildInfo>
 
 interface Compress {
-  directory: string,
-  outdir: string
+  directory?: string,
+  outdir?: string
 }
 
 interface BuildConstructor {
@@ -73,7 +73,7 @@ class Build {
   }
 
   async start (): Promise<void> {
-    await this.compress({ directory: this.options.directory, outdir: `${this.options.outdir}/src` })
+    await this.compress({})
     await this.obfuscate()
     await this.config()
     await this.pkgbuild()
@@ -92,12 +92,13 @@ class Build {
   }
 
   async compress ({ directory, outdir }: Compress): Promise<void> {
+    if (directory === undefined) directory = this.options.directory
+    if (outdir === undefined) outdir = `${this.options.outdir}/src`
+
     console.debug('\n\nIniciando Compressão...')
-    let cacheBuilded = {} as Record<string, { size: number }>
     const paths = await glob([`${directory}/**/*.js`])
     const builded: Record<string, { size: number }> = {}
-    
-    if (existsSync('release/build.json')) cacheBuilded = JSON.parse(await readFile('release/build.json', { encoding: 'utf-8'}))
+    const cacheBuilded = JSON.parse(await readFile('release/build.json', { encoding: 'utf-8'}).catch(() => '{}')) as Record<string, { size: number }>
     
     this.progressBar.start(paths.length, 0)
 
@@ -148,6 +149,9 @@ class Build {
       builded[`${newPath}/${fileName}`] = { size: file.byteLength }
       this.progressBar.increment()
     }
+
+    if (!existsSync('release')) mkdirSync('release', { recursive: true })
+
     await writeFile('release/build.json', JSON.stringify({
       ...cacheBuilded,
       ...builded
@@ -318,13 +322,12 @@ const build = new Build({
 async function start (): Promise<void> {
   switch (args[0]?.replace('--', '')) {
     case 'pre-build':
-      await build.compress({ directory: 'dist', outdir: 'build' })
+      await build.compress({})
       await build.obfuscate()
+      await build.config()
       break
     case 'only-build':
-      await build.config()
       await build.pkgbuild()
-      await rm('release/build.json')
       break
     default:
       await build.start()
