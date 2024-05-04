@@ -73,7 +73,7 @@ jobs:
         name: Upload artifact
         with:
           name: build-${{ matrix.os }}
-          path: ./
+          path: ./build
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
