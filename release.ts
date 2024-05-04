@@ -3,7 +3,7 @@ import { exec as processChild } from 'child_process'
 import { Presets, SingleBar } from 'cli-progress'
 import { createHash } from 'crypto'
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs'
-import { readFile, rm, stat, writeFile } from 'fs/promises'
+import { readFile, rm, rmdir, stat, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import { obfuscate } from 'javascript-obfuscator'
 import os from 'os'
@@ -208,8 +208,18 @@ class Build {
 
   async installModules() {
     console.debug('Baixando node_modules, sem as devDependencies\n\n')
-    await new Promise<void>((resolve, reject) => {
-      processChild(`cd ${this.options.outdir} && npm i && npm rebuild`, (error, stdout, stderr) => {
+    if (existsSync(`${this.options.outdir}/node_modules`)) {
+      await new Promise<void>(async (resolve, reject) => {
+        processChild(`cd ${this.options.outdir} && rm -r node_modules`, (error, stdout, stderr) => {
+          if (error !== null || stderr !== '') {
+            reject(error ?? stderr)
+          }
+          resolve()
+        })
+      })
+    }
+    await new Promise<void>(async (resolve, reject) => {
+      processChild(`cd ${this.options.outdir} && npm i && npm rebuild better_sqlite3 && npm rebuild`, (error, stdout, stderr) => {
         if (error !== null || stderr !== '') {
           reject(error ?? stderr)
         }
