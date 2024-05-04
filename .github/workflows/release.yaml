@@ -39,40 +39,66 @@ jobs:
         name: Upload artifact
         with:
           name: pre-build
-          path: ./
+          path: ./build
 
-  build_multi_arch:
-    name: Build Multi Archs
+  build_multi_linux:
+    name: Build Linux ${{ matrix.arch }}
     needs: prepare
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest] #[windows-latest]
+        arch: [aarch64, x64] 
+        node-version: [20.x]
     steps:
-      - name: Set up QEMU
-        if: matrix.os == 'ubuntu-latest'
-        uses: docker/setup-qemu-action@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Display structure
+        run: ls
 
       - uses: actions/download-artifact@v4
         with:
+          github-token: ${{ github.token }}
           name: pre-build
-          path: ./
+          path: ./build
+        
+      - uses: uraimo/run-on-arch-action@v2
+        name: Build artifact ${{ matrix.arch }}
+        if: matrix.arch == 'aarch64'
+        id: build
+        with:
+          arch: ${{ matrix.arch }}
+          distro: ubuntu-latest
+          githubToken: ${{ github.token }}
+          install: |
+            apt update && apt upgrade -y && apt install -y curl
+            curl -fsSL https://fnm.vercel.app/install | bash
+            fnm install ${{ matrix.node-version }}
+            fnm use ${{ matrix.node-version }}
+            rm -rf node_modules && npm i
+          run: |
+            npm run build:release -- --only-build
 
-      - name: Rebuild Modules Linux
-        if: matrix.os == 'ubuntu-latest'
+      - name: Node.js ${{ matrix.node-version }}
+        if: matrix.arch == 'x64'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          check-latest: true
+
+      - name: Rebuild Modules
+        if: matrix.arch == 'x64'
         run: rm -rf node_modules && npm ci
 
-      - name: Rebuild Modules Windows
-        if: matrix.os == 'windows-latest'
-        run: rm -r node_modules && npm ci
-
       - name: Build Release
+        if: matrix.arch == 'x64'
         run: npm run build:release -- --only-build
 
       - uses: actions/upload-artifact@v4
         name: Upload artifact
         with:
-          name: build-${{ matrix.os }}
+          name: build-ubuntu-latest-${{ matrix.arch }}
           path: ./build
 
       - name: Upload binaries to release

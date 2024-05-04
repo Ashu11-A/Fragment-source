@@ -1,9 +1,9 @@
 import { exec } from '@yao-pkg/pkg'
-import { exec as processChild } from 'child_process'
+import { type ExecException, exec as processChild } from 'child_process'
 import { Presets, SingleBar } from 'cli-progress'
 import { createHash } from 'crypto'
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs'
-import { readFile, rm, rmdir, stat, writeFile } from 'fs/promises'
+import { readFile, rm, stat, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import { obfuscate } from 'javascript-obfuscator'
 import os from 'os'
@@ -24,7 +24,7 @@ interface BuildInfo {
 type BuildManifest = Record<string, BuildInfo>
 
 interface Compress {
-  directory?: string,
+  directory?: string
   outdir?: string
 }
 
@@ -32,35 +32,35 @@ interface BuildConstructor {
   /**
    * Directory of Typescript Resources
    */
-  directory: string;
+  directory: string
   /**
    * Outdir of build
    */
-  outdir: string;
+  outdir: string
   /**
    * Plataforms of builds
    */
-  platforms: Array<'linux' | 'alpine' | 'linuxstatic' | 'macos'>;
+  platforms: Array<'linux' | 'alpine' | 'linuxstatic' | 'macos'>
   /**
    * Archs of build
    */
-  archs: Array<'x64' | 'arm64'>;
+  archs: Array<'x64' | 'arm64'>
   /**
    * Node version of build
    */
-  nodeVersion: '18' | '20';
+  nodeVersion: '18' | '20'
   /**
  * Compress build? (default:true)
  */
-  compress?: boolean;
+  compress?: boolean
   /**
    * Obfuscate build? (default:true)
    */
-  obfuscate?: boolean;
+  obfuscate?: boolean
   /**
    * Make application build? (default:true)
    */
-  pkgbuild?: boolean;
+  pkgbuild?: boolean
 }
 
 class Build {
@@ -81,13 +81,13 @@ class Build {
 
   formatBytes (bytes: number, decimals = 2): string {
     if (bytes === 0) return '0 Bytes'
-  
+
     const k = 1024
     const dm = decimals < 0 ? 0 : decimals
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-  
+
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-  
+
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
   }
 
@@ -98,8 +98,8 @@ class Build {
     console.debug('\n\nIniciando Compressão...')
     const paths = await glob([`${directory}/**/*.js`])
     const builded: Record<string, { size: number }> = {}
-    const cacheBuilded = JSON.parse(await readFile('release/build.json', { encoding: 'utf-8'}).catch(() => '{}')) as Record<string, { size: number }>
-    
+    const cacheBuilded = JSON.parse(await readFile('release/build.json', { encoding: 'utf-8' }).catch(() => '{}')) as Record<string, { size: number }>
+
     this.progressBar.start(paths.length, 0)
 
     for (const filePath of paths) {
@@ -112,12 +112,11 @@ class Build {
       const fileContent = await readFile(filePath)
       const fileName = path.basename(filePath)
 
-      if (cacheBuilded[`${newPath}/${fileName}`]?.size === (await readFile(`${newPath}/${fileName}`).catch(() => new Buffer(''))).byteLength) {
+      if (cacheBuilded[`${newPath}/${fileName}`]?.size === (await readFile(`${newPath}/${fileName}`).catch(() => Buffer.from(''))).byteLength) {
         console.log(`Arquivo: ${filePath} já foi comprimido!`)
         this.progressBar.increment()
         continue
       }
-
 
       if (!existsSync(newPath)) mkdirSync(newPath, { recursive: true })
 
@@ -184,7 +183,7 @@ class Build {
 
       writeFileSync(filePath, response.getObfuscatedCode(), 'utf8')
       this.progressBar.increment()
-      }
+    }
     this.progressBar.stop()
   }
 
@@ -194,44 +193,44 @@ class Build {
     await writeFile(path.join(process.cwd(), 'build/src/settings/settings.json'), json)
 
     console.debug('Configurando package.json')
-    const packageJson = JSON.parse(await readFile(path.join(process.cwd(), 'package.json'), { encoding: 'utf-8' })) as Record<string, string | Object | null>
-    packageJson['main'] = 'src/app.js'
-    packageJson['bin'] = 'src/app.js'
+    const packageJson = JSON.parse(await readFile(path.join(process.cwd(), 'package.json'), { encoding: 'utf-8' })) as Record<string, string | object | null>
+    packageJson.main = 'src/app.js'
+    packageJson.bin = 'src/app.js'
     const remove = ['devDependencies', 'scripts', 'keywords', 'pkg']
 
     for (const name of remove) {
-      delete packageJson[name]
+      delete packageJson?.[name]
     }
 
     await writeFile(path.join(process.cwd(), 'build/package.json'), JSON.stringify(packageJson, null, 2))
   }
 
-  async installModules() {
+  async installModules (): Promise<void> {
     console.debug('Baixando node_modules, sem as devDependencies\n\n')
     if (existsSync(`${this.options.outdir}/node_modules`)) {
-      await new Promise<void>(async (resolve, reject) => {
-        processChild(`cd ${this.options.outdir} && rm -r node_modules`, (error, stdout, stderr) => {
+      await new Promise<ExecException | null>((resolve, reject) => {
+        processChild(`cd ${this.options.outdir} && rm -r node_modules`, (error, _stdout, stderr) => {
           if (error !== null || stderr !== '') {
             reject(error ?? stderr)
           }
-          resolve()
+          resolve(null)
         })
       })
     }
-    await new Promise<void>(async (resolve, reject) => {
-      processChild(`cd ${this.options.outdir} && npm i && npm rebuild better_sqlite3 && npm rebuild`, (error, stdout, stderr) => {
+    await new Promise<ExecException | null>((resolve, reject) => {
+      processChild(`cd ${this.options.outdir} && npm i && npm rebuild better_sqlite3 && npm rebuild`, (error, _stdout, stderr) => {
         if (error !== null || stderr !== '') {
           reject(error ?? stderr)
         }
-        resolve()
+        resolve(null)
       })
     })
   }
 
   async clearModules (): Promise<void> {
     const removeModules = await glob([`${this.options.outdir}/node_modules/**/*`], {
-      ignore: ['/**/*.js', '/**/*.json', '/**/*.cjs', '/**/*.node', '/**/*.yml'],
-    });    
+      ignore: ['/**/*.js', '/**/*.json', '/**/*.cjs', '/**/*.node', '/**/*.yml']
+    })
 
     console.debug('\n\nRemovendo arquivos inúteis...')
     this.progressBar.start(removeModules.length, 0)
@@ -241,7 +240,7 @@ class Build {
       this.progressBar.increment()
     }
 
-    this.progressBar.stop
+    this.progressBar.stop()
   }
 
   async pkgbuild (): Promise<void> {
@@ -316,15 +315,20 @@ class Build {
 
 const args = process.argv.slice(2)
 const version = process.version.split('.')[0].replace('v', '')
+const arch = process.arch
 
 if (!(version === '18' || version === '20')) {
+  throw new Error(`Versão do nodejs invalida!\nVersão atual: ${version}, Versões suportadas: [18, 20]`)
+}
+
+if (!(arch === 'arm64' || arch === 'x64')) {
   throw new Error(`Versão do nodejs invalida!\nVersão atual: ${version}, Versões suportadas: [18, 20]`)
 }
 
 const build = new Build({
   directory: 'dist',
   outdir: 'build',
-  archs: ['x64', 'arm64'],
+  archs: [arch],
   platforms: ['linux'],
   nodeVersion: version
 })
