@@ -7,7 +7,7 @@ on:
 jobs:
   prepare:
     name: Prepare job
-    runs-on: ubuntu22.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         node-version: [20.x]
@@ -47,15 +47,12 @@ jobs:
     runs-on: ${{ matrix.distro }}
     strategy:
       matrix:
-        distro: [ubuntu22.04]
+        distro: [ubuntu-22.04]
         arch: [aarch64, x64] 
         node-version: [20.x]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Display structure
-        run: ls
 
       - uses: actions/download-artifact@v4
         with:
@@ -69,15 +66,15 @@ jobs:
         id: build
         with:
           arch: ${{ matrix.arch }}
-          distro: ${{ matrix.distro }}
+          distro: ubuntu22.04
           githubToken: ${{ github.token }}
           install: |
-            apt update && apt upgrade -y && apt install -y curl
-            curl -fsSL https://fnm.vercel.app/install | bash
-            fnm install ${{ matrix.node-version }}
-            fnm use ${{ matrix.node-version }}
-            rm -rf node_modules && npm i
+            apt update && apt upgrade -y && apt install -y curl unzip ca-certificates curl gnupg
+            curl -sL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh
+            bash nodesource_setup.sh
+            apt update && apt install -y nodejs
           run: |
+            npm i
             npm run build:release -- --only-build
 
       - name: Node.js ${{ matrix.node-version }}
