@@ -1,0 +1,17 @@
+node_modules
+dist
+build
+release
+.env
+.env.development
+
+settings.json
+logs
+database
+
+*deprecated
+*.exe
+*.config
+*.zip
+*.sqlite
+.key

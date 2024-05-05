@@ -1,0 +1,7 @@
+{
+    "extends": "./tsconfig.json",
+    "include": [
+      "rollup.config.ts", "./release.ncc.ts", "./release.esbuild.ts"
+    ]
+  }
+  

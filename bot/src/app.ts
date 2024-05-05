@@ -24,7 +24,7 @@ async function checkConfig (): Promise<void> {
     writeFileSync('.env', envContent)
   }
   if (processEnv.BOT_TOKEN === 'MeTroque') {
-    throw new Error('Defina o token em .env', { cause: 'Token não fornecido' })
+    throw new Error('Defina o token em .env')
   }
 
   if (!dirEX('./settings.json')) {

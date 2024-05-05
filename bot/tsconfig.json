@@ -10,10 +10,15 @@
     "module": "CommonJS",
     "moduleResolution": "Node",
     "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "resolveJsonModule": true,
     "allowJs": true,
     "declaration": false,
     "sourceMap": false,
+    "outDir": "./dist",
+    "rootDir": "src",
     "importHelpers": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -23,6 +28,6 @@
     "skipDefaultLibCheck": true,
     "skipLibCheck": true
   },
-  "include": ["release.ts"],
-  "exclude": ["bot/**/*", "core/**/*", "plugins/**/*"]
+  "include": ["src/**/*"],
+  "exclude": [""]
 }

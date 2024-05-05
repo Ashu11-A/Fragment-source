@@ -23,11 +23,6 @@ interface BuildInfo {
 
 type BuildManifest = Record<string, BuildInfo>
 
-interface Compress {
-  directory?: string
-  outdir?: string
-}
-
 interface BuildConstructor {
   /**
    * Directory of Typescript Resources
@@ -50,9 +45,13 @@ interface BuildConstructor {
    */
   nodeVersion: '18' | '20'
   /**
- * Compress build? (default:true)
- */
+   * Compress build? (default:true)
+   */
   compress?: boolean
+  /**
+   * Config build? (default:true)
+   */
+  config?: boolean
   /**
    * Obfuscate build? (default:true)
    */
@@ -67,16 +66,17 @@ class Build {
   private readonly options: BuildConstructor
 
   private readonly progressBar = new SingleBar({}, Presets.rect)
+  private readonly startTime = Date.now()
 
   constructor (options: BuildConstructor) {
     this.options = options
   }
 
   async start (): Promise<void> {
-    await this.compress({})
-    await this.obfuscate()
-    await this.config()
-    await this.pkgbuild()
+    if (this.options.compress !== false) await this.compress()
+    if (this.options.obfuscate !== false) await this.obfuscate()
+    if (this.options.config !== false) await this.config()
+    if (this.options.pkgbuild !== false) await this.pkgbuild()
   }
 
   formatBytes (bytes: number, decimals = 2): string {
@@ -91,32 +91,24 @@ class Build {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
   }
 
-  async compress ({ directory, outdir }: Compress): Promise<void> {
-    if (directory === undefined) directory = this.options.directory
-    if (outdir === undefined) outdir = `${this.options.outdir}/src`
+  async compress (options?: { directory: string, outdir: string }): Promise<void> {
+    const { directory, outdir } = options ?? { directory: this.options.directory, outdir: `${this.options.outdir}/src` }
+    const paths = await glob([`${directory}/**/*.js`])
+
+    console.log(directory, outdir)
 
     console.debug('\n\nIniciando Compressão...')
-    const paths = await glob([`${directory}/**/*.js`])
-    const builded: Record<string, { size: number }> = {}
-    const cacheBuilded = JSON.parse(await readFile('release/build.json', { encoding: 'utf-8' }).catch(() => '{}')) as Record<string, { size: number }>
-
     this.progressBar.start(paths.length, 0)
-
     for (const filePath of paths) {
       if (!(await stat(filePath)).isFile() || filePath.includes('bindings')) {
         console.log(filePath)
         this.progressBar.increment()
         continue
       }
+
       const newPath = path.dirname(filePath).replace(directory, outdir)
       const fileContent = await readFile(filePath)
       const fileName = path.basename(filePath)
-
-      if (cacheBuilded[`${newPath}/${fileName}`]?.size === (await readFile(`${newPath}/${fileName}`).catch(() => Buffer.from(''))).byteLength) {
-        console.log(`Arquivo: ${filePath} já foi comprimido!`)
-        this.progressBar.increment()
-        continue
-      }
 
       if (!existsSync(newPath)) mkdirSync(newPath, { recursive: true })
 
@@ -144,22 +136,14 @@ class Build {
       }
 
       await writeFile(`${newPath}/${fileName}`, result.code, { encoding: 'utf-8' })
-      const file = await readFile(`${newPath}/${fileName}`)
-      builded[`${newPath}/${fileName}`] = { size: file.byteLength }
       this.progressBar.increment()
     }
-
-    if (!existsSync('release')) mkdirSync('release', { recursive: true })
-
-    await writeFile('release/build.json', JSON.stringify({
-      ...cacheBuilded,
-      ...builded
-    }, null, 2), { encoding: 'utf-8' })
     this.progressBar.stop()
   }
 
   async obfuscate (): Promise<void> {
     console.debug('\n\nIniciando Ofuscamento...')
+    const seed = Math.random()
     let paths: string[]
 
     if (this.options.compress === false) {
@@ -169,8 +153,6 @@ class Build {
     }
 
     this.progressBar.start(paths.length, 0)
-
-    const seed = Math.random()
 
     for (const filePath of paths) {
       const fileContent = await readFile(filePath, { encoding: 'utf-8' })
@@ -188,7 +170,7 @@ class Build {
   }
 
   async config (): Promise<void> {
-    console.debug('\n\nSetando configurações inicias...')
+    console.debug('\n\nConfigurações inicias...')
     const json = JSON.stringify({ token: generate(256) }, null, 2)
     await writeFile(path.join(process.cwd(), 'build/src/settings/settings.json'), json)
 
@@ -202,11 +184,11 @@ class Build {
       delete packageJson?.[name]
     }
 
-    await writeFile(path.join(process.cwd(), 'build/package.json'), JSON.stringify(packageJson, null, 2))
+    await writeFile(path.join(process.cwd(), `${this.options.outdir}/package.json`), JSON.stringify(packageJson, null, 2))
   }
 
-  async installModules (): Promise<void> {
-    console.debug('Baixando node_modules, sem as devDependencies\n\n')
+  async install (): Promise<void> {
+    console.debug('\n\nInstalando Modulos...')
     if (existsSync(`${this.options.outdir}/node_modules`)) {
       await new Promise<ExecException | null>((resolve, reject) => {
         processChild(`cd ${this.options.outdir} && rm -r node_modules`, (error, _stdout, stderr) => {
@@ -227,12 +209,12 @@ class Build {
     })
   }
 
-  async clearModules (): Promise<void> {
+  async clear (): Promise<void> {
     const removeModules = await glob([`${this.options.outdir}/node_modules/**/*`], {
       ignore: ['/**/*.js', '/**/*.json', '/**/*.cjs', '/**/*.node', '/**/*.yml']
     })
 
-    console.debug('\n\nRemovendo arquivos inúteis...')
+    console.debug('\n\nLimpando Modulos...')
     this.progressBar.start(removeModules.length, 0)
 
     for (const file of removeModules) {
@@ -261,7 +243,6 @@ class Build {
     }
 
     for (const build of builds) {
-      const startTime = Date.now()
       const nameSplit = build.split('-')
       const buildName = `./release/paymentbot-${nameSplit[1]}-${nameSplit[2]}${nameSplit[1] === 'win' ? '.exe' : nameSplit[1] === 'macos' ? '.app' : ''}`
       const newArg: string[] = []
@@ -269,16 +250,15 @@ class Build {
       if (existsSync(buildName)) rmSync(buildName)
       if (existsSync(`release/manifest-${nameSplit[1]}.json`)) rmSync(`release/manifest-${nameSplit[1]}.json`)
 
-      newArg.push(...args, '-t', build, '-o', buildName)
-
-      await this.installModules()
-      await this.clearModules()
+      await this.install()
+      await this.clear()
       await this.compress({ directory: `${this.options.outdir}/node_modules`, outdir: `${this.options.outdir}/node_modules` })
 
       console.debug(`\n\nIniciando Build ${nameSplit[2]}...`)
+      newArg.push(...args, '-t', build, '-o', buildName)
       await exec(newArg)
 
-      const timeSpent = (Date.now() - startTime) / 1000 + 's'
+      const timeSpent = (Date.now() - this.startTime) / 1000 + 's'
       console.info(`Build | ${nameSplit[1]}-${nameSplit[2]} | ${timeSpent}`)
 
       const file = await readFile(buildName)
@@ -322,7 +302,7 @@ if (!(version === '18' || version === '20')) {
 }
 
 if (!(arch === 'arm64' || arch === 'x64')) {
-  throw new Error(`Versão do nodejs invalida!\nVersão atual: ${version}, Versões suportadas: [18, 20]`)
+  throw new Error('Arquitetura invalida!')
 }
 
 const build = new Build({
@@ -336,7 +316,7 @@ const build = new Build({
 async function start (): Promise<void> {
   switch (args[0]?.replace('--', '')) {
     case 'pre-build':
-      await build.compress({})
+      await build.compress()
       await build.obfuscate()
       await build.config()
       break
