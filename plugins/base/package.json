@@ -4,11 +4,20 @@
   "description": "Controler dos modulos do PaymentBot",
   "main": "src/app.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc && tscpaths -p tsconfig.json -s ./src -o ./dist",
+    "dev": "ts-node -r tsconfig-paths/register src/app.ts"
+  },
+  "prisma": {
+    "schema": "src/prisma/schema.prisma"
   },
   "author": "Ashu11-a",
   "license": "ISC",
   "devDependencies": {
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
   }
 }

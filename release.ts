@@ -1,13 +1,14 @@
-import { exec } from '@yao-pkg/pkg'
-import { type ExecException, exec as processChild } from 'child_process'
+import { exec, type ExecException, execSync, exec as processChild, spawn } from 'child_process'
 import { Presets, SingleBar } from 'cli-progress'
 import { createHash } from 'crypto'
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs'
-import { readFile, rm, stat, writeFile } from 'fs/promises'
+import { copy, move } from 'fs-extra'
+import { readdir, readFile, rm, stat, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import { obfuscate } from 'javascript-obfuscator'
 import os from 'os'
-import path from 'path'
+import path, { join } from 'path'
+import { stdout } from 'process'
 import { generate } from 'randomstring'
 import { minify } from 'terser'
 
@@ -27,11 +28,15 @@ interface BuildConstructor {
   /**
    * Directory of Typescript Resources
    */
-  directory: string
+  source: string
   /**
-   * Outdir of build
+   * outBuild of build
    */
-  outdir: string
+  outBuild: string
+  /**
+   * outRelease of build
+   */
+  outRelease: string
   /**
    * Plataforms of builds
    */
@@ -62,51 +67,62 @@ interface BuildConstructor {
   pkgbuild?: boolean
 }
 
+interface Manifest {
+  name: string,
+  version: string,
+  author: string
+}
+
 class Build {
   private readonly options: BuildConstructor
 
   private readonly progressBar = new SingleBar({}, Presets.rect)
   private readonly startTime = Date.now()
+  private manifest: Manifest | undefined
 
   constructor (options: BuildConstructor) {
     this.options = options
   }
 
   async start (): Promise<void> {
+    await this.build()
     if (this.options.compress !== false) await this.compress()
     if (this.options.obfuscate !== false) await this.obfuscate()
     if (this.options.config !== false) await this.config()
     if (this.options.pkgbuild !== false) await this.pkgbuild()
   }
 
-  formatBytes (bytes: number, decimals = 2): string {
-    if (bytes === 0) return '0 Bytes'
+  async build() {
+    if (existsSync(this.options.outBuild)) rm(this.options.outBuild, { recursive: true }) // Remover o diretorio caso ele exista
 
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+    const sucess = await new Promise<boolean>((resolve, reject) => {
+      processChild(`cd ${this.options.source} && npm run build`, (err, stdout, stderr) => { // Buildar typescript
+        if (err !== null || stderr !== '') {
+          console.log(stderr !== "" ? stderr : err)
+          reject(false)
+        }
+        resolve(true)
+      })
+    })
 
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+    if (sucess) { await move(`${this.options.source}/dist`, './build/src', { overwrite: true }); return }
+    throw new Error(`Ocorreu um erro ao tentar buildar o projeto ${this.options.source}`)
   }
 
-  async compress (options?: { directory: string, outdir: string }): Promise<void> {
-    const { directory, outdir } = options ?? { directory: this.options.directory, outdir: `${this.options.outdir}/src` }
+  async compress (options?: { directory: string, outBuild: string }): Promise<void> {
+    const { directory, outBuild } = options ?? { directory: this.options.outBuild, outBuild: `${this.options.outBuild}/src` }
     const paths = await glob([`${directory}/**/*.js`])
-
-    console.log(directory, outdir)
 
     console.debug('\n\nIniciando Compressão...')
     this.progressBar.start(paths.length, 0)
     for (const filePath of paths) {
       if (!(await stat(filePath)).isFile() || filePath.includes('bindings')) {
-        console.log(filePath)
+        console.log(`Pulando compressão: ${filePath}`)
         this.progressBar.increment()
         continue
       }
 
-      const newPath = path.dirname(filePath).replace(directory, outdir)
+      const newPath = path.dirname(filePath).replace(directory, outBuild)
       const fileContent = await readFile(filePath)
       const fileName = path.basename(filePath)
 
@@ -130,10 +146,7 @@ class Build {
         keep_fnames: true
       })
 
-      if (result.code === undefined) {
-        this.progressBar.increment()
-        continue
-      }
+      if (result.code === undefined) { this.progressBar.increment(); continue }
 
       await writeFile(`${newPath}/${fileName}`, result.code, { encoding: 'utf-8' })
       this.progressBar.increment()
@@ -144,13 +157,7 @@ class Build {
   async obfuscate (): Promise<void> {
     console.debug('\n\nIniciando Ofuscamento...')
     const seed = Math.random()
-    let paths: string[]
-
-    if (this.options.compress === false) {
-      paths = await glob([`${this.options.directory}/src/**/*.js`])
-    } else {
-      paths = await glob([`${this.options.outdir}/src/**/*.js`])
-    }
+    const paths = await glob([`${this.options.outBuild}/src/**/*.js`])
 
     this.progressBar.start(paths.length, 0)
 
@@ -170,28 +177,45 @@ class Build {
   }
 
   async config (): Promise<void> {
-    console.debug('\n\nConfigurações inicias...')
-    const json = JSON.stringify({ token: generate(256) }, null, 2)
-    await writeFile(path.join(process.cwd(), 'build/src/settings/settings.json'), json)
-
     console.debug('Configurando package.json')
-    const packageJson = JSON.parse(await readFile(path.join(process.cwd(), 'package.json'), { encoding: 'utf-8' })) as Record<string, string | object | null>
+    const packageJson = JSON.parse(await readFile(path.join(process.cwd(), `${this.options.source}/package.json`), { encoding: 'utf-8' })) as Record<string, string | object | null>
     packageJson.main = 'src/app.js'
     packageJson.bin = 'src/app.js'
-    const remove = ['devDependencies', 'scripts', 'keywords', 'pkg']
+    packageJson.pkg = {
+      scripts: [
+        "src/**/*.js",
+        "src/**/*.json",
+        "manifest.json",
+        "package.json"
+      ],
+      assets: [
+        "node_modules/**/*.js",
+        "node_modules/**/*.cjs",
+        "node_modules/**/*.json",
+        "node_modules/**/*.node"
+      ]
+    }
+  
+    const remove = ['devDependencies', 'scripts', 'keywords', 'repository', 'bugs', 'homepage']
 
-    for (const name of remove) {
-      delete packageJson?.[name]
+    for (const name of remove) delete packageJson?.[name]
+
+    await writeFile(path.join(process.cwd(), `${this.options.outBuild}/package.json`), JSON.stringify(packageJson, null, 2))
+
+    if (existsSync(`${this.options.source}/manifest.json`)) {
+      console.log('Gerando Manifesto')
+      const manifest = JSON.parse(await readFile(path.join(process.cwd(), `${this.options.source}/manifest.json`), { encoding: 'utf-8' })) as Manifest
+      this.manifest = manifest
+      await writeFile(path.join(process.cwd(), `${this.options.outBuild}/manifest.json`), JSON.stringify(manifest, null, 2))
     }
 
-    await writeFile(path.join(process.cwd(), `${this.options.outdir}/package.json`), JSON.stringify(packageJson, null, 2))
   }
 
   async install (): Promise<void> {
     console.debug('\n\nInstalando Modulos...')
-    if (existsSync(`${this.options.outdir}/node_modules`)) {
+    if (existsSync(`${this.options.outBuild}/node_modules`)) {
       await new Promise<ExecException | null>((resolve, reject) => {
-        processChild(`cd ${this.options.outdir} && rm -r node_modules`, (error, _stdout, stderr) => {
+        processChild(`cd ${this.options.outBuild} && rm -r node_modules`, (error, _stdout, stderr) => {
           if (error !== null || stderr !== '') {
             reject(error ?? stderr)
           }
@@ -200,7 +224,7 @@ class Build {
       })
     }
     await new Promise<ExecException | null>((resolve, reject) => {
-      processChild(`cd ${this.options.outdir} && npm i && npm rebuild better_sqlite3 && npm rebuild`, (error, _stdout, stderr) => {
+      processChild(`cd ${this.options.outBuild} && npm i && npm rebuild better_sqlite3 && npm rebuild`, (error, _stdout, stderr) => {
         if (error !== null || stderr !== '') {
           reject(error ?? stderr)
         }
@@ -210,7 +234,7 @@ class Build {
   }
 
   async clear (): Promise<void> {
-    const removeModules = await glob([`${this.options.outdir}/node_modules/**/*`], {
+    const removeModules = await glob([`${this.options.outBuild}/node_modules/**/*`], {
       ignore: ['/**/*.js', '/**/*.json', '/**/*.cjs', '/**/*.node', '/**/*.yml']
     })
 
@@ -244,24 +268,25 @@ class Build {
 
     for (const build of builds) {
       const nameSplit = build.split('-')
-      const buildName = `./release/paymentbot-${nameSplit[1]}-${nameSplit[2]}${nameSplit[1] === 'win' ? '.exe' : nameSplit[1] === 'macos' ? '.app' : ''}`
+      const buildName = `${this.manifest?.name ?? `paymentbot-${Date.now()}`}-${nameSplit[1]}-${nameSplit[2]}${nameSplit[1] === 'win' ? '.exe' : nameSplit[1] === 'macos' ? '.app' : ''}`
       const newArg: string[] = []
 
       if (existsSync(buildName)) rmSync(buildName)
-      if (existsSync(`release/manifest-${nameSplit[1]}.json`)) rmSync(`release/manifest-${nameSplit[1]}.json`)
+      if (existsSync(`${this.options.outRelease}/manifest-${nameSplit[1]}.json`)) rmSync(`release/manifest-${nameSplit[1]}.json`)
 
       await this.install()
       await this.clear()
-      await this.compress({ directory: `${this.options.outdir}/node_modules`, outdir: `${this.options.outdir}/node_modules` })
+      await this.compress({ directory: `${this.options.outBuild}/node_modules`, outBuild: `${this.options.outBuild}/node_modules` })
 
       console.debug(`\n\nIniciando Build ${nameSplit[2]}...`)
-      newArg.push(...args, '-t', build, '-o', buildName)
-      await exec(newArg)
+      newArg.push(...args, '-t', build, '--output', `${this.options.outRelease}/${buildName}`)
+
+      execSync(`cd ${this.options.outBuild} && npx pkg ${newArg.join(" ")}`, { stdio: 'inherit' })
 
       const timeSpent = (Date.now() - this.startTime) / 1000 + 's'
       console.info(`Build | ${nameSplit[1]}-${nameSplit[2]} | ${timeSpent}`)
 
-      const file = await readFile(buildName)
+      const file = await readFile(`${this.options.outRelease}/${buildName}`)
       const hashMD5 = createHash('md5').update(file).digest('hex')
       const hashSHA = createHash('sha256').update(file).digest('hex')
 
@@ -270,7 +295,7 @@ class Build {
           path: buildName.replace('./release/', ''),
           platform: nameSplit[1],
           arch: nameSplit[2],
-          size: this.formatBytes(file.byteLength),
+          size: formatBytes(file.byteLength),
           timeBuild: timeSpent,
           hashMD5,
           hashSHA
@@ -293,39 +318,108 @@ class Build {
   }
 }
 
-const args = process.argv.slice(2)
+interface Args {
+  command: string,
+  alias: string[]
+}
+
+const args = process.argv.slice(2).map((arg) => arg.replace('-', ''))
 const version = process.version.split('.')[0].replace('v', '')
 const arch = process.arch
 
-if (!(version === '18' || version === '20')) {
-  throw new Error(`Versão do nodejs invalida!\nVersão atual: ${version}, Versões suportadas: [18, 20]`)
-}
-
-if (!(arch === 'arm64' || arch === 'x64')) {
-  throw new Error('Arquitetura invalida!')
-}
-
-const build = new Build({
-  directory: 'dist',
-  outdir: 'build',
-  archs: [arch],
-  platforms: ['linux'],
-  nodeVersion: version
-})
-
 async function start (): Promise<void> {
-  switch (args[0]?.replace('--', '')) {
-    case 'pre-build':
-      await build.compress()
-      await build.obfuscate()
-      await build.config()
-      break
-    case 'only-build':
-      await build.pkgbuild()
-      break
-    default:
-      await build.start()
+  if (!['18', '20'].includes(version)) {
+    throw new Error(`Versão do nodejs invalida!\nVersão atual: ${version}, Versões suportadas: [18, 20]`)
   }
+  
+  if (!['arm64', 'x64'].includes(arch)) {
+    throw new Error('Arquitetura invalida!')
+  }
+  
+  const directories = (await readdir('plugins')).map((dir) => `plugins/${dir}`); directories.push('core')
+
+  const argsList: Array<Args> = [
+    { command: 'help', alias: ['h'] },
+    { command: 'pre-build', alias: ['pb'] },
+    { command: 'only-build', alias: ['ob'] }
+  ]
+
+  
+  for (const project of directories) {
+    const build = new Build({
+      source: project,
+      outBuild: 'build',
+      outRelease: join(process.cwd(), 'release'),
+      archs: [arch as ('arm64' | 'x64')],
+      platforms: ['linux'],
+      nodeVersion: version as ('18' | '20')
+    })
+
+    if (args.length === 0) {
+      await build.start()
+      continue
+    }
+
+    for (let argNum = 0; argNum < args.length; argNum++) {
+      for (const { command, alias } of argsList) {
+        if (alias.includes(args[argNum])) args[argNum] = command
+      }
+
+      switch (args[argNum]) {
+        case 'pre-build': {
+          const build = new Build({
+            source: args[argNum++],
+            outBuild: 'build',
+            outRelease: join(process.cwd(), 'release'),
+            archs: [arch as ('arm64' | 'x64')],
+            platforms: ['linux'],
+            nodeVersion: version as ('18' | '20')
+          })
+          await build.build()
+          await build.compress()
+          await build.obfuscate()
+          await build.config()
+          return
+        }
+        case 'only-build': {
+          const build = new Build({
+            source: args[argNum++],
+            outBuild: 'build',
+            outRelease: join(process.cwd(), 'release'),
+            archs: [arch as ('arm64' | 'x64')],
+            platforms: ['linux'],
+            nodeVersion: version as ('18' | '20')
+          })
+          await build.pkgbuild()
+          return
+        }
+        case 'help':
+          console.log(`
+release [options] <input>
+
+    Options:
+  
+      -h,  --help          Output usage information
+      -pb, --pre-build     Only build what the pkg needs
+      -ob, --only-build    Only build the plugins with pkg
+          `)
+          break
+      }
+    }
+
+  }
+}
+
+function formatBytes (bytes: number, decimals = 2): string {
+  if (bytes === 0) return '0 Bytes'
+
+  const k = 1024
+  const dm = decimals < 0 ? 0 : decimals
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
 }
 
 void start()

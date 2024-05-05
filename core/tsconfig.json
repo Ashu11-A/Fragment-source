@@ -17,7 +17,7 @@
     "allowJs": true,
     "declaration": false,
     "sourceMap": false,
-    "outDir": "./dist",
+    "outDir": "dist",
     "rootDir": "src",
     "importHelpers": true,
     "allowSyntheticDefaultImports": true,
