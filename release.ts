@@ -322,50 +322,61 @@ async function start (): Promise<void> {
     throw new Error('Arquitetura invalida!')
   }
   
-  const directories = (await readdir('plugins')).map((dir) => `plugins/${dir}`); directories.push('core')
-
   const argsList: Array<Args> = [
     { command: 'help', alias: ['h'] },
     { command: 'pre-build', alias: ['pb'] },
-    { command: 'only-build', alias: ['ob'] }
+    { command: 'only-build', alias: ['ob'] },
+    { command: 'source', alias: ['s'] }
   ]
+  for (let argIndex = 0; argIndex < args.length; argIndex++) {
+    for (const { command, alias } of argsList) {
+      if (alias.includes(args[argIndex])) args[argIndex] = command
+    }
+  }
 
+  const directories = (await readdir('plugins')).map((dir) => `plugins/${dir}`); directories.push('core')
+  const builds: Array<Build> = []
   
   for (const project of directories) {
-    const build = new Build({
+    builds.push(new Build({
       source: project,
       outBuild: 'build',
       outRelease: join(process.cwd(), 'release'),
       archs: [arch as ('arm64' | 'x64')],
       platforms: ['linux'],
       nodeVersion: version as ('18' | '20')
-    })
+    }))
+  }
 
+  const sourceIndex = args.findIndex((arg) => ['source'].includes(arg))
+  const sourcePath = args[(sourceIndex) + 1]
+
+  if (sourcePath !== undefined) {
+    builds.splice(0, builds.length)
+    builds.push(new Build({
+      source: sourcePath,
+      outBuild: 'build',
+      outRelease: join(process.cwd(), 'release'),
+      archs: [arch as ('arm64' | 'x64')],
+      platforms: ['linux'],
+      nodeVersion: version as ('18' | '20')
+    }))
+    console.log(`Buildando apenas o ${sourcePath}`)
+  }
+
+  for (const build of builds) {
     if (args.length === 0) {
       await build.start()
       continue
     }
 
     for (let argNum = 0; argNum < args.length; argNum++) {
-      console.log(argNum, args[argNum])
-
-      for (const { command, alias } of argsList) {
-        if (alias.includes(args[argNum])) args[argNum] = command
-      }
-      console.log(argNum, args[argNum])
-
-
       switch (args[argNum]) {
-        case 'pre-build': {
+        case 'source': {
           argNum++
-          const build = new Build({
-            source: args[argNum],
-            outBuild: 'build',
-            outRelease: join(process.cwd(), 'release'),
-            archs: [arch as ('arm64' | 'x64')],
-            platforms: ['linux'],
-            nodeVersion: version as ('18' | '20')
-          })
+          await build.start()
+        }
+        case 'pre-build': {
           await build.build()
           await build.compress()
           await build.obfuscate()
@@ -373,15 +384,6 @@ async function start (): Promise<void> {
           break
         }
         case 'only-build': {
-          argNum++
-          const build = new Build({
-            source: args[argNum],
-            outBuild: 'build',
-            outRelease: join(process.cwd(), 'release'),
-            archs: [arch as ('arm64' | 'x64')],
-            platforms: ['linux'],
-            nodeVersion: version as ('18' | '20')
-          })
           await build.pkgbuild()
           break
         }
@@ -394,6 +396,7 @@ release [options] <input>
       -h,  --help          Output usage information
       -pb, --pre-build     Only build what the pkg needs
       -ob, --only-build    Only build the plugins with pkg
+      -s,  --source        Build a specific directory
           `)
           break
       }
