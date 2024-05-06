@@ -36,7 +36,8 @@ export class Plugins {
         this.options = options
     }
 
-    check (plugins: string[]) {
+    async list () {
+        const plugins = await glob(`${this.path}/*`)
         let valid = []
         for (const filePath of plugins) {
             if (!isBinaryFile(filePath)) continue
@@ -47,11 +48,13 @@ export class Plugins {
     }
 
     async load (port: string): Promise<void> {
-        const plugins = await glob(`${this.path}/*`)
-        const pluginsValid = this.check(plugins)
-        if (pluginsValid.length === 0) throw new Error('Nenhum plugin carregado!')
+        const plugins = await this.list()
+        if (plugins.length === 0) {
+            console.log('Nenhum plugin carregado!')
+            return
+        }
 
-        for (const filePath of pluginsValid) {
+        for (const filePath of plugins) {
             await new Promise ((resolve, reject) => {
                 const child = spawn(filePath, ['--port', port])
 
