@@ -1,15 +1,13 @@
-import { exec, type ExecException, execSync, exec as processChild, spawn } from 'child_process'
+import { exec, type ExecException, execSync, exec as processChild } from 'child_process'
 import { Presets, SingleBar } from 'cli-progress'
 import { createHash } from 'crypto'
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs'
-import { copy, move } from 'fs-extra'
+import { move } from 'fs-extra'
 import { readdir, readFile, rm, stat, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import { obfuscate } from 'javascript-obfuscator'
 import os from 'os'
 import path, { join } from 'path'
-import { stdout } from 'process'
-import { generate } from 'randomstring'
 import { minify } from 'terser'
 
 interface BuildInfo {
@@ -107,6 +105,10 @@ class Build {
 
     if (sucess) { await move(`${this.options.source}/dist`, './build/src', { overwrite: true }); return }
     throw new Error(`Ocorreu um erro ao tentar buildar o projeto ${this.options.source}`)
+  }
+
+  async sign (): Promise<void> {
+    
   }
 
   async compress (options?: { directory: string, outBuild: string }): Promise<void> {
@@ -213,24 +215,8 @@ class Build {
 
   async install (): Promise<void> {
     console.debug('\n\nInstalando Modulos...')
-    if (existsSync(`${this.options.outBuild}/node_modules`)) {
-      await new Promise<ExecException | null>((resolve, reject) => {
-        processChild(`cd ${this.options.outBuild} && rm -r node_modules`, (error, _stdout, stderr) => {
-          if (error !== null || stderr !== '') {
-            reject(error ?? stderr)
-          }
-          resolve(null)
-        })
-      })
-    }
-    await new Promise<ExecException | null>((resolve, reject) => {
-      processChild(`cd ${this.options.outBuild} && npm i && npm rebuild better_sqlite3 && npm rebuild`, (error, _stdout, stderr) => {
-        if (error !== null || stderr !== '') {
-          reject(error ?? stderr)
-        }
-        resolve(null)
-      })
-    })
+    if (existsSync(`${this.options.outBuild}/node_modules`)) execSync(`cd ${this.options.outBuild} && rm -r node_modules`, { stdio: 'inherit' })
+    execSync(`cd ${this.options.outBuild} && npm i && npm rebuild better_sqlite3 && npm rebuild`, { stdio: 'inherit' })
   }
 
   async clear (): Promise<void> {
@@ -361,14 +347,19 @@ async function start (): Promise<void> {
     }
 
     for (let argNum = 0; argNum < args.length; argNum++) {
+      console.log(argNum, args[argNum])
+
       for (const { command, alias } of argsList) {
         if (alias.includes(args[argNum])) args[argNum] = command
       }
+      console.log(argNum, args[argNum])
+
 
       switch (args[argNum]) {
         case 'pre-build': {
+          argNum++
           const build = new Build({
-            source: args[argNum++],
+            source: args[argNum],
             outBuild: 'build',
             outRelease: join(process.cwd(), 'release'),
             archs: [arch as ('arm64' | 'x64')],
@@ -379,11 +370,12 @@ async function start (): Promise<void> {
           await build.compress()
           await build.obfuscate()
           await build.config()
-          return
+          break
         }
         case 'only-build': {
+          argNum++
           const build = new Build({
-            source: args[argNum++],
+            source: args[argNum],
             outBuild: 'build',
             outRelease: join(process.cwd(), 'release'),
             archs: [arch as ('arm64' | 'x64')],
@@ -391,7 +383,7 @@ async function start (): Promise<void> {
             nodeVersion: version as ('18' | '20')
           })
           await build.pkgbuild()
-          return
+          break
         }
         case 'help':
           console.log(`
