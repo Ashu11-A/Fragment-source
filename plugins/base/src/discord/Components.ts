@@ -33,7 +33,7 @@ type ComponentData<Cached extends CacheType = CacheType> = ComponentProps<Cached
 export class DiscordComponent {
     public static all: Array<ComponentData> = []
 
-    public find<Cached extends CacheType, T extends ComponentData['type']>(customId: string, type: T) {
+    public static find<Cached extends CacheType, T extends ComponentData['type']>(customId: string, type: T) {
         const component = DiscordComponent.all.find((component) => component.customId === customId && component.type === type)
         return component as ComponentData<Cached> & { type: T } | undefined
     }
