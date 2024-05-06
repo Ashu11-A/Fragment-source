@@ -17,8 +17,6 @@ const argsList: Array<Args> = [
 ]
 
 async function app() {
-    console.log(argv)
-    console.log(args)
     const client = new SocketClient()
     await register()
 

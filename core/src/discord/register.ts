@@ -10,7 +10,6 @@ export async function register() {
     ], { cwd: dir })
 
     for (const path of paths) {
-        console.log(path)
         await import (join(dir, path))
     }
 }
