@@ -30,7 +30,7 @@ async function app() {
 
         switch (args[argNum]) {
             case 'info': {
-                const manifest = JSON.parse(await readFile(join(__dirname, '../manifest.json'), { encoding: 'utf-8' }))
+                const manifest = JSON.parse(await readFile(join(__dirname, '../package.json'), { encoding: 'utf-8' }))
                 console.info(manifest)
                 break
             }

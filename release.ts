@@ -187,7 +187,6 @@ class Build {
       scripts: [
         "src/**/*.js",
         "src/**/*.json",
-        "manifest.json",
         "package.json"
       ],
       assets: [
@@ -203,14 +202,6 @@ class Build {
     for (const name of remove) delete packageJson?.[name]
 
     await writeFile(path.join(process.cwd(), `${this.options.outBuild}/package.json`), JSON.stringify(packageJson, null, 2))
-
-    if (existsSync(`${this.options.source}/manifest.json`)) {
-      console.log('Gerando Manifesto')
-      const manifest = JSON.parse(await readFile(path.join(process.cwd(), `${this.options.source}/manifest.json`), { encoding: 'utf-8' })) as Manifest
-      this.manifest = manifest
-      await writeFile(path.join(process.cwd(), `${this.options.outBuild}/manifest.json`), JSON.stringify(manifest, null, 2))
-    }
-
   }
 
   async install (): Promise<void> {

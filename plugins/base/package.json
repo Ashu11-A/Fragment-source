@@ -1,5 +1,5 @@
 {
-  "name": "paymentbot-core",
+  "name": "base",
   "version": "1.0.0",
   "description": "Controler dos modulos do PaymentBot",
   "main": "src/app.ts",
