@@ -1,20 +1,18 @@
 import { readFile } from 'fs/promises'
 import { join } from 'path'
-import { argv, env } from 'process'
+import { argv } from 'process'
 import { PKG_MODE } from '.'
 import { Plugins } from './controller/plugins'
 import { SocketController } from './controller/socket'
 import { register } from './discord/register'
 import { generatePort } from './functions/port'
-import { DiscordClient } from './discord/Client'
-import { delay } from './functions/delay'
 
 interface Args {
     command: string,
     alias: string[]
 }
 
-const args = (PKG_MODE ? argv : argv.splice(2)).map((arg) => arg.replace('--', '').replace('-', ''))
+const args = argv.splice(2).map((arg) => arg.replace('--', '').replace('-', ''))
 const argsList: Array<Args> = [
     { command: 'info', alias: ['i'] },
     { command: 'port', alias: ['p'] }

@@ -15,24 +15,30 @@ export class Event {
 
     async controller () {
         this.options.client.on('disconnect', () => this.disconnect())
-        this.options.client.onAny((eventName, args) => {
+        this.options.client.onAny(async (eventName, args) => {
             switch (eventName) {
-                case 'metadata': console.log(`Plugin Conectado: ${args.name}`);break
+                case 'metadata': {
+                    // apenas o ultimo iniciará o Discord [Plugins.loaded < Plugins.plugins]
+                    if (Plugins.loaded < (Plugins.plugins - 1)) {
+                        Plugins.loaded = Plugins.loaded + 1
+                        break
+                    }
+                    console.log(`✅ Plugin Conectado: ${args.name}`)
+                    if (Plugins.loaded === 0 && Plugins.plugins === 0) {
+                        console.log('\n🚨 Modo de desenvolvimento, iniciando Discord...\n')
+                    } else {
+                        console.log(`\n🚩 Último plugin carregado (${Plugins.loaded + 1}/${Plugins.plugins}), iniciando Discord...\n`)
+                    }
+                    const client = new DiscordClient()
+                    client.createClient()
+                    await client.start()
+                    break
+                }
                 case 'commands': console.log(`√ Registrando ${eventName}, ${args.length} ${args.length === 1 ? 'elemento' : 'elementos'}`); break
                 case 'components': console.log(`√ Registrando ${eventName}, ${args.length} ${args.length === 1 ? 'elemento' : 'elementos'}`); break
                 case 'events': console.log(`√ Registrando ${eventName}, ${args.length} ${args.length === 1 ? 'elemento' : 'elementos'}`); break
             }
         })
-    }
-
-    async last () {
-        if (Plugins.loaded < Plugins.plugins) {
-            Plugins.loaded = Plugins.loaded + 1
-            return
-        }
-        const client = new DiscordClient()
-        client.createClient()
-        await client.start()
     }
 
     async connected () {

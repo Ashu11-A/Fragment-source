@@ -2,23 +2,23 @@ import { PKG_MODE } from '@/index'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
 import { argv } from 'process'
-import { register } from './discord/register'
 import { SocketClient } from './controller/socket'
-import { DiscordClient } from './discord/Client'
-import { DiscordEvent } from '@/discord/Event'
+import { register } from './discord/register'
 
 interface Args {
     command: string,
     alias: string[]
 }
 
-const args = (PKG_MODE ? argv : argv.splice(2)).map((arg) => arg.replace('--', '').replace('-', ''))
+const args = argv.splice(2).map((arg) => arg.replace('--', '').replace('-', ''))
 const argsList: Array<Args> = [
     { command: 'info', alias: ['i'] },
     { command: 'port', alias: ['p'] }
 ]
 
 async function app() {
+    console.log(argv)
+    console.log(args)
     const client = new SocketClient()
     await register()
 
@@ -38,7 +38,9 @@ async function app() {
             }
             case 'port': {
                 argNum++
-                client.connect(args[argNum])
+                const port = args[argNum]
+                console.log(port)
+                client.connect(port)
                 break
             }
         }

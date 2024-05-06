@@ -24,8 +24,7 @@ export class SocketController {
         this.io.on('connection', async (client) => {
             const event = new Event({ client })
             event.connected()
-            event.controller()
-            await event.last() // apenas o ultimo iniciará o Discord [Plugins.loaded < Plugins.plugins]
+            event.controller() 
         })
     }
 }
