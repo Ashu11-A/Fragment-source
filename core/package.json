@@ -10,17 +10,17 @@
   "author": "Ashu11-a",
   "license": "ISC",
   "devDependencies": {
+    "@types/socket.io": "^3.0.2",
     "@types/express": "^4.17.21",
     "@types/signale": "^1.4.7",
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@types/socket.io": "^3.0.2",
     "discord.js": "^14.15.2",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "glob": "^10.3.12",
     "signale": "^1.4.0",
-    "socket.io": "^4.7.5",
-    "socket.io-client": "^4.7.5"
+    "socket.io": "^4.7.5"
   }
 }
