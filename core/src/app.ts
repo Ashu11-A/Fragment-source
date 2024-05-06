@@ -1,7 +1,7 @@
-import { readFile } from 'fs/promises'
+import { readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { argv } from 'process'
-import { PKG_MODE } from '.'
+import { env, PKG_MODE } from '.'
 import { Plugins } from './controller/plugins'
 import { SocketController } from './controller/socket'
 import { register } from './discord/register'
@@ -19,6 +19,11 @@ const argsList: Array<Args> = [
 ]
 
 async function app() {
+    if (env?.BOT_TOKEN === undefined || env?.BOT_TOKEN === 'Troque-me') {
+        await writeFile(join(process.cwd(), '.env'), 'BOT_TOKEN=Troque-me', { encoding: 'utf-8' })
+        throw new Error('Defina um token!')
+    }
+
     const port = PKG_MODE ? String(await generatePort()) : '3000'
     const socket = new SocketController()
     const plugins = new Plugins({ directory: 'plugins' })
