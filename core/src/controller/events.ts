@@ -2,6 +2,7 @@ import { Socket } from "socket.io"
 import { env } from ".."
 import { Plugins } from "./plugins"
 import { Discord } from "@/discord/Client"
+import { CommandData, DiscordCommand } from "@/discord/Commands"
 
 interface EventOptions {
     client: Socket
@@ -23,7 +24,7 @@ export class Event {
                         Plugins.loaded = Plugins.loaded + 1
                         break
                     }
-                    console.log(`✅ Plugin Conectado: ${args.name}`)
+                    console.log(`✅ Plugin ${args.name} inicializado com sucesso!`)
                     if (Plugins.loaded === 0 && Plugins.plugins === 0) {
                         console.log('\n🚨 Modo de desenvolvimento, iniciando Discord...\n')
                     } else {
@@ -34,7 +35,14 @@ export class Event {
                     await client.start()
                     break
                 }
-                case 'commands': console.log(`√ Registrando ${eventName}, ${args.length} ${args.length === 1 ? 'elemento' : 'elementos'}`); break
+                case 'commands': {
+                    console.log(`√ Registrando ${eventName}, ${args.length} ${args.length === 1 ? 'elemento' : 'elementos'}`)
+                    if (args.length === 0) break
+                    for (const command of (args as Array<CommandData<boolean>>)) {
+                        DiscordCommand.all.set(command.name, command)
+                    }
+                    break
+                }
                 case 'components': console.log(`√ Registrando ${eventName}, ${args.length} ${args.length === 1 ? 'elemento' : 'elementos'}`); break
                 case 'events': console.log(`√ Registrando ${eventName}, ${args.length} ${args.length === 1 ? 'elemento' : 'elementos'}`); break
             }
