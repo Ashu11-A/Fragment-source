@@ -1,7 +1,7 @@
 import { Socket } from "socket.io"
 import { env } from ".."
 import { Plugins } from "./plugins"
-import { DiscordClient } from "@/discord/Client"
+import { Discord } from "@/discord/Client"
 
 interface EventOptions {
     client: Socket
@@ -29,7 +29,7 @@ export class Event {
                     } else {
                         console.log(`\n🚩 Último plugin carregado (${Plugins.loaded + 1}/${Plugins.plugins}), iniciando Discord...\n`)
                     }
-                    const client = new DiscordClient()
+                    const client = new Discord()
                     client.createClient()
                     await client.start()
                     break
