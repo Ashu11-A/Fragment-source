@@ -65,18 +65,11 @@ interface BuildConstructor {
   pkgbuild?: boolean
 }
 
-interface Manifest {
-  name: string,
-  version: string,
-  author: string
-}
-
 class Build {
   private readonly options: BuildConstructor
 
   private readonly progressBar = new SingleBar({}, Presets.rect)
   private readonly startTime = Date.now()
-  private manifest: Manifest | undefined
 
   constructor (options: BuildConstructor) {
     this.options = options
@@ -94,7 +87,7 @@ class Build {
     if (existsSync(this.options.outBuild)) rm(this.options.outBuild, { recursive: true }) // Remover o diretorio caso ele exista
 
     const sucess = await new Promise<boolean>((resolve, reject) => {
-      processChild(`cd ${this.options.source} && npm run build`, (err, stdout, stderr) => { // Buildar typescript
+      processChild(`cd ${this.options.source} && npm i && npm run build`, (err, stdout, stderr) => { // Buildar typescript
         if (err !== null || stderr !== '') {
           console.log(stderr !== "" ? stderr : err)
           reject(false)
@@ -244,8 +237,9 @@ class Build {
     }
 
     for (const build of builds) {
+      const packageJson = JSON.parse(await readFile(path.join(process.cwd(), `${this.options.outBuild}/package.json`), { encoding: 'utf-8' })) as Record<string, string | object | null>
       const nameSplit = build.split('-')
-      const buildName = `${this.manifest?.name ?? `paymentbot-${Date.now()}`}-${nameSplit[1]}-${nameSplit[2]}${nameSplit[1] === 'win' ? '.exe' : nameSplit[1] === 'macos' ? '.app' : ''}`
+      const buildName = `${packageJson?.name ?? `paymentbot-${Date.now()}`}-${nameSplit[1]}-${nameSplit[2]}${nameSplit[1] === 'win' ? '.exe' : nameSplit[1] === 'macos' ? '.app' : ''}`
       const newArg: string[] = []
 
       if (existsSync(buildName)) rmSync(buildName)
