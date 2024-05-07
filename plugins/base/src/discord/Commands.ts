@@ -1,4 +1,4 @@
-import { ApplicationCommandData, ApplicationCommandType, AutocompleteInteraction, CacheType, ChatInputCommandInteraction, Collection, CommandInteraction, MessageContextMenuCommandInteraction, UserContextMenuCommandInteraction } from "discord.js";
+import { type ApplicationCommandData, type ApplicationCommandType, type AutocompleteInteraction, type CacheType, type ChatInputCommandInteraction, Collection, type CommandInteraction, type MessageContextMenuCommandInteraction, type UserContextMenuCommandInteraction } from 'discord.js'
 
 type C<B extends boolean, I extends CommandInteraction | AutocompleteInteraction> =
 I extends ChatInputCommandInteraction
@@ -29,8 +29,8 @@ type CommandData<DmPermission extends boolean> = CommandProps<DmPermission> & Ap
 }
 
 export class DiscordCommand<DmPermission extends boolean = boolean> {
-    public static all = new Collection<string, CommandData<boolean>>()
-    constructor (data: CommandData<DmPermission>) {
-        DiscordCommand.all.set(data.name, data)
-    }
+  public static all = new Collection<string, CommandData<boolean>>()
+  constructor (data: CommandData<DmPermission>) {
+    DiscordCommand.all.set(data.name, data)
+  }
 }
