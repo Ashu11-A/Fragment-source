@@ -5,14 +5,22 @@
   "main": "src/app.ts",
   "scripts": {
     "build": "tsc && tscpaths -p tsconfig.json -s ./src -o ./dist",
-    "dev": "ts-node -r tsconfig-paths/register src/app.ts"
+    "dev": "ts-node -r tsconfig-paths/register src/app.ts",
+    "lint": "eslint --ext .tsx,.ts --fix ./src -c .eslintrc.json"
   },
   "author": "Ashu11-a",
   "license": "ISC",
   "devDependencies": {
-    "@types/socket.io": "^3.0.2",
     "@types/express": "^4.17.21",
     "@types/signale": "^1.4.7",
+    "@types/socket.io": "^3.0.2",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.0",
+    "eslint-config-standard-with-typescript": "^43.0.1",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-promise": "^6.1.1",
     "typescript": "^5.4.5"
   },
   "dependencies": {
@@ -20,7 +28,10 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "glob": "^10.3.12",
+    "mysql": "^2.18.1",
+    "reflect-metadata": "^0.2.2",
     "signale": "^1.4.0",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "typeorm": "^0.3.20"
   }
 }

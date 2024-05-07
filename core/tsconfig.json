@@ -18,7 +18,7 @@
     "declaration": false,
     "sourceMap": false,
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": "./src",
     "importHelpers": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -28,6 +28,6 @@
     "skipDefaultLibCheck": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*"],
-  "exclude": [""]
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }
