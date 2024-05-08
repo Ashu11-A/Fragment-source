@@ -105,7 +105,7 @@ class Build {
   }
 
   async compress (options?: { directory: string, outBuild: string }): Promise<void> {
-    const { directory, outBuild } = options ?? { directory: this.options.outBuild, outBuild: `${this.options.outBuild}/src` }
+    const { directory, outBuild } = options ?? { directory: `${this.options.outBuild}/src`, outBuild: `${this.options.outBuild}/src` }
     const paths = await glob([`${directory}/**/*.js`])
 
     console.debug('\n\nIniciando Compressão...')
