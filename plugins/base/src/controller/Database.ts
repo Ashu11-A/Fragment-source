@@ -1,5 +1,5 @@
 import { gen } from '@/functions/gen'
-import { type BaseEntity, type FindManyOptions, type FindOptionsWhere, type FindOneOptions, type DeepPartial, type ObjectId, type DeleteResult } from 'typeorm'
+import { type BaseEntity, type FindManyOptions, type FindOptionsWhere, type FindOneOptions, type DeepPartial, type ObjectId, type DeleteResult, SaveOptions } from 'typeorm'
 import { SocketClient } from './socket'
 
 interface DatabaseOptions {
@@ -13,6 +13,13 @@ export class Database<T extends BaseEntity> {
   constructor ({ table }: DatabaseOptions) {
     this.eventName = `database_${gen(18)}`
     this.table = table
+  }
+
+  async save (entities: DeepPartial<T>[] | DeepPartial<T>, options?: SaveOptions): Promise<T[] | T> {
+    return await new Promise((resolve, reject) => {
+      SocketClient.client.emit(this.eventName, { table: this.table, type: 'save', entities, options })
+      SocketClient.client.once(this.eventName, (data: T[] | T) => { resolve(data) })
+    })
   }
 
   async find (options: FindManyOptions<T> | undefined): Promise<T[]> {
