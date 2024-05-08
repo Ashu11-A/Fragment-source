@@ -4,6 +4,7 @@ import { mkdir } from 'fs/promises'
 import { glob } from 'glob'
 import { join } from 'path'
 import { cwd } from 'process'
+import { isBinaryFile } from 'isbinaryfile'
 
 interface Plugin {
   name: string
@@ -32,7 +33,7 @@ export class Plugins {
     const plugins = await glob(`${this.path}/*`)
     const valid = []
     for (const filePath of plugins) {
-      if (!isBinaryFile(filePath)) continue
+      if (!(await isBinaryFile(filePath))) continue
       valid.push(filePath)
     }
     Plugins.plugins = valid.length
@@ -64,14 +65,5 @@ export class Plugins {
   }
 }
 
-function isBinaryFile(filePath: string) {
-  const buffer = readFileSync(filePath)
-  const length = buffer.length
-  for (let i = 0; i < length; i++) {
-    if (buffer[i] < 32 && buffer[i] !== 9 && buffer[i] !== 10 && buffer[i] !== 13) {
-      console.log('Binario valido!')
-      return true // Caractere não imprimível encontrado, provavelmente um arquivo binário
     }
   }
-  return false
-}
