@@ -16,9 +16,19 @@ new DiscordCommand({
       lastName: 'a'
     })
 
+    console.log(`Criando: ${JSON.stringify(user, null, 2)}`)
+
+    const userSave = await database.save(user)
+
+    console.log(`Salvando: ${JSON.stringify(userSave, null, 2)}`)
+
+    const userFind = await database.find({ where: { firstName: 'a' }})
+    
+    console.log(`Achei isso aqui: ${JSON.stringify(userFind, null, 2)}`)
+
     const userDelete = await database.delete({ firstName: user.firstName })
 
-    console.log(userDelete)
+    console.log(`Deletando isso: ${JSON.stringify(userDelete, null, 2)}`)
 
     await interaction.reply({
       content: 'Apenas um test'
