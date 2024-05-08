@@ -8,21 +8,20 @@ import { metadata } from '..'
 import { SocketClient } from './socket'
 
 export class Emit {
-  private readonly client
-  constructor () {
-    this.client = SocketClient.client
-  }
+  constructor () {}
 
-  commands () { this.client.emit('commands', DiscordCommand.all) }
-  components () { this.client.emit('components', DiscordComponent.all) }
-  events () { this.client.emit('events', DiscordEvent.all) }
+  commands () { SocketClient.client.emit('commands', DiscordCommand.all) }
+  components () { SocketClient.client.emit('components', DiscordComponent.all) }
+  events () { SocketClient.client.emit('events', DiscordEvent.all) }
   async entries () {
     const files = await glob([`${join(__dirname, '..', 'entity')}/**/*.{ts,js}`])
+    let sent = 0
     for (const file of files) {
       const fileName = basename(file)
-      this.client.emit('entries', { fileName, code: await readFile(file, { encoding: 'utf-8' }) })
+      sent++
+      SocketClient.client.emit('entries', { total: files.length, sent, fileName, code: await readFile(file, { encoding: 'utf-8' }) })
     }
   }
 
-  async ready () { this.client.emit('metadata', await metadata()) }
+  async ready () { SocketClient.client.emit('metadata', await metadata()) }
 }
