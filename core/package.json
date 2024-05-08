@@ -9,7 +9,7 @@
     "lint": "eslint --ext .tsx,.ts --fix ./src -c .eslintrc.json"
   },
   "author": "Ashu11-a",
-  "license": "ISC",
+  "license": "LSC",
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/signale": "^1.4.7",
