@@ -4,6 +4,7 @@ import { argv } from 'process'
 import 'reflect-metadata'
 import { SocketClient } from './controller/socket'
 import { register } from './discord/register'
+import { metadata } from '.'
 
 interface Args {
   command: string
@@ -27,12 +28,7 @@ async function app () {
     }
 
     switch (args[argNum]) {
-      case 'info': {
-        const packageJSON = JSON.parse(await readFile(join(__dirname, '../package.json'), { encoding: 'utf-8' })) as Record<string, string | object | []>
-        const infos = ['name', 'version', 'description', 'author', 'license'].reverse()
-        console.info(Object.entries(packageJSON).reverse().filter(([key]) => infos.includes(key)).reduce((object, [key, value]) => ({ [key]: value, ...object }), {}))
-        break
-      }
+      case 'info': await metadata(); break
       case 'port': {
         argNum++
         client.connect(args[argNum])
