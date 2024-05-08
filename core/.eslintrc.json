@@ -1,4 +1,5 @@
 {
+    "root": true,
     "env": {
         "node": true,
         "es2021": true,
@@ -6,9 +7,10 @@
         "commonjs": true
     },
     "parser": "@typescript-eslint/parser",
-    "extends": "standard-with-typescript",
+    "extends": "eslint-config-next",
     "parserOptions": {
-        "project": ["tsconfig.json"]
+        "ecmaVersion": "latest",
+        "project": ["core/tsconfig.json"]
     },
     "plugins": [
         "@typescript-eslint"
@@ -16,6 +18,5 @@
     "rules": {
         "no-new": "off",
         "@typescript-eslint/naming-convention": "off"
-    },
-    "ignorePatterns": ["node_modules/**/*"]
+    }
 }
