@@ -157,6 +157,11 @@ class Build {
     this.progressBar.start(paths.length, 0)
 
     for (const filePath of paths) {
+      const fileName = path.basename(filePath) 
+      if (fileName.split('.').includes('entry')) {
+        console.log(`Pulando ofuscamento do arquivo: ${filePath}`)
+        continue
+      }
       const fileContent = await readFile(filePath, { encoding: 'utf-8' })
       const response = obfuscate(fileContent, {
         optionsPreset: 'medium-obfuscation',
