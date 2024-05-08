@@ -1,6 +1,6 @@
 import { Database } from '@/controller/Database'
 import { DiscordCommand } from '@/discord'
-import type User from '@/entity/User'
+import type User from '@/entity/User.entry'
 import { ApplicationCommandType } from 'discord.js'
 
 new DiscordCommand({
