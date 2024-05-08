@@ -9,17 +9,17 @@ export class SocketClient {
   constructor () {}
 
   connect (port: string) {
+    const emit = new Emit()
     console.log(`📡 Esperando conexão na porta ${port}...`)
     const socket = io(`ws://localhost:${port}/`)
     socket.on('connect', async () => {
       SocketClient.client = socket
-      const emit = new Emit()
       emit.commands()
       emit.components()
       emit.events()
       await emit.entries()
-      await emit.ready()
     })
+    socket.on('ready', async () => await emit.ready())
     socket.once('discord', async (key: string) => {
       const client = new Discord()
       SocketClient.key = key
