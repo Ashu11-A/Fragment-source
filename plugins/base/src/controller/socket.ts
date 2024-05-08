@@ -9,6 +9,7 @@ export class SocketClient {
   constructor () {}
 
   connect (port: string) {
+    console.log(`📡 Esperando conexão na porta ${port}...`)
     const socket = io(`ws://localhost:${port}/`)
     socket.on('connect', async () => {
       SocketClient.client = socket

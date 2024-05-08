@@ -12,21 +12,21 @@ interface Args {
   alias: string[]
 }
 
-const args = argv.splice(2).map((arg) => arg.replace('--', '').replace('-', ''))
+const socket = new SocketController()
+const plugins = new Plugins()
+const args = argv.splice(2).map((arg) => arg.replaceAll('-', ''))
 const argsList: Args[] = [
   { command: 'info', alias: ['i'] },
   { command: 'port', alias: ['p'] }
 ]
 
-async function app () {
+async function app() {
   if (env?.BOT_TOKEN === undefined || env?.BOT_TOKEN === 'Troque-me') {
     await writeFile(join(process.cwd(), '.env'), 'BOT_TOKEN=Troque-me', { encoding: 'utf-8' })
     throw new Error('Defina um token!')
   }
 
   const port = PKG_MODE ? String(await generatePort()) : '3000'
-  const socket = new SocketController()
-  const plugins = new Plugins({ directory: 'plugins' })
 
   if (PKG_MODE) await plugins.load(port)
   socket.ready()
@@ -39,8 +39,9 @@ async function app () {
 
     switch (args[argNum]) {
       case 'info': {
-        const manifest = JSON.parse(await readFile(join(__dirname, '../package.json'), { encoding: 'utf-8' }))
-        console.info(manifest)
+        const packageJSON = JSON.parse(await readFile(join(__dirname, '../package.json'), { encoding: 'utf-8' })) as Record<string, string | object | []>
+        const infos = ['name', 'version', 'description', 'author', 'license'].reverse()
+        console.info(Object.entries(packageJSON).reverse().filter(([key]) => infos.includes(key)).reduce((object, [key, value]) => ({ [key]: value, ...object }), {}))
         break
       }
       case 'port': {

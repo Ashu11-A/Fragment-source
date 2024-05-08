@@ -10,19 +10,17 @@ interface Args {
   alias: string[]
 }
 
-const args = argv.splice(2).map((arg) => arg.replace('--', '').replace('-', ''))
+const client = new SocketClient()
+const args = argv.splice(2).map((arg) => arg.replaceAll('-', ''))
 const argsList: Args[] = [
   { command: 'info', alias: ['i'] },
   { command: 'port', alias: ['p'] }
 ]
 
 async function app () {
-  const client = new SocketClient()
   await register()
 
-  if (args.length === 0) {
-    client.connect('3000'); return
-  }
+  if (args.length === 0) client.connect('3000')
   for (let argNum = 0; argNum < args.length; argNum++) {
     for (const { alias, command } of argsList) {
       if (alias.includes(args[argNum])) args[argNum] = command
@@ -30,15 +28,14 @@ async function app () {
 
     switch (args[argNum]) {
       case 'info': {
-        const manifest = JSON.parse(await readFile(join(__dirname, '../package.json'), { encoding: 'utf-8' }))
-        console.info(manifest)
+        const packageJSON = JSON.parse(await readFile(join(__dirname, '../package.json'), { encoding: 'utf-8' })) as Record<string, string | object | []>
+        const infos = ['name', 'version', 'description', 'author', 'license'].reverse()
+        console.info(Object.entries(packageJSON).reverse().filter(([key]) => infos.includes(key)).reduce((object, [key, value]) => ({ [key]: value, ...object }), {}))
         break
       }
       case 'port': {
         argNum++
-        const port = args[argNum]
-        console.log(port)
-        client.connect(port)
+        client.connect(args[argNum])
         break
       }
     }

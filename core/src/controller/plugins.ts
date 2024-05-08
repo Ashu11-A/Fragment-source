@@ -1,15 +1,9 @@
-import { delay } from '@/functions/delay'
 import { spawn } from 'child_process'
 import { existsSync, readFileSync } from 'fs'
 import { mkdir } from 'fs/promises'
 import { glob } from 'glob'
 import { join } from 'path'
 import { cwd } from 'process'
-
-interface PluginsOptions {
-  directory?: string
-  port?: string
-}
 
 interface Plugin {
   name: string
@@ -25,18 +19,16 @@ interface Plugin {
 }
 
 export class Plugins {
-  private readonly options: PluginsOptions
-  private readonly path
   public static plugins = 0
   public static loaded = 0
+  private readonly path
 
-  constructor (options: PluginsOptions) {
-    if (!existsSync((cwd(), options.directory ?? 'plugins'))) mkdir((cwd(), options.directory ?? 'plugins'))
-    this.path = join(cwd(), options?.directory ?? 'plugins')
-    this.options = options
+  constructor() {
+    if (!existsSync((cwd(), 'plugins'))) mkdir((cwd(), 'plugins'))
+    this.path = join(cwd(), 'plugins')
   }
 
-  async list () {
+  async list() {
     const plugins = await glob(`${this.path}/*`)
     const valid = []
     for (const filePath of plugins) {
@@ -47,10 +39,10 @@ export class Plugins {
     return valid
   }
 
-  async load (port: string): Promise<void> {
+  async load(port: string): Promise<void> {
     const plugins = await this.list()
     if (plugins.length === 0) {
-      console.log('Nenhum plugin carregado!')
+      console.log('Nenhum plugin encontrado!')
       return
     }
 
@@ -72,7 +64,7 @@ export class Plugins {
   }
 }
 
-function isBinaryFile (filePath: string) {
+function isBinaryFile(filePath: string) {
   const buffer = readFileSync(filePath)
   const length = buffer.length
   for (let i = 0; i < length; i++) {

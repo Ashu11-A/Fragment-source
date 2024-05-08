@@ -1,4 +1,4 @@
-import { exec, type ExecException, execSync, exec as processChild } from 'child_process'
+import { execSync, exec as processChild } from 'child_process'
 import { Presets, SingleBar } from 'cli-progress'
 import { createHash } from 'crypto'
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs'
