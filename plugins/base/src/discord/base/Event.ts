@@ -6,9 +6,9 @@ interface EventData<Key extends keyof ClientEvents> {
   run (...args: ClientEvents[Key]): void
 }
 
-export class DiscordEvent<Key extends keyof ClientEvents> {
+export class Event<Key extends keyof ClientEvents> {
   public static all: Array<EventData<keyof ClientEvents>> = []
   constructor (data: EventData<Key>) {
-    DiscordEvent.all.push(data)
+    Event.all.push(data)
   }
 }

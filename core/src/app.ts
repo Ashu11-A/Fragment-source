@@ -13,7 +13,6 @@ interface Args {
 }
 
 const socket = new SocketController()
-const plugins = new Plugins()
 const args = argv.splice(2).map((arg) => arg.replaceAll('-', ''))
 const argsList: Args[] = [
   { command: 'info', alias: ['i'] },
@@ -27,8 +26,10 @@ async function app() {
   }
 
   const port = PKG_MODE ? String(await generatePort()) : '3000'
+  const plugins = new Plugins({ port })
 
-  if (PKG_MODE) await plugins.load(port)
+  await plugins.load()
+  void plugins.wather()
   socket.ready()
 
   if (args.length === 0) socket.listen(port)

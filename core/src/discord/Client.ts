@@ -1,6 +1,6 @@
 import { type BitFieldResolvable, Client, type GatewayIntentsString, IntentsBitField, Partials } from 'discord.js'
 import { env } from '..'
-import { DiscordCommand } from './Commands'
+import { Command } from './Commands'
 
 export class Discord {
   public static client: Client<boolean>
@@ -15,7 +15,7 @@ export class Discord {
   }
 
   async register () {
-    const commands = Array.from(DiscordCommand.all.values())
+    const commands = Array.from(Command.all.values())
     await Discord.client.application?.commands.set(commands)
       .then((c) => { console.log(`📝 ${commands.length} Commands defined successfully!`) })
       .catch((err) => { console.error(err) })

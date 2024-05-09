@@ -24,7 +24,7 @@ type CommandProps<DmPermission extends boolean> =
   run: (interaction: C<DmPermission, MessageContextMenuCommandInteraction>) => any
 }
 
-export type CommandData<DmPermission extends boolean> = CommandProps<DmPermission> & ApplicationCommandData & {
+type CommandData<DmPermission extends boolean> = CommandProps<DmPermission> & ApplicationCommandData & {
   dmPermission: DmPermission
 }
 

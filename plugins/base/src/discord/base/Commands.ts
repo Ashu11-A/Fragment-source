@@ -28,9 +28,9 @@ type CommandData<DmPermission extends boolean> = CommandProps<DmPermission> & Ap
   dmPermission: DmPermission
 }
 
-export class DiscordCommand<DmPermission extends boolean = boolean> {
+export class Command<DmPermission extends boolean = boolean> {
   public static all = new Collection<string, CommandData<boolean>>()
   constructor (data: CommandData<DmPermission>) {
-    DiscordCommand.all.set(data.name, data)
+    Command.all.set(data.name, data)
   }
 }

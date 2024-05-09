@@ -1,9 +1,8 @@
-import { DataSource, FindOptionsWhere, ObjectId, type BaseEntity, type DataSourceOptions } from 'typeorm'
-import { RootPATH } from '..'
-import { Socket } from 'socket.io'
 import { glob } from 'glob'
 import { join } from 'path'
-import { cwd } from 'process'
+import { Socket } from 'socket.io'
+import { DataSource, FindOptionsWhere, ObjectId, type BaseEntity, type DataSourceOptions } from 'typeorm'
+import { RootPATH } from '..'
 
 export interface EntityImport<T extends typeof BaseEntity> { default: T }
 

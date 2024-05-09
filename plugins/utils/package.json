@@ -1,7 +1,7 @@
 {
-   "name": "base",
+   "name": "utils",
    "version": "1.0.0",
-   "description": "Controler dos modulos do PaymentBot",
+   "description": "Comandos basicos de um bot Discord",
    "main": "src/app.ts",
    "scripts": {
       "build": "tsc && tscpaths -p tsconfig.json -s ./src -o ./dist",

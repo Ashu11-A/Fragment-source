@@ -1,6 +1,6 @@
-import { DiscordComponent } from '@/discord/Components'
+import { Component } from "../base"
 
-new DiscordComponent({
+new Component({
   customId: 'test',
   cache: 'cached',
   type: 'Button',

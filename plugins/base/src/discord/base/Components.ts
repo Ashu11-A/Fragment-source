@@ -1,26 +1,27 @@
 import { type ButtonInteraction, type ChannelSelectMenuInteraction, type MentionableSelectMenuInteraction, type ModalSubmitInteraction, type RoleSelectMenuInteraction, type StringSelectMenuInteraction, type UserSelectMenuInteraction, type CacheType } from 'discord.js'
+import { name } from '../../../package.json'
 
 type ComponentProps<Cached extends CacheType = CacheType> = {
   type: 'Button'
-  run: (interaction: ButtonInteraction<Cached>) => {}
+  run: (interaction: ButtonInteraction<Cached>) => Promise<void>
 } | {
   type: 'StringSelect'
-  run: (interaction: StringSelectMenuInteraction<Cached>) => {}
+  run: (interaction: StringSelectMenuInteraction<Cached>) => Promise<void>
 } | {
   type: 'RoleSelect'
-  run: (interaction: RoleSelectMenuInteraction<Cached>) => {}
+  run: (interaction: RoleSelectMenuInteraction<Cached>) => Promise<void>
 } | {
   type: 'ChannelSelect'
-  run: (interaction: ChannelSelectMenuInteraction<Cached>) => {}
+  run: (interaction: ChannelSelectMenuInteraction<Cached>) => Promise<void>
 } | {
   type: 'UserSelect'
-  run: (interaction: UserSelectMenuInteraction<Cached>) => {}
+  run: (interaction: UserSelectMenuInteraction<Cached>) => Promise<void>
 } | {
   type: 'MentionableSelect'
-  run: (interaction: MentionableSelectMenuInteraction<Cached>) => {}
+  run: (interaction: MentionableSelectMenuInteraction<Cached>) => Promise<void>
 } | {
   type: 'Modal'
-  run: (interaction: ModalSubmitInteraction<Cached>) => {}
+  run: (interaction: ModalSubmitInteraction<Cached>) => Promise<void>
 }
 
 type ComponentData<Cached extends CacheType = CacheType> = ComponentProps<Cached> & {
@@ -28,15 +29,18 @@ type ComponentData<Cached extends CacheType = CacheType> = ComponentProps<Cached
   customId: string
 }
 
-export class DiscordComponent {
+export class Component {
   public static all: ComponentData[] = []
 
   public static find<Cached extends CacheType, T extends ComponentData['type']>(customId: string, type: T) {
-    const component = DiscordComponent.all.find((component) => component.customId === customId && component.type === type)
+    const component = Component.all.find((component) => component.customId === customId && component.type === type)
     return component as ComponentData<Cached> & { type: T } | undefined
   }
 
   constructor (data: ComponentData) {
-    DiscordComponent.all.push(data)
+    Component.all.push({
+      ...data,
+      customId: `${name}_${data.customId}`
+    })
   }
 }

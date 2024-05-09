@@ -1,7 +1,7 @@
-import { DiscordEvent } from '@/discord/Event'
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js'
+import { Event } from '../base'
 
-new DiscordEvent({
+new Event({
   name: 'messageCreate',
   run (message) {
     if (message.author.id === message.client.user.id) return
