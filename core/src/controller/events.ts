@@ -29,5 +29,6 @@ export class Event {
 
   async disconnect () {
     console.info(`\n🔌 Plugin Desconectado: ${Plugins.all[this.client.id]?.metadata?.name ?? this.client.id}\n`)
+    delete Plugins.all[this.client.id]
   }
 }
