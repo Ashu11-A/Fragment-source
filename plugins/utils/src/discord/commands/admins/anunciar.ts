@@ -53,6 +53,18 @@ new Command({
     const image = options.getAttachment('imagem')
     const cargoSlash = options.getRole('marcar')
 
+    if (member === null) {
+      await interaction.reply({
+        embeds: [
+          new EmbedBuilder({
+            title: '❌Desculpe, mas não consigo achar você na lista de membros do discord!'
+          }).setColor('Red')
+        ],
+        ephemeral: true
+      })
+      return
+    }
+
     if (member !== null) members.set(member.user.id, { channelId: channel.id, image })
 
     await interaction.showModal(new ModalBuilder({
@@ -115,7 +127,7 @@ new Component({
 
     const messageProps = members.get(member.user.id)
 
-    if (messageProps === null) {
+    if (messageProps === undefined) {
       await interaction.editReply({
         content: '❌ | Não foi possivel obter os dados! Tente novamente.'
       })
@@ -137,9 +149,7 @@ new Component({
     }
 
     const { title, description, cor, cargo } = data
-    console.log(data)
-    console.log(messageProps)
-    const sendChannel = guild?.channels.cache.get(String(messageProps?.channelId)) as TextChannel
+    const sendChannel = await guild?.channels.fetch(messageProps.channelId) as TextChannel
 
     const embed = new EmbedBuilder({
       title,
