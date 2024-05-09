@@ -4,6 +4,7 @@ import { glob } from 'glob'
 import { join } from 'path'
 import { Command } from './Commands'
 import { Component } from './Components'
+import { name } from '../../../package.json'
 
 export class Discord {
   public static client: Client<boolean>
@@ -75,47 +76,47 @@ export class Discord {
 
       if (!interaction.isModalSubmit() && !interaction.isMessageComponent()) return
 
-      this.customId = interaction.customId
+      this.customId = `${name}_${interaction.customId}`
       this.username = interaction.user.username
 
       if (interaction.isModalSubmit()) {
-        const component = Component.find(interaction.customId, 'Modal')
+        const component = Component.find(this.customId, 'Modal')
         await component?.run(interaction)
         this.end()
         return
       }
       if (interaction.isButton()) {
-        const component = Component.find(interaction.customId, 'Button')
+        const component = Component.find(this.customId, 'Button')
         await component?.run(interaction)
         this.end()
         return
       }
       if (interaction.isStringSelectMenu()) {
-        const component = Component.find(interaction.customId, 'StringSelect')
+        const component = Component.find(this.customId, 'StringSelect')
         await component?.run(interaction)
         this.end()
         return
       }
       if (interaction.isChannelSelectMenu()) {
-        const component = Component.find(interaction.customId, 'ChannelSelect')
+        const component = Component.find(this.customId, 'ChannelSelect')
         await component?.run(interaction)
         this.end()
         return
       }
       if (interaction.isRoleSelectMenu()) {
-        const component = Component.find(interaction.customId, 'RoleSelect')
+        const component = Component.find(this.customId, 'RoleSelect')
         await component?.run(interaction)
         this.end()
         return
       }
       if (interaction.isUserSelectMenu()) {
-        const component = Component.find(interaction.customId, 'UserSelect')
+        const component = Component.find(this.customId, 'UserSelect')
         await component?.run(interaction)
         this.end()
         return
       }
       if (interaction.isMentionableSelectMenu()) {
-        const component = Component.find(interaction.customId, 'MentionableSelect')
+        const component = Component.find(this.customId, 'MentionableSelect')
         await component?.run(interaction)
         this.end()
       }

@@ -38,9 +38,10 @@ export class Component {
   }
 
   constructor (data: ComponentData) {
-    Component.all.push({
+    data = {
       ...data,
       customId: `${name}_${data.customId}`
-    })
+    }
+    Component.all.push(data)
   }
 }
