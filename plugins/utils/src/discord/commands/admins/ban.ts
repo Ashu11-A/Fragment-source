@@ -42,70 +42,74 @@ new Command({
     const member = options.getMember('usuário')
     const deleteMSG = options.getNumber('deletar-mensagens') ?? 0
     const reason = options.getString('motivo') ?? 'Nenhum motivo especificado'
+    await interaction.deferReply({ ephemeral: true })
 
     // const logsDB = await db.guilds.get(`${interaction?.guild?.id}.channel.logs`) as string
     // const logsChannel = interaction.guild?.channels.cache.get(logsDB) as TextChannel
 
     if (user.id === interaction.user.id) {
-      const unauthorizedEmbed = new EmbedBuilder()
-        .setColor('Yellow')
-        .setTitle('Não permitido!')
-        .setDescription('❌ - Você não pode se banir do servidor.')
-      return await interaction.reply({ embeds: [unauthorizedEmbed], ephemeral: true })
+      return await interaction.editReply({
+        embeds: [
+          new EmbedBuilder({
+            title: '❌ Não permitido!',
+            description: 'Você não pode se banir do servidor.'
+          }).setColor('Orange')
+        ]
+      })
     }
 
     if (user.id === Discord.client?.user?.id) {
-      const unauthorizedEmbed = new EmbedBuilder()
-        .setColor('Red')
-        .setTitle('Não permitido!')
-        .setDescription('Você quer me banir? tá marcado!')
-      return await interaction.reply({ embeds: [unauthorizedEmbed], ephemeral: true })
+      return await interaction.editReply({ 
+        embeds: [
+          new EmbedBuilder({
+            title: '❌ Não permitido!',
+            description: 'Você quer me banir?'
+          }).setColor('Orange')
+        ]
+       })
     }
 
     // Tenta banir o usuário
     try {
-      if (member instanceof GuildMember) {
-        await member?.ban({ reason, deleteMessageSeconds: deleteMSG })
+      if (!(member instanceof GuildMember)) {
+        return await interaction.editReply({
+          embeds: [new EmbedBuilder({
+            title: '❌ Usuário não está disponível na lista de membros do bot! tente mais tarde.'
+          }).setColor('Red')]
+        })
       }
+      await member.ban({ reason, deleteMessageSeconds: deleteMSG })
       // Adiciona o log de warning após o comando ter sido executado
       console.log(
         'BAN',
         `O usuario ${interaction.user.username} com o ID: ${interaction.user.id} baniu o ${user.username} de ID: ${user.id}`
       )
-      const embed = new EmbedBuilder()
-        .setColor('Green')
-        .setTitle('Usuário banido com sucesso!')
-        .setDescription(
-          `${user?.username} foi banido do servidor.`
-        )
-        .addFields(
+      const embed = new EmbedBuilder({
+        title: '✅ Usuário banido com sucesso!',
+        description: `${user.username} foi banido do servidor.`,
+        fields: [
           {
             name: 'Usuário Banido',
-            value: codeBlock(`User: ${user?.username}'\n'ID: ${user?.id}`)
+            value: codeBlock(`User: ${user.username}'\n'ID: ${user?.id}`)
           },
           {
             name: 'Moderador responsável',
             value: `${interaction.user.username}`
           },
           { name: 'Motivo', value: reason },
-          {
-            name: 'Data e Hora',
-            value: new Date().toLocaleString('pt-BR', {
-              timeZone: 'America/Sao_Paulo'
-            })
-          }
-        )
+        ],
+        footer: { text: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) }
+      }).setColor('Green')
 
       // if (logsChannel !== undefined) {
       //   await logsChannel.send({ embeds: [embed] })
       // }
 
-      await interaction.reply({ embeds: [embed] })
+      await interaction.editReply({ embeds: [embed] })
     } catch (error) {
       console.error(error)
-      await interaction.reply({
+      await interaction.editReply({
         content: 'Ocorreu um erro ao banir o usuário!',
-        ephemeral: true
       })
     }
   }
