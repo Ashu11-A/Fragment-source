@@ -1,11 +1,12 @@
-import { readFile, writeFile } from 'fs/promises'
+import { readFile, rm, writeFile } from 'fs/promises'
 import { join } from 'path'
-import { argv } from 'process'
+import { argv, cwd } from 'process'
 import { env, PKG_MODE } from '.'
 import { Plugins } from './controller/plugins'
 import { SocketController } from './controller/socket'
 import { generatePort } from './functions/port'
 import 'reflect-metadata'
+import { existsSync } from 'fs'
 
 interface Args {
   command: string
@@ -24,6 +25,7 @@ async function app() {
     await writeFile(join(process.cwd(), '.env'), 'BOT_TOKEN=Troque-me', { encoding: 'utf-8' })
     throw new Error('Defina um token!')
   }
+  if (existsSync(join(cwd(), 'entries'))) await rm(join(cwd(), 'entries'), { recursive: true })
 
   const port = PKG_MODE ? String(await generatePort()) : '3000'
   const plugins = new Plugins({ port })

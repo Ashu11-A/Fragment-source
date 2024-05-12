@@ -238,7 +238,6 @@ export class Plugins {
           ? code.replaceAll('require("typeorm")' , `require("${join(__dirname, '../../')}node_modules/typeorm/index")`) 
           : code.replaceAll("from 'typeorm'", `from '${RootPATH}/node_modules/typeorm/index'`)
 
-        if (sent === 1 && existsSync(path)) await rm(path, { recursive: true })
         if (!existsSync(path)) await mkdir(path, { recursive: true })
 
         await writeFile(`${path}/${fileName}`, refatored, { encoding: 'utf-8' })
