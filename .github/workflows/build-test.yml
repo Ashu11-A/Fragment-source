@@ -31,7 +31,9 @@ jobs:
 
             const pathName = path.join(process.cwd(), 'plugins')
             const files = fs.readdirSync(pathName)
-            const directories = files.filter((file) => fs.statSync(path.join(pathName, file)).isDirectory() )
+            const directories = files.filter((file) => fs.statSync(path.join(pathName, file)).isDirectory()).map((dir) => path.join(pathName, dir))
+
+            directories.push(path.join(process.cwd(), 'core'))
             core.setOutput('paths', directories)
   build:
     name: Build ${{ matrix.path }}
