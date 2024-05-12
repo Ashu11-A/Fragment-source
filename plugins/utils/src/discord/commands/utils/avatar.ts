@@ -1,5 +1,5 @@
 import { Command } from '@/discord/base'
-import { calculateImageSize, formatBytes } from '@/functions/Format'
+import { calculateImageSize, formatBytes } from '@/functions/format'
 import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, codeBlock } from 'discord.js'
 
 const arrayTamanho = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096]
