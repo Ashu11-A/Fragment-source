@@ -28,7 +28,14 @@ export class Event {
   }
 
   async disconnect () {
-    console.info(`\n🔌 Plugin Desconectado: ${Plugins.all[this.client.id]?.metadata?.name ?? this.client.id}\n`)
-    delete Plugins.all[this.client.id]
+    const pluginFind = Plugins.running.map((plugin, index) => ({ plugin, index })).find(({ plugin }) => plugin?.id === this.client.id)
+    if (pluginFind) {
+      const { plugin, index } = pluginFind
+  
+      console.info(`\n🔌 Plugin Desconectado: ${plugin.metadata.name}\n`)
+      Plugins.running.splice(index, 1)
+      return
+    }
+    console.info(`\n🤔 Plugin sem registro se desconectou: ${this.client.id}\n`)
   }
 }

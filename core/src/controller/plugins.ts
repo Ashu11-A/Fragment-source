@@ -2,10 +2,10 @@ import { Discord } from '@/discord/Client'
 import { Command, CommandData } from '@/discord/Commands'
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
 import { existsSync } from 'fs'
-import { mkdir, rm, watch, writeFile } from 'fs/promises'
+import { mkdir, watch, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import { isBinaryFile } from 'isbinaryfile'
-import { join } from 'path'
+import { basename, join } from 'path'
 import { cwd } from 'process'
 import { Socket } from 'socket.io'
 import { BaseEntity } from 'typeorm'
@@ -35,11 +35,20 @@ interface PluginsOptions {
   port: string
 }
 
+interface PluginRunning {
+  id?: string
+  process?: ChildProcessWithoutNullStreams
+  metadata: Metadata
+  listen: boolean
+}
+
 export class Plugins {
-  public static all: Record<string, Plugin> = {}
-  public static running: Array<{ process: ChildProcessWithoutNullStreams, metadata: Metadata, listen: boolean }> = []
+  public static running: PluginRunning[] = []
   public static plugins = 0
   public static loaded = 0
+  
+  private static entries: string[] = []
+  
   private readonly port: string
   private readonly path = join(RootPATH, 'plugins')
 
@@ -135,34 +144,42 @@ export class Plugins {
     switch (eventName) {
       case 'info': {
         const info = args as Plugin
-        let isBreak = false
-        
-        for (const [index, process] of Plugins.running.entries()) {
-          if (process.metadata.name !== info.metadata.name) continue
 
-          if (process !== undefined && process.listen === true) {
+        const index = Plugins.running.findIndex((plugin) => plugin.metadata.name === info.metadata.name)
+        const process = Plugins.running[index]
+
+        if (index !== -1) {
+          if (process?.listen === true) {
             console.log(`❌ Plugin ${info.metadata.name} está duplicado, enviando pedido de shutdown!`)
             socket.emit('kill')
-            isBreak = true
+            delete Plugins.running[index]
+            break
+          } else {
+            Plugins.running[index] = {
+              ...Plugins.running[index],
+              listen: true
+            }
           }
-          Plugins.running[index] = {
-            ...Plugins.running[index],
+        } else {
+          Plugins.running.push({
+            metadata: info.metadata,
+            id: socket.id,
             listen: true
-          }
+          })
         }
 
-        if (isBreak) break
+        for (const pathFile of Plugins.entries) {
+          const fileName = basename(pathFile)
+          const entry = await import(pathFile) as EntityImport<typeof BaseEntity>
+  
+          Object.assign(Database.entries, ({ [fileName]: entry }))
+          console.log(`⏳ Carregando entry: ${fileName.split('.')[0]}}`)
+        }
+
 
         for (const command of ((info.commands ?? []) as Array<CommandData<boolean>>)) {
           Command.all.set(command.name, command)
         }
-
-        Object.assign(Plugins.all, {
-          [socket.id]: {
-            ...Plugins.all[socket.id],
-            ...info
-          }
-        })
 
         console.log(`
 ✅ Iniciando Plugin ${info.metadata.name}...
