@@ -151,7 +151,7 @@ export class Plugins {
           if (process?.listen === true) {
             console.log(`❌ Plugin ${info.metadata.name} está duplicado, enviando pedido de shutdown!`)
             socket.emit('kill')
-            delete Plugins.running[index]
+            Plugins.running.splice(index, 1)
             break
           } else {
             Plugins.running[index] = {
