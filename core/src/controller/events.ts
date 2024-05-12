@@ -32,7 +32,7 @@ export class Event {
     if (pluginFind) {
       const { plugin, index } = pluginFind
   
-      console.info(`\n🔌 Plugin Desconectado: ${plugin.metadata.name}\n`)
+      console.info(`\n🔌 Plugin Desconectado: ${plugin.metadata?.name}\n`)
       Plugins.running.splice(index, 1)
       return
     }

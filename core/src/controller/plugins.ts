@@ -38,7 +38,8 @@ interface PluginsOptions {
 interface PluginRunning {
   id?: string
   process?: ChildProcessWithoutNullStreams
-  metadata: Metadata
+  metadata?: Metadata
+  entries: string[]
   listen: boolean
 }
 
@@ -46,8 +47,6 @@ export class Plugins {
   public static running: PluginRunning[] = []
   public static plugins = 0
   public static loaded = 0
-  
-  private static entries: string[] = []
   
   private readonly port: string
   private readonly path = join(RootPATH, 'plugins')
@@ -75,7 +74,7 @@ export class Plugins {
 
       childInfo.on('exit', (code, signal) => {
         if (code === 0 && info !== undefined) {
-          const process = Plugins.running.find((run) => run.metadata.name === info?.name)
+          const process = Plugins.running.find((run) => run.metadata?.name === info?.name)
 
           if (process !== undefined) {
             Plugins.plugins = Plugins.plugins - 1
@@ -99,7 +98,7 @@ export class Plugins {
           })
   
           child.stdout.once('data', (message) => {
-            Plugins.running.push({ process: child, metadata: info as Metadata, listen: false })
+            Plugins.running.push({ process: child, metadata: info as Metadata, entries: [], listen: false })
   
   
             return resolve(message)
@@ -145,7 +144,7 @@ export class Plugins {
       case 'info': {
         const info = args as Plugin
 
-        const index = Plugins.running.findIndex((plugin) => plugin.metadata.name === info.metadata.name)
+        const index = Plugins.running.findIndex((plugin) => plugin.id === socket.id)
         const process = Plugins.running[index]
 
         if (index !== -1) {
@@ -157,23 +156,25 @@ export class Plugins {
           } else {
             Plugins.running[index] = {
               ...Plugins.running[index],
+              metadata: info.metadata,
               listen: true
             }
           }
         } else {
           Plugins.running.push({
             metadata: info.metadata,
+            entries: [],
             id: socket.id,
             listen: true
           })
         }
 
-        for (const pathFile of Plugins.entries) {
+        for (const pathFile of process.entries) {
           const fileName = basename(pathFile)
           const entry = await import(pathFile) as EntityImport<typeof BaseEntity>
   
           Object.assign(Database.entries, ({ [fileName]: entry }))
-          console.log(`⏳ Carregando entry: ${fileName.split('.')[0]}}`)
+          console.log(`⏳ Carregando entry: ${fileName.split('.')[0]}`)
         }
 
 
@@ -232,7 +233,7 @@ export class Plugins {
       }
 
       case 'entries':
-        const { code, fileName, sent, total } = args as { fileName: string, code: string, total: number, sent: number }
+        const { code, fileName } = args as { fileName: string, code: string }
         const path = join(cwd(), 'entries')
         const refatored = PKG_MODE
           ? code.replaceAll('require("typeorm")' , `require("${join(__dirname, '../../')}node_modules/typeorm/index")`) 
@@ -241,11 +242,13 @@ export class Plugins {
         if (!existsSync(path)) await mkdir(path, { recursive: true })
 
         await writeFile(`${path}/${fileName}`, refatored, { encoding: 'utf-8' })
-        const entry = await import(`${path}/${fileName}`) as EntityImport<typeof BaseEntity>
-
-        Object.assign(Database.entries, ({ [fileName]: entry }))
-        console.log(`${sent === 1 ? '\n' : ''}⏳ Carregando entry (${sent}/${total}): ${fileName.split('.')[0]}${sent === total ? '\n' : ''}`)
-        if (sent === total) socket.emit('ready')
+        const pluginIndex = Plugins.running.findIndex((plugin) => plugin.id === socket.id)
+        if (pluginIndex !== -1) {
+          Plugins.running[pluginIndex].entries.push(`${path}/${fileName}`)
+        } else {
+          Plugins.running.push({ id: socket.id, entries: [`${path}/${fileName}`], listen: false })
+        }
+        socket.emit(`${fileName}_OK`)
         break
     }
   }
