@@ -31,7 +31,7 @@ jobs:
 
             const pathName = path.join(process.cwd(), 'plugins')
             const files = fs.readdirSync(pathName)
-            const directories = files.filter((file) => fs.statSync(path.join(pathName, file)).isDirectory()).map((dir) => path.join(pathName, dir))
+            const directories = files.filter((file) => fs.statSync(path.join(pathName, file)).isDirectory()).map((dir) => `plugins/${dir}`)
 
             directories.push(path.join(process.cwd(), 'core'))
             core.setOutput('paths', directories)
@@ -52,6 +52,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
         check-latest: true
-    - run: cd ${{ matrix.path }}
-    - run: npm ci
-    - run: npm run build --if-present
+    - run: |
+        cd ${{ matrix.path }} &&
+        npm ci &&
+        npm run build --if-present
