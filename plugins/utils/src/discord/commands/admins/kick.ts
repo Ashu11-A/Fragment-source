@@ -1,4 +1,6 @@
+import { Database } from '@/controller/Database'
 import { Command, Discord } from '@/discord/base'
+import Config from '@/entity/Config.entry'
 import { EmbedBuilder, ApplicationCommandType, ApplicationCommandOptionType, type TextChannel, codeBlock, PermissionsBitField } from 'discord.js'
 
 new Command({
@@ -21,13 +23,13 @@ new Command({
     }
   ],
   async run (interaction) {
-    const { guild, options } = interaction
+    const { guild, options, guildId } = interaction
 
     const user = options.getUser('usuário')
     const reason = options.getString('motivo') ?? 'Nenhum motivo especificado'
+    const logsDB = await new Database<Config>({ table: 'Config' }).findOne({ where: { guild: { id: guildId ?? undefined  }}, relations: { guild: true } })
+    const logsChannel = logsDB?.logBanKick !== undefined ? await interaction.guild?.channels.fetch(logsDB?.logBanKick) as TextChannel : undefined
 
-    // const logsDB = await db.guilds.get(`${interaction?.guild?.id}.channel.logs`) as string
-    // const logsChannel = interaction.guild?.channels.cache.get(logsDB) as TextChannel
     if (user === null) return
 
     if (user.id === interaction.user.id) {
@@ -73,9 +75,9 @@ new Command({
           }
         )
 
-      // if (logsChannel !== undefined) {
-      //   void logsChannel.send({ embeds: [embed] })
-      // }
+      if (logsChannel !== undefined) {
+        void logsChannel.send({ embeds: [embed] })
+      }
 
       return await interaction.reply({ embeds: [embed] })
     } catch (error) {

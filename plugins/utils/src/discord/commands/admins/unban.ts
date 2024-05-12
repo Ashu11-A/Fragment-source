@@ -1,5 +1,7 @@
 import { EmbedBuilder, ApplicationCommandOptionType, ApplicationCommandType, type TextChannel, codeBlock, PermissionsBitField } from 'discord.js'
 import { Command } from '@/discord/base'
+import { Database } from '@/controller/Database'
+import Config from '@/entity/Config.entry'
 
 new Command({
   name: 'unban',
@@ -23,11 +25,11 @@ new Command({
   async run (interaction) {
     await interaction.deferReply({ ephemeral: true })
 
-    const { guild, options } = interaction
+    const { guild, options, guildId } = interaction
     const userID = options.getString('usuário', true)
     const reason: string = options.getString('motivo') ?? 'Nenhum motivo especificado'
-    // const logsDB = await db.guilds.get(`${interaction?.guild?.id}.channel.logs`) as string
-    // const logsChannel = interaction.guild?.channels.cache.get(logsDB) as TextChannel
+    const logsDB = await new Database<Config>({ table: 'Config' }).findOne({ where: { guild: { id: guildId ?? undefined  }}, relations: { guild: true } })
+    const logsChannel = logsDB?.logBanKick !== undefined ? await interaction.guild?.channels.fetch(logsDB?.logBanKick) as TextChannel : undefined
 
     try {
       if (isNaN(Number(userID))) {
@@ -53,7 +55,7 @@ new Command({
             .setColor('Green')
             .setTitle('Usuário desbanido com sucesso!')
             .setDescription(
-          `${userID} foi desbanido do servidor.`
+              `${userID} foi desbanido do servidor.`
             )
             .addFields(
               {
@@ -73,9 +75,9 @@ new Command({
               }
             )
 
-          // if (logsChannel !== undefined) {
-          //   await logsChannel.send({ embeds: [embed] })
-          // }
+          if (logsChannel !== undefined) {
+            await logsChannel.send({ embeds: [embed] })
+          }
 
           await interaction.editReply({ embeds: [embed] })
         }).catch(async (err) => {

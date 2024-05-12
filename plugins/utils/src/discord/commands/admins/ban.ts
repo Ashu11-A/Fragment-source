@@ -1,5 +1,7 @@
 import { EmbedBuilder, ApplicationCommandOptionType, ApplicationCommandType, type TextChannel, GuildMember, codeBlock, PermissionsBitField } from 'discord.js'
 import { Command, Discord } from '@/discord/base'
+import { Database } from '@/controller/Database'
+import Config from '@/entity/Config.entry'
 
 new Command({
   name: 'ban',
@@ -37,15 +39,15 @@ new Command({
     }
   ],
   async run (interaction) {
-    const { options } = interaction
+    const { options, guildId } = interaction
     const user = options.getUser('usuário', true)
     const member = options.getMember('usuário')
     const deleteMSG = options.getNumber('deletar-mensagens') ?? 0
     const reason = options.getString('motivo') ?? 'Nenhum motivo especificado'
     await interaction.deferReply({ ephemeral: true })
 
-    // const logsDB = await db.guilds.get(`${interaction?.guild?.id}.channel.logs`) as string
-    // const logsChannel = interaction.guild?.channels.cache.get(logsDB) as TextChannel
+    const logsDB = await new Database<Config>({ table: 'Config' }).findOne({ where: { guild: { id: guildId ?? undefined  }}, relations: { guild: true } })
+    const logsChannel = logsDB?.logBanKick !== undefined ? await interaction.guild?.channels.fetch(logsDB?.logBanKick) as TextChannel : undefined
 
     if (user.id === interaction.user.id) {
       return await interaction.editReply({
@@ -66,7 +68,7 @@ new Command({
             description: 'Você quer me banir?'
           }).setColor('Orange')
         ]
-       })
+      })
     }
 
     // Tenta banir o usuário
@@ -101,9 +103,9 @@ new Command({
         footer: { text: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) }
       }).setColor('Green')
 
-      // if (logsChannel !== undefined) {
-      //   await logsChannel.send({ embeds: [embed] })
-      // }
+      if (logsChannel !== undefined) {
+        await logsChannel.send({ embeds: [embed] })
+      }
 
       await interaction.editReply({ embeds: [embed] })
     } catch (error) {
