@@ -21,10 +21,10 @@ interface Metadata {
 }
 
 interface Plugin {
-  metadata: Metadata,
-  commands: { name: string, description: string, dmPermission: boolean, type: number }[]
-  events: { name: string }[]
-  components: { customId: string, cache: string, type: string }[]
+  metadata?: Metadata,
+  commands?: { name: string, description: string, dmPermission: boolean, type: number }[]
+  events?: { name: string }[]
+  components?: { customId: string, cache: string, type: string }[]
   // signature: string
   // date: Date
   // size: string
@@ -35,10 +35,9 @@ interface PluginsOptions {
   port: string
 }
 
-interface PluginRunning {
+interface PluginRunning extends Plugin {
   id?: string
   process?: ChildProcessWithoutNullStreams
-  metadata?: Metadata
   entries: string[]
   listen: boolean
 }
@@ -149,27 +148,27 @@ export class Plugins {
 
         if (index !== -1) {
           if (process?.listen === true) {
-            console.log(`❌ Plugin ${info.metadata.name} está duplicado, enviando pedido de shutdown!`)
+            console.log(`❌ Plugin ${info.metadata?.name} está duplicado, enviando pedido de shutdown!`)
             socket.emit('kill')
             Plugins.running.splice(index, 1)
             break
           } else {
             Plugins.running[index] = {
               ...Plugins.running[index],
-              metadata: info.metadata,
+              ...info,
               listen: true
             }
           }
         } else {
           Plugins.running.push({
-            metadata: info.metadata,
+            ...info,
             entries: [],
             id: socket.id,
             listen: true
           })
         }
 
-        for (const pathFile of process.entries) {
+        for (const pathFile of Plugins.running[index].entries) {
           const fileName = basename(pathFile)
           const entry = await import(pathFile) as EntityImport<typeof BaseEntity>
   
@@ -183,10 +182,10 @@ export class Plugins {
         }
 
         console.log(`
-✅ Iniciando Plugin ${info.metadata.name}...
-  ⚙️ Commands: ${info.commands.length}
-  🧩 Components: ${info.components.length}
-  🎉 Events: ${info.events.length}
+✅ Iniciando Plugin ${info.metadata?.name}...
+  ⚙️ Commands: ${info.commands?.length}
+  🧩 Components: ${info.components?.length}
+  🎉 Events: ${info.events?.length}
         `)
 
         if (Plugins.loaded === 0 && Plugins.plugins === 0) {
