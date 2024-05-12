@@ -33,7 +33,7 @@ jobs:
             const files = fs.readdirSync(pathName)
             const directories = files.filter((file) => fs.statSync(path.join(pathName, file)).isDirectory()).map((dir) => `plugins/${dir}`)
 
-            directories.push(path.join(process.cwd(), 'core'))
+            directories.push('core')
             core.setOutput('paths', directories)
   build:
     name: Build ${{ matrix.path }}

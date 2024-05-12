@@ -21,6 +21,7 @@
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-n": "^16.6.2",
     "eslint-plugin-promise": "^6.1.1",
+    "tscpaths": "^0.0.9",
     "typescript": "^5.4.5"
   },
   "dependencies": {
