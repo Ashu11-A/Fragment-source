@@ -7,8 +7,7 @@ new Command({
   dmPermission: false,
   type: ApplicationCommandType.ChatInput,
   async run (interaction) {
-    const { guildId, guild } = interaction
-    // const { site, loja } = await db.guilds.get(`${guildId}.urls`)
+    const { guild } = interaction
     const iconURL = interaction?.guild?.iconURL({ size: 64 }) ?? undefined
     const embed = new EmbedBuilder({
       author: { iconURL, name: guild?.name ?? 'Error' },
@@ -53,12 +52,6 @@ new Command({
     if (iconURL !== undefined) {
       embed.setThumbnail(guild?.iconURL() as string)
     }
-    // if (site !== undefined) {
-    //   embed.addFields('Site', site)
-    // }
-    // if (loja !== undefined) {
-    //   embed.addFields('Loja', loja)
-    // }
 
     await interaction.reply({
       ephemeral: true,
