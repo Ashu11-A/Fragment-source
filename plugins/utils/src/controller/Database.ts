@@ -41,6 +41,14 @@ export class Database<T extends BaseEntity> {
     return await new Promise((resolve, reject) => {
       SocketClient.client.emit(this.eventName, { table: this.table, type: 'findOne', options })
       SocketClient.client.once(this.eventName, (data: T | null) => { resolve(data) })
+      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(data) })
+    })
+  }
+
+  async upsert (entityOrEntities: QueryDeepPartialEntity<T> | QueryDeepPartialEntity<T>[], conflictPathsOrOptions: string[] | UpsertOptions<T>): Promise<InsertResult> {
+    return await new Promise((resolve, reject) => {
+      SocketClient.client.emit(this.eventName, { table: this.table, type: 'upsert', entityOrEntities, conflictPathsOrOptions })
+      SocketClient.client.once(this.eventName, (data: InsertResult) => { resolve(data) })
     })
   }
 

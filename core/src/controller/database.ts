@@ -32,19 +32,28 @@ export class Database {
     const { type, table } = args as { type: string, table: string }
     const entry = Object.entries(Database.entries).find(([key]) => key.split('.')[0] === table)
 
-    if (entry === undefined) return
+    if (entry === undefined) {
+      console.log(`${table} Entidade invalida, Entidades carregadas: ${Database.entries}`)
+      return
+    }
+
+    console.log(args)
+
     const [, { default: Entity }] = entry
-    switch (type) {
-      case 'create': socket.emit(eventName, Entity.create(args.entity)); break
-      case 'update': {
-        socket.emit(eventName, await Entity.update(args.criteria, args.partialEntity)); break
-      }
+    try {
+      switch (type) {
       case 'find': socket.emit(eventName, await Entity.find(args.options)); break
       case 'save': socket.emit(eventName, await Entity.save(args.entities, args.options)); break
-      case 'findBy': socket.emit(eventName, await Entity.findBy(args.where as FindOptionsWhere<typeof BaseEntity>)); break
-      case 'findOne': socket.emit(eventName, await Entity.findOne(args.options)); break
-      case 'delete': socket.emit(eventName, await Entity.delete(args.criteria as string | string[] | number | number[] | Date | Date[] | ObjectId | ObjectId[] | FindOptionsWhere<typeof BaseEntity>)); break
       case 'count': socket.emit(eventName, await Entity.count(args.options))
+      case 'update': socket.emit(eventName, await Entity.update(args.criteria, args.partialEntity)); break
+      case 'upsert': socket.emit(eventName, await Entity.upsert(args.entityOrEntities, args.conflictPathsOrOptions)); break
+      case 'findBy': socket.emit(eventName, await Entity.findBy(args.where as FindOptionsWhere<typeof BaseEntity>)); break
+      case 'delete': socket.emit(eventName, await Entity.delete(args.criteria as string | string[] | number | number[] | Date | Date[] | ObjectId | ObjectId[] | FindOptionsWhere<typeof BaseEntity>)); break
+      case 'create': socket.emit(eventName, await Entity.create(args.entity)); break
+      case 'findOne': socket.emit(eventName, await Entity.findOne(args.options)); break
+      }
+    } catch (err) {
+      socket.emit(`${eventName}_error`, err)
     }
     return
   }
