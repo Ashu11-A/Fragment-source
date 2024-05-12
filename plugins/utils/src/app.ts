@@ -28,17 +28,17 @@ async function app () {
     }
 
     switch (args[argNum]) {
-      case 'info': {
-        const info = JSON.stringify(await metadata())
-        console.clear()
-        console.log(info)
-        break
-      }
-      case 'port': {
-        argNum++
-        client.connect(args[argNum])
-        break
-      }
+    case 'info': {
+      const info = JSON.stringify(await metadata())
+      console.clear()
+      console.log(info)
+      break
+    }
+    case 'port': {
+      argNum++
+      client.connect(args[argNum])
+      break
+    }
     }
   }
 }

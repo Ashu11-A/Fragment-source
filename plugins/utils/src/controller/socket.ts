@@ -17,7 +17,7 @@ export class SocketClient {
     const commands = Command.all.map((command) => ({ 
       ...command,
       defaultMemberPermissions: undefined
-     }))
+    }))
     socket.on('connect', async () => {
       SocketClient.client = socket
       const files = await glob([`${join(__dirname, '..', 'entity')}/**/*.{ts,js}`])

@@ -55,20 +55,20 @@ export class Discord {
         const command = Command.all.get(commandInteraction.commandName)
 
         switch (command?.type) {
-          case ApplicationCommandType.ChatInput:{
-            const interaction = commandInteraction as ChatInputCommandInteraction
-            command.run(interaction)
-            return
-          }
-          case ApplicationCommandType.Message:{
-            const interaction = commandInteraction as MessageContextMenuCommandInteraction
-            command.run(interaction)
-            return
-          }
-          case ApplicationCommandType.User:{
-            const interaction = commandInteraction as UserContextMenuCommandInteraction
-            command.run(interaction)
-          }
+        case ApplicationCommandType.ChatInput:{
+          const interaction = commandInteraction as ChatInputCommandInteraction
+          command.run(interaction)
+          return
+        }
+        case ApplicationCommandType.Message:{
+          const interaction = commandInteraction as MessageContextMenuCommandInteraction
+          command.run(interaction)
+          return
+        }
+        case ApplicationCommandType.User:{
+          const interaction = commandInteraction as UserContextMenuCommandInteraction
+          command.run(interaction)
+        }
         }
       }
       if (interaction.isCommand()) onCommand(interaction)
@@ -131,23 +131,23 @@ export class Discord {
     })
   }
 
-    /**
+  /**
    * Cria um botão de Redirecionamento
    */
-    public static async buttonRedirect (options: {
+  public static async buttonRedirect (options: {
       guildId: string | null
       channelId: string | undefined
       emoji?: APIMessageComponentEmoji
       label: string
     }): Promise<ActionRowBuilder<ButtonBuilder>> {
-      const { guildId, channelId, emoji, label } = options
-      return new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder({
-          emoji,
-          label,
-          url: `https://discord.com/channels/${guildId}/${channelId}`,
-          style: ButtonStyle.Link
-        })
-      )
-    }
+    const { guildId, channelId, emoji, label } = options
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder({
+        emoji,
+        label,
+        url: `https://discord.com/channels/${guildId}/${channelId}`,
+        style: ButtonStyle.Link
+      })
+    )
+  }
 }

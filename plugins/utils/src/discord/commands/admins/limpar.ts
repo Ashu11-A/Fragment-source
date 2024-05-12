@@ -32,20 +32,20 @@ new Command({
     const focused = options.getFocused(true)
 
     switch (focused.name) {
-      case 'mensagem':{
-        if (!channel?.isTextBased()) return
-        const messages = await channel?.messages.fetch()
-        const choices = Array.from(messages)
-          .map(([id, { content, author, createdAt }]) => {
-            const time = createdAt.toLocaleDateString('pt-BR')
-            const [hour, minute] = time.split(':')
-            const text = `${hour}:${minute} ${author.displayName}: ${content}`
-            const name = text.length > 90 ? text.slice(0, 90) + '...' : text
-            return { name, value: id }
-          })
-        const filtered = choices.filter(c => c.name.toLocaleLowerCase().includes(focused.value.toLocaleLowerCase()))
-        await interaction.respond(filtered.slice(0, 25))
-      }
+    case 'mensagem':{
+      if (!channel?.isTextBased()) return
+      const messages = await channel?.messages.fetch()
+      const choices = Array.from(messages)
+        .map(([id, { content, author, createdAt }]) => {
+          const time = createdAt.toLocaleDateString('pt-BR')
+          const [hour, minute] = time.split(':')
+          const text = `${hour}:${minute} ${author.displayName}: ${content}`
+          const name = text.length > 90 ? text.slice(0, 90) + '...' : text
+          return { name, value: id }
+        })
+      const filtered = choices.filter(c => c.name.toLocaleLowerCase().includes(focused.value.toLocaleLowerCase()))
+      await interaction.respond(filtered.slice(0, 25))
+    }
     }
   },
   async run (interaction) {
