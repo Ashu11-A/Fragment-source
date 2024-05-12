@@ -1,6 +1,7 @@
 import { gen } from '@/functions/gen'
 import { type BaseEntity, type FindManyOptions, type FindOptionsWhere, type FindOneOptions, type DeepPartial, type ObjectId, type DeleteResult, SaveOptions } from 'typeorm'
 import { SocketClient } from './socket'
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity'
 
 interface DatabaseOptions {
   table: string
@@ -47,6 +48,13 @@ export class Database<T extends BaseEntity> {
     return await new Promise((resolve, reject) => {
       SocketClient.client.emit(this.eventName, { table: this.table, type: 'create', entity })
       SocketClient.client.once(this.eventName, (data: T) => { resolve(data) })
+    })
+  }
+
+  async update (criteria: string | string[] | number | number[] | Date | Date[] | ObjectId | ObjectId[] | FindOptionsWhere<T>, partialEntity: QueryDeepPartialEntity<T>) {
+    return await new Promise((resolve, reject) => {
+      SocketClient.client.emit(this.eventName, { table: this.table, type: 'update', criteria , partialEntity })
+      SocketClient.client.once(this.eventName, (data: DeleteResult) => { resolve(data) })
     })
   }
 

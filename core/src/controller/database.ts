@@ -36,6 +36,9 @@ export class Database {
     const [, { default: Entity }] = entry
     switch (type) {
       case 'create': socket.emit(eventName, Entity.create(args.entity)); break
+      case 'update': {
+        socket.emit(eventName, await Entity.update(args.criteria, args.partialEntity)); break
+      }
       case 'find': socket.emit(eventName, await Entity.find(args.options)); break
       case 'save': socket.emit(eventName, await Entity.save(args.entities, args.options)); break
       case 'findBy': socket.emit(eventName, await Entity.findBy(args.where as FindOptionsWhere<typeof BaseEntity>)); break
