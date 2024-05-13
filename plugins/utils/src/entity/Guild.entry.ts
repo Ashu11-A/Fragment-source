@@ -1,5 +1,6 @@
-import { BaseEntity, Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from "typeorm";
+import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from "typeorm";
 import Config from "./Config.entry";
+import Staff from "./Staff.entry";
 
 @Entity({ name: 'guild' })
 export default class Guild extends BaseEntity {
@@ -9,4 +10,7 @@ export default class Guild extends BaseEntity {
     @OneToOne(() => Config, { cascade: true })
     @JoinColumn()
       config!: Config
+
+    @OneToMany(() => Staff, (staff) => staff.id)
+      staff!: Staff[]
 }

@@ -1,106 +1,136 @@
-// import { EmbedBuilder, ApplicationCommandOptionType, ApplicationCommandType, type TextChannel, PermissionsBitField } from 'discord.js'
-// import { Command } from '@/discord/base'
+import { console } from '@/controller/console'
+import { Database } from '@/controller/database'
+import { Command } from '@/discord/base'
+import Config from '@/entity/Config.entry'
+import Staff from '@/entity/Staff.entry'
+import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, PermissionsBitField } from 'discord.js'
 
-// new Command({
-//   name: 'equipe',
-//   dmPermission: false,
-//   description: '[ 💎 Moderação ] Add/Rem alguém da equipe',
-//   type: ApplicationCommandType.ChatInput,
-//   defaultMemberPermissions: PermissionsBitField.Flags.ManageRoles,
-//   options: [
-//     {
-//       name: 'usuário',
-//       description: 'Usuário a ser Add/Rem',
-//       required: true,
-//       type: ApplicationCommandOptionType.User
-//     },
-//     {
-//       name: 'cargo',
-//       description: 'Cargo que o Usuário irá ganhar',
-//       required: true,
-//       type: ApplicationCommandOptionType.Role
-//     },
-//     {
-//       name: 'tipo',
-//       description: 'Adicionar ou Remover',
-//       type: ApplicationCommandOptionType.String,
-//       choices: [
-//         { name: 'Adicionar', value: 'add' },
-//         { name: 'Remover', value: 'rem' }
-//       ],
-//       required: false
+new Command({
+  name: 'equipe',
+  dmPermission: false,
+  description: '[ 💎 Moderação ] Add/Rem alguém da equipe',
+  type: ApplicationCommandType.ChatInput,
+  defaultMemberPermissions: PermissionsBitField.Flags.ManageRoles,
+  options: [
+    {
+      name: 'usuário',
+      description: 'Usuário a ser Add/Rem',
+      required: true,
+      type: ApplicationCommandOptionType.User
+    },
+    {
+      name: 'cargo',
+      description: 'Cargo que o Usuário irá ganhar',
+      required: true,
+      type: ApplicationCommandOptionType.Role
+    },
+    {
+      name: 'tipo',
+      description: 'Adicionar ou Remover',
+      type: ApplicationCommandOptionType.String,
+      choices: [
+        { name: 'Adicionar', value: 'add' },
+        { name: 'Remover', value: 'rem' }
+      ],
+      required: false
 
-//     }
-//   ],
-//   async run (interaction) {
-//     const { options } = interaction
-//     const user = options.getUser('usuário')
-//     const member = interaction.guild?.members.cache.get(String(user?.id))
-//     const cargo = options.getRole('cargo')
-//     const type = options.getString('tipo') ?? 'add'
-//     const { guild } = interaction
-//     // const channelDB = await db.guilds.get(`${interaction?.guild?.id}.channel.staff_logs`)
-//     // const sendChannel = guild?.channels.cache.get(channelDB) as TextChannel
+    }
+  ],
+  async run (interaction) {
+    const { options, guild, guildId } = interaction
+    if (guildId === null) return
 
-//     if (user?.id === interaction.user.id) {
-//       const embed = new EmbedBuilder()
-//         .setColor('Yellow')
-//         .setDescription('❌ - Você não pode utilizar este comando em sí mesmo.')
-//       return await interaction.reply({ embeds: [embed], ephemeral: true })
-//     }
+    await interaction.deferReply({ ephemeral: true })
+    const user = options.getUser('usuário', true)
+    const member = await guild?.members.fetch(user.id)
+    const cargo = options.getRole('cargo', true)
+    const type = options.getString('tipo') ?? 'add'
 
-//     let message: string = ''
-//     try {
-//       if (type === 'add') {
-//         message = `adicionado a equipe como <@&${cargo?.id}>`
-//         member?.roles.add(String(cargo?.id))
-//           .then(async () => {
-//             await db.staff.set(`${interaction?.guild?.id}.members.${user?.id}`, {
-//               user: user?.username,
-//               role: cargo?.id
-//             })
-//           })
-//           .catch(async (err) => {
-//             console.log(err)
-//             return await interaction.reply({
-//               content: 'Ocorreu um erro!',
-//               ephemeral: true
-//             })
-//           })
-//       } else if (type === 'rem') {
-//         message = 'não integra mais a equipe'
-//         member?.roles.remove(String(cargo?.id))
-//           .then(async () => {
-//             await db.guilds.delete(`${interaction?.guild?.id}.members.staff.${user?.id}`)
-//           })
-//           .catch(async (err) => {
-//             console.log(err)
-//             return await interaction.reply({
-//               content: 'Ocorreu um erro!',
-//               ephemeral: true
-//             })
-//           })
-//       }
-//       const embed = new EmbedBuilder()
-//         .setColor(cargo?.color ?? 'Random')
-//         .setTitle('📰 | STAFF LOG')
-//         .setDescription(
-//           `<@${user?.id}> ${message}.`
-//         )
-//         .setFooter({ text: `Equipe ${interaction.guild?.name}` })
-//         .setTimestamp()
+    if (member === undefined) {
+        await interaction.editReply({
+            embeds: [new EmbedBuilder({
+                title: '❌ Não encontrei o usuário que você informou!'
+            }).setColor('Red')]
+        })
+        return
+    }
 
-//       if (sendChannel !== undefined) {
-//         await sendChannel.send({ embeds: [embed] })
-//       }
+    const config = await new Database<Config>({ table: 'Config' }).findOne({ where: { guild: { id: guildId ?? undefined } }, relations: { guild: true } })
 
-//       return await interaction.reply({ embeds: [embed], ephemeral: true })
-//     } catch (error) {
-//       console.error(error)
-//       return await interaction.reply({
-//         content: 'Ocorreu um erro!',
-//         ephemeral: true
-//       })
-//     }
-//   }
-// })
+    if (config?.logStaff === undefined) {
+        await interaction.editReply({
+            embeds: [new EmbedBuilder({
+                title: '❌ O channel de logs não foi configurado!',
+                description: 'Tente o comando: `/config guild logs-equipe`'
+            }).setColor('Red')]
+        })
+        return
+    }
+
+    const channel = await guild?.channels.fetch(config.logStaff)
+    if (channel?.isTextBased() !== true) {
+        await interaction.editReply({
+            embeds: [new EmbedBuilder({
+                title: '❌ Não encontrei channel que foi configurado para o envio das logs!',
+                description: 'Tente o comando: `/config guild logs-equipe`.'
+            }).setColor('Red')]
+        })
+        return
+    }
+
+    if (user.id === interaction.user.id) {
+      const embed = new EmbedBuilder({
+        description: '❌ Você não pode utilizar este comando em sí mesmo.'
+      }).setColor('Red')
+      return await interaction.editReply({ embeds: [embed] })
+    }
+
+    let message = ''
+    let error = false
+
+    if (type === 'add') {
+    message = `adicionado a equipe como <@&${cargo.id}>`
+    member.roles.add(cargo.id)
+        .then(async () => {
+            const create = await new Database<Staff>({ table: 'Staff' }).create({ guild: { id: guildId }, role: cargo.id, userName: user.username, userId: user.id })
+            await new Database<Staff>({ table: 'Staff' }).save(create).catch(() => error = true)
+        })
+        .catch(async (err: { code?: number }) => {
+            console.log(err)
+            error = true
+            if (err?.code === 403) {
+                return await interaction.editReply({ content: '❌ Não tenho permissão! Talvez o meu cargo seja inferior?!' })
+            }
+            return await interaction.editReply({ content: 'Ocorreu um erro!' })
+        })
+    }
+    if (type === 'rem') {
+        message = 'não integra mais a equipe'
+        member.roles.remove(cargo.id)
+            .then(async () => {
+                await new Database<Staff>({ table: 'Staff' }).delete({ guild: { id: guildId }, userId: user.id })
+            })
+            .catch(async (err: { code?: number }) => {
+                console.log(err)
+                error = true
+                if (err?.code === 403) {
+                    return await interaction.editReply({ content: '❌ Não tenho permissão! Talvez o meu cargo seja inferior?!' })
+                }
+                return await interaction.editReply({ content: 'Ocorreu um erro!' })
+            })
+    }
+
+    if (error) return
+
+    const embed = new EmbedBuilder({
+        title: '📰 | STAFF LOG',
+        description: `<@${user?.id}> ${message}.`,
+        footer: { text: `Equipe ${guild?.name}`, iconURL: (user.avatarURL({ size: 64 }) ?? undefined) },
+        timestamp: new Date()
+    }).setColor(cargo.color ?? 'Random')
+
+    await channel.send({ embeds: [embed] })
+
+    return await interaction.editReply({ embeds: [embed] })
+  }
+})
