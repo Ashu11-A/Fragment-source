@@ -1,3 +1,4 @@
+import { console } from '@/controller/console'
 import { Database } from '@/controller/Database'
 import { Command, Discord } from '@/discord/base'
 import Config from '@/entity/Config.entry'
@@ -52,8 +53,7 @@ new Command({
       await guild?.members.kick(user, reason)
       // Adiciona o log de warning após o comando ter sido executado
       console.log(
-        'BAN',
-        `O usuario ${interaction.user.username} com o ID: ${interaction.user.id} expulsou o ${user.username} de ID: ${user.id}`
+        `BAN: O usuario ${interaction.user.username} com o ID: ${interaction.user.id} expulsou o ${user.username} de ID: ${user.id}`
       )
       const embed = new EmbedBuilder()
         .setColor('Green')

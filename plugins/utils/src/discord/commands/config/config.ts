@@ -1,3 +1,4 @@
+import { console } from "@/controller/console";
 import { Database } from "@/controller/Database";
 import { Command } from "@/discord/base";
 import Config from "@/entity/Config.entry";

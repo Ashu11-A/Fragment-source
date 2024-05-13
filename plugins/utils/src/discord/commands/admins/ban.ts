@@ -2,6 +2,7 @@ import { EmbedBuilder, ApplicationCommandOptionType, ApplicationCommandType, typ
 import { Command, Discord } from '@/discord/base'
 import { Database } from '@/controller/Database'
 import Config from '@/entity/Config.entry'
+import { console } from '@/controller/console'
 
 new Command({
   name: 'ban',
@@ -83,8 +84,7 @@ new Command({
       await member.ban({ reason, deleteMessageSeconds: deleteMSG })
       // Adiciona o log de warning após o comando ter sido executado
       console.log(
-        'BAN',
-        `O usuario ${interaction.user.username} com o ID: ${interaction.user.id} baniu o ${user.username} de ID: ${user.id}`
+        `BAN O usuario ${interaction.user.username} com o ID: ${interaction.user.id} baniu o ${user.username} de ID: ${user.id}`
       )
       const embed = new EmbedBuilder({
         title: '✅ Usuário banido com sucesso!',

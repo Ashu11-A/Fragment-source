@@ -1,3 +1,5 @@
+import { console } from "@/controller/console"
+
 export async function calculateImageSize (url: string): Promise<number> {
   try {
     const headers = (await fetch(url)).headers

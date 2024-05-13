@@ -17,6 +17,11 @@ export class Event {
     const database = new Database()
 
     this.client.onAny(async (eventName: string, args) => {
+      if (eventName === 'console') {
+        console[args?.type as 'warn' | 'log' | 'error' | 'info' | undefined ?? 'log']
+        (`Plugin ${Plugins.running.find((plugin) => plugin.id ===  this.client.id)?.metadata?.name ??  this.client.id}: ${args?.message} ${args?.optionalParams}`)
+        return
+      }
       if (eventName.split('_').includes('database')) { await database.events(this.client, eventName, args); return }
       await Plugins.events(this.client, eventName, args)
     })

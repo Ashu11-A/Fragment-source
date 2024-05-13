@@ -5,6 +5,7 @@ import { join } from 'path'
 import { Command } from './Commands'
 import { Component } from './Components'
 import { name } from '../../../package.json'
+import { console } from '@/controller/console'
 
 export class Discord {
   public static client: Client<boolean>
