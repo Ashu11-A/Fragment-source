@@ -3,7 +3,7 @@ import 'reflect-metadata'
 import { metadata } from '.'
 import { Crons } from './class/Crons'
 import { SocketClient } from './controller/socket'
-import { Discord } from './discord/base'
+import { Discord } from '@/discord/base'
 
 interface Args {
   command: string

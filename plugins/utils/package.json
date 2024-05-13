@@ -4,14 +4,11 @@
    "description": "Comandos basicos de um bot Discord",
    "main": "src/app.ts",
    "scripts": {
-      "build": "tsc && tscpaths -p tsconfig.json -s ./src -o ./dist",
+      "build": "tsc && tsc-alias",
       "dev": "ts-node -r tsconfig-paths/register src/app.ts",
       "start": "ts-node src/index.ts",
       "typeorm": "typeorm-ts-node-commonjs",
       "lint": "eslint --ext .tsx,.ts --fix ./src -c .eslintrc.json"
-   },
-   "prisma": {
-      "schema": "src/prisma/schema.prisma"
    },
    "author": "Ashu11-a",
    "license": "LSC",
@@ -25,7 +22,7 @@
       "eslint-plugin-import": "^2.29.1",
       "eslint-plugin-n": "^16.6.2",
       "eslint-plugin-promise": "^6.1.1",
-      "tscpaths": "^0.0.9",
+      "tsc-alias": "^1.8.9",
       "typescript": "^5.4.5"
    },
    "dependencies": {
