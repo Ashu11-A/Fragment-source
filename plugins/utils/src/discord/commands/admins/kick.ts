@@ -1,5 +1,5 @@
 import { console } from '@/controller/console'
-import { Database } from '@/controller/Database'
+import { Database } from '@/controller/database'
 import { Command, Discord } from '@/discord/base'
 import Config from '@/entity/Config.entry'
 import { EmbedBuilder, ApplicationCommandType, ApplicationCommandOptionType, type TextChannel, codeBlock, PermissionsBitField } from 'discord.js'

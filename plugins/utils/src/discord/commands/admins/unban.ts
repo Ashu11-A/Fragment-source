@@ -1,6 +1,6 @@
 import { EmbedBuilder, ApplicationCommandOptionType, ApplicationCommandType, type TextChannel, codeBlock, PermissionsBitField } from 'discord.js'
 import { Command } from '@/discord/base'
-import { Database } from '@/controller/Database'
+import { Database } from '@/controller/database'
 import Config from '@/entity/Config.entry'
 
 new Command({

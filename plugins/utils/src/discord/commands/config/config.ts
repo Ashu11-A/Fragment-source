@@ -1,5 +1,5 @@
 import { console } from "@/controller/console";
-import { Database } from "@/controller/Database";
+import { Database } from "@/controller/database";
 import { Command } from "@/discord/base";
 import Config from "@/entity/Config.entry";
 import Guild from "@/entity/Guild.entry";
