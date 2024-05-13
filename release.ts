@@ -107,16 +107,22 @@ class Build {
   async compress (options?: { directory: string, outBuild: string }): Promise<void> {
     const { directory, outBuild } = options ?? { directory: `${this.options.outBuild}/src`, outBuild: `${this.options.outBuild}/src` }
     const paths = await glob([`${directory}/**/*.js`])
+    const pathsFormated = []
 
-    console.debug('\n\nIniciando Compressão...')
-    this.progressBar.start(paths.length, 0)
     for (const filePath of paths) {
       if (!(await stat(filePath)).isFile() || filePath.includes('bindings')) {
-        console.log(`Pulando compressão: ${filePath}`)
-        this.progressBar.increment()
+        console.log(`Removendo da compressão: ${filePath}`)
         continue
       }
+      const { length } = await readFile(filePath)
+      pathsFormated.push({ filePath, length })
+    }
 
+    const totalLength = pathsFormated.reduce((total, { length }) => total + length, 0)
+
+    console.debug(`\n\nIniciando Compressão de ${totalLength} linhas...`)
+    this.progressBar.start(totalLength, 0)
+    for (const { filePath, length } of pathsFormated) {
       const newPath = path.dirname(filePath).replace(directory, outBuild)
       const fileContent = await readFile(filePath)
       const fileName = path.basename(filePath)
@@ -141,10 +147,10 @@ class Build {
         keep_fnames: true
       })
 
-      if (result.code === undefined) { this.progressBar.increment(); continue }
+      if (result.code === undefined) { this.progressBar.increment(length); continue }
 
       await writeFile(`${newPath}/${fileName}`, result.code, { encoding: 'utf-8' })
-      this.progressBar.increment()
+      this.progressBar.increment(length)
     }
     this.progressBar.stop()
   }
