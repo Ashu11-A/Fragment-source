@@ -1,7 +1,7 @@
 import { Database } from '@/controller/database'
 import { Event } from '@/discord/base'
 import Config from '@/entity/Config.entry'
-import { type TextChannel, EmbedBuilder, GuildBasedChannel } from 'discord.js'
+import { EmbedBuilder } from 'discord.js'
 
 new Event({
   name: 'guildMemberAdd',
@@ -17,7 +17,7 @@ new Event({
       if (config?.logEntry === undefined) return
 
       const sendChannel = await interaction.guild?.channels.fetch(config.logEntry) 
-      if ((sendChannel?.isTextBased()) !== true) return
+      if (sendChannel?.isTextBased() !== true) return
 
       const userImage = interaction.user?.avatarURL({ size: 512 })
       const embed = new EmbedBuilder({

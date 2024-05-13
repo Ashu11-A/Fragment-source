@@ -1,7 +1,7 @@
 import { Database } from '@/controller/database'
 import { Event } from '@/discord/base'
 import Config from '@/entity/Config.entry'
-import { type TextChannel, time, EmbedBuilder } from 'discord.js'
+import { EmbedBuilder, time } from 'discord.js'
 
 new Event({
   name: 'interactionCreate',
@@ -20,7 +20,7 @@ new Event({
         if (config?.logs === undefined) return
 
         const sendChannel = await interaction.guild?.channels.fetch(config.logs)
-        if ((sendChannel?.isTextBased()) !== true) return
+        if (sendChannel?.isTextBased() !== true) return
  
         const emojis = ['⌨️', '👤', '✉️']
         const text = [

@@ -1,7 +1,7 @@
-import { Event } from '@/discord/base'
-import { type TextChannel, EmbedBuilder } from 'discord.js'
 import { Database } from '@/controller/database'
+import { Event } from '@/discord/base'
 import Config from '@/entity/Config.entry'
+import { EmbedBuilder } from 'discord.js'
 
 new Event({
   name: 'guildMemberRemove',
@@ -38,7 +38,7 @@ new Event({
       if (config?.logExit === undefined) return
 
       const sendChannel = interaction.guild?.channels.cache.get(config.logExit)
-      if ((sendChannel?.isTextBased()) !== true) return
+      if (sendChannel?.isTextBased() !== true) return
 
       const embed = new EmbedBuilder({
         description: `Usuário ${user.username}, saiu do servidor!`,
