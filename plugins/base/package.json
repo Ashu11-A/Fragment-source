@@ -16,7 +16,6 @@
    "author": "Ashu11-a",
    "license": "LSC",
    "devDependencies": {
-      "@types/express": "^4.17.21",
       "@types/node": "^16.11.10",
       "@types/socket.io": "^3.0.2",
       "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -32,9 +31,7 @@
    "dependencies": {
       "cron-parser": "^4.9.0",
       "discord.js": "^14.15.2",
-      "express": "^4.19.2",
       "glob": "^10.3.12",
-      "mysql": "^2.14.1",
       "reflect-metadata": "^0.1.13",
       "socket.io-client": "^4.7.5",
       "typeorm": "0.3.20"
