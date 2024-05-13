@@ -257,7 +257,7 @@ class Build {
       console.debug(`\n\nIniciando Build ${nameSplit[2]}...`)
       newArg.push(...args, '-t', build, '--output', `${this.options.outRelease}/${buildName}`)
 
-      execSync(`cd ${this.options.outBuild} && npx pkg ${newArg.join(" ")}`, { stdio: 'inherit' })
+      execSync(`cd ${this.options.outBuild} && PKG_CACHE_PATH=${join(process.cwd(), 'pkg-cache')} PKG_IGNORE_TAG=true npx pkg ${newArg.join(" ")}`, { stdio: 'inherit' })
 
       const timeSpent = (Date.now() - this.startTime) / 1000 + 's'
       console.info(`Build | ${nameSplit[1]}-${nameSplit[2]} | ${timeSpent}`)
