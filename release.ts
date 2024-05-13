@@ -318,6 +318,8 @@ async function start (): Promise<void> {
     { command: 'only-build', alias: ['ob'] },
     { command: 'source', alias: ['s'] }
   ]
+
+  // Replace alias for command
   for (let argIndex = 0; argIndex < args.length; argIndex++) {
     for (const { command, alias } of argsList) {
       if (alias.includes(args[argIndex])) args[argIndex] = command
@@ -327,6 +329,7 @@ async function start (): Promise<void> {
   const directories = (await readdir('plugins')).map((dir) => `plugins/${dir}`); directories.push('core')
   const builds: Array<Build> = []
   
+  // Get all builds
   for (const project of directories) {
     builds.push(new Build({
       source: project,
@@ -338,11 +341,15 @@ async function start (): Promise<void> {
     }))
   }
 
-  const sourceIndex = args.findIndex((arg) => ['source'].includes(arg))
+  const sourceIndex = args.findIndex((arg) => arg === 'source')
   const sourcePath = args[(sourceIndex) + 1]
-
+  
+  // Build only --source path
   if (sourcePath !== undefined) {
+    // Remove elements in Array
+    args.splice(sourceIndex, 2)
     builds.splice(0, builds.length)
+
     builds.push(new Build({
       source: sourcePath,
       outBuild: 'build',
@@ -354,31 +361,8 @@ async function start (): Promise<void> {
     console.log(`Buildando apenas o ${sourcePath}`)
   }
 
-  for (const build of builds) {
-    if (args.length === 0) {
-      await build.start()
-      continue
-    }
-
-    for (let argNum = 0; argNum < args.length; argNum++) {
-      switch (args[argNum]) {
-        case 'source': {
-          argNum++
-          await build.start()
-        }
-        case 'pre-build': {
-          await build.build()
-          await build.compress()
-          await build.obfuscate()
-          await build.config()
-          break
-        }
-        case 'only-build': {
-          await build.pkgbuild()
-          break
-        }
-        case 'help':
-          console.log(`
+  if (args.find((arg) => arg === 'help')) {
+    console.log(`
 release [options] <input>
 
     Options:
@@ -388,7 +372,30 @@ release [options] <input>
       -ob, --only-build    Only build the plugins with pkg
       -s,  --source        Build a specific directory
           `)
-          break
+    return
+  }
+
+  for (const build of builds) {
+    if (args.length === 0) {
+      await build.start()
+      continue
+    }
+
+    for (let argNum = 0; argNum < args.length; argNum++) {
+      switch (args[argNum]) {
+        case 'pre-build': {
+          await build.build()
+          await build.compress()
+          await build.obfuscate()
+          await build.config()
+        }
+        case 'only-build': {
+          await build.pkgbuild()
+        }
+        default: {
+          argNum++
+          await build.start()
+        }
       }
     }
 
