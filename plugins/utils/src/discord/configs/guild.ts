@@ -96,7 +96,7 @@ new Config({
       }).then(async () => {
         await interaction.editReply({
           embeds: [new EmbedBuilder({
-            title: `${entrada.name} setado para as logs de entrada e saída da equipe!`
+            title: `${logsEquipe.name} setado para as logs de entrada e saída da equipe!`
           })]
         })
       })
@@ -112,7 +112,7 @@ new Config({
       }).then(async () => {
         await interaction.editReply({
           embeds: [new EmbedBuilder({
-            title: `${entrada.name} setado para os logs!`
+            title: `${logsGeral.name} setado para os logs!`
           })]
         })
       })
