@@ -1,5 +1,5 @@
 import { Command } from '@/discord/base'
-import { ApplicationCommandType, EmbedBuilder } from 'discord.js'
+import { ApplicationCommandType, EmbedBuilder, codeBlock } from 'discord.js'
 
 new Command({
   name: 'ping',
@@ -11,14 +11,15 @@ new Command({
     const apiLatency = client.ws.ping
     const botLatency = Date.now() - interaction.createdTimestamp
 
-    const embed = new EmbedBuilder()
-      .setTitle('Pong!')
-      .setColor('DarkGold')
-      .setDescription(`Latencia da API: ${apiLatency}ms \nLatencia do Bot: ${botLatency}ms`)
-
     await interaction.reply({
-      ephemeral: true,
-      embeds: [embed]
+      embeds: [
+        new EmbedBuilder({
+          title: 'Pong!',
+          fields: [
+            { name: '⚡ API', value: codeBlock(`${apiLatency}ms`)},
+            { name: '🤖 Bot', value: codeBlock(`${botLatency}ms`)}
+          ]
+      }).setColor('DarkGold')]
     })
   }
 })

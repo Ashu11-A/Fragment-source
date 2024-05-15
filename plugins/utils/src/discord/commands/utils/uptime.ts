@@ -7,7 +7,6 @@ new Command({
   dmPermission: false,
   type: ApplicationCommandType.ChatInput,
   async run (interaction) {
-    await interaction.deferReply({ ephemeral: true })
     const embed = new EmbedBuilder({
       title: '⌛ | Uptime do Bot!',
       fields: [
@@ -17,6 +16,6 @@ new Command({
         }
       ]
     }).setColor('Green')
-    await interaction.editReply({ embeds: [embed] })
+    await interaction.reply({ embeds: [embed] })
   }
 })

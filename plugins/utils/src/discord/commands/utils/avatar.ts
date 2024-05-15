@@ -31,27 +31,31 @@ new Command({
     await interaction.deferReply()
 
     const { options } = interaction
+    const user = options.getUser('usuário') ?? interaction.user
+    const size: any = Number(options.getString('tamanho')) ?? 2048
+    const img = user.avatarURL({ size })
 
-    try {
-      const user = options.getUser('usuário')
-      const size: any = Number(options.getString('tamanho')) ?? 2048
-      const img = user?.avatarURL({ size }) ?? interaction.user.avatarURL({ size })
-      const tamanho = await calculateImageSize(String(img))
-
-      const embed = new EmbedBuilder()
-        .setColor('Random')
-        .setTitle('Click aqui para baixar')
-        .setDescription(`Tamanho da imagem: ${formatBytes(tamanho)}`)
-        .setImage(String(img))
-        .setURL(String(img))
-
+    if (img === null) {
       await interaction.editReply({
-        embeds: [embed]
+        embeds: [new EmbedBuilder({
+          title: `Erro ao obter o avatar do usuário ${user.displayName}`
+        }).setColor('Red')]
       })
-    } catch (err) {
-      await interaction.editReply({
-        content: `Ocorreu um erro:\n${codeBlock('ts', String(err))}`
-      })
+      return
     }
+
+
+    const tamanho = await calculateImageSize(String(img))
+
+    const embed = new EmbedBuilder({
+      title: 'Click aqui para baixar',
+      description: `Tamanho da imagem: ${formatBytes(tamanho)}`,
+      image: { url: img },
+      url: img
+    }).setColor('Random')
+
+    await interaction.editReply({
+      embeds: [embed]
+    })
   }
 })

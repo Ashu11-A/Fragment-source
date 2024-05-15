@@ -53,9 +53,6 @@ new Command({
       embed.setThumbnail(guild?.iconURL() as string)
     }
 
-    await interaction.reply({
-      ephemeral: true,
-      embeds: [embed]
-    })
+    await interaction.reply({ embeds: [embed] })
   }
 })

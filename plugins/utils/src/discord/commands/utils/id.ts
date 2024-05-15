@@ -45,46 +45,42 @@ new Command({
     }
   ],
   async run (interaction) {
-    await interaction.deferReply({ ephemeral: true })
-
     const { options } = interaction
-
     const user = options.getUser('usuário')
     const cargo = options.getRole('cargo')
     const canal = options.getChannel('canal')
 
-    if (user !== null || cargo !== null || canal !== null) {
-      const embed = new EmbedBuilder()
-        .setColor('Green')
-        .setTitle(`Olá, ${interaction.user.username}!`)
-        .setDescription('O resultado da sua consulta se encontra abaixo:')
-
-      if (user !== null) {
-        embed.addFields({
-          name: `User: ${user?.username}`,
-          value: codeBlock(user.id)
-        })
-      }
-
-      if (cargo !== null) {
-        embed.addFields({
-          name: `Role: ${cargo?.name}`,
-          value: codeBlock(cargo.id)
-        })
-      }
-
-      if (canal !== null) {
-        embed.addFields({
-          name: `Channel: ${canal?.name}`,
-          value: codeBlock(canal.id)
-        })
-      }
-
-      await interaction.editReply({
-        embeds: [embed]
+    const embed = new EmbedBuilder({
+      title: `Olá, ${interaction.user.username}!`,
+      description: 'O resultado da sua consulta se encontra abaixo:'
+    }).setColor('Green')
+    
+    if (user !== null) {
+      embed.addFields({
+        name: `User: ${user?.username}`,
+        value: codeBlock(user.id)
       })
-    } else {
-      await interaction.editReply({ content: 'Nenhuma opção foi expecificada...' })
     }
+
+    if (cargo !== null) {
+      embed.addFields({
+        name: `Role: ${cargo?.name}`,
+        value: codeBlock(cargo.id)
+      })
+    }
+
+    if (canal !== null) {
+      embed.addFields({
+        name: `Channel: ${canal?.name}`,
+        value: codeBlock(canal.id)
+      })
+    }
+
+    if ((embed.data.fields?.length ?? 0) > 0) {
+      await interaction.reply({ ephemeral: true, embeds: [embed] })
+      return
+    }
+
+    await interaction.reply({ content: 'Nenhuma opção foi expecificada...', ephemeral: true })
   }
 })
