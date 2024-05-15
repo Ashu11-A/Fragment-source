@@ -2,6 +2,9 @@ import { type Socket } from 'socket.io'
 import { env } from '..'
 import { Database } from './database'
 import { Plugins } from './plugins'
+import { Command } from '@/discord/Commands'
+import { Config } from './config'
+import { Discord } from '@/discord/Client'
 
 interface EventOptions {
   client: Socket
@@ -37,14 +40,16 @@ export class Event {
   }
 
   async disconnect () {
-    const pluginFind = Plugins.running.map((plugin, index) => ({ plugin, index })).find(({ plugin }) => plugin?.id === this.client.id)
-    if (pluginFind) {
-      const { plugin, index } = pluginFind
-  
-      console.info(`\n🔌 Plugin Desconectado: ${plugin.metadata?.name}\n`)
-      Plugins.running.splice(index, 1)
-      return
-    }
-    console.info(`\n🤔 Plugin sem registro se desconectou: ${this.client.id}\n`)
+    const pluginFind = Plugins.running.find((plugin) => plugin?.id === this.client.id)
+    Config.all = Config.all.filter((config) => config.pluginId !== this.client.id)
+    Command.all = Command.all.filter((command) => command.pluginId !== this.client.id && command.name !== 'config')
+    Plugins.running = Plugins.running.filter((plugin) => plugin.id !== this.client.id)
+    
+    console.info(`\n🔌 Plugin Desconectado: ${pluginFind?.metadata?.name ?? this.client.id}\n`)
+    
+    const discord = new Discord()
+    discord.stop()
+    await discord.createClient()
+    await discord.start()
   }
 }

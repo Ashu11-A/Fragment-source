@@ -5,6 +5,7 @@ import { io, type Socket } from 'socket.io-client'
 import { metadata } from '..'
 import { Command, Component, Discord, Event } from '@/discord/base'
 import { formatBytes } from '../functions/format'
+import { Config } from '@/discord/base/Config'
 
 export class SocketClient {
   public static key: string
@@ -41,6 +42,7 @@ export class SocketClient {
           commands,
           components: Component.all,
           events: Event.all,
+          configs: Config.all
         })
       }
 

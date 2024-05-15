@@ -1,11 +1,12 @@
+import { console } from '@/controller/console'
 import { SocketClient } from '@/controller/socket'
-import { APIMessageComponentEmoji, ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, Client, IntentsBitField, Partials, type AutocompleteInteraction, type BitFieldResolvable, type ChatInputCommandInteraction, type CommandInteraction, type GatewayIntentsString, type MessageContextMenuCommandInteraction, type UserContextMenuCommandInteraction } from 'discord.js'
+import { APIMessageComponentEmoji, ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, CacheType, Client, IntentsBitField, Partials, type AutocompleteInteraction, type BitFieldResolvable, type ChatInputCommandInteraction, type CommandInteraction, type GatewayIntentsString, type MessageContextMenuCommandInteraction, type UserContextMenuCommandInteraction } from 'discord.js'
 import { glob } from 'glob'
 import { join } from 'path'
+import { name } from '../../../package.json'
 import { Command } from './Commands'
 import { Component } from './Components'
-import { name } from '../../../package.json'
-import { console } from '@/controller/console'
+import { Config } from './Config'
 
 export class Discord {
   public static client: Client<boolean>
@@ -19,7 +20,8 @@ export class Discord {
     const paths = await glob([
       'commands/**/*.{ts,js}',
       'events/**/*.{ts,js}',
-      'components/**/*.{ts,js}'
+      'components/**/*.{ts,js}',
+      'configs/**/*.{ts,js}'
     ], { cwd: dir })
   
     for (const path of paths) {
@@ -53,6 +55,12 @@ export class Discord {
         }
       }
       const onCommand = (commandInteraction: CommandInteraction): void => {
+        if (commandInteraction.commandName === 'config') {
+          const interaction = commandInteraction as ChatInputCommandInteraction<CacheType>
+          const config = Config.all.find((config) => config.name === interaction.options.getSubcommand())
+          config?.run(interaction)
+          return
+        }
         const command = Command.all.get(commandInteraction.commandName)
 
         switch (command?.type) {

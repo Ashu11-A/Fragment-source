@@ -11,6 +11,8 @@ import { Socket } from 'socket.io'
 import { BaseEntity } from 'typeorm'
 import { PKG_MODE, RootPATH } from '..'
 import { Database, EntityImport } from './database'
+import { ApplicationCommandSubCommandData, CacheType, ChatInputCommandInteraction } from 'discord.js'
+import { Config, ConfigOptions } from './config'
 
 interface Metadata {
   name: string
@@ -25,6 +27,7 @@ interface Plugin {
   commands?: { name: string, description: string, dmPermission: boolean, type: number }[]
   events?: { name: string }[]
   components?: { customId: string, cache: string, type: string }[]
+  configs?: ConfigOptions[]
   // signature: string
   // date: Date
   // size: string
@@ -178,15 +181,18 @@ export class Plugins {
 
 
       for (const command of ((info.commands ?? []) as Array<CommandData<boolean>>)) {
-        Command.all.set(command.name, command)
+        Command.all.set(command.name, { ...command, pluginId: socket.id })
       }
 
       console.log(`
 ✅ Iniciando Plugin ${info.metadata?.name}...
-  ⚙️ Commands: ${info.commands?.length}
+  🤖 Commands: ${info.commands?.length}
   🧩 Components: ${info.components?.length}
   🎉 Events: ${info.events?.length}
+  ⚙️  Configs: ${info.configs?.length}
         `)
+
+      for (const config of (info?.configs ?? [])) new Config({ ...config, pluginId: socket.id })
 
       if (Plugins.loaded === 0 && Plugins.plugins === 0) {
         console.log('\n🚨 Modo de desenvolvimento\n')
@@ -222,8 +228,6 @@ export class Plugins {
 
       const client = new Discord()
       if (Discord?.client === undefined) {
-        console.log('📌 Iniciando Discord...')
-
         client.createClient()
         await client.start()
       } else {
