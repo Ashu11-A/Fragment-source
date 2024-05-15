@@ -8,7 +8,7 @@ export interface EntityImport<T extends typeof BaseEntity> { default: T }
 
 export class Database {
   public static entries: Record<string, EntityImport<typeof BaseEntity>> = {}
-  public static client: DataSource
+  public static client?: DataSource
 
   constructor () {}
 
@@ -24,7 +24,7 @@ export class Database {
   }
 
   async start () {
-    await Database.client.initialize()
+    await Database.client?.initialize()
     console.log(`✨ Banco de dados inicializado com ${Object.keys(Database.entries).length} entries\n`)
   }
 

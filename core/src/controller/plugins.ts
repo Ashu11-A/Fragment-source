@@ -199,10 +199,13 @@ export class Plugins {
         Plugins.loaded = Plugins.loaded + 1
         break
       }
+      
+      if (Plugins.running.length > 0) {
+        Database.client?.destroy()
+        Database.client = undefined
+      }
 
-
-
-      if (Database?.client === undefined) {
+      if (Database.client === undefined) {
         const client = new Database()
         console.log('🗂️ Iniciando Banco de dados...')
 
