@@ -2,7 +2,7 @@ import { BaseEntity, Entity, JoinColumn, OneToMany, OneToOne, PrimaryColumn } fr
 import Config from "./Config.entry";
 import Staff from "./Staff.entry";
 
-@Entity({ name: 'guild' })
+@Entity({ name: 'guild_utils' })
 export default class Guild extends BaseEntity {
     @PrimaryColumn()
       id!: string

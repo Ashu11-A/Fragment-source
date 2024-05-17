@@ -1,7 +1,7 @@
 import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm"
 import Guild from "./Guild.entry"
 
-@Entity()
+@Entity({ name: 'staff_utils' })
 export default class Staff extends BaseEntity {
     @PrimaryGeneratedColumn()
         id!: number

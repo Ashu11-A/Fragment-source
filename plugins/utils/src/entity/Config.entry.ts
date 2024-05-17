@@ -1,7 +1,7 @@
 import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import Guild from "./Guild.entry";
 
-@Entity({ name: 'config' })
+@Entity({ name: 'config_utils' })
 export default class Config extends BaseEntity {
     @PrimaryGeneratedColumn()
       id!: number
