@@ -21,7 +21,7 @@ export class Database<T extends BaseEntity> {
     return await new Promise((resolve, reject) => {
       SocketClient.client.emit(this.eventName, { table: this.table, type: 'save', entities, options })
       SocketClient.client.once(this.eventName, (data: T[] | T) => { resolve(data) })
-      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(data) })
+      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
     })
   }
 
@@ -29,7 +29,7 @@ export class Database<T extends BaseEntity> {
     return await new Promise((resolve, reject) => {
       SocketClient.client.emit(this.eventName, { table: this.table, type: 'find', options })
       SocketClient.client.once(this.eventName, (data: T[]) => { resolve(data) })
-      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(data) })
+      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
     })
   }
 
@@ -37,7 +37,7 @@ export class Database<T extends BaseEntity> {
     return await new Promise((resolve, reject) => {
       SocketClient.client.emit(this.eventName, { table: this.table, type: 'findBy', where })
       SocketClient.client.once(this.eventName, (data: T[]) => { resolve(data) })
-      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(data) })
+      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
     })
   }
 
@@ -45,7 +45,7 @@ export class Database<T extends BaseEntity> {
     return await new Promise((resolve, reject) => {
       SocketClient.client.emit(this.eventName, { table: this.table, type: 'findOne', options })
       SocketClient.client.once(this.eventName, (data: T | null) => { resolve(data) })
-      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(data) })
+      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
     })
   }
 
@@ -53,7 +53,7 @@ export class Database<T extends BaseEntity> {
     return await new Promise((resolve, reject) => {
       SocketClient.client.emit(this.eventName, { table: this.table, type: 'upsert', entityOrEntities, conflictPathsOrOptions })
       SocketClient.client.once(this.eventName, (data: InsertResult) => { resolve(data) })
-      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(data) })
+      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
     })
   }
 
@@ -61,7 +61,7 @@ export class Database<T extends BaseEntity> {
     return await new Promise((resolve, reject) => {
       SocketClient.client.emit(this.eventName, { table: this.table, type: 'create', entity })
       SocketClient.client.once(this.eventName, (data: T) => { resolve(data) })
-      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(data) })
+      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
     })
   }
 
@@ -69,7 +69,7 @@ export class Database<T extends BaseEntity> {
     return await new Promise((resolve, reject) => {
       SocketClient.client.emit(this.eventName, { table: this.table, type: 'update', criteria , partialEntity })
       SocketClient.client.once(this.eventName, (data: DeleteResult) => { resolve(data) })
-      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(data) })
+      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
     })
   }
 
@@ -77,7 +77,7 @@ export class Database<T extends BaseEntity> {
     return await new Promise((resolve, reject) => {
       SocketClient.client.emit(this.eventName, { table: this.table, type: 'delete', criteria })
       SocketClient.client.once(this.eventName, (data: DeleteResult) => { resolve(data) })
-      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(data) })
+      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
     })
   }
 
@@ -85,7 +85,7 @@ export class Database<T extends BaseEntity> {
     return await new Promise((resolve, reject) => {
       SocketClient.client.emit(this.eventName, { table: this.table, type: 'count', options })
       SocketClient.client.once(this.eventName, (data: number) => { resolve(data) })
-      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(data) })
+      SocketClient.client.once(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
     })
   }
 }
