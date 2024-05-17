@@ -172,13 +172,13 @@ export class Plugins {
       }
 
       for (const pathFile of Plugins.running[index].entries) {
-        const fileName = basename(pathFile)
+        const split = pathFile.split('/') // /home/ashu/Documentos/GitHub/PaymentBot-source/core/entries/utils/Config.entry.ts
+        const fileName = `${split[split.length - 2]}/${split[split.length - 1]}` // utils/Config.entry.ts
         const entry = await import(pathFile) as EntityImport<typeof BaseEntity>
-  
+
         Object.assign(Database.entries, ({ [fileName]: entry }))
         console.log(`⏳ Carregando entry: ${fileName.split('.')[0]}`)
       }
-
 
       for (const command of ((info.commands ?? []) as Array<CommandData<boolean>>)) {
         Command.all.set(command.name, { ...command, pluginId: socket.id })
@@ -239,8 +239,8 @@ export class Plugins {
     }
 
     case 'entries':
-      const { code, fileName } = args as { fileName: string, code: string }
-      const path = join(cwd(), 'entries')
+      const { code, fileName, dirName } = args as { fileName: string, code: string, dirName: string }
+      const path = join(cwd(), `entries/${dirName}`)
       const refatored = PKG_MODE
         ? code.replaceAll('require("typeorm")' , `require("${join(__dirname, '../../')}node_modules/typeorm/index")`) 
         : code.replaceAll("from 'typeorm'", `from '${RootPATH}/node_modules/typeorm/index'`)

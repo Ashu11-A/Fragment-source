@@ -29,11 +29,11 @@ export class Database {
   }
 
   async events (socket: Socket, eventName: string, args: any) {
-    const { type, table } = args as { type: string, table: string }
-    const entry = Object.entries(Database.entries).find(([key]) => key.split('.')[0] === table)
+    const { type, table, plugin } = args as { type: string, table: string, plugin: string }
+    const entry = Object.entries(Database.entries).find(([key]) => key.split('.')[0] === `${plugin}/${table}`)
 
     if (entry === undefined) {
-      console.log(`${table} Entidade invalida, Entidades carregadas: ${Database.entries}`)
+      console.log(`${table} Entidade invalida, Entidades carregadas: ${JSON.stringify(Database.entries, null, 2)}`)
       return
     }
 

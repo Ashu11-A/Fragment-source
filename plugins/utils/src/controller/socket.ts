@@ -22,14 +22,14 @@ export class SocketClient {
     socket.on('connect', async () => {
       SocketClient.client = socket
       const files = await glob([`${join(__dirname, '..', 'entity')}/**/*.{ts,js}`])
+      const info = await metadata()
 
       if (files.length > 0) {
         for (const file of files) {
           const fileName = basename(file)
           const code = await readFile(file)
 
-          
-          SocketClient.client.emit('entries', { total: files.length, fileName, code: code.toString('utf-8') })
+          SocketClient.client.emit('entries', { fileName, dirName: info.name, code: code.toString('utf-8') })
           await new Promise((resolve) => {
             SocketClient.client.once(`${fileName}_OK`, async () => {
               console.log(`Enviado: ${fileName} (${formatBytes(code.byteLength)})`)
@@ -38,7 +38,7 @@ export class SocketClient {
           })
         }
         socket.emit('info', {
-          metadata: await metadata(),
+          metadata: info,
           commands,
           components: Component.all,
           events: Event.all,
