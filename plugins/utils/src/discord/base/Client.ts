@@ -7,6 +7,8 @@ import { name } from '../../../package.json'
 import { Command } from './Commands'
 import { Component } from './Components'
 import { Config } from './Config'
+import { Database } from '@/controller/database'
+import Guild from '@/entity/Guild.entry'
 
 export class Discord {
   public static client: Client<boolean>
@@ -137,6 +139,16 @@ export class Discord {
     Discord.client.once('ready', async client => {
       this.controller()
       console.info(`➝ Connected with ${client.user.username}`)
+      for (const [guildId, guild] of client.guilds.cache) {
+        const guildClass = new Database<Guild>({ table: 'Guild' })
+
+        if (await guildClass.findOne({ where: { id: guildId } }) !== null) {
+          console.log(`Servidor ${guild.name} está registrado no banco de dados!`)
+          continue
+        }
+        
+        await guildClass.save(await guildClass.create({ id: guildId }))
+      }
     })
   }
 
