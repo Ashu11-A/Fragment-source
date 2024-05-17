@@ -27,18 +27,18 @@ export class Database<T extends BaseEntity> {
       create
     }: {
     find: {
-      criteria: string | string[] | number | number[] | Date | Date[] | ObjectId | ObjectId[] | FindOptionsWhere<T>
+      options: FindOneOptions<T>,
     },
     update: {
-      options: FindOneOptions<T>,
+      criteria: string | string[] | number | number[] | Date | Date[] | ObjectId | ObjectId[] | FindOptionsWhere<T>
       partialEntity: QueryDeepPartialEntity<T>
     },
     create: {
       entity: DeepPartial<T>
     }
   }) {
-    const { criteria } = find
-    const { partialEntity, options } = update
+    const { options } = find
+    const { partialEntity, criteria } = update
     const { entity } = create
     const element = await this.findOne(options)
 
