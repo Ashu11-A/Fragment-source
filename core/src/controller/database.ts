@@ -53,6 +53,7 @@ export class Database {
       case 'findOne': socket.emit(eventName, await Entity.findOne(args.options)); break
       }
     } catch (err) {
+      console.log(err)
       socket.emit(`${eventName}_error`, err)
     }
     return
