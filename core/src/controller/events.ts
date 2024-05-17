@@ -47,9 +47,9 @@ export class Event {
     
     console.info(`\n🔌 Plugin Desconectado: ${pluginFind?.metadata?.name ?? this.client.id}\n`)
     
-    const discord = new Discord()
-    discord.stop()
-    await discord.createClient()
-    await discord.start()
+    // const discord = new Discord()
+    // discord.stop()
+    // await discord.createClient()
+    // await discord.start()
   }
 }
