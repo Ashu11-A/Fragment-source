@@ -17,6 +17,35 @@ export class Database<T extends BaseEntity> {
     this.table = table
   }
 
+  async createOrUpdate(
+    {
+      find,
+      update,
+      create
+    }: {
+    find: {
+      criteria: string | string[] | number | number[] | Date | Date[] | ObjectId | ObjectId[] | FindOptionsWhere<T>
+    },
+    update: {
+      options: FindOneOptions<T>,
+      partialEntity: QueryDeepPartialEntity<T>
+    },
+    create: {
+      entity: DeepPartial<T>
+    }
+  }) {
+    const { criteria } = find
+    const { partialEntity, options } = update
+    const { entity } = create
+    const element = await this.findOne(options)
+
+    if (element) {
+      await this.update(criteria, partialEntity)
+      return
+    }
+    await this.save(await this.create(entity))
+  }
+
   async save (entities: DeepPartial<T>[] | DeepPartial<T>, options?: SaveOptions): Promise<T[] | T> {
     return await new Promise((resolve, reject) => {
       SocketClient.client.emit(this.eventName, { table: this.table, type: 'save', entities, options })
