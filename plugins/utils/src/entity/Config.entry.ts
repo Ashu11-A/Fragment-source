@@ -1,4 +1,4 @@
-import { BaseEntity, Column, Entity, JoinColumn, JoinTable, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import Guild from "./Guild.entry";
 
 @Entity({ name: 'config' })
@@ -6,8 +6,7 @@ export default class Config extends BaseEntity {
     @PrimaryGeneratedColumn()
       id!: number
 
-    @OneToOne(() => Guild)
-    @JoinColumn()
+    @OneToOne(() => Guild, (guild) => guild.config)
       guild!: Guild
 
     @Column({ nullable: true })
