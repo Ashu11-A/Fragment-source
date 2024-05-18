@@ -2,17 +2,17 @@ import { Discord } from '@/discord/Client'
 import { Command, CommandData } from '@/discord/Commands'
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
 import { existsSync } from 'fs'
-import { mkdir, watch, writeFile } from 'fs/promises'
+import { mkdir, writeFile } from 'fs/promises'
+import { watch } from 'chokidar'
 import { glob } from 'glob'
 import { isBinaryFile } from 'isbinaryfile'
-import { basename, join } from 'path'
+import { join } from 'path'
 import { cwd } from 'process'
 import { Socket } from 'socket.io'
 import { BaseEntity } from 'typeorm'
 import { PKG_MODE, RootPATH } from '..'
-import { Database, EntityImport } from './database'
-import { ApplicationCommandSubCommandData, CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { Config, ConfigOptions } from './config'
+import { Database, EntityImport } from './database'
 
 interface Metadata {
   name: string
@@ -125,20 +125,17 @@ export class Plugins {
   async wather () {
     const watcher = watch(this.path)
 
-    for await (const event of watcher) {
-      const filePath = `${this.path}/${event.filename}`
-
-      if (event.eventType !== 'rename') continue
-      if (!existsSync(filePath)) continue
+    watcher.on('add', async (filePath) => {
+      // Isso é necessario para que os bytes do arquivo movido termine de serem processados pela maquina host
+      await new Promise<void>((resolve) => setInterval(resolve, 2000))
       if (!(await isBinaryFile(filePath))) {
-        console.log(`Arquivo invalido! ${event.filename} não é um plugin!`)
-        continue
+        console.log(`Arquivo invalido! ${filePath} não é um plugin!`)
+        return
       }
 
       console.log('\n✨ Novo plugin adicionado!')
-      await new Promise(resolve => setTimeout(resolve, 2000))
       this.start(filePath)
-    }
+    })
   }
   
   static async events (socket: Socket, eventName: string, args: any) {
