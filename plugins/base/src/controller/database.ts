@@ -1,9 +1,9 @@
-import { gen } from '@/functions/gen'
 import { type BaseEntity, type FindManyOptions, type FindOptionsWhere, type FindOneOptions, type DeepPartial, type ObjectId, type DeleteResult, SaveOptions, InsertResult } from 'typeorm'
 import { SocketClient } from './socket'
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity'
 import { UpsertOptions } from 'typeorm/repository/UpsertOptions'
 import { name } from '../../package.json'
+import { nanoid } from 'nanoid'
 
 interface DatabaseOptions {
   table: string
@@ -15,7 +15,7 @@ export class Database<T extends BaseEntity> {
   private readonly pluginName
 
   constructor ({ table }: DatabaseOptions) {
-    this.eventName = `database_${gen(18)}`
+    this.eventName = `database_${nanoid().replace('_', '')}`
     this.pluginName = name
     this.table = table
   }

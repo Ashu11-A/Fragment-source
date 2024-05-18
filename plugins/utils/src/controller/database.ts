@@ -1,9 +1,9 @@
-import { gen } from '@/functions/gen'
 import { type BaseEntity, type FindManyOptions, type FindOptionsWhere, type FindOneOptions, type DeepPartial, type ObjectId, type DeleteResult, SaveOptions, InsertResult } from 'typeorm'
 import { SocketClient } from './socket'
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity'
 import { UpsertOptions } from 'typeorm/repository/UpsertOptions'
 import { name } from '../../package.json'
+import { nanoid } from 'nanoid'
 
 interface DatabaseOptions {
   table: string
@@ -15,7 +15,7 @@ export class Database<T extends BaseEntity> {
   private readonly pluginName
 
   constructor ({ table }: DatabaseOptions) {
-    this.eventName = `database_${gen(18)}`
+    this.eventName = `database_${nanoid().replace('_', '')}`
     this.pluginName = name
     this.table = table
   }
@@ -27,18 +27,18 @@ export class Database<T extends BaseEntity> {
       create
     }: {
     find: {
-      options: FindOneOptions<T>,
+      criteria: string | string[] | number | number[] | Date | Date[] | ObjectId | ObjectId[] | FindOptionsWhere<T>
     },
     update: {
-      criteria: string | string[] | number | number[] | Date | Date[] | ObjectId | ObjectId[] | FindOptionsWhere<T>
+      options: FindOneOptions<T>,
       partialEntity: QueryDeepPartialEntity<T>
     },
     create: {
       entity: DeepPartial<T>
     }
   }) {
-    const { options } = find
-    const { partialEntity, criteria } = update
+    const { criteria } = find
+    const { partialEntity, options } = update
     const { entity } = create
     const element = await this.findOne(options)
 
