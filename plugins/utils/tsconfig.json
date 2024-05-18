@@ -4,10 +4,10 @@
   },
   "compilerOptions": {
     "target": "ESNext",
-    "lib": ["ESNext", "dom"],
+    "lib": ["ESNext"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "module": "CommonJS",
+    "module": "ESNext",
     "moduleResolution": "Node",
     "baseUrl": "./",
     "paths": {

@@ -4,6 +4,7 @@ import cronParser, { type CronExpression } from 'cron-parser'
 import { join } from 'path'
 import { glob } from 'glob'
 import { console } from '@/controller/console'
+import { __dirname } from '..'
 
 /**
  * Configuration object for defining recurring cron jobs.
@@ -168,8 +169,7 @@ export class Crons<Metadata> {
   }
 
   public static async register() {
-    const path = join(__dirname, '../')
-    const paths = await glob(['crons/**/*.{ts,js}'], { cwd: path })
+    const paths = await glob(['crons/**/*.{ts,js}'], { cwd: __dirname })
   
     /**
        * Organize Crons filter
