@@ -7,7 +7,7 @@ import { readdir, readFile, rm, stat, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import obfuscate from 'javascript-obfuscator'
 import os from 'os'
-import path, { join } from 'path'
+import path, { dirname, join } from 'path'
 import { minify } from 'terser'
 import { build } from 'esbuild'
 import { compressor } from 'esbuild-plugin-compressor';
@@ -49,22 +49,6 @@ interface BuildConstructor {
    * Node version of build
    */
   nodeVersion: '18' | '20'
-  /**
-   * Compress build? (default:true)
-   */
-  compress?: boolean
-  /**
-   * Config build? (default:true)
-   */
-  config?: boolean
-  /**
-   * Obfuscate build? (default:true)
-   */
-  obfuscate?: boolean
-  /**
-   * Make application build? (default:true)
-   */
-  pkgbuild?: boolean
 }
 
 class Build {
@@ -77,12 +61,15 @@ class Build {
     this.options = options
   }
 
-  async start(): Promise<void> {
+  async default(): Promise<void> {
     await this.build()
-    if (this.options.compress !== false) await this.compress()
-    if (this.options.obfuscate !== false) await this.obfuscate()
-    if (this.options.config !== false) await this.config()
-    if (this.options.pkgbuild !== false) await this.pkgbuild()
+    await this.config()
+    await this.compress()
+    await this.obfuscate()
+    await this.install()
+    await this.clear()
+    await this.compress({ directory: `${this.options.outBuild}/node_modules`, outBuild: `${this.options.outBuild}/node_modules` })
+    await this.pkgbuild()
   }
 
   async build() {
@@ -232,7 +219,38 @@ class Build {
     this.progressBar.stop()
   }
 
-  async pkgbuild (): Promise<void> {
+  async esbuild(options?: { entryPoints: string[], outfile: string }) {
+    const packagePath = path.join(process.cwd(), `${this.options.outBuild}/package.json`)
+    const packageJson = JSON.parse(await readFile(packagePath, { encoding: 'utf-8' })) as Record<string, string | object | null>
+    await build({
+      entryPoints: options?.entryPoints ?? [`${this.options.outBuild}/src/app.js`],
+      bundle: true,
+      minify: true,
+      logLevel: 'silent',
+      outfile: options?.outfile ?? `${this.options.outBuild}/bundle.cjs`,
+      platform: 'node',
+      format: 'cjs',
+      plugins: [
+        compressor({
+          compressType: 'brotli',
+          fileTypes: ['js']
+        })
+      ]
+    })
+    await rm(path.join(process.cwd(), `${this.options.outBuild}/node_modules`), { recursive: true })
+    await rm(path.join(process.cwd(), `${this.options.outBuild}/src`), { recursive: true })
+    await writeFile(
+      packagePath,
+      JSON.stringify({
+        ...packageJson,
+        bin: 'bundle.cjs',
+        main: 'bundle.cjs'
+      }, null, 2), {
+        encoding: 'utf-8'
+      })
+  }
+
+  async pkgbuild(): Promise<void> {
     const args = ['.', '--compress', 'Brotli', '--no-bytecode', '--public-packages', '"*"', '--public']
     const builds: string[] = []
     const manifests: BuildManifest[] = []
@@ -257,10 +275,6 @@ class Build {
 
       if (existsSync(buildName)) rmSync(buildName)
       if (existsSync(`${this.options.outRelease}/manifest-${nameSplit[1]}.json`)) rmSync(`release/manifest-${nameSplit[1]}.json`)
-
-      await this.install()
-      await this.clear()
-      await this.compress({ directory: `${this.options.outBuild}/node_modules`, outBuild: `${this.options.outBuild}/node_modules` })
 
       console.debug(`\n\nIniciando Build ${nameSplit[2]}...`)
       newArg.push(...args, '-t', build, '--output', `${this.options.outRelease}/${buildName}`)
@@ -302,42 +316,62 @@ class Build {
   }
 }
 
-interface Args {
-  command: string,
+interface Arg {
+  command: string
   alias: string[]
+  rank: number
+  hasString?: boolean
+  string?: string
 }
 
-const args = process.argv.slice(2).map((arg) => arg.replace('-', ''))
+const args = process.argv.slice(2).map((arg) => arg.replace('--', ''))
 const version = process.version.split('.')[0].replace('v', '')
+const versions = ['18', '20']
 const arch = process.arch
+const archs = ['arm64', 'x64']
 
-async function start (): Promise<void> {
-  if (!['18', '20'].includes(version)) {
-    throw new Error(`Versão do nodejs invalida!\nVersão atual: ${version}, Versões suportadas: [18, 20]`)
-  }
-  
-  if (!['arm64', 'x64'].includes(arch)) {
-    throw new Error('Arquitetura invalida!')
-  }
-  
-  const argsList: Array<Args> = [
-    { command: 'help', alias: ['h'] },
-    { command: 'pre-build', alias: ['pb'] },
-    { command: 'only-build', alias: ['ob'] },
-    { command: 'source', alias: ['s'] }
+async function start(): Promise<void> {
+  if (!versions.includes(version)) throw new Error(`Nodejs invalido!\nVersões validas: [${versions.join(', ')}]`)
+  if (!archs.includes(arch)) throw new Error(`Arquitetura invalida!\nArquiteturas validas: ${archs.join(', ')}`)
+
+  const argsList: Array<Arg> = [
+    { command: 'help', alias: ['-h'], rank: 0 },
+    { command: 'source', alias: ['-s'], rank: 1, hasString: true },
+    { command: 'pre-build', alias: ['-p'], rank: 2 },
+    { command: 'install', alias: ['-i'], rank: 3 },
+    { command: 'compress', alias: ['-c'], rank: 4 },
+    { command: 'obfuscate', alias: ['-f'], rank: 5 },
+    { command: 'esbuild', alias: ['-esb'], rank: 6 },
+    { command: 'pkg', alias: [''], rank: 6 },
   ]
 
-  // Replace alias for command
+  let newArgs: Array<Arg> = []
+
+  // Replace string for Arg
   for (let argIndex = 0; argIndex < args.length; argIndex++) {
-    for (const { command, alias } of argsList) {
-      if (alias.includes(args[argIndex])) args[argIndex] = command
+    for (const arg of argsList) {
+      if (arg.alias.includes(args[argIndex]) || args[argIndex] === arg.command) {
+        if (arg?.hasString) {
+          // caso a proxima arg seja não seja uma strings, e sim uma arg
+          if (args[argIndex + 1]?.startsWith('-')) {
+            newArgs.push(arg)
+            continue
+          }
+          ++argIndex
+          newArgs.push({ ...arg, string: args[argIndex] })
+          continue
+        }
+        newArgs.push(arg)
+        continue
+      }
     }
   }
 
+  // Mapea os diretorios que serão buildados
   const directories = (await readdir('plugins')).map((dir) => `plugins/${dir}`); directories.push('core')
   const builds: Array<Build> = []
-  
-  // Get all builds
+
+  // Gera todas as class de build
   for (const project of directories) {
     builds.push(new Build({
       source: project,
@@ -349,13 +383,14 @@ async function start (): Promise<void> {
     }))
   }
 
-  const sourceIndex = args.findIndex((arg) => arg === 'source')
-  const sourcePath = args[(sourceIndex) + 1]
-  
+  const sourceIndex = newArgs.findIndex((arg) => arg.command === 'source')
+
   // Build only --source path
-  if (sourcePath !== undefined) {
+  if (sourceIndex !== -1) {
+    const sourcePath = newArgs[sourceIndex]?.string
+    if (sourcePath === undefined) throw new Error('Path não especificado para --source!')
+
     // Remove elements in Array
-    args.splice(sourceIndex, 2)
     builds.splice(0, builds.length)
 
     builds.push(new Build({
@@ -367,43 +402,89 @@ async function start (): Promise<void> {
       nodeVersion: version as ('18' | '20')
     }))
     console.log(`Buildando apenas o ${sourcePath}`)
+    // Remove arg --source with your path
+    newArgs.splice(sourceIndex, 1)
   }
 
-  if (args.find((arg) => arg === 'help')) {
+  function quickSort(array: Array<Arg>): Array<Arg> {
+    if (array.length <= 1) {
+      return array
+    }
+    // Seleciona um elemento como pivô (o elemento pivo será usado como comparação)
+    const pivô = array[0]
+    const menor = []
+    const maior = []
+
+    for (let int = 1; int < array.length; int++) {
+      // Se o elemento atual for menor que o pivô
+      if (array[int].rank < pivô.rank) {
+        menor.push(array[int])
+        continue
+      }
+      // se for maior
+      maior.push(array[int])
+    }
+    // Concatena recursivamente as arrays ordenadas menor + pivô + maior
+    return quickSort(menor).concat(pivô, quickSort(maior))
+  }
+
+  newArgs = quickSort(newArgs)
+
+  
+  if (newArgs.find((arg) => arg.command === 'help')) {
     console.log(`
 release [options] <input>
 
     Options:
   
-      -h,  --help          Output usage information
-      -pb, --pre-build     Only build what the pkg needs
-      -ob, --only-build    Only build the plugins with pkg
-      -s,  --source        Build a specific directory
+      -h,  --help         Output usage information
+      -s,  --source       Build a specific directory
+      -p,  --pre-build    Only build what the pkg needs
+           --pkg           Only build with pkg
+      -esb --esbuild      Build with esbuild
+      -i   --install      Install packages
+      -c   --compress     Compress with terser
+      -f   --obfuscate    Obfuscate Code
           `)
     return
   }
 
   for (const build of builds) {
-    if (args.length === 0) {
-      await build.start()
+    if (newArgs.length === 0) {
+      await build.default()
       continue
     }
 
-    for (let argNum = 0; argNum < args.length; argNum++) {
-      switch (args[argNum]) {
-        case 'pre-build': {
-          await build.build()
-          await build.compress()
-          await build.obfuscate()
-          await build.config()
-        }
-        case 'only-build': {
-          await build.pkgbuild()
-        }
-        default: {
-          argNum++
-          await build.start()
-        }
+    console.log(`Ordem das args: ${newArgs.map((arg) => arg.command).join(' --> ')}`)
+    
+    for (let argNum = 0; argNum < newArgs.length; argNum++) {
+      console.log(newArgs[argNum])
+      switch (newArgs[argNum].command) {
+      case 'pre-build': {
+        await build.build()
+        await build.config()
+        break
+      }
+      case 'install': {
+        await build.install()
+        break
+      }
+      case 'compress': {
+        await build.compress()
+        break
+      }
+      case 'obfuscate': {
+        await build.obfuscate()
+        break
+      }
+      case 'pkg': {
+        await build.pkgbuild()
+        break
+      }
+      case 'esbuild': {
+        await build.esbuild()
+        break
+      }
       }
     }
 
