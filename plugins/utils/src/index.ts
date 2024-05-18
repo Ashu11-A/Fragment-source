@@ -1,6 +1,5 @@
 import * as pkg from '../package.json'
-import { dirname, join } from 'path'
-import { fileURLToPath } from 'url'
+import { join } from 'path'
 
 interface Metadata {
   name: string
@@ -9,9 +8,6 @@ interface Metadata {
   author: string
   license: string
 }
-
-export const __filename = fileURLToPath(import.meta.url)
-export const __dirname = dirname(__filename)
 
 export const PKG_MODE = `${process.cwd()}/src` !== __dirname
 export const RootPATH = PKG_MODE ? join(process.cwd()) : join(__dirname)

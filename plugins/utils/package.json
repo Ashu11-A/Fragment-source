@@ -5,7 +5,9 @@
    "main": "src/app.ts",
    "scripts": {
       "build": "tsc && tsc-alias",
-      "dev": "tsx -r tsconfig-paths/register src/app.ts",
+      "dev": "ts-node -r tsconfig-paths/register src/app.ts",
+      "start": "ts-node src/index.ts",
+      "typeorm": "typeorm-ts-node-commonjs",
       "lint": "eslint --ext .tsx,.ts --fix ./src -c .eslintrc.json"
    },
    "author": "Ashu11-a",
@@ -21,7 +23,6 @@
       "eslint-plugin-n": "^16.6.2",
       "eslint-plugin-promise": "^6.1.1",
       "tsc-alias": "^1.8.10",
-      "tsx": "^4.10.4",
       "typescript": "^5.4.5"
    },
    "dependencies": {

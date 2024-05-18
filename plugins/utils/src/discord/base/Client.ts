@@ -9,7 +9,6 @@ import { Component } from './Components'
 import { Config } from './Config'
 import { Database } from '@/controller/database'
 import Guild from '@/entity/Guild.entry'
-import { __dirname } from '@/index'
 
 export class Discord {
   public static client: Client<boolean>
@@ -19,7 +18,7 @@ export class Discord {
   constructor () {}
 
   public static async register () {
-    const dir = join(__dirname, 'discord')
+    const dir = join(__dirname, '..')
     const paths = await glob([
       'commands/**/*.{ts,js}',
       'events/**/*.{ts,js}',
