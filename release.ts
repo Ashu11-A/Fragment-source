@@ -5,7 +5,7 @@ import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs'
 import { move } from 'fs-extra'
 import { readdir, readFile, rm, stat, writeFile } from 'fs/promises'
 import { glob } from 'glob'
-import { obfuscate } from 'javascript-obfuscator'
+import obfuscate from 'javascript-obfuscator'
 import os from 'os'
 import path, { join } from 'path'
 import { minify } from 'terser'
@@ -169,7 +169,7 @@ class Build {
         continue
       }
       const fileContent = await readFile(filePath, { encoding: 'utf-8' })
-      const response = obfuscate(fileContent, {
+      const response = obfuscate.obfuscate(fileContent, {
         optionsPreset: 'medium-obfuscation',
         // log: true,
         seed,
