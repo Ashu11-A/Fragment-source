@@ -3,3 +3,4 @@ build
 release
 .vscode/settings.json
 /pkg-cache
+*.cjs
