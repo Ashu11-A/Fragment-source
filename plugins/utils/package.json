@@ -22,13 +22,13 @@
       "eslint-plugin-import": "^2.29.1",
       "eslint-plugin-n": "^16.6.2",
       "eslint-plugin-promise": "^6.1.1",
-      "tsc-alias": "^1.8.9",
+      "tsc-alias": "^1.8.10",
       "typescript": "^5.4.5"
    },
    "dependencies": {
       "cron-parser": "^4.9.0",
       "discord.js": "^14.15.2",
-      "glob": "^10.3.12",
+      "glob": "^10.3.15",
       "nanoid": "^5.0.7",
       "reflect-metadata": "^0.1.13",
       "socket.io-client": "^4.7.5",
