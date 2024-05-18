@@ -9,6 +9,8 @@ import obfuscate from 'javascript-obfuscator'
 import os from 'os'
 import path, { join } from 'path'
 import { minify } from 'terser'
+import { build } from 'esbuild'
+import { compressor } from 'esbuild-plugin-compressor';
 
 interface BuildInfo {
   path: string
@@ -71,11 +73,11 @@ class Build {
   private readonly progressBar = new SingleBar({}, Presets.rect)
   private readonly startTime = Date.now()
 
-  constructor (options: BuildConstructor) {
+  constructor(options: BuildConstructor) {
     this.options = options
   }
 
-  async start (): Promise<void> {
+  async start(): Promise<void> {
     await this.build()
     if (this.options.compress !== false) await this.compress()
     if (this.options.obfuscate !== false) await this.obfuscate()
@@ -100,11 +102,11 @@ class Build {
     throw new Error(`Ocorreu um erro ao tentar buildar o projeto ${this.options.source}`)
   }
 
-  async sign (): Promise<void> {
-    
+  async sign(): Promise<void> {
+
   }
 
-  async compress (options?: { directory: string, outBuild: string }): Promise<void> {
+  async compress(options?: { directory: string, outBuild: string }): Promise<void> {
     const { directory, outBuild } = options ?? { directory: `${this.options.outBuild}/src`, outBuild: `${this.options.outBuild}/src` }
     const paths = await glob([`${directory}/**/*.js`])
     const pathsFormated = []
@@ -155,15 +157,15 @@ class Build {
     this.progressBar.stop()
   }
 
-  async obfuscate (): Promise<void> {
+  async obfuscate(options?: { directory: string, outBuild: string }): Promise<void> {
     console.debug('\n\nIniciando Ofuscamento...')
     const seed = Math.random()
-    const paths = await glob([`${this.options.outBuild}/src/**/*.js`])
+    const paths = await glob([options?.directory ?? `${this.options.outBuild}/src/**/*.js`])
 
     this.progressBar.start(paths.length, 0)
 
     for (const filePath of paths) {
-      const fileName = path.basename(filePath) 
+      const fileName = path.basename(filePath)
       if (fileName.split('.').includes('entry')) {
         console.log(`Pulando ofuscamento do arquivo: ${filePath}`)
         continue
@@ -182,7 +184,7 @@ class Build {
     this.progressBar.stop()
   }
 
-  async config (): Promise<void> {
+  async config(): Promise<void> {
     console.debug('Configurando package.json')
     const packageJson = JSON.parse(await readFile(path.join(process.cwd(), `${this.options.source}/package.json`), { encoding: 'utf-8' })) as Record<string, string | object | null>
     packageJson.main = 'src/app.js'
@@ -200,7 +202,7 @@ class Build {
         "node_modules/**/*.node"
       ]
     }
-  
+
     const remove = ['devDependencies', 'scripts', 'keywords', 'repository', 'bugs', 'homepage']
 
     for (const name of remove) delete packageJson?.[name]
@@ -208,13 +210,13 @@ class Build {
     await writeFile(path.join(process.cwd(), `${this.options.outBuild}/package.json`), JSON.stringify(packageJson, null, 2))
   }
 
-  async install (): Promise<void> {
+  async install(): Promise<void> {
     console.debug('\n\nInstalando Modulos...')
     if (existsSync(`${this.options.outBuild}/node_modules`)) execSync(`cd ${this.options.outBuild} && rm -r node_modules`, { stdio: 'inherit' })
     execSync(`cd ${this.options.outBuild} && npm i && npm rebuild better_sqlite3 && npm rebuild`, { stdio: 'inherit' })
   }
 
-  async clear (): Promise<void> {
+  async clear(): Promise<void> {
     const removeModules = await glob([`${this.options.outBuild}/node_modules/**/*`], {
       ignore: ['/**/*.js', '/**/*.json', '/**/*.cjs', '/**/*.node', '/**/*.yml']
     })
@@ -408,7 +410,7 @@ release [options] <input>
   }
 }
 
-function formatBytes (bytes: number, decimals = 2): string {
+function formatBytes(bytes: number, decimals = 2): string {
   if (bytes === 0) return '0 Bytes'
 
   const k = 1024
