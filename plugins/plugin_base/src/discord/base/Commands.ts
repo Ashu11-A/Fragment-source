@@ -1,6 +1,6 @@
 import { type ApplicationCommandData, type ApplicationCommandType, type AutocompleteInteraction, type CacheType, type ChatInputCommandInteraction, Collection, type CommandInteraction, type MessageContextMenuCommandInteraction, type UserContextMenuCommandInteraction } from 'discord.js'
 
-type C<B extends boolean, I extends CommandInteraction | AutocompleteInteraction> =
+export type C<B extends boolean, I extends CommandInteraction | AutocompleteInteraction> =
 I extends ChatInputCommandInteraction
   ? B extends false ? ChatInputCommandInteraction<CacheType> : ChatInputCommandInteraction
   : I extends UserContextMenuCommandInteraction

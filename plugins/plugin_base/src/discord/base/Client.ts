@@ -50,6 +50,12 @@ export class Discord {
       this.timestamp = Date.now()
 
       const onAutoComplete = (autoCompleteInteraction: AutocompleteInteraction): void => {
+        console.log(autoCompleteInteraction.commandName)
+        if (autoCompleteInteraction.commandName === 'config') {
+          const config = Config.all.find((config) => config.name === autoCompleteInteraction.options.getSubcommand())
+          if (config?.autoComplete !== undefined) config.autoComplete(autoCompleteInteraction)
+          return
+        }
         const command = Command.all.get(autoCompleteInteraction.commandName)
         const interaction = autoCompleteInteraction
         if (command?.type === ApplicationCommandType.ChatInput && (command.autoComplete !== undefined)) {

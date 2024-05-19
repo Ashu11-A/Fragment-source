@@ -16,6 +16,7 @@
         "@typescript-eslint"
     ],
     "rules": {
+        "indent": ["error", 2],
         "no-new": "off",
         "@typescript-eslint/naming-convention": "off"
     }
