@@ -1,5 +1,7 @@
 import { console } from '@/controller/console'
+import { Database } from '@/controller/database'
 import { SocketClient } from '@/controller/socket'
+import Guild from '@/entity/Guild.entry'
 import { APIMessageComponentEmoji, ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, CacheType, Client, IntentsBitField, Partials, type AutocompleteInteraction, type BitFieldResolvable, type ChatInputCommandInteraction, type CommandInteraction, type GatewayIntentsString, type MessageContextMenuCommandInteraction, type UserContextMenuCommandInteraction } from 'discord.js'
 import { glob } from 'glob'
 import { join } from 'path'
@@ -7,8 +9,6 @@ import { name } from '../../../package.json'
 import { Command } from './Commands'
 import { Component } from './Components'
 import { Config } from './Config'
-import { Database } from '@/controller/database'
-import Guild from '@/entity/Guild.entry'
 
 export class Discord {
   public static client: Client<boolean>
@@ -50,6 +50,12 @@ export class Discord {
       this.timestamp = Date.now()
 
       const onAutoComplete = (autoCompleteInteraction: AutocompleteInteraction): void => {
+        console.log(autoCompleteInteraction.commandName)
+        if (autoCompleteInteraction.commandName === 'config') {
+          const config = Config.all.find((config) => config.name === autoCompleteInteraction.options.getSubcommand())
+          if (config?.autoComplete !== undefined) config.autoComplete(autoCompleteInteraction)
+          return
+        }
         const command = Command.all.get(autoCompleteInteraction.commandName)
         const interaction = autoCompleteInteraction
         if (command?.type === ApplicationCommandType.ChatInput && (command.autoComplete !== undefined)) {

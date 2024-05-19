@@ -44,7 +44,7 @@ new Config({
     const { options: dcOptions, guildId } = interaction
     if (guildId === null) return
     await interaction.deferReply({ ephemeral: true })
-    eval
+
     const banKick = dcOptions.getChannel('ban-kick') as TextChannel | null
     const entrada = dcOptions.getChannel('entrada') as TextChannel | null
     const logsEquipe = dcOptions.getChannel('logs-equipe') as TextChannel | null
@@ -53,7 +53,7 @@ new Config({
 
     /* Database settings */
     const config = new Database<ConfigTable>({ table: 'Config' })
-    const dataDB = await config.findOne({ where : { guild: { id: guildId } }})
+    const dataDB = await config.findOne({ where: { guild: { id: guildId } }})
     let data = dataDB ?? {}
     const text = []
 
@@ -96,7 +96,7 @@ new Config({
     if (dataDB !== null) {
       await config.save(data)
     } else {
-      await config.create(data)
+      await config.save(await config.create({ ...data, guild: { id: guildId } }))
     }
 
     await interaction.editReply({
