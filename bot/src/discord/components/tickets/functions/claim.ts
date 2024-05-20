@@ -1,7 +1,7 @@
 import { db } from '@/app'
 import { CustomButtonBuilder, Discord } from '@/functions'
 import { type TicketConfig, type Ticket as TicketDBType } from '@/interfaces/Ticket'
-import { ActionRowBuilder, type ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type ChatInputCommandInteraction, codeBlock, EmbedBuilder, type Message, type ModalSubmitInteraction, PermissionsBitField, type StringSelectMenuInteraction, TextChannel } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle, type CacheType, ChannelType, type ChatInputCommandInteraction, codeBlock, EmbedBuilder, type Message, type ModalSubmitInteraction, PermissionsBitField, type StringSelectMenuInteraction, TextChannel } from 'discord.js'
 import { Ticket } from './ticket'
 
 interface TicketClaimType {
@@ -112,6 +112,7 @@ export class TicketClaim {
     const { guildId } = this.interaction
     const ticket = await db.tickets.get(`${guildId}.tickets.${channelId}`) as TicketDBType
     const row = new ActionRowBuilder<ButtonBuilder>()
+
     row.addComponents(
       new CustomButtonBuilder({
         emoji: { name: '🛎️' },
@@ -142,6 +143,12 @@ export class TicketClaim {
         customId: `Delete-${channelId}`,
         type: 'Ticket',
         style: ButtonStyle.Danger
+      }),
+      new ButtonBuilder({
+        emoji: { name: '🎫' },
+        label: 'Ir ao Ticket',
+        url: `https://discord.com/channels/${guildId}/${channelId}`,
+        style: ButtonStyle.Link
       })
     )
     return row
