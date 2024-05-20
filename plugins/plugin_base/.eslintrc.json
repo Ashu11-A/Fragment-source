@@ -10,7 +10,7 @@
     "extends": "eslint-config-next",
     "parserOptions": {
         "ecmaVersion": "latest",
-        "project": ["plugins/base/tsconfig.json"]
+        "project": ["plugins/plugin_base/tsconfig.json"]
     },
     "plugins": [
         "@typescript-eslint"
