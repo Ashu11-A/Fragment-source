@@ -37,9 +37,10 @@ export class Database {
       return
     }
 
-    console.log(args)
-
     const [, { default: Entity }] = entry
+    console.log(eventName, args)
+    console.log(entry)
+    console.log(Object.keys(Database.entries))
     try {
       switch (type) {
       case 'find': socket.emit(eventName, await Entity.find(args.options)); break
