@@ -555,13 +555,18 @@ export class Ticket {
   { userId?: string | null, channelId: string, remove?: boolean, memberTeam?: boolean }): Promise<boolean> {
     const interaction = this.interaction
     const { guildId, user } = interaction
-    const channel = interaction.guild?.channels.cache.find((channel) => channel.id === channelId) as TextChannel
+    const channel = await interaction.guild?.channels.fetch(channelId)
+
+    if (channel === null && channel === undefined || !channel?.isTextBased()) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder({ title: 'Não encontrei o channel do ticket' }).setColor('Red')]
+      })
+      return true
+    }
 
     if (channel === undefined) {
       await interaction.editReply({
-        embeds: [new EmbedBuilder({
-          title: '❌ Esse ticket não existe para o bot!'
-        }).setColor('Red')]
+        embeds: [new EmbedBuilder({ title: '❌ Esse ticket não existe para o bot!' }).setColor('Red')]
       })
       return true
     }
@@ -588,7 +593,7 @@ export class Ticket {
     if (userId !== null) {
       const userFetch = await interaction.client.users.fetch(userId)
       if (!remove) {
-        if ((channel.permissionsFor(userFetch)?.has(PermissionsBitField.Flags.ViewChannel) ?? false) && !remove) {
+        if ((team.find((userTeam) => userTeam.id === user.id) !== undefined ?? false) && !remove) {
           await interaction.editReply({
             embeds: [new EmbedBuilder({
               title: user.id === userId ? '❌ | Você já está atendendo este ticket!' : `❌ Usuário ${userFetch.displayName} já tem acesso ao Ticket!`
@@ -647,7 +652,18 @@ export class Ticket {
 
         if (userId === null) return false
 
-        await interaction.deleteReply()
+        await interaction.editReply({
+          embeds: [new EmbedBuilder({
+            title: 'Ir ao Ticket'
+          }).setColor('Blue')
+        ],
+        components: [await Discord.buttonRedirect({
+          guildId,
+          channelId,
+          emoji: { name: '🎫' },
+          label: 'Ir ao Ticket'
+        })]
+        })
         if (remove) {
           await channel.send({
             embeds: [new EmbedBuilder({
