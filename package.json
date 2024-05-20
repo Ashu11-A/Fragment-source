@@ -36,6 +36,7 @@
   "dependencies": {
     "@types/socket.io-client": "^3.0.0",
     "@yao-pkg/pkg": "^5.11.2",
+    "bytes-formatter": "^21.6.12",
     "cli-progress": "^3.12.0",
     "esbuild": "^0.21.3",
     "esbuild-plugin-compressor": "^1.0.1",
