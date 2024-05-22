@@ -1,17 +1,16 @@
+import { formatBytes } from 'bytes-formatter'
 import { execSync, exec as processChild } from 'child_process'
 import { Presets, SingleBar } from 'cli-progress'
 import { createHash } from 'crypto'
+import { build } from 'esbuild'
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs'
 import { move } from 'fs-extra'
 import { readdir, readFile, rm, stat, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import obfuscate from 'javascript-obfuscator'
 import os from 'os'
-import path, { dirname, join } from 'path'
+import path, { join } from 'path'
 import { minify } from 'terser'
-import { build } from 'esbuild'
-import { compressor } from 'esbuild-plugin-compressor';
-import { formatBytes } from 'bytes-formatter'
 
 interface BuildInfo {
   path: string
@@ -230,13 +229,8 @@ class Build {
       logLevel: 'silent',
       outfile: options?.outfile ?? `${this.options.outBuild}/bundle.cjs`,
       platform: 'node',
-      format: 'cjs',
-      plugins: [
-        compressor({
-          compressType: 'brotli',
-          fileTypes: ['js']
-        })
-      ]
+      format: 'cjs'
+      // plugins: []
     })
     await rm(path.join(process.cwd(), `${this.options.outBuild}/node_modules`), { recursive: true })
     await rm(path.join(process.cwd(), `${this.options.outBuild}/src`), { recursive: true })
