@@ -20,7 +20,7 @@ const ready = (name: string, seconds: number) => {
 }
 
 const getPaths = await glob(["plugins/*"], { cwd: cwd() }); getPaths.push('core')
-let commands: ConcurrentlyCommandInput[] = []
+const commands: ConcurrentlyCommandInput[] = []
 
 
 for (const path of getPaths) {
@@ -29,7 +29,7 @@ for (const path of getPaths) {
 
 const { result } = concurrently(commands)
 
-await result.then((res) => {
+result.then((res) => {
   for (const command of res) {
     const parts = command.command.cwd?.split('/')
     const dirname = parts?.pop()

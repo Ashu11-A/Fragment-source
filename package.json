@@ -4,7 +4,7 @@
   "version": "2.0.0",
   "type": "module",
   "scripts": {
-    "start": "npm run install && npm run watch",
+    "start": "tsx autoStart.ts",
     "watch": "tsx autoUpdate.ts",
     "install": "tsx autoInstall.ts",
     "start:core": "cd core && npm run dev",

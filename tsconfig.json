@@ -23,6 +23,6 @@
     "skipDefaultLibCheck": true,
     "skipLibCheck": true
   },
-  "include": ["release.ts", "autoUpdate.ts", "autoInstall.ts", "test.ts"],
+  "include": ["release.ts", "autoUpdate.ts", "autoInstall.ts", "autoStart.ts", "test.ts"],
   "exclude": ["bot", "core", "plugins"]
 }
