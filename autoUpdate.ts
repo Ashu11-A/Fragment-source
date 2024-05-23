@@ -7,7 +7,6 @@ import gradient from 'gradient-string'
 import figlet from 'figlet'
 import { statSync } from 'fs'
 prompts.override((await import('yargs')).argv)
-console.clear()
 console.log(gradient('#8752a3', '#6274e7')(figlet.textSync('Synch System', 'Elite')))
 console.log()
 

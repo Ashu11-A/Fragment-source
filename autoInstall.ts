@@ -5,7 +5,6 @@ import { join } from "path";
 import { cwd } from "process";
 import figlet from 'figlet'
 
-// console.clear()
 console.log(gradient('#8752a3', '#6274e7')(figlet.textSync('Mult Install', { font: 'Elite' })))
 console.log()
 
