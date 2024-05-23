@@ -323,9 +323,9 @@ const args = process.argv.slice(2).map((arg) => arg.replace('--', ''))
 const version = process.version.split('.')[0].replace('v', '')
 const versions = ['18', '20']
 const arch = process.arch
-const archs = ['arm64', 'x64']
+const archs = ['arm64', 'x64'];
 
-async function start(): Promise<void> {
+(async (): Promise<void> => {
   if (!versions.includes(version)) throw new Error(`Nodejs invalido!\nVersões validas: [${versions.join(', ')}]`)
   if (!archs.includes(arch)) throw new Error(`Arquitetura invalida!\nArquiteturas validas: ${archs.join(', ')}`)
 
@@ -482,8 +482,5 @@ release [options] <input>
       }
       }
     }
-
   }
-}
-
-void start()
+})()
