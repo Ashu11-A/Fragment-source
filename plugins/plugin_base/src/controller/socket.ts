@@ -22,6 +22,15 @@ export class SocketClient {
     socket.on('connect', async () => {
       SocketClient.client = socket
       const files = await glob([`${join(__dirname, '..', 'entity')}/**/*.{ts,js}`])
+
+      for (const entry of files) {
+        const FileRun = await import(entry)
+
+        if (FileRun?.default === undefined) {
+          throw new Error(`Entry ${basename(entry)} not valid! use export default!`)
+        }
+      }
+
       const info = await metadata()
 
       if (files.length > 0) {
