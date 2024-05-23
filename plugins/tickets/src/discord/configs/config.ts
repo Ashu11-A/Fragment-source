@@ -2,6 +2,7 @@ import { ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, Chann
 import { Database } from "@/controller/database";
 import ConfigORM from "@/entity/Config.entry";
 import { Config } from "../base/Config";
+import { Ticket } from "@/class/Ticket";
 
 new Config({
   name: 'ticket',
@@ -84,8 +85,8 @@ new Config({
     if (haveInteraction) await interaction.respond(respond)
   },
   async run(interaction) {
-    const { options, guildId } = interaction
-    if (guildId === null) return
+    const { options, guildId, guild } = interaction
+    if (guildId === null || guild == null) return
     await interaction.deferReply({ ephemeral: true })
     const channel = options.getChannel('panel-embed')
     const limit = options.getNumber('limit')
@@ -94,6 +95,7 @@ new Config({
     const logs = options.getChannel('logs-channel')
     const addRole = options.getRole('add-role-team')
     const remRole = options.getString('rem-role-team')
+    const ticket = new Ticket({ interaction })
 
     const config = new Database<ConfigORM>({ table: 'Config' })
     const dataDB = await config.findOne({ where: { guild: { id: guildId } }})
@@ -138,55 +140,25 @@ new Config({
       text.push(`Cargo ${remRole} removido dos tickets`)
     }
 
-    // if (channel !== null) {
-    //   const sendChannel = await guild?.channels.fetch(channel.id)
-    //   if (typeof sendChannel?.id !== 'string' || sendChannel?.isTextBased() !== true) {
-    //     await interaction.editReply({
-    //       embeds: [
-    //         new EmbedBuilder({
-    //           title: 'O channel definido em panel-embed não é valido!'
-    //         }).setColor ('Red')
-    //       ]
-    //     })
-    //     return
-    //   }
+    if (channel !== null) {
+      const sendChannel = await guild.channels.fetch(channel.id)
+      if (typeof sendChannel?.id !== 'string' || sendChannel?.isTextBased() !== true) {
+        await interaction.editReply({
+          embeds: [
+            new EmbedBuilder({
+              title: 'O channel definido em panel-embed não é valido!'
+            }).setColor ('Red')
+          ]
+        })
+        return
+      }
 
-    //   const embed = new EmbedBuilder({
-    //     title: 'Pedir suporte',
-    //     description: 'Se você estiver precisando de ajuda clique no botão abaixo',
-    //     footer: { text: `Equipe ${interaction.guild?.name}`, iconURL: (interaction?.guild?.iconURL({ size: 64 }) ?? undefined) }
-    //   }).setColor('Green')
-
-    //   if (sendChannel !== undefined) {
-    //     await sendChannel.send({ embeds: [embed] })
-    //       .then(async (msg: { id: any; }) => {
-    //         await db.messages.set(`${guildId}.ticket.${sendChannel.id}.messages.${msg.id}`, {
-    //           id: msg.id,
-    //           embed: embed.toJSON()
-    //         })
-    //         await ticketButtonsConfig({
-    //           interaction,
-    //           message: msg,
-    //           channelId: sendChannel.id
-    //         })
-    //         await interaction.editReply({
-    //           embeds: [
-    //             new EmbedBuilder()
-    //               .setDescription(`✅ | Mensagem enviada com sucesso ao chat: <#${sendChannel.id}>`)
-    //               .setColor('Green')
-    //           ],
-    //           components: [
-    //             await Discord.buttonRedirect({
-    //               guildId,
-    //               channelId: sendChannel.id,
-    //               emoji: { name: '🗨️' },
-    //               label: 'Ir ao canal'
-    //             })
-    //           ]
-    //         })
-    //       })
-    //   }
-    // }
+      if (sendChannel !== undefined) ticket.createTemplate({
+        title: 'Pedir suporte',
+        description: 'Se você estiver precisando de ajuda clique no botão abaixo',
+        channelId: sendChannel.id
+      })
+    }
     if (limit !== null) {
       data = { ...data, limit }
       text.push(`Limite de tickets por pessoa agora é de ${limit}!`)
