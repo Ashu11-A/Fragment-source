@@ -41,6 +41,7 @@ export class Database {
     console.log(eventName, args)
     console.log(entry)
     console.log(Object.keys(Database.entries))
+    console.log(Entity)
     try {
       switch (type) {
       case 'find': socket.emit(eventName, await Entity.find(args.options)); break
