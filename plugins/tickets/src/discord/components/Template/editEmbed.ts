@@ -161,7 +161,7 @@ for (const [action, data] of Object.entries(modalData)) {
       await template.save(templateData)
         .then(async () => {
           const ticket = new Ticket({ interaction })
-          const components = await ticket.generateButtons({ messageId: interaction.message?.id })
+          const components = await ticket.genEditButtons({ messageId: interaction.message?.id })
           interaction.message?.edit({ embeds: [embed], components })
   
           await interaction.editReply({

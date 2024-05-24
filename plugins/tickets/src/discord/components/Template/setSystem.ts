@@ -29,7 +29,7 @@ for (const [action, type] of Object.entries(actions)) {
               }).setColor('Green')]
             })
 
-            const components = await (new Ticket({ interaction })).generateButtons({ messageId: interaction.message.id })
+            const components = await (new Ticket({ interaction })).genEditButtons({ messageId: interaction.message.id })
 
             await interaction.message.edit({ components })
           })

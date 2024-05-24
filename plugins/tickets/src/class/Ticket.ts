@@ -3,7 +3,7 @@ import { ButtonBuilder } from "@/discord/base/CustomIntetaction"
 import Template, { TypeTemplate } from "@/entity/Template.entry"
 import { ActionDrawer } from "@/functions/actionDrawer"
 import { checkChannel } from "@/functions/checkChannel"
-import { ActionRowBuilder, ButtonInteraction, ButtonStyle, CacheType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction } from "discord.js"
+import { ActionRowBuilder, ButtonInteraction, ButtonStyle, CacheType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, TextInputBuilder } from "discord.js"
 const template = new Database<Template>({ table: 'Template' })
 interface TicketOptions {
     interaction: CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType>
@@ -39,7 +39,7 @@ export class Ticket {
       footer: { text: `Equipe ${this.interaction.guild?.name}`, iconURL: (this.interaction?.guild?.iconURL({ size: 64 }) ?? undefined) }
     })
 
-    const components = await this.generateButtons({})
+    const components = await this.genEditButtons({})
 
     await channel.send({ embeds: [embed], components }).then(async (message) => {
       const create = await template.create({
@@ -51,7 +51,7 @@ export class Ticket {
     })
   }
 
-  async generateButtons ({ messageId }: GenerateButtons): Promise<ActionRowBuilder<ButtonBuilder>[]> {
+  async genEditButtons ({ messageId }: GenerateButtons): Promise<ActionRowBuilder<ButtonBuilder>[]> {
     const row = [
       new ButtonBuilder({
         customId: `setTitle`,
@@ -158,6 +158,34 @@ export class Ticket {
 
     }
 
+    return ActionDrawer(row, 5)
+  }
+
+  async genProductionButtons ({ messageId }: GenerateButtons): Promise<ActionRowBuilder<ButtonBuilder>[]> {
+    const templateData = (await template.findOne({ where: { messageId } }))
+    const row = []
+
+    switch (templateData?.type ?? TypeTemplate.Button) {
+    case TypeTemplate.Modal:
+    case TypeTemplate.Button:
+      row.push(
+        new ButtonBuilder({
+          customId: 'Open',
+          label: 'Abrir Ticket',
+          style: ButtonStyle.Success,
+          emoji: { name: '🎫' }
+        }),
+        new ButtonBuilder({
+          customId: 'Config',
+          emoji: { name: '⚙️' },
+          style: ButtonStyle.Secondary
+        })
+      )
+      break
+    case TypeTemplate.Select:
+    }
+
+    row.push()
     return ActionDrawer(row, 5)
   }
 }
