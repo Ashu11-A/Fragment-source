@@ -6,12 +6,12 @@ import { Event } from './events'
 export class SocketController {
   protected readonly app: Application
   public server
-  public io: Server
+  static io: Server
 
   constructor () {
     this.app = express()
     this.server = createServer(this.app)
-    this.io = new Server(this.server, { path: '/socket.io' })
+    SocketController.io = new Server(this.server, { path: '/socket.io' })
   }
 
   listen (port: string) {
@@ -21,7 +21,7 @@ export class SocketController {
   }
 
   ready () {
-    this.io.on('connection', async (client) => {
+    SocketController.io.on('connection', async (client) => {
       const event = new Event({ client })
       event.connected()
       event.controller()
