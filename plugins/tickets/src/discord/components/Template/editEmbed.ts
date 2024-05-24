@@ -3,7 +3,7 @@ import { Database } from "@/controller/database";
 import { Component } from "@/discord/base";
 import { ModalBuilder } from "@/discord/base/CustomIntetaction";
 import Template from "@/entity/Template.entry";
-import { checkHexCor } from "@/functions/checker";
+import { checkHexCor, checkURL } from "@/functions/checker";
 import { TextInputBuilder } from "@discordjs/builders";
 import { ActionRowBuilder, APITextInputComponent, ComponentType, EmbedBuilder, HexColorString } from "discord.js";
 const template = new Database<Template>({ table: 'Template' })
@@ -90,10 +90,10 @@ for (const [action, data] of Object.entries(modalData)) {
         })
         return
       }
-      let content = interaction.fields.getTextInputValue('content')
+      let content: null | string = interaction.fields.getTextInputValue('content')
       
       if (content.toLowerCase() === 'vazio'){
-        content = ''
+        content = null
       }
 
       let error = false
@@ -106,13 +106,27 @@ for (const [action, data] of Object.entries(modalData)) {
       case 'setDescription':
         embed.setDescription(content)
         break
-      case 'setThumbnail':
+      case 'setThumbnail': {
+        const [validator, message] = checkURL(content)
+        if (!validator) {
+          await interaction.editReply({ content: message })
+          error = true
+          break
+        }
         embed.setThumbnail(content)
         break
-      case 'setImage':
+      }
+      case 'setImage': {
+        const [validator, message] = checkURL(content)
+        if (!validator) {
+          await interaction.editReply({ content: message })
+          error = true
+          break
+        }
         embed.setImage(content)
         break
-      case 'setColor':
+      }
+      case 'setColor': {
         const [validador, message] = checkHexCor(content)
         if (!validador) {
           await interaction.editReply({ content: message })
@@ -121,6 +135,7 @@ for (const [action, data] of Object.entries(modalData)) {
         }
         embed.setColor(content as HexColorString)
         break
+      }
       }
 
       if (error) return
