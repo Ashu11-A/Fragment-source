@@ -1,12 +1,12 @@
 import { Database } from "@/controller/database"
 import { ButtonBuilder } from "@/discord/base/CustomIntetaction"
-import Template from "@/entity/Template.entry"
+import Template, { TypeTemplate } from "@/entity/Template.entry"
 import { ActionDrawer } from "@/functions/actionDrawer"
 import { checkChannel } from "@/functions/checkChannel"
-import { ActionRowBuilder, ButtonStyle, CacheType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction } from "discord.js"
-
+import { ActionRowBuilder, ButtonInteraction, ButtonStyle, CacheType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction } from "discord.js"
+const template = new Database<Template>({ table: 'Template' })
 interface TicketOptions {
-    interaction: CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType>
+    interaction: CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType>
 }
 
 interface TicketCreate {
@@ -130,18 +130,31 @@ export class Ticket {
     ]
   
     if (messageId !== undefined) {
-      const template = new Database<Template>({ table: 'Template' })
-      const properties = (await template.findOne({ where: { messageId } }))?.properties
+      const templateData = (await template.findOne({ where: { messageId } }))
+      const buttonType = {
+        SetSelect: TypeTemplate.Select,
+        SetButton: TypeTemplate.Button,
+        SetModal: TypeTemplate.Modal,
+      }
 
-      if (properties !== undefined) {
+      if (templateData !== undefined) {
         for (const button of row) {
-          const { customId } = button
+          const ButtonType = Object.entries(buttonType).find(([key]) => key === button.customId ) // [ 'SetModal', 'modal' ]
 
-          if (properties?.[customId] === true) {
+          if (ButtonType?.[0] === button.customId && templateData?.type === ButtonType[1]) {
+            button.setStyle(ButtonStyle.Primary)
+          }
+
+          if (button.customId === 'AddSelect' && templateData?.type === TypeTemplate.Select) {
+            button.setDisabled(false)
+          }
+
+          if (templateData?.properties?.[button.customId] === true) {
             button.setStyle(ButtonStyle.Primary)
           }
         }
       }
+
 
     }
 
