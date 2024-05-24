@@ -178,6 +178,7 @@ export class Plugins {
       }
 
       for (const command of ((info.commands ?? []) as Array<CommandData<boolean>>)) {
+        console.log(command.name, socket.id, )
         Command.all.set(command.name, { ...command, pluginId: socket.id })
       }
 
@@ -236,15 +237,29 @@ export class Plugins {
     }
 
     case 'entries':
-      const { code, fileName, dirName } = args as { fileName: string, code: string, dirName: string }
+      let { code, fileName, dirName } = args as { fileName: string, code: string, dirName: string }
       const path = join(cwd(), `entries/${dirName}`)
-      const refatored = PKG_MODE
-        ? code.replaceAll('require("typeorm")' , `require("${join(__dirname, '../../')}node_modules/typeorm/index")`) 
-        : code.replaceAll("from 'typeorm'", `from '${RootPATH}/node_modules/typeorm/index'`)
+      let regex: RegExp
+
+      if (PKG_MODE) {
+          regex = /require\("(?!\.\/)([^"]+)"\)/g
+      } else {
+          regex = /from "(?!\.\/)([^"]+)"/g
+      }
+      
+      let match;
+      while ((match = regex.exec(code)) !== null) {
+          const content = match[1];
+          if (content) {
+              console.log(`🔄 Convertendo ${fileName}`);
+              const replacedPath = `${join(__dirname, '../../')}node_modules/${content}`;
+              code = code.replace(new RegExp(content, 'g'), replacedPath);
+          }
+      }
 
       if (!existsSync(path)) await mkdir(path, { recursive: true })
 
-      await writeFile(`${path}/${fileName}`, refatored, { encoding: 'utf-8' })
+      await writeFile(`${path}/${fileName}`, code, { encoding: 'utf-8' })
       const pluginIndex = Plugins.running.findIndex((plugin) => plugin.id === socket.id)
       if (pluginIndex !== -1) {
         Plugins.running[pluginIndex].entries.push(`${path}/${fileName}`)
