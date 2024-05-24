@@ -11,6 +11,17 @@ export enum TypeTemplate {
   Modal = 'modal'
 }
 
+interface Select {
+  title: string
+  emoji: string
+}
+
+interface Category {
+  title: string
+  description: string
+  emoji: string
+}
+
 @Entity({ name: 'tickets_templates' })
 export default class Template extends BaseEntity {
     @PrimaryGeneratedColumn()
@@ -30,6 +41,33 @@ export default class Template extends BaseEntity {
       type!: TypeTemplate
 
     @Column('json', {
+      nullable: true,
+      transformer: {
+        to(value: string): string {
+          return JSON.stringify(value)
+        },
+        from(value: string): Select[] {
+          return JSON.parse(value)
+        },
+      }
+    })
+      selects!: Select[]
+
+    @Column('json', {
+      nullable: true,
+      transformer: {
+        to(value: string): string {
+          return JSON.stringify(value)
+        },
+        from(value: string): Category[] {
+          return JSON.parse(value)
+        },
+      }
+    })
+      categories!: Category[]
+
+    @Column('json', {
+      nullable: true,
       transformer: {
         to(value: string): string {
           return JSON.stringify(value)

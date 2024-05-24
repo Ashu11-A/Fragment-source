@@ -109,9 +109,9 @@ export class Ticket {
         emoji: { name: '📄' }
       }),
       new ButtonBuilder({
-        customId: 'EmbedCategory',
-        label: 'Panel Category',
-        emoji: { name: '🖥️' },
+        customId: 'AddCategory',
+        label: 'Add Categoria',
+        emoji: { name: '🔖' },
         style: ButtonStyle.Secondary
       }),
       new ButtonBuilder({
