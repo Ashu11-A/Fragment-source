@@ -52,7 +52,7 @@ interface BuildConstructor {
 }
 
 class Build {
-  private readonly options: BuildConstructor
+  public readonly options: BuildConstructor
 
   private readonly progressBar = new SingleBar({}, Presets.rect)
   private readonly startTime = Date.now()
@@ -85,7 +85,7 @@ class Build {
       })
     })
 
-    if (sucess) { await move(`${this.options.source}/dist`, './build/src', { overwrite: true }); return }
+    if (sucess) { await move(`${this.options.source}/dist`, `./${this.options.outBuild}/src`, { overwrite: true }); return }
     throw new Error(`Ocorreu um erro ao tentar buildar o projeto ${this.options.source}`)
   }
 
@@ -370,7 +370,7 @@ const archs = ['arm64', 'x64'];
   for (const project of directories) {
     builds.push(new Build({
       source: project,
-      outBuild: 'build',
+      outBuild: `build/${project}`,
       outRelease: join(process.cwd(), 'release'),
       archs: [arch as ('arm64' | 'x64')],
       platforms: ['linux'],
@@ -390,7 +390,7 @@ const archs = ['arm64', 'x64'];
 
     builds.push(new Build({
       source: sourcePath,
-      outBuild: 'build',
+      outBuild: `build/${sourcePath}`,
       outRelease: join(process.cwd(), 'release'),
       archs: [arch as ('arm64' | 'x64')],
       platforms: ['linux'],
@@ -444,43 +444,47 @@ release [options] <input>
     return
   }
 
+  const exec = []
+
   for (const build of builds) {
     if (newArgs.length === 0) {
-      await build.default()
+      exec.push(build.default())
       continue
     }
 
     console.log(`Ordem das args: ${newArgs.map((arg) => arg.command).join(' --> ')}`)
-    
+
     for (let argNum = 0; argNum < newArgs.length; argNum++) {
       console.log(newArgs[argNum])
       switch (newArgs[argNum].command) {
       case 'pre-build': {
-        await build.build()
-        await build.config()
+        exec.push(build.build())
+        exec.push(build.config())
         break
       }
       case 'install': {
-        await build.install()
+        exec.push(build.install())
         break
       }
       case 'compress': {
-        await build.compress()
+        exec.push(build.compress())
         break
       }
       case 'obfuscate': {
-        await build.obfuscate()
+        exec.push(build.obfuscate())
         break
       }
       case 'pkg': {
-        await build.pkgbuild()
+        exec.push(build.pkgbuild())
         break
       }
       case 'esbuild': {
-        await build.esbuild()
+        exec.push(build.esbuild())
         break
       }
       }
     }
   }
+
+  await Promise.all(exec)
 })()
