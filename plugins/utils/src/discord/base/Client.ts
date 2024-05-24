@@ -5,11 +5,10 @@ import Guild from '@/entity/Guild.entry'
 import { APIMessageComponentEmoji, ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, CacheType, Client, IntentsBitField, Partials, type AutocompleteInteraction, type BitFieldResolvable, type ChatInputCommandInteraction, type CommandInteraction, type GatewayIntentsString, type MessageContextMenuCommandInteraction, type UserContextMenuCommandInteraction } from 'discord.js'
 import { glob } from 'glob'
 import { join } from 'path'
-import { name } from '../../../package.json'
 import { Command } from './Commands'
 import { Component } from './Components'
 import { Config } from './Config'
-
+import { name } from '../../../package.json'
 export class Discord {
   public static client: Client<boolean>
   private timestamp!: number
@@ -93,50 +92,40 @@ export class Discord {
 
       if (!interaction.isModalSubmit() && !interaction.isMessageComponent()) return
 
-      this.customId = `${name}_${interaction.customId}`
+      if (interaction.customId.split('_')[0] !== name) return
+
+      this.customId = interaction.customId
       this.username = interaction.user.username
 
       if (interaction.isModalSubmit()) {
         const component = Component.find(this.customId, 'Modal')
         await component?.run(interaction)
-        this.end()
-        return
       }
       if (interaction.isButton()) {
         const component = Component.find(this.customId, 'Button')
         await component?.run(interaction)
-        this.end()
-        return
       }
       if (interaction.isStringSelectMenu()) {
         const component = Component.find(this.customId, 'StringSelect')
         await component?.run(interaction)
-        this.end()
-        return
       }
       if (interaction.isChannelSelectMenu()) {
         const component = Component.find(this.customId, 'ChannelSelect')
         await component?.run(interaction)
-        this.end()
-        return
       }
       if (interaction.isRoleSelectMenu()) {
         const component = Component.find(this.customId, 'RoleSelect')
         await component?.run(interaction)
-        this.end()
-        return
       }
       if (interaction.isUserSelectMenu()) {
         const component = Component.find(this.customId, 'UserSelect')
         await component?.run(interaction)
-        this.end()
-        return
       }
       if (interaction.isMentionableSelectMenu()) {
         const component = Component.find(this.customId, 'MentionableSelect')
         await component?.run(interaction)
-        this.end()
       }
+      if (this.customId) this.end()
     })
   }
 
