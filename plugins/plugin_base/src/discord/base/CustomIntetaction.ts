@@ -34,14 +34,14 @@ export interface APIModalInteractionResponseCallbackData {
   /**
    * Between 1 and 5 (inclusive) components that make up the modal
    */
-  components: ActionRowBuilder<TextInputBuilder>[]
+  components?: ActionRowBuilder<TextInputBuilder>[]
 }
 
 export class ModalBuilder extends Modal {
   constructor({ components, customId, title }: APIModalInteractionResponseCallbackData) {
     super()
     this.setTitle(title)
-    this.setComponents(components)
+    if (components) this.setComponents(components)
     this.setCustomId(`${name}_${customId}`)
   }
 }
