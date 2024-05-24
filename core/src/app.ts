@@ -18,9 +18,9 @@ const args = argv.splice(2).map((arg) => arg.replaceAll('-', ''))
 const argsList: Args[] = [
   { command: 'info', alias: ['i'] },
   { command: 'port', alias: ['p'] }
-]
+];
 
-async function app() {
+(async () => {
   if (env?.BOT_TOKEN === undefined || env?.BOT_TOKEN === 'Troque-me') {
     await writeFile(join(process.cwd(), '.env'), 'BOT_TOKEN=Troque-me', { encoding: 'utf-8' })
     throw new Error('Defina um token!')
@@ -54,6 +54,17 @@ async function app() {
       }
     }
   }
-}
 
-void app()
+  ['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT',
+    'SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'
+  ].forEach(function (sig) {
+      process.on(sig, async function () {
+        if (PKG_MODE) {
+          for await (const plugin of await SocketController.io.fetchSockets()) {
+            if (plugin) plugin.emit('kill')
+          }
+        }
+        process.exit()
+      });
+  });
+})()
