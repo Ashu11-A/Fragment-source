@@ -1,8 +1,9 @@
 import { Database } from "@/controller/database"
+import { ButtonBuilder } from "@/discord/base/CustomIntetaction"
 import Template from "@/entity/Template.entry"
 import { ActionDrawer } from "@/functions/actionDrawer"
 import { checkChannel } from "@/functions/checkChannel"
-import { ActionRowBuilder, APIButtonComponentWithCustomId, ButtonBuilder, ButtonStyle, CacheType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction } from "discord.js"
+import { ActionRowBuilder, ButtonStyle, CacheType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction } from "discord.js"
 
 interface TicketOptions {
     interaction: CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType>
@@ -134,8 +135,8 @@ export class Ticket {
 
       if (properties !== undefined) {
         for (const button of row) {
-          const { custom_id: customId } = button.toJSON() as APIButtonComponentWithCustomId
-          
+          const { customId } = button
+
           if (properties?.[customId] === true) {
             button.setStyle(ButtonStyle.Primary)
           }
