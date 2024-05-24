@@ -5,11 +5,14 @@ import { ModalBuilder } from "@/discord/base/CustomIntetaction";
 import Template from "@/entity/Template.entry";
 import { checkHexCor, checkURL } from "@/functions/checker";
 import { TextInputBuilder } from "@discordjs/builders";
-import { ActionRowBuilder, APITextInputComponent, ComponentType, EmbedBuilder, HexColorString } from "discord.js";
+import { ActionRowBuilder, APIEmbed, APITextInputComponent, ComponentType, EmbedBuilder, HexColorString } from "discord.js";
 const template = new Database<Template>({ table: 'Template' })
-
+const notFound = new EmbedBuilder({
+  title: '❌ Não encontrei esse template no meu banco de dados!'
+}).setColor('Red')
 interface TextInputComponent extends APITextInputComponent {
   title: string
+  database: string
 }
 
 const modalData: Record<string, TextInputComponent> = {
@@ -20,7 +23,8 @@ const modalData: Record<string, TextInputComponent> = {
     style: 1,
     max_length: 256,
     type: ComponentType.TextInput,
-    custom_id: 'content'
+    custom_id: 'content',
+    database: 'title'
   },
   setDescription: {
     title: '❓| Qual será a Descrição da Embed?',
@@ -29,7 +33,8 @@ const modalData: Record<string, TextInputComponent> = {
     style: 2,
     max_length: 4000,
     type: ComponentType.TextInput,
-    custom_id: 'content'
+    custom_id: 'content',
+    database: 'description'
   },
   setThumbnail: {
     title: '❓| Qual será a Miniatura da Embed?',
@@ -38,7 +43,8 @@ const modalData: Record<string, TextInputComponent> = {
     style: 1,
     max_length: 4000,
     type: ComponentType.TextInput,
-    custom_id: 'content'
+    custom_id: 'content',
+    database: 'thumbnail.url'
   },
   setImage: {
     title: '❓| Qual será o Banner da Embed?',
@@ -47,7 +53,8 @@ const modalData: Record<string, TextInputComponent> = {
     style: 1,
     max_length: 4000,
     type: ComponentType.TextInput,
-    custom_id: 'content'
+    custom_id: 'content',
+    database: 'image.url'
   },
   setColor: {
     title: '❓| Qual será a Cor da Embed?',
@@ -56,7 +63,8 @@ const modalData: Record<string, TextInputComponent> = {
     style: 1,
     max_length: 7,
     type: ComponentType.TextInput,
-    custom_id: 'content'
+    custom_id: 'content',
+    database: 'color'
   }
 }
 
@@ -65,11 +73,22 @@ for (const [action, data] of Object.entries(modalData)) {
     customId: action,
     type: "Button",
     async run(interaction) {
+      const templateData = await template.findOne({ where: { messageId: interaction.message.id } })
+      const value = templateData?.embed?.[data.database as keyof APIEmbed]
+
+      if (templateData === null) {
+        await interaction.reply({ embeds: [notFound] })
+        return
+      }
+  
       const modal = new ModalBuilder({
         customId: action,
-        title: `Alterando ${this.customId.replace('Set', '')}`,
+        title: `Alterando ${data.title}`,
         components: [
-          new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder(data))
+          new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder({
+            ...data,
+            value: typeof value !== 'string' ? undefined : value
+          }))
         ]
       })
       await interaction.showModal(modal)
@@ -83,11 +102,7 @@ for (const [action, data] of Object.entries(modalData)) {
       const templateData = await template.findOne({ where: { messageId: interaction.message?.id } })
       
       if (templateData === null) {
-        await interaction.editReply({
-          embeds: [new EmbedBuilder({
-            title: 'Não encontrei esse template no meu banco de dados!'
-          }).setColor('Red')]
-        })
+        await interaction.editReply({ embeds: [notFound] })
         return
       }
       let content: null | string = interaction.fields.getTextInputValue('content')
