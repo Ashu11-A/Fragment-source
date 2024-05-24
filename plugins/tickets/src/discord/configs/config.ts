@@ -186,6 +186,7 @@ new Config({
           }).setColor('Green')
         ]
       })
+      setTimeout(() => interaction.deleteReply(), 2000)
     } catch (err) {
       await interaction.editReply({
         embeds: [new EmbedBuilder({
