@@ -1,10 +1,11 @@
 import { Ticket } from "@/class/Ticket";
 import { Database } from "@/controller/database";
 import { Component } from "@/discord/base";
+import { ModalBuilder } from "@/discord/base/CustomIntetaction";
 import Template from "@/entity/Template.entry";
 import { checkHexCor } from "@/functions/checker";
 import { TextInputBuilder } from "@discordjs/builders";
-import { ActionRowBuilder, APIEmbed, APITextInputComponent, ComponentType, Embed, EmbedBuilder, HexColorString, ModalBuilder } from "discord.js";
+import { ActionRowBuilder, APITextInputComponent, ComponentType, EmbedBuilder, HexColorString } from "discord.js";
 const template = new Database<Template>({ table: 'Template' })
 
 interface TextInputComponent extends APITextInputComponent {
@@ -69,7 +70,6 @@ for (const [action, data] of Object.entries(modalData)) {
         title: `Alterando ${this.customId.replace('Set', '')}`,
         components: [
           new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder(data))
-          
         ]
       })
       await interaction.showModal(modal)
