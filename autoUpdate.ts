@@ -1,11 +1,12 @@
 import { watch } from 'chokidar'
-import { readFile, writeFile } from 'fs/promises'
-import { glob } from 'glob'
-import { basename, dirname } from 'path'
-import prompts, { Choice } from 'prompts'
-import gradient from 'gradient-string'
 import figlet from 'figlet'
 import { statSync } from 'fs'
+import { exists } from 'fs-extra'
+import { readFile, writeFile } from 'fs/promises'
+import { glob } from 'glob'
+import gradient from 'gradient-string'
+import { basename, dirname } from 'path'
+import prompts, { Choice } from 'prompts'
 prompts.override((await import('yargs')).argv)
 console.log(gradient('#8752a3', '#6274e7')(figlet.textSync('Synch System', 'Elite')))
 console.log()
@@ -65,10 +66,21 @@ const checkFiles = async (files: Map<string, string[]>) => {
 
   for (const { fileName, size: baseSize } of sizes) {
     const split = fileName.split('/')
-    const path = split.splice(0, 2)
-    const formatted = split.join('/')
     const file = basename(fileName)
-    const findFiles = sizes.filter(({ fileName }) => fileName.includes(formatted) && !fileName.includes(path.join('/')))
+    const path = split.splice(0, 2)
+    const internalPath = split.join('/')
+
+    const othersPlugins = await glob([`${path[0]}/*`], { ignore: path.join('/') })
+    for (const plugin of othersPlugins) {
+      const filePath = `${plugin}/${internalPath}`
+      if (!(await exists(filePath))) {
+        console.log(`⚠️ Criando: ${filePath}`)
+        const code = await readFile(fileName, { encoding: 'utf-8' })
+        await writeFile(filePath, code, { encoding: 'utf-8' })
+      }
+    }
+
+    const findFiles = sizes.filter(({ fileName }) => fileName.includes(internalPath) && !fileName.includes(path.join('/')))
     const differentBytes = findFiles.filter(({ size }) => size !== baseSize).map(({ fileName, size }) => ({ fileName, size }))
     
     // Caso o arquivo já tenha sido processado, ignore ele
