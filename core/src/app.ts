@@ -1,12 +1,15 @@
+import { existsSync } from 'fs'
+import { exists } from 'fs-extra'
 import { readFile, rm, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { argv, cwd } from 'process'
+import prompts, { PromptObject } from 'prompts'
+import 'reflect-metadata'
 import { env, PKG_MODE } from '.'
 import { Plugins } from './controller/plugins'
 import { SocketController } from './controller/socket'
+import { Auth, encrypt } from './functions/key'
 import { generatePort } from './functions/port'
-import 'reflect-metadata'
-import { existsSync } from 'fs'
 
 interface Args {
   command: string
@@ -21,6 +24,27 @@ const argsList: Args[] = [
 ];
 
 (async () => {
+  prompts.override((await import('yargs')).argv)
+
+  if (!(await exists('.key'))) {
+    const questions: PromptObject<string>[] = [
+      { name: 'email', message: 'Email', type: 'text', warn: 'Apenas cadastrado em paymentbot.com' },
+      { name: 'password', message: 'Senha', type: 'password', warn: 'Apenas cadastrado em paymentbot.com' },
+      { name: 'token', message: 'Token', type: 'password', warn: 'Visível no Dashboard' }
+    ]
+  
+    const response = await prompts(questions)
+  
+    if (Object.keys(response).length !== 3 || Object.entries(response).filter(([, content]) => content === '').length > 0) throw new Error('Formulário não respondido!')
+      await encrypt(JSON.stringify(response))
+  }
+
+  const auth = new Auth()
+
+  await auth.init()
+  await auth.login()
+  await auth.validator()
+
   if (env?.BOT_TOKEN === undefined || env?.BOT_TOKEN === 'Troque-me') {
     await writeFile(join(process.cwd(), '.env'), 'BOT_TOKEN=Troque-me', { encoding: 'utf-8' })
     throw new Error('Defina um token!')
