@@ -16,7 +16,7 @@ export class SocketController {
 
   listen (port: string) {
     this.server.listen(port, () => {
-      console.log(`Servidor inicializado na porta ${port}`)
+      console.log(`🚀 Servidor inicializado na porta ${port}`)
     })
   }
 

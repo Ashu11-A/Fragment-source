@@ -115,7 +115,7 @@ export class Plugins {
   async load(): Promise<void> {
     const plugins = await this.list()
     if (plugins.length === 0) {
-      console.log('Nenhum plugin encontrado!')
+      console.log('🚫 Nenhum plugin encontrado!')
       return
     }
 
