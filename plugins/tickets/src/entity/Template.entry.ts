@@ -13,12 +13,12 @@ export enum TypeTemplate {
 
 interface Select {
   title: string
+  description: string
   emoji: string
 }
 
 interface Category {
   title: string
-  description: string
   emoji: string
 }
 
@@ -54,7 +54,6 @@ export default class Template extends BaseEntity {
       selects!: Select[]
 
     @Column('json', {
-      nullable: true,
       transformer: {
         to(value: string): string {
           return JSON.stringify(value)
@@ -67,7 +66,6 @@ export default class Template extends BaseEntity {
       categories!: Category[]
 
     @Column('json', {
-      nullable: true,
       transformer: {
         to(value: string): string {
           return JSON.stringify(value)
@@ -80,7 +78,6 @@ export default class Template extends BaseEntity {
       embed!: APIEmbed
 
     @Column('json', {
-      nullable: true,
       transformer: {
         to(value: string): string {
           return JSON.stringify(value)

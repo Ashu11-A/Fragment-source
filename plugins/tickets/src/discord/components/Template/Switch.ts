@@ -18,9 +18,9 @@ new Component({
   type: "Button",
   async run(interaction) {
     await interaction.deferReply({ ephemeral: true })
-    const components = await (new Ticket({ interaction })).genEditButtons({ messageId: interaction.message.id })
+    const [buttons, select] = await (new Ticket({ interaction })).genEditButtons({ messageId: interaction.message.id })
 
-    await interaction.message.edit({ components })
+    await interaction.message.edit({ components: [...buttons, ...select] })
     await interaction.deleteReply()
   },
 })

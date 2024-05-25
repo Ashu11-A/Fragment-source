@@ -1,12 +1,12 @@
 import { Database } from "@/controller/database"
-import { ButtonBuilder } from "@/discord/base/CustomIntetaction"
+import { ButtonBuilder, StringSelectMenuBuilder } from "@/discord/base/CustomIntetaction"
 import Template, { TypeTemplate } from "@/entity/Template.entry"
 import { ActionDrawer } from "@/functions/actionDrawer"
 import { checkChannel } from "@/functions/checkChannel"
-import { ActionRowBuilder, ButtonInteraction, ButtonStyle, CacheType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, TextInputBuilder } from "discord.js"
+import { ActionRowBuilder, ButtonInteraction, ButtonStyle, CacheType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, SelectMenuBuilder, StringSelectMenuInteraction } from "discord.js"
 const template = new Database<Template>({ table: 'Template' })
 interface TicketOptions {
-    interaction: CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType>
+    interaction: CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction<CacheType>
 }
 
 interface TicketCreate {
@@ -39,9 +39,9 @@ export class Ticket {
       footer: { text: `Equipe ${this.interaction.guild?.name}`, iconURL: (this.interaction?.guild?.iconURL({ size: 64 }) ?? undefined) }
     })
 
-    const components = await this.genEditButtons({})
+    const [buttons, select] = await this.genEditButtons({})
 
-    await channel.send({ embeds: [embed], components }).then(async (message) => {
+    await channel.send({ embeds: [embed], components: [...buttons, ...select] }).then(async (message) => {
       const create = await template.create({
         messageId: message.id,
         channelId: channel.id,
@@ -51,8 +51,8 @@ export class Ticket {
     })
   }
 
-  async genEditButtons ({ messageId }: GenerateButtons): Promise<ActionRowBuilder<ButtonBuilder>[]> {
-    const row = [
+  async genEditButtons ({ messageId }: GenerateButtons): Promise<[ActionRowBuilder<ButtonBuilder>[], ActionRowBuilder<SelectMenuBuilder>[]]> {
+    const row: ButtonBuilder[] = [
       new ButtonBuilder({
         customId: `setTitle`,
         style: ButtonStyle.Secondary,
@@ -128,6 +128,8 @@ export class Ticket {
         style: ButtonStyle.Danger
       })
     ]
+
+    const rowDevlop = []
   
     if (messageId !== undefined) {
       const templateData = (await template.findOne({ where: { messageId } }))
@@ -137,8 +139,27 @@ export class Ticket {
         SetModal: TypeTemplate.Modal,
       }
 
+      if (templateData?.type === TypeTemplate.Select) {
+        const options: Array<{ label: string, description: string, value: string, emoji: string }> = []
+
+        options.push({ label: 'Editar', description: 'Apenas para Administradores', emoji: '⚙️', value: 'config' })
+
+        console.log(templateData)
+
+        for (const [index, { emoji, title, description }] of Object.entries((templateData.selects ?? []))) {
+          options.push({ label: title, description, emoji, value: index })
+        }
+
+        rowDevlop.push(new StringSelectMenuBuilder({
+          customId: 'EditSelectMenu',
+          placeholder: 'Modo edição, escolha um valor para remover',
+          options
+        }))
+      }
+
       if (templateData !== undefined) {
         for (const button of row) {
+          if (!(button instanceof ButtonBuilder)) continue
           const ButtonType = Object.entries(buttonType).find(([key]) => key === button.customId ) // [ 'SetModal', 'modal' ]
 
           if (ButtonType?.[0] === button.customId && templateData?.type === ButtonType[1]) {
@@ -154,11 +175,12 @@ export class Ticket {
           }
         }
       }
-
-
     }
 
-    return ActionDrawer(row, 5)
+    const buttons = ActionDrawer(row, 5)
+    const selects = ActionDrawer(rowDevlop, 1)
+
+    return [buttons, selects]
   }
 
   async genProductionButtons ({ messageId }: GenerateButtons): Promise<ActionRowBuilder<ButtonBuilder>[]> {

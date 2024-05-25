@@ -77,7 +77,7 @@ for (const [action, data] of Object.entries(modalData)) {
       const value = templateData?.embed?.[data.database as keyof APIEmbed]
 
       if (templateData === null) {
-        await interaction.reply({ embeds: [notFound] })
+        await interaction.reply({ embeds: [notFound], ephemeral: true })
         return
       }
   
@@ -161,8 +161,8 @@ for (const [action, data] of Object.entries(modalData)) {
       await template.save(templateData)
         .then(async () => {
           const ticket = new Ticket({ interaction })
-          const components = await ticket.genEditButtons({ messageId: interaction.message?.id })
-          interaction.message?.edit({ embeds: [embed], components })
+          const [buttons, select] = await ticket.genEditButtons({ messageId: interaction.message?.id })
+          interaction.message?.edit({ embeds: [embed], components: [...buttons, ...select] })
   
           await interaction.editReply({
             embeds: [new EmbedBuilder({

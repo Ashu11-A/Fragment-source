@@ -29,9 +29,9 @@ for (const [action, type] of Object.entries(actions)) {
               }).setColor('Green')]
             })
 
-            const components = await (new Ticket({ interaction })).genEditButtons({ messageId: interaction.message.id })
+            const [buttons, select] = await (new Ticket({ interaction })).genEditButtons({ messageId: interaction.message.id })
 
-            await interaction.message.edit({ components })
+            await interaction.message.edit({ components: [...buttons, ...select] })
           })
           .catch(async () => {
             await interaction.editReply({
