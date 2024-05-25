@@ -209,10 +209,12 @@ export class Auth {
       console.log('❌ Bot desabilitado!')
     }
 
+    if (Auth.bot === undefined) this.startCron()
+
     Auth.bot = data
   }
 
-  async startCron (): Promise<void> {
+  startCron (): void {
     const job = new CronJob('* * * * *', () => this.validator())
     job.start()
   }
