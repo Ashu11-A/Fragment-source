@@ -1,4 +1,4 @@
-import { ActionRowBuilder, APIActionRowComponent, APIModalActionRowComponent, ButtonBuilder as Button, ButtonStyle, ComponentEmojiResolvable, ModalBuilder as Modal, ModalComponentData, TextInputBuilder } from "discord.js";
+import { ActionRowBuilder, BaseSelectMenuComponentData, ButtonBuilder as Button, ButtonStyle, ComponentEmojiResolvable, ComponentType, ModalBuilder as Modal, SelectMenuComponentOptionData, StringSelectMenuBuilder as StringSelect, TextInputBuilder } from "discord.js";
 import { name } from '../../../package.json';
 
 export interface BaseButtonComponentData {
@@ -43,5 +43,26 @@ export class ModalBuilder extends Modal {
     this.setTitle(title)
     if (components) this.setComponents(components)
     this.setCustomId(`${name}_${customId}`)
+  }
+}
+
+interface StringSelectMenuComponentData {
+  customId: string;
+  options: SelectMenuComponentOptionData[];
+  disabled?: boolean;
+  maxValues?: number;
+  minValues?: number;
+  placeholder?: string;
+}
+
+export class StringSelectMenuBuilder extends StringSelect {
+  constructor({ customId, options, disabled, maxValues, minValues, placeholder }: StringSelectMenuComponentData) {
+    super()
+    this.setOptions(options)
+    this.setCustomId(`${name}_${customId}`)
+    if (disabled) this.setDisabled(disabled)
+    if (maxValues) this.setMaxValues(maxValues)
+    if (minValues) this.setMinValues(minValues)
+    if (placeholder) this.setPlaceholder(placeholder)
   }
 }
