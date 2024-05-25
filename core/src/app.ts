@@ -1,14 +1,13 @@
 import { existsSync } from 'fs'
-import { exists } from 'fs-extra'
 import { readFile, rm, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { argv, cwd } from 'process'
-import prompts, { PromptObject } from 'prompts'
+import prompts from 'prompts'
 import 'reflect-metadata'
 import { env, PKG_MODE } from '.'
 import { Plugins } from './controller/plugins'
 import { SocketController } from './controller/socket'
-import { Auth, encrypt } from './functions/key'
+import { Auth } from '@/controller/auth'
 import { generatePort } from './functions/port'
 
 interface Args {
@@ -26,22 +25,9 @@ const argsList: Args[] = [
 (async () => {
   prompts.override((await import('yargs')).argv)
 
-  if (!(await exists('.key'))) {
-    const questions: PromptObject<string>[] = [
-      { name: 'email', message: 'Email', type: 'text', warn: 'Apenas cadastrado em paymentbot.com' },
-      { name: 'password', message: 'Senha', type: 'password', warn: 'Apenas cadastrado em paymentbot.com' },
-      { name: 'token', message: 'Token', type: 'password', warn: 'Visível no Dashboard' }
-    ]
   
-    const response = await prompts(questions)
-  
-    if (Object.keys(response).length !== 3 || Object.entries(response).filter(([, content]) => content === '').length > 0) throw new Error('Formulário não respondido!')
-      await encrypt(JSON.stringify(response))
-  }
-
   const auth = new Auth()
-
-  await auth.init()
+  
   await auth.login()
   await auth.validator()
 
@@ -65,30 +51,30 @@ const argsList: Args[] = [
     }
 
     switch (args[argNum]) {
-      case 'info': {
-        const packageJSON = JSON.parse(await readFile(join(__dirname, '../package.json'), { encoding: 'utf-8' })) as Record<string, string | object | []>
-        const infos = ['name', 'version', 'description', 'author', 'license'].reverse()
-        console.info(Object.entries(packageJSON).reverse().filter(([key]) => infos.includes(key)).reduce((object, [key, value]) => ({ [key]: value, ...object }), {}))
-        break
-      }
-      case 'port': {
-        argNum++
-        socket.listen(args[argNum])
-        break
-      }
+    case 'info': {
+      const packageJSON = JSON.parse(await readFile(join(__dirname, '../package.json'), { encoding: 'utf-8' })) as Record<string, string | object | []>
+      const infos = ['name', 'version', 'description', 'author', 'license'].reverse()
+      console.info(Object.entries(packageJSON).reverse().filter(([key]) => infos.includes(key)).reduce((object, [key, value]) => ({ [key]: value, ...object }), {}))
+      break
+    }
+    case 'port': {
+      argNum++
+      socket.listen(args[argNum])
+      break
+    }
     }
   }
 
   ['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT',
     'SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'
   ].forEach(function (sig) {
-      process.on(sig, async function () {
-        if (PKG_MODE) {
-          for await (const plugin of await SocketController.io.fetchSockets()) {
-            if (plugin) plugin.emit('kill')
-          }
+    process.on(sig, async function () {
+      if (PKG_MODE) {
+        for await (const plugin of await SocketController.io.fetchSockets()) {
+          if (plugin) plugin.emit('kill')
         }
-        process.exit()
-      });
+      }
+      process.exit()
+    });
   });
 })()
