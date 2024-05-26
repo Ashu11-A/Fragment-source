@@ -4,7 +4,7 @@ import { RootPATH } from '..'
 import { api, key } from '../../package.json'
 import { CronJob } from 'cron'
 import prompts, { Choice, PromptObject } from 'prompts'
-import { exists } from 'fs-extra'
+import { existsSync } from 'fs'
 
 type Credentials = {
     email: string
@@ -73,7 +73,7 @@ export class Auth {
   }
 
   async decryptCredentials(): Promise<Credentials> {
-    const encrypted = await exists(`${RootPATH}/.key`) ? Blowfish.decrypt(await readFile(`${RootPATH}/.key`, { encoding: 'utf-8' }), key).toString(enc.Utf8) : '{}'
+    const encrypted = existsSync(`${RootPATH}/.key`) ? Blowfish.decrypt(await readFile(`${RootPATH}/.key`, { encoding: 'utf-8' }), key).toString(enc.Utf8) : '{}'
     return JSON.parse(encrypted)
   }
 
