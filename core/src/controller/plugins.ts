@@ -204,8 +204,9 @@ export class Plugins {
         break
       }
       
-      if (Plugins.running.length > 0) {
+      if (Plugins.running.length > 0 && Database.client?.isInitialized) {
         Database.client?.destroy()
+        console.log('🧨 Destruindo Banco de dados')
         Database.client = undefined
       }
 
@@ -242,19 +243,19 @@ export class Plugins {
       let regex: RegExp
 
       if (PKG_MODE) {
-          regex = /require\("(?!\.\/)([^"]+)"\)/g
+        regex = /require\("(?!\.\/)([^"]+)"\)/g
       } else {
-          regex = /from "(?!\.\/)([^"]+)"/g
+        regex = /from "(?!\.\/)([^"]+)"/g
       }
       
       let match;
       while ((match = regex.exec(code)) !== null) {
-          const content = match[1];
-          if (content) {
-              console.log(`🔄 Convertendo ${fileName}`);
-              const replacedPath = `${join(__dirname, '../../')}node_modules/${content}`;
-              code = code.replace(new RegExp(content, 'g'), replacedPath);
-          }
+        const content = match[1];
+        if (content) {
+          console.log(`🔄 Convertendo ${fileName}`);
+          const replacedPath = `${join(__dirname, '../../')}node_modules/${content}`;
+          code = code.replace(new RegExp(content, 'g'), replacedPath);
+        }
       }
 
       if (!existsSync(path)) await mkdir(path, { recursive: true })
