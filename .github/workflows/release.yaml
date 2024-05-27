@@ -72,7 +72,7 @@ jobs:
             apt update && apt install -y nodejs
           run: |
             npm i
-            npm run build -- --pkg
+            npm run build -- --install --compress --obfuscate --pkg --clean
 
       - name: Node.js ${{ matrix.node-version }}
         if: matrix.arch == 'x64'
@@ -88,7 +88,7 @@ jobs:
 
       - name: Build Release
         if: matrix.arch == 'x64'
-        run: npm run build -- --pkg
+        run: npm run build -- --install --compress --obfuscate --pkg --clean
 
       - uses: actions/upload-artifact@v4
         name: Upload artifact

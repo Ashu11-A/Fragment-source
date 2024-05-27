@@ -1,5 +1,5 @@
 import { formatBytes } from 'bytes-formatter'
-import { execSync, exec as processChild } from 'child_process'
+import { exec, exec as processChild } from 'child_process'
 import { Presets, SingleBar } from 'cli-progress'
 import { createHash } from 'crypto'
 import { build } from 'esbuild'
@@ -199,8 +199,8 @@ class Build {
 
   async install(): Promise<void> {
     console.debug('\n\nInstalando Modulos...')
-    if (existsSync(`${this.options.outBuild}/node_modules`)) execSync(`cd ${this.options.outBuild} && rm -r node_modules`, { stdio: 'inherit' })
-    execSync(`cd ${this.options.outBuild} && npm i && npm rebuild better_sqlite3 && npm rebuild`, { stdio: 'inherit' })
+    if (existsSync(`${this.options.outBuild}/node_modules`)) execProcess(`cd ${this.options.outBuild} && rm -r node_modules`)
+    await execProcess(`cd ${this.options.outBuild} && npm i && npm rebuild better_sqlite3 && npm rebuild`)
   }
 
   async clear(): Promise<void> {
@@ -274,7 +274,7 @@ class Build {
       console.debug(`\n\nIniciando Build ${nameSplit[2]}...`)
       newArg.push(...args, '-t', build, '--output', `${this.options.outRelease}/${buildName}`)
 
-      execSync(`cd ${this.options.outBuild} && PKG_CACHE_PATH=${join(process.cwd(), 'pkg-cache')} PKG_IGNORE_TAG=true npx pkg ${newArg.join(" ")}`, { stdio: 'inherit' })
+      await execProcess(`cd ${this.options.outBuild} && PKG_CACHE_PATH=${join(process.cwd(), 'pkg-cache')} PKG_IGNORE_TAG=true npx pkg ${newArg.join(" ")}`)
 
       const timeSpent = (Date.now() - this.startTime) / 1000 + 's'
       console.info(`Build | ${nameSplit[1]}-${nameSplit[2]} | ${timeSpent}`)
@@ -334,11 +334,17 @@ const archs = ['arm64', 'x64'];
     { command: 'source', alias: ['-s'], rank: 1, hasString: true },
     { command: 'pre-build', alias: ['-p'], rank: 2 },
     { command: 'install', alias: ['-i'], rank: 3 },
-    { command: 'compress', alias: ['-c'], rank: 4 },
-    { command: 'obfuscate', alias: ['-f'], rank: 5 },
-    { command: 'esbuild', alias: ['-esb'], rank: 6 },
-    { command: 'pkg', alias: [''], rank: 6 },
+    { command: 'clean', alias: [''], rank: 4 },
+    { command: 'compress', alias: ['-c'], rank: 5 },
+    { command: 'obfuscate', alias: ['-f'], rank: 6 },
+    { command: 'esbuild', alias: ['-esb'], rank: 7 },
+    { command: 'pkg', alias: [''], rank: 7 },
   ]
+
+  for (const arg of args) {
+    const allArgs = argsList.flatMap(({ command, alias }) => [command, ...alias.map((alia) => alia || command)])
+    if (!allArgs.includes(arg)) throw new Error(`Not found arg ${arg}, try --help`)
+  }
 
   let newArgs: Array<Arg> = []
 
@@ -444,11 +450,11 @@ release [options] <input>
     return
   }
 
-  const exec = []
+  const exec: Array<() => Promise<void> | void> = []
 
   for (const build of builds) {
     if (newArgs.length === 0) {
-      exec.push(build.default())
+      exec.push(() => build.default())
       continue
     }
 
@@ -458,32 +464,47 @@ release [options] <input>
       console.log(newArgs[argNum])
       switch (newArgs[argNum].command) {
       case 'pre-build': {
-        exec.push(new Promise<void>(async (resolve) => { await build.build(); await build.config(); resolve() }))
+        exec.push(async () => { await build.build(); await build.config() })
         break
       }
       case 'install': {
-        exec.push(build.install())
+        exec.push(() => build.install())
         break
       }
       case 'compress': {
-        exec.push(build.compress())
+        exec.push(async () => { await build.compress(); await build.compress({ directory: `${build.options.outBuild}/node_modules`, outBuild: `${build.options.outBuild}/node_modules` })} )
         break
       }
       case 'obfuscate': {
-        exec.push(build.obfuscate())
+        exec.push(() => build.obfuscate())
         break
       }
+      case 'clean': {
+        exec.push(() => build.clear())
+      }
       case 'pkg': {
-        exec.push(build.pkgbuild())
+        exec.push(() => build.pkgbuild())
         break
       }
       case 'esbuild': {
-        exec.push(build.esbuild())
+        exec.push(() => build.esbuild())
         break
       }
       }
     }
   }
 
-  await Promise.all(exec)
+  await Promise.all(exec.map((option) => option()))
 })()
+
+const execProcess = async (command: string) => await new Promise<void>((resolve, reject) => {
+  const child = exec(command)
+  child.stdout?.on('data', (output: string) => console.log(output))
+  child.stderr?.on('data', (output: string) => console.log(output))
+  child.on('close', (code, signal) => {
+    if (code !== 0) {
+      reject(signal)
+    }
+    resolve()
+  })
+})
