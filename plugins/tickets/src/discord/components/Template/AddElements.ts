@@ -1,11 +1,11 @@
-import { Ticket } from "@/class/Ticket";
+import { Template } from "@/class/Template";
 import { Database } from "@/controller/database";
 import { Component } from "@/discord/base";
 import { ModalBuilder } from "@/discord/base/CustomIntetaction";
-import Template from "@/entity/Template.entry";
+import TemplateTable from "@/entity/Template.entry";
 import { ActionRowBuilder, APITextInputComponent, ComponentType, EmbedBuilder, TextInputBuilder } from "discord.js";
 
-const template = new Database<Template>({ table: 'Template' })
+const templateDb = new Database<TemplateTable>({ table: 'Template' })
 const notFound = new EmbedBuilder({
   title: '❌ Não encontrei o template no database!'
 }).setColor('Red')
@@ -62,8 +62,8 @@ new Component({
     const title = interaction.fields.getTextInputValue('title')
     const emoji = interaction.fields.getTextInputValue('emoji')
     const description = interaction.fields.getTextInputValue('description')
-    const templateData = await template.findOne({ where: { messageId: interaction.message?.id } })
-    const ticket = new Ticket({ interaction })
+    const templateData = await templateDb.findOne({ where: { messageId: interaction.message?.id } })
+    const template = new Template({ interaction })
 
     if (templateData === null) {
       await interaction.reply({ embeds: [notFound] })
@@ -72,7 +72,7 @@ new Component({
 
     templateData.selects = [ ...(templateData.selects ?? []), { emoji, title, description }]
 
-    await template.save(templateData)
+    await templateDb.save(templateData)
       .then(async () => {
         await interaction.reply({
           ephemeral: true,
@@ -83,7 +83,7 @@ new Component({
           ]
         })
 
-        const [buttons, select] = await ticket.genEditButtons({ messageId: interaction.message?.id })
+        const [buttons, select] = await template.genEditButtons({ messageId: interaction.message?.id })
 
         await interaction.message?.edit({ components: [...buttons, ...select] })
       })
@@ -106,13 +106,13 @@ new Component({
   type: 'StringSelect',
   async run(interaction) {
     const { values } = interaction
-    const ticket = new Ticket({ interaction })
+    const template = new Template({ interaction })
 
-    const templateData = await template.findOne({ where: { messageId: interaction.message.id } })
+    const templateData = await templateDb.findOne({ where: { messageId: interaction.message.id } })
     
     console.log(values)
 
-    const [buttons, select] = await ticket.genEditButtons({ messageId: interaction.message.id })
+    const [buttons, select] = await template.genEditButtons({ messageId: interaction.message.id })
     
   },
 })
@@ -160,7 +160,7 @@ new Component({
   async run(interaction) {
     const title = interaction.fields.getTextInputValue('title')
     const emoji = interaction.fields.getTextInputValue('emoji')
-    const templateData = await template.findOne({ where: { messageId: interaction.message?.id } })
+    const templateData = await templateDb.findOne({ where: { messageId: interaction.message?.id } })
 
     if (templateData === null) {
       await interaction.reply({ embeds: [notFound] })
@@ -169,7 +169,7 @@ new Component({
 
     templateData.categories = [ ...(templateData.categories ?? []), { emoji, title }]
 
-    await template.save(templateData)
+    await templateDb.save(templateData)
       .then(async () => {
         await interaction.reply({
           ephemeral: true,

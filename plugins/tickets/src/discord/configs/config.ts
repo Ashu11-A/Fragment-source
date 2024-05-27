@@ -2,7 +2,7 @@ import { ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, Chann
 import { Database } from "@/controller/database";
 import ConfigORM from "@/entity/Config.entry";
 import { Config } from "../base/Config";
-import { Ticket } from "@/class/Ticket";
+import { Template } from "@/class/Template";
 
 new Config({
   name: 'ticket',
@@ -95,7 +95,7 @@ new Config({
     const logs = options.getChannel('logs-channel')
     const addRole = options.getRole('add-role-team')
     const remRole = options.getString('rem-role-team')
-    const ticket = new Ticket({ interaction })
+    const template = new Template({ interaction })
 
     const config = new Database<ConfigORM>({ table: 'Config' })
     const dataDB = await config.findOne({ where: { guild: { id: guildId } }})
@@ -153,10 +153,11 @@ new Config({
         return
       }
 
-      if (sendChannel !== undefined) ticket.createTemplate({
+      if (sendChannel !== undefined) template.create({
         title: 'Pedir suporte',
         description: 'Se você estiver precisando de ajuda clique no botão abaixo',
-        channelId: sendChannel.id
+        channelId: sendChannel.id,
+        guildId
       })
     }
     if (limit !== null) {

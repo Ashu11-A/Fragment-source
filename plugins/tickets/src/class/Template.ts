@@ -1,10 +1,10 @@
 import { Database } from "@/controller/database"
 import { ButtonBuilder, StringSelectMenuBuilder } from "@/discord/base/CustomIntetaction"
-import Template, { TypeTemplate } from "@/entity/Template.entry"
+import TemplateTable, { TypeTemplate } from "@/entity/Template.entry"
 import { ActionDrawer } from "@/functions/actionDrawer"
 import { checkChannel } from "@/functions/checkChannel"
 import { ActionRowBuilder, ButtonInteraction, ButtonStyle, CacheType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, SelectMenuBuilder, StringSelectMenuInteraction } from "discord.js"
-const template = new Database<Template>({ table: 'Template' })
+const template = new Database<TemplateTable>({ table: 'Template' })
 interface TicketOptions {
     interaction: CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction<CacheType>
 }
@@ -13,23 +13,28 @@ interface TicketCreate {
     title: string,
     description: string
     channelId: string
+    guildId: string
 }
 
 interface GenerateButtons {
   messageId?: string
 }
 
-export class Ticket {
+export class Template {
   private readonly interaction
   constructor ({ interaction }: TicketOptions) {
     this.interaction = interaction
   }
 
-  async createTemplate ({ title, description, channelId }: TicketCreate) {
+  async create ({ title, description, channelId, guildId }: TicketCreate) {
     if (!(this.interaction instanceof CommandInteraction)) return
     if (!this.interaction.deferred) await this.interaction.deferReply()
     const channel = await checkChannel(channelId, this.interaction)
-    const template = new Database<Template>({ table: 'Template' })
+    // const cart = new DefaultTicketCart()
+    //   .setTitle(this.interaction.guild?.name ?? '')
+    //   .setDescription('Teste')
+    // const image = await cart.build({ format: 'png' })
+    // const attachment = new AttachmentBuilder(image, { name: 'ticketView.png' })
 
     if (!channel) return
 
@@ -43,6 +48,7 @@ export class Ticket {
 
     await channel.send({ embeds: [embed], components: [...buttons, ...select] }).then(async (message) => {
       const create = await template.create({
+        guild: { id: guildId },
         messageId: message.id,
         channelId: channel.id,
         embed: embed.data
@@ -193,7 +199,7 @@ export class Ticket {
       row.push(
         new ButtonBuilder({
           customId: 'Open',
-          label: 'Abrir Ticket',
+          label: 'Abrir Template',
           style: ButtonStyle.Success,
           emoji: { name: '🎫' }
         }),

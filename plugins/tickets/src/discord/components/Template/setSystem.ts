@@ -1,10 +1,10 @@
-import { Ticket } from "@/class/Ticket"
+import { Template } from "@/class/Template"
 import { Database } from "@/controller/database"
 import { Component } from "@/discord/base"
-import Template, { TypeTemplate } from "@/entity/Template.entry"
+import TemplateTable, { TypeTemplate } from "@/entity/Template.entry"
 import { EmbedBuilder } from "discord.js"
 
-const template = new Database<Template>({ table: 'Template' })
+const template = new Database<TemplateTable>({ table: 'Template' })
 const actions = {
   SetSelect: TypeTemplate.Select,
   SetButton: TypeTemplate.Button,
@@ -29,7 +29,7 @@ for (const [action, type] of Object.entries(actions)) {
               }).setColor('Green')]
             })
 
-            const [buttons, select] = await (new Ticket({ interaction })).genEditButtons({ messageId: interaction.message.id })
+            const [buttons, select] = await (new Template({ interaction })).genEditButtons({ messageId: interaction.message.id })
 
             await interaction.message.edit({ components: [...buttons, ...select] })
           })

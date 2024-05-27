@@ -1,12 +1,12 @@
-import { Ticket } from "@/class/Ticket";
+import { Template } from "@/class/Template";
 import { Database } from "@/controller/database";
 import { Component } from "@/discord/base";
 import { ModalBuilder } from "@/discord/base/CustomIntetaction";
-import Template from "@/entity/Template.entry";
+import TemplateTable from "@/entity/Template.entry";
 import { checkHexCor, checkURL } from "@/functions/checker";
 import { TextInputBuilder } from "@discordjs/builders";
 import { ActionRowBuilder, APIEmbed, APITextInputComponent, ComponentType, EmbedBuilder, HexColorString } from "discord.js";
-const template = new Database<Template>({ table: 'Template' })
+const template = new Database<TemplateTable>({ table: 'Template' })
 const notFound = new EmbedBuilder({
   title: '❌ Não encontrei esse template no meu banco de dados!'
 }).setColor('Red')
@@ -160,7 +160,7 @@ for (const [action, data] of Object.entries(modalData)) {
 
       await template.save(templateData)
         .then(async () => {
-          const ticket = new Ticket({ interaction })
+          const ticket = new Template({ interaction })
           const [buttons, select] = await ticket.genEditButtons({ messageId: interaction.message?.id })
           interaction.message?.edit({ embeds: [embed], components: [...buttons, ...select] })
   
