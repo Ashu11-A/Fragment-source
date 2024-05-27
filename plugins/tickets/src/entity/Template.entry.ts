@@ -1,5 +1,6 @@
 import { APIEmbed } from "discord.js";
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import Guild from "./Guild.entry";
 
 interface Properties {
     [key: string]: boolean | string
@@ -27,6 +28,9 @@ export default class Template extends BaseEntity {
     @PrimaryGeneratedColumn()
       id!: number
 
+    @ManyToOne(() => Guild, (guild) => guild.templates)
+      guild!: Guild
+
     @Column({ type: 'text' })
       messageId!: string
     
@@ -40,7 +44,7 @@ export default class Template extends BaseEntity {
     })
       type!: TypeTemplate
 
-    @Column('json', {
+    @Column('simple-json', {
       nullable: true,
       transformer: {
         to(value: string): string {
@@ -53,7 +57,8 @@ export default class Template extends BaseEntity {
     })
       selects!: Select[]
 
-    @Column('json', {
+    @Column('simple-json', {
+      nullable: true,
       transformer: {
         to(value: string): string {
           return JSON.stringify(value)
@@ -65,7 +70,8 @@ export default class Template extends BaseEntity {
     })
       categories!: Category[]
 
-    @Column('json', {
+    @Column('simple-json', {
+      nullable: true,
       transformer: {
         to(value: string): string {
           return JSON.stringify(value)
@@ -77,7 +83,8 @@ export default class Template extends BaseEntity {
     })
       embed!: APIEmbed
 
-    @Column('json', {
+    @Column('simple-json', {
+      nullable: true,
       transformer: {
         to(value: string): string {
           return JSON.stringify(value)
