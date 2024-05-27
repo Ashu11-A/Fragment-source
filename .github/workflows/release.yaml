@@ -29,11 +29,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
-        run: npm run build
-        
       - name: Pre-build
-        run: npm run build:release -- --pre-build
+        run: npm run build -- --pre-build
 
       - uses: actions/upload-artifact@v4
         name: Upload artifact
@@ -75,7 +72,7 @@ jobs:
             apt update && apt install -y nodejs
           run: |
             npm i
-            npm run build:release -- --only-build
+            npm run build -- --pkg
 
       - name: Node.js ${{ matrix.node-version }}
         if: matrix.arch == 'x64'
@@ -91,7 +88,7 @@ jobs:
 
       - name: Build Release
         if: matrix.arch == 'x64'
-        run: npm run build:release -- --only-build
+        run: npm run build -- --pkg
 
       - uses: actions/upload-artifact@v4
         name: Upload artifact
