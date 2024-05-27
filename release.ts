@@ -458,8 +458,7 @@ release [options] <input>
       console.log(newArgs[argNum])
       switch (newArgs[argNum].command) {
       case 'pre-build': {
-        exec.push(build.build())
-        exec.push(build.config())
+        exec.push(new Promise<void>(async (resolve) => { await build.build(); await build.config(); resolve() }))
         break
       }
       case 'install': {
