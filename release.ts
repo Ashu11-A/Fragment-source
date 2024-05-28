@@ -499,27 +499,32 @@ release [options] <input>
   }
 
   for (const build of builds) {
-    const pkgPath = join(cwd(), `pkg-cache`)
-    const arch = `${build.options.platforms}-${build.options.archs}`
-    const pkgFiles = await glob(`${pkgPath}/fetched*-${arch}`) // ['node-v20.11.1-linux-x64']
+    if (newArgs.filter((arg) => arg.command === 'pkg').length > 0) {
+      const pkgPath = join(cwd(), `pkg-cache`)
+      const arch = `${build.options.platforms}-${build.options.archs}`
+      const pkgFiles = await glob(`${pkgPath}/fetched**-${arch}`) // ['node-v20.11.1-linux-x64']
 
-    if (pkgFiles.length === 0) {
-      console.log('Baixando Node.js Binary')
-      const { assets } = (await (await fetch('https://api.github.com/repos/yao-pkg/pkg-fetch/releases/latest')).json()) as { assets: Asset[] }
-      const versions = assets.filter((asset) => asset.name.includes(arch) && !asset.name.includes('sha256sum'))
-      console.log(versions)
-      const download = await fetch(versions[versions.length - 1].browser_download_url)
-      await new Promise<void>(async (resolve, reject) => {
-        if (download.ok && download.body) {
-          if (!await exists(pkgPath)) await mkdir(pkgPath)
-          const path = createWriteStream(`${pkgPath}/fetched-v${version}-${arch}`)
-          const wrile = Readable.fromWeb(download.body).pipe(path)
-          wrile.on('finish', () => resolve())
-          wrile.on('error', (err) => reject(err))
-        } else {
-          reject(download.statusText)
-        }
-      })
+      if (pkgFiles.length === 0) {
+        const { assets } = (await (await fetch('https://api.github.com/repos/yao-pkg/pkg-fetch/releases/latest')).json()) as { assets: Asset[] }
+        const versions = assets.filter((asset) => asset.name.includes(arch) && !asset.name.includes('sha256sum'))
+        const version = versions[versions.length - 1]
+        const download = await fetch(version.browser_download_url)
+        const downloadName = `fetched-${version.name.split('-').filter((content) => content !== 'node').join('-')}`
+
+        console.log(`Downloading ${downloadName}`)
+
+        await new Promise<void>(async (resolve, reject) => {
+          if (download.ok && download.body) {
+            if (!await exists(pkgPath)) await mkdir(pkgPath)
+            const path = createWriteStream(`${pkgPath}/${downloadName}`)
+            const wrile = Readable.fromWeb(download.body).pipe(path)
+            wrile.on('finish', () => resolve())
+            wrile.on('error', (err) => reject(err))
+          } else {
+            reject(download.statusText)
+          }
+        })
+      }
     }
 
     if (newArgs.length === 0) {
