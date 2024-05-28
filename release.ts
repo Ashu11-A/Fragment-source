@@ -3,13 +3,15 @@ import { exec, exec as processChild } from 'child_process'
 import { Presets, SingleBar } from 'cli-progress'
 import { createHash } from 'crypto'
 import { build } from 'esbuild'
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs'
-import { move } from 'fs-extra'
-import { readdir, readFile, rm, stat, writeFile } from 'fs/promises'
+import { createWriteStream, existsSync, mkdirSync, rmSync, writeFileSync } from 'fs'
+import { exists, move } from 'fs-extra'
+import { mkdir, readdir, readFile, rm, stat, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import obfuscate from 'javascript-obfuscator'
 import os from 'os'
 import path, { join } from 'path'
+import { cwd } from 'process'
+import { Readable } from 'stream'
 import { minify } from 'terser'
 
 interface BuildInfo {
@@ -50,6 +52,42 @@ interface BuildConstructor {
    */
   nodeVersion: '18' | '20'
 }
+
+interface Asset {
+  url: string;
+  id: number;
+  node_id: string;
+  name: string;
+  label: string;
+  uploader: {
+    login: string;
+    id: number;
+    node_id: string;
+    avatar_url: string;
+    gravatar_id: string;
+    url: string;
+    html_url: string;
+    followers_url: string;
+    following_url: string;
+    gists_url: string;
+    starred_url: string;
+    subscriptions_url: string;
+    organizations_url: string;
+    repos_url: string;
+    events_url: string;
+    received_events_url: string;
+    type: string;
+    site_admin: boolean;
+  };
+  content_type: string;
+  state: string;
+  size: number;
+  download_count: number;
+  created_at: string;
+  updated_at: string;
+  browser_download_url: string;
+}
+
 
 class Build {
   public readonly options: BuildConstructor
@@ -265,11 +303,13 @@ class Build {
     for (const build of builds) {
       const packageJson = JSON.parse(await readFile(path.join(process.cwd(), `${this.options.outBuild}/package.json`), { encoding: 'utf-8' })) as Record<string, string | object | null>
       const nameSplit = build.split('-')
+      const manifestName = `${nameSplit[1]}-${nameSplit[2]}` // linux-x64
+      
       const buildName = `${packageJson?.name ?? `paymentbot-${Date.now()}`}-${nameSplit[1]}-${nameSplit[2]}${nameSplit[1] === 'win' ? '.exe' : nameSplit[1] === 'macos' ? '.app' : ''}`
       const newArg: string[] = []
 
       if (existsSync(buildName)) rmSync(buildName)
-      if (existsSync(`${this.options.outRelease}/manifest-${nameSplit[1]}.json`)) rmSync(`release/manifest-${nameSplit[1]}.json`)
+      if (existsSync(`${this.options.outRelease}/manifest-${nameSplit[1]}.json`)) rmSync(`release/manifest-${manifestName}.json`)
 
       console.debug(`\n\nIniciando Build ${nameSplit[2]}...`)
       newArg.push(...args, '-t', build, '--output', `${this.options.outRelease}/${buildName}`)
@@ -284,7 +324,7 @@ class Build {
       const hashSHA = createHash('sha256').update(file).digest('hex')
 
       manifests.push({
-        [nameSplit[1]]: {
+        [manifestName]: {
           path: buildName.replace('./release/', ''),
           platform: nameSplit[1],
           arch: nameSplit[2],
@@ -341,7 +381,7 @@ const archs = ['arm64', 'x64'];
     { command: 'pkg', alias: [''], rank: 7 },
   ]
 
-  for (const arg of args) {
+  for (const arg of args.filter((arg) => arg.includes('-'))) {
     const allArgs = argsList.flatMap(({ command, alias }) => [command, ...alias.map((alia) => alia || command)])
     if (!allArgs.includes(arg)) throw new Error(`Not found arg ${arg}, try --help`)
   }
@@ -451,8 +491,37 @@ release [options] <input>
   }
 
   const exec: Array<() => Promise<void> | void> = []
+  const execQueue = async (functions: typeof exec) => {
+    if (functions.length === 0) return
+    for (const currentFunction of functions) {
+      await currentFunction()
+    }
+  }
 
   for (const build of builds) {
+    const pkgPath = join(cwd(), `pkg-cache`)
+    const arch = `${build.options.platforms}-${build.options.archs}`
+    const pkgFiles = await glob(`${pkgPath}/fetched*-${arch}`) // ['node-v20.11.1-linux-x64']
+
+    if (pkgFiles.length === 0) {
+      console.log('Baixando Node.js Binary')
+      const { assets } = (await (await fetch('https://api.github.com/repos/yao-pkg/pkg-fetch/releases/latest')).json()) as { assets: Asset[] }
+      const versions = assets.filter((asset) => asset.name.includes(arch) && !asset.name.includes('sha256sum'))
+      console.log(versions)
+      const download = await fetch(versions[versions.length - 1].browser_download_url)
+      await new Promise<void>(async (resolve, reject) => {
+        if (download.ok && download.body) {
+          if (!await exists(pkgPath)) await mkdir(pkgPath)
+          const path = createWriteStream(`${pkgPath}/fetched-v${version}-${arch}`)
+          const wrile = Readable.fromWeb(download.body).pipe(path)
+          wrile.on('finish', () => resolve())
+          wrile.on('error', (err) => reject(err))
+        } else {
+          reject(download.statusText)
+        }
+      })
+    }
+
     if (newArgs.length === 0) {
       exec.push(() => build.default())
       continue
@@ -460,38 +529,43 @@ release [options] <input>
 
     console.log(`Ordem das args: ${newArgs.map((arg) => arg.command).join(' --> ')}`)
 
+    const buildFunctions: typeof exec = []
+
     for (let argNum = 0; argNum < newArgs.length; argNum++) {
       console.log(newArgs[argNum])
       switch (newArgs[argNum].command) {
       case 'pre-build': {
-        exec.push(async () => { await build.build(); await build.config() })
+        buildFunctions.push(async () => { await build.build(); await build.config() })
         break
       }
       case 'install': {
-        exec.push(() => build.install())
+        buildFunctions.push(() => build.install())
         break
       }
       case 'compress': {
-        exec.push(async () => { await build.compress(); await build.compress({ directory: `${build.options.outBuild}/node_modules`, outBuild: `${build.options.outBuild}/node_modules` })} )
+        buildFunctions.push(async () => { await build.compress(); await build.compress({ directory: `${build.options.outBuild}/node_modules`, outBuild: `${build.options.outBuild}/node_modules` })} )
         break
       }
       case 'obfuscate': {
-        exec.push(() => build.obfuscate())
+        buildFunctions.push(() => build.obfuscate())
         break
       }
       case 'clean': {
-        exec.push(() => build.clear())
+        buildFunctions.push(() => build.clear())
+        break
       }
       case 'pkg': {
-        exec.push(() => build.pkgbuild())
+        buildFunctions.push(() => build.pkgbuild())
         break
       }
       case 'esbuild': {
-        exec.push(() => build.esbuild())
+        buildFunctions.push(() => build.esbuild())
         break
       }
       }
     }
+
+    exec.push(async () => await execQueue(buildFunctions))
   }
 
   await Promise.all(exec.map((option) => option()))
