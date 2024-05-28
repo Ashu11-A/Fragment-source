@@ -29,7 +29,7 @@ new Command({
           description: 'Entrar/Sair do modo edição do template',
           type: ApplicationCommandOptionType.String,
           choices: [
-            { name: 'Edição', value: 'edit' },
+            { name: 'Edição', value: 'debug' },
             { name: 'Produção', value: 'production' }
           ]
         },
