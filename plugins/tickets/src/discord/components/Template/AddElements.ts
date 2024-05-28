@@ -1,4 +1,4 @@
-import { Template } from "@/class/Template";
+import { TemplateButtonBuilder } from "@/class/TemplateButtonBuilder";
 import { Database } from "@/controller/database";
 import { Component } from "@/discord/base";
 import { ModalBuilder } from "@/discord/base/CustomIntetaction";
@@ -63,7 +63,7 @@ new Component({
     const emoji = interaction.fields.getTextInputValue('emoji')
     const description = interaction.fields.getTextInputValue('description')
     const templateData = await templateDb.findOne({ where: { messageId: interaction.message?.id } })
-    const template = new Template({ interaction })
+    const buttonBuilder = new TemplateButtonBuilder({ interaction })
 
     if (templateData === null) {
       await interaction.reply({ embeds: [notFound] })
@@ -83,9 +83,14 @@ new Component({
           ]
         })
 
-        const [buttons, select] = await template.genEditButtons({ messageId: interaction.message?.id })
+        const components = buttonBuilder
+          .setMode('debug')
+          .setProperties(templateData.properties)
+          .setSelects(templateData.selects)
+          .setType(templateData.type)
+          .render()
 
-        await interaction.message?.edit({ components: [...buttons, ...select] })
+        await interaction.message?.edit({ components })
       })
       .catch(async () => {
         await interaction.editReply({
@@ -106,13 +111,17 @@ new Component({
   type: 'StringSelect',
   async run(interaction) {
     const { values } = interaction
-    const template = new Template({ interaction })
-
-    const templateData = await templateDb.findOne({ where: { messageId: interaction.message.id } })
+    const buttonBuilder = new TemplateButtonBuilder({ interaction })
     
-    console.log(values)
-
-    const [buttons, select] = await template.genEditButtons({ messageId: interaction.message.id })
+    const templateData = await templateDb.findOne({ where: { messageId: interaction.message.id } })
+    if (templateData === null) return
+    
+    const components = buttonBuilder
+      .setMode('debug')
+      .setProperties(templateData.properties)
+      .setSelects(templateData.selects)
+      .setType(templateData.type)
+      .render()
     
   },
 })

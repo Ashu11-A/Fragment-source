@@ -2,7 +2,7 @@ import { APIEmbed } from "discord.js";
 import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import Guild from "./Guild.entry";
 
-interface Properties {
+export interface Properties {
     [key: string]: boolean | string
 }
 
@@ -12,7 +12,7 @@ export enum TypeTemplate {
   Modal = 'modal'
 }
 
-interface Select {
+export interface Select {
   title: string
   description: string
   emoji: string

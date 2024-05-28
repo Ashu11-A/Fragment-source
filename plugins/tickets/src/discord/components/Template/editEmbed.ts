@@ -1,4 +1,5 @@
 import { Template } from "@/class/Template";
+import { TemplateButtonBuilder } from "@/class/TemplateButtonBuilder";
 import { Database } from "@/controller/database";
 import { Component } from "@/discord/base";
 import { ModalBuilder } from "@/discord/base/CustomIntetaction";
@@ -160,9 +161,14 @@ for (const [action, data] of Object.entries(modalData)) {
 
       await template.save(templateData)
         .then(async () => {
-          const ticket = new Template({ interaction })
-          const [buttons, select] = await ticket.genEditButtons({ messageId: interaction.message?.id })
-          interaction.message?.edit({ embeds: [embed], components: [...buttons, ...select] })
+          const buttonBuilder = new TemplateButtonBuilder({ interaction })
+          const components = buttonBuilder
+            .setMode('debug')
+            .setProperties(templateData.properties)
+            .setSelects(templateData.selects)
+            .setType(templateData.type)
+            .render()
+          interaction.message?.edit({ embeds: [embed], components })
   
           await interaction.editReply({
             embeds: [new EmbedBuilder({

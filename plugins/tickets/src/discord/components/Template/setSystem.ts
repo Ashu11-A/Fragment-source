@@ -1,4 +1,5 @@
 import { Template } from "@/class/Template"
+import { TemplateButtonBuilder } from "@/class/TemplateButtonBuilder"
 import { Database } from "@/controller/database"
 import { Component } from "@/discord/base"
 import TemplateTable, { TypeTemplate } from "@/entity/Template.entry"
@@ -29,9 +30,15 @@ for (const [action, type] of Object.entries(actions)) {
               }).setColor('Green')]
             })
 
-            const [buttons, select] = await (new Template({ interaction })).genEditButtons({ messageId: interaction.message.id })
+            const buttonBuilder = new TemplateButtonBuilder({ interaction })
+            const components = buttonBuilder
+              .setMode('debug')
+              .setProperties(templateData.properties)
+              .setSelects(templateData.selects)
+              .setType(type)
+              .render()
 
-            await interaction.message.edit({ components: [...buttons, ...select] })
+            await interaction.message.edit({ components })
           })
           .catch(async () => {
             await interaction.editReply({

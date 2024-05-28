@@ -3,6 +3,7 @@ import { Database } from "@/controller/database";
 import ConfigORM from "@/entity/Config.entry";
 import { Config } from "../base/Config";
 import { Template } from "@/class/Template";
+import { ButtonBuilder } from "../base/CustomIntetaction";
 
 new Config({
   name: 'ticket',
@@ -152,6 +153,8 @@ new Config({
         })
         return
       }
+
+      ButtonBuilder
 
       if (sendChannel !== undefined) template.create({
         title: 'Pedir suporte',

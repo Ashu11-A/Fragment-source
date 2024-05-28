@@ -4,6 +4,7 @@ import TemplateTable from "@/entity/Template.entry";
 import { EmbedBuilder } from "@discordjs/builders";
 import { APIEmbed as APIEmbedDiscord, ButtonInteraction, CacheType, Colors, CommandInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js";
 import { Template } from "./Template";
+import { TemplateButtonBuilder } from "./TemplateButtonBuilder";
 
 const database = new Database<TemplateTable>({ table: 'Template' })
 
@@ -58,7 +59,7 @@ export class TemplateBuilder {
   }
 
   async edit ({ messageId }: { messageId: string }) {
-    const template = new Template({ interaction: this.interaction })
+    const buttonBuilder = new TemplateButtonBuilder({ interaction: this.interaction })
     const templateData = await database.findOne({ where: { messageId } })
     if (templateData === null) { await new Error({ element: 'o template', interaction: this.interaction }).notFound({ type: 'Database' }).reply(); return }
 
@@ -74,22 +75,15 @@ export class TemplateBuilder {
     }
 
     const embed = this.render(templateData.embed)
+    const components = buttonBuilder
+      .setMode(this.mode)
+      .setProperties(templateData.properties)
+      .setSelects(templateData.selects)
+      .setType(templateData.type)
+      .render()
 
     templateData.embed = embed.toJSON()
     await database.save(templateData)
-
-    switch (this.mode) {
-    case "debug": {
-      const [buttons, select] = await template.genEditButtons({ messageId: templateData.messageId })
-      message.edit({ components: [...buttons, ...select] })
-      break
-    }
-    case "production": {
-      const components = await template.genProductionButtons({ messageId: templateData.messageId })
-      message.edit({ components })
-      break
-    }
-    }
-    await message.edit({ embeds: [embed] })
+    await message.edit({ embeds: [embed], components })
   }
 }

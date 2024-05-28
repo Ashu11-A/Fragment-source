@@ -1,0 +1,156 @@
+import { ButtonBuilder, StringSelectMenuBuilder } from "@/discord/base/CustomIntetaction";
+import { Properties, Select, TypeTemplate } from "@/entity/Template.entry";
+import { ActionDrawer } from "@/functions/actionDrawer";
+import { CommandInteraction, CacheType, ModalSubmitInteraction, ButtonInteraction, StringSelectMenuInteraction, ButtonStyle, ActionRowBuilder } from "discord.js";
+
+type Interaction = CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction<CacheType>
+
+export class TemplateButtonBuilder {
+  private readonly interaction
+  private mode: 'production' | 'debug' = 'production'
+  private type: TypeTemplate = TypeTemplate.Button
+  private properties: Properties = {}
+  private selects: Select[] = []
+  constructor ({ interaction }: { interaction: Interaction}) {
+    this.interaction = interaction
+  }
+
+  setMode(mode: 'production' | 'debug') { this.mode = mode; return this }
+  setType(type: TypeTemplate) { this.type = type; return this }
+  setProperties(elements: Properties) { this.properties = elements; return this }
+  setSelects(selects: Select[]) { this.selects = selects; return this }
+
+  render(): (ActionRowBuilder<StringSelectMenuBuilder> | ActionRowBuilder<ButtonBuilder>)[] {
+    const buttons: ButtonBuilder[] = []
+    const selects: StringSelectMenuBuilder[] = []
+
+    if (this.mode === 'debug') {
+      buttons.push(new ButtonBuilder({
+        customId: `setTitle`,
+        style: ButtonStyle.Secondary,
+        label: 'Nome',
+        emoji: { name: '📝' }
+      }),
+      new ButtonBuilder({
+        customId: `setDescription`,
+        style: ButtonStyle.Secondary,
+        label: 'Descrição',
+        emoji: { name: '📑' }
+      }),
+      new ButtonBuilder({
+        customId: `setThumbnail`,
+        style: ButtonStyle.Secondary,
+        label: 'Miniatura',
+        emoji: { name: '🖼️' }
+      }),
+      new ButtonBuilder({
+        customId: `setImage`,
+        style: ButtonStyle.Secondary,
+        label: 'Banner',
+        emoji: { name: '🌄' }
+      }),
+      new ButtonBuilder({
+        customId: `setColor`,
+        style: ButtonStyle.Secondary,
+        label: 'Cor',
+        emoji: { name: '🎨' }
+      }),
+      new ButtonBuilder({
+        customId: 'SetSelect',
+        style: ButtonStyle.Secondary,
+        label: 'SelectMenu',
+        emoji: { name: '🗄️' }
+      }),
+      new ButtonBuilder({
+        customId: 'AddSelect',
+        style: ButtonStyle.Secondary,
+        label: 'Add Select',
+        emoji: { name: '📝' },
+        disabled: true
+      }),
+      new ButtonBuilder({      
+        customId: 'SetButton',
+        style: ButtonStyle.Secondary,
+        label: 'Botão',
+        emoji: { name: '🔘' }
+      }),
+      new ButtonBuilder({
+        customId: 'SetModal',
+        style: ButtonStyle.Secondary,
+        label: 'Modal',
+        emoji: { name: '📄' }
+      }),
+      new ButtonBuilder({
+        customId: 'AddCategory',
+        label: 'Add Categoria',
+        emoji: { name: '🔖' },
+        style: ButtonStyle.Secondary
+      }),
+      new ButtonBuilder({
+        customId: 'Save',
+        label: 'Salvar',
+        emoji: { name: '✔️' },
+        style: ButtonStyle.Success
+        
+      }),
+      new ButtonBuilder({
+        customId: 'DeleteTemplate',
+        label: 'Apagar',
+        emoji: { name: '✖️' },
+        style: ButtonStyle.Danger
+      }))
+    } else if (this.mode === 'production') {
+      switch (this.type) {
+      case TypeTemplate.Modal:
+      case TypeTemplate.Button:
+        buttons.push(
+          new ButtonBuilder({
+            customId: 'Open',
+            label: 'Abrir Template',
+            style: ButtonStyle.Success,
+            emoji: { name: '🎫' }
+          }),
+          new ButtonBuilder({
+            customId: 'Config',
+            emoji: { name: '⚙️' },
+            style: ButtonStyle.Secondary
+          })
+        )
+        break
+      case TypeTemplate.Select:
+      }
+    }
+    const buttonType = {
+      SetSelect: TypeTemplate.Select,
+      SetButton: TypeTemplate.Button,
+      SetModal: TypeTemplate.Modal,
+    }
+
+    if (this.selects.length > 0 && this.type === TypeTemplate.Select) {
+      const options: Array<{ label: string, description: string, value: string, emoji: string }> = []
+
+      options.push({ label: 'Editar', description: 'Apenas para Administradores', emoji: '⚙️', value: 'config' })
+
+      for (const [index, { emoji, title, description }] of Object.entries(this.selects )) {
+        options.push({ label: title, description, emoji, value: index })
+      }
+
+      selects.push(new StringSelectMenuBuilder({
+        customId: this.mode === 'debug' ? 'EditSelectMenu' : 'SelectMenu',
+        placeholder: this.mode === 'debug' ? 'Modo edição, escolha um valor para remover' : 'Selecione o tipo de ticket que deseja abrir',
+        options
+      }))
+    }
+      
+    for (const button of buttons) {
+      const { customId } = button
+      const ButtonType = Object.entries(buttonType).find(([key]) => key === button.customId ) // [ 'SetModal', 'modal' ]
+
+      if (ButtonType?.[0] === button.customId && this.type === ButtonType[1]) button.setStyle(ButtonStyle.Primary)
+      if (customId === 'AddSelect' && this.type === TypeTemplate.Select) button.setDisabled(false)
+      if (this.properties[customId] === true) button.setStyle(ButtonStyle.Primary)
+    }
+
+    return [...ActionDrawer(buttons, 5), ...ActionDrawer(selects, 5)]
+  }
+}
