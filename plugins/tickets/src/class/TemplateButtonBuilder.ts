@@ -17,8 +17,8 @@ export class TemplateButtonBuilder {
 
   setMode(mode: 'production' | 'debug') { this.mode = mode; return this }
   setType(type: TypeTemplate) { this.type = type; return this }
-  setProperties(elements: Properties) { this.properties = elements; return this }
-  setSelects(selects: Select[]) { this.selects = selects; return this }
+  setProperties(elements?: Properties) { this.properties = elements ?? {}; return this }
+  setSelects(selects?: Select[]) { this.selects = selects ?? []; return this }
 
   render(): (ActionRowBuilder<StringSelectMenuBuilder> | ActionRowBuilder<ButtonBuilder>)[] {
     const buttons: ButtonBuilder[] = []
