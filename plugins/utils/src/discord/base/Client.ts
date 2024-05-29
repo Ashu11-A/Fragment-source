@@ -150,12 +150,12 @@ export class Discord {
   /**
    * Cria um botão de Redirecionamento
    */
-  public static async buttonRedirect (options: {
+  public static buttonRedirect (options: {
       guildId: string | null
       channelId: string | undefined
       emoji?: APIMessageComponentEmoji
       label: string
-    }): Promise<ActionRowBuilder<ButtonBuilder>> {
+    }): ActionRowBuilder<ButtonBuilder> {
     const { guildId, channelId, emoji, label } = options
     return new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder({
