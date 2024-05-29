@@ -51,6 +51,14 @@ export class Error {
     return this
   }
 
+  notPossible () {
+    const { element, color } = this.options
+    this.embed = new EmbedBuilder({
+      title: `Não foi possivel ${element}`
+    }).setColor(color ?? 'Red')
+    return this
+  }
+
   async reply () {
     const { interaction, ephemeral } = this.options
 
