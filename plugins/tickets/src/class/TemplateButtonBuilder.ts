@@ -106,7 +106,7 @@ export class TemplateButtonBuilder {
         buttons.push(
           new ButtonBuilder({
             customId: 'Open',
-            label: 'Abrir Template',
+            label: 'Abrir Ticket',
             style: ButtonStyle.Success,
             emoji: { name: '🎫' }
           }),
