@@ -1,4 +1,4 @@
-import { ButtonInteraction, CacheType, ColorResolvable, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js"
+import { ButtonInteraction, CacheType, ColorResolvable, CommandInteraction, EmbedBuilder, MessageComponentInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js"
 
 
 interface ErrorOptions {
@@ -58,6 +58,10 @@ export class Error {
     if (interaction.isRepliable() && !interaction.replied) {
       if (interaction.deferred) {
         await interaction.editReply({ embeds: [this.embed] })
+        return
+      }
+      if (interaction instanceof MessageComponentInteraction) {
+        await interaction.update({ embeds: [this.embed], components: [] })
         return
       }
       await interaction.reply({ embeds: [this.embed], ephemeral })

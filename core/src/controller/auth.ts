@@ -158,6 +158,9 @@ export class Auth {
       headers: {
         Authorization: `Bearer ${Auth.accessToken.token}`
       }
+    }).catch((err) => {
+      console.log(`🔴 API instável!`)
+      return err
     })
 
     if (!response.ok) {

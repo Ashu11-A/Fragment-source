@@ -2,8 +2,7 @@ import { Database } from "@/controller/database";
 import { Error } from "@/discord/base/CustomResponse";
 import TemplateTable from "@/entity/Template.entry";
 import { EmbedBuilder } from "@discordjs/builders";
-import { APIEmbed as APIEmbedDiscord, ButtonInteraction, CacheType, Colors, CommandInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js";
-import { Template } from "./Template";
+import { APIEmbed as APIEmbedDiscord, ButtonInteraction, CacheType, Colors, CommandInteraction, MessageComponentInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js";
 import { TemplateButtonBuilder } from "./TemplateButtonBuilder";
 
 const database = new Database<TemplateTable>({ table: 'Template' })
@@ -85,5 +84,35 @@ export class TemplateBuilder {
     templateData.embed = embed.toJSON()
     await database.save(templateData)
     await message.edit({ embeds: [embed], components })
+  }
+
+  async delete ({ messageId }: { messageId: string }) {
+    const templateData = await database.findOne({ where: { messageId } })
+    if (templateData === null) { await new Error({ element: 'o template', interaction: this.interaction }).notFound({ type: 'Database' }).reply(); return }
+
+    const channel = await this.interaction.guild?.channels.fetch(templateData.channelId)
+    if (!channel?.isTextBased()) { await new Error({ element: templateData.channelId, interaction: this.interaction }).notFound({ type: "Channel" }).reply(); return }
+
+    const message = await channel.messages.fetch(templateData.messageId)
+    if (!channel?.isTextBased()) { await new Error({ element: templateData.messageId, interaction: this.interaction }).notFound({ type: "Message" }).reply(); return }
+
+    await database.delete({ messageId }).then(async (result) => {
+      const isCollector = this.interaction instanceof MessageComponentInteraction
+      const deferred = this.interaction.deferred
+      if ((result?.affected ?? 0) > 0) {
+        const embed = new EmbedBuilder({ title: '✅ Template apagado com sucesso!' }).setColor(Colors.Green)
+        
+        if (message.deletable) message.delete()
+        if (deferred) { await this.interaction.editReply({ embeds: [embed] }); return }
+        if (isCollector) { await this.interaction.update({ embeds: [embed], components: [] }); return }
+        await this.interaction.reply({ embeds: [embed] })
+      } else {
+        const embed = new EmbedBuilder({ title: '❌ Ocorreu um erro ao tentar apagar o template!' }).setColor(Colors.Red)
+
+        if (deferred) { await this.interaction.editReply({ embeds: [embed] }); return }
+        if (isCollector) { await this.interaction.update({ embeds: [embed], components: [] }); return }
+        await this.interaction.reply({ embeds: [embed] })
+      }
+    })
   }
 }

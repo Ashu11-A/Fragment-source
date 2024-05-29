@@ -58,6 +58,11 @@ new Command({
           description: 'Alterar cor do template',
           type: ApplicationCommandOptionType.String,
           autocomplete: true
+        },
+        {
+          name: 'delete',
+          description: 'Deletar template (Apagará a mensagem e os dados do database)',
+          type: ApplicationCommandOptionType.Boolean,
         }
       ]
     }
@@ -101,7 +106,9 @@ new Command({
       const thumbnail = options.getString('thumbnail')
       const image = options.getString('image')
       const color = options.getString('color')
+      const isDelete = options.getBoolean('delete')
 
+      if (isDelete) { await builder.delete({ messageId: templateId }); return }
       if (title !== null) builder.setTitle(title)
       if (description !== null) builder.setDescription(description)
       if (thumbnail !== null) builder.setThumbnail(thumbnail)
