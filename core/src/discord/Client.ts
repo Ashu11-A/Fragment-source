@@ -1,7 +1,7 @@
 import { type BitFieldResolvable, Client, type GatewayIntentsString, IntentsBitField, Partials, ApplicationCommandType, ChatInputCommandInteraction, CommandInteraction, MessageContextMenuCommandInteraction, UserContextMenuCommandInteraction, PermissionsBitField } from 'discord.js'
-import { env } from '..'
 import { Command } from './Commands'
 import { Config } from '@/controller/config'
+import { Auth } from '@/controller/auth'
 
 export class Discord {
   public static client: Client<boolean>
@@ -49,7 +49,7 @@ export class Discord {
 
     console.log('📌 Iniciando Discord...')
 
-    await Discord.client.login(env?.BOT_TOKEN)
+    await Discord.client.login(Auth.bot?.token)
     Discord.client.prependOnceListener('ready', async (client) => {
       await new Discord().register()
       console.info(`📡 Connected with ${client.user.username}`)

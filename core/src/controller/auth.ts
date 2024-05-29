@@ -1,4 +1,4 @@
-import { Blowfish, enc } from 'crypto-js'
+import { AES, enc } from 'crypto-js'
 import { readFile, rm, writeFile } from 'fs/promises'
 import { RootPATH } from '..'
 import { api, key } from '../../package.json'
@@ -9,6 +9,7 @@ import { existsSync } from 'fs'
 type Credentials = {
     email: string
     password: string
+    uuid: string
     token: string
 }
 
@@ -36,6 +37,7 @@ interface AuthData {
 interface BotInfo {
     uuid: string;
     name: string;
+    token: string
     enabled: boolean;
     expired: boolean;
     expire_at: string;
@@ -50,9 +52,10 @@ export class Auth {
     
   async askCredentials ({ question }: { question?: (keyof Credentials)[]  }): Promise<Credentials> {
     const questions: PromptObject<string>[] = [
-      { name: 'email', message: 'Email', type: 'text', warn: 'Apenas cadastrado em paymentbot.com' },
-      { name: 'password', message: 'Senha', type: 'password', warn: 'Apenas cadastrado em paymentbot.com' },
-      { name: 'token', message: 'Token', type: 'password', warn: 'Visível no Dashboard' }
+      { name: 'email', message: 'Email', type: 'text', warn: 'Apenas cadastrado em https://paymentbot.com' },
+      { name: 'password', message: 'Senha', type: 'password', warn: 'Apenas cadastrado em https://paymentbot.com' },
+      { name: 'uuid', message: 'UUID', type: 'text', warn: 'Visível no Dashboard (https://paymentbot.com)' },
+      { name: 'token', message: 'Token', type: 'password', warn: 'Token Do seu Bot https://discord.com/developers/applications' }
     ]
 
     const filter = questions.filter((propmt) => question === undefined || question?.includes(propmt.name as keyof Credentials))
@@ -69,18 +72,18 @@ export class Auth {
       ...credentials
     }
 
-    await writeFile(`${RootPATH}/.key`, Blowfish.encrypt(JSON.stringify(credentials), key).toString())
+    await writeFile(`${RootPATH}/.key`, AES.encrypt(JSON.stringify(credentials), key).toString())
   }
 
   async decryptCredentials(): Promise<Credentials> {
-    const encrypted = existsSync(`${RootPATH}/.key`) ? Blowfish.decrypt(await readFile(`${RootPATH}/.key`, { encoding: 'utf-8' }), key).toString(enc.Utf8) : '{}'
+    const encrypted = existsSync(`${RootPATH}/.key`) ? AES.decrypt(await readFile(`${RootPATH}/.key`, { encoding: 'utf-8' }), key).toString(enc.Utf8) : '{}'
     return JSON.parse(encrypted)
   }
 
 
   async initialize() {
     const credentials = await this.decryptCredentials()
-    const keys = ['email', 'password', 'token']
+    const keys = ['email', 'password', 'uuid', 'token']
     let hasError = false
 
     for (const key of keys) {
@@ -154,7 +157,7 @@ export class Auth {
       await this.initialize()
     }
         
-    const response = await fetch(`${api}/bots/${this.credentials?.token}`, {
+    const response = await fetch(`${api}/bots/${this.credentials?.uuid}`, {
       headers: {
         Authorization: `Bearer ${Auth.accessToken.token}`
       }
@@ -181,7 +184,7 @@ export class Auth {
 
       switch (conclusion.Error) {
       case 'change': {
-        await this.askCredentials({ question: ['token'] })
+        await this.askCredentials({ question: ['uuid'] })
         await this.initialize()
         await this.login()
         await this.validator()
@@ -213,8 +216,12 @@ export class Auth {
     }
 
     if (Auth.bot === undefined) this.startCron()
+    const bot = await this.decryptCredentials()
 
-    Auth.bot = data
+    Auth.bot = {
+      ...data,
+      token: bot.token
+    }
   }
 
   startCron (): void {

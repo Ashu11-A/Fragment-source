@@ -1,10 +1,10 @@
 import { type Socket } from 'socket.io'
-import { env } from '..'
 import { Database } from './database'
 import { Plugins } from './plugins'
 import { Command } from '@/discord/Commands'
 import { Config } from './config'
 import { Discord } from '@/discord/Client'
+import { Auth } from './auth'
 
 interface EventOptions {
   client: Socket
@@ -36,7 +36,7 @@ export class Event {
   }
 
   async connected () {
-    this.client.emit('discord', env?.BOT_TOKEN)
+    this.client.emit('discord', Auth.bot?.token)
   }
 
   async disconnect () {

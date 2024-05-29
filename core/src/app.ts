@@ -4,7 +4,7 @@ import { join } from 'path'
 import { argv, cwd } from 'process'
 import prompts from 'prompts'
 import 'reflect-metadata'
-import { env, PKG_MODE } from '.'
+import { PKG_MODE } from '.'
 import { Plugins } from './controller/plugins'
 import { SocketController } from './controller/socket'
 import { Auth } from '@/controller/auth'
@@ -31,10 +31,6 @@ const argsList: Args[] = [
   await auth.login()
   await auth.validator()
 
-  if (env?.BOT_TOKEN === undefined || env?.BOT_TOKEN === 'Troque-me') {
-    await writeFile(join(process.cwd(), '.env'), 'BOT_TOKEN=Troque-me', { encoding: 'utf-8' })
-    throw new Error('Defina um token!')
-  }
   if (existsSync(join(cwd(), 'entries'))) await rm(join(cwd(), 'entries'), { recursive: true })
 
   const port = PKG_MODE ? String(await generatePort()) : '3000'
