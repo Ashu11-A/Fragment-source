@@ -197,7 +197,7 @@ class Build {
       }
       const fileContent = await readFile(filePath, { encoding: 'utf-8' })
       const response = obfuscate.obfuscate(fileContent, {
-        optionsPreset: 'medium-obfuscation',
+        optionsPreset: 'low-obfuscation',
         // log: true,
         seed,
         disableConsoleOutput: false
