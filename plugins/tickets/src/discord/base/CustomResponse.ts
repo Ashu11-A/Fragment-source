@@ -68,11 +68,11 @@ export class Error {
         await interaction.editReply({ embeds: [this.embed] })
         return
       }
+      if (!interaction.replied) {await interaction.reply({ embeds: [this.embed], ephemeral: ephemeral ?? true }); return}
       if (interaction instanceof MessageComponentInteraction) {
         await interaction.update({ embeds: [this.embed], components: [] })
         return
       }
-      await interaction.reply({ embeds: [this.embed], ephemeral })
     }
   }
 }
