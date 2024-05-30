@@ -1,7 +1,7 @@
 import { TemplateBuilder } from "@/class/TemplateBuilder";
 import { Database } from "@/controller/database";
 import TemplateTable from "@/entity/Template.entry";
-import { ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, ColorResolvable, Colors, resolveColor } from "discord.js";
+import { ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, ColorResolvable, Colors, PermissionFlagsBits, resolveColor } from "discord.js";
 import { Command } from "../base";
 
 const templateDb = new Database<TemplateTable>({ table: 'Template' })
@@ -10,6 +10,7 @@ new Command({
   name: 'ticket',
   description: 'Sistema de tickets por comando',
   type: ApplicationCommandType.ChatInput,
+  defaultMemberPermissions: PermissionFlagsBits.Administrator,
   dmPermission: false,
   options: [
     {

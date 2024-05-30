@@ -1,19 +1,21 @@
 import { console } from "@/controller/console";
 import { Database } from "@/controller/database";
 import { Discord } from "@/discord/base";
+import { ButtonBuilder } from "@/discord/base/CustomIntetaction";
 import { Error } from "@/discord/base/CustomResponse";
-import Config from "@/entity/Config.entry";
 import Ticket, { History, Message, TicketCategories, TicketType, User, Voice } from "@/entity/Ticket.entry";
-import { ButtonInteraction, CacheType, ChannelType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction, TextChannel, codeBlock } from "discord.js";
+import { ActionDrawer } from "@/functions/actionDrawer";
+import { ActionRowBuilder, ButtonInteraction, ButtonStyle, ChannelType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction, TextChannel, codeBlock } from "discord.js";
+import { ClaimBuilder } from "./ClaimBuilder";
 
-type Interaction = CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction<CacheType>
+type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | StringSelectMenuInteraction<'cached'>
 
 const ticket = new Database<Ticket>({ table: 'Ticket' })
-const config = new Database<Config>({ table: 'Config' })
 
 export class TicketBuilder {
   private options!: TicketType
-  private embed!: EmbedBuilder
+  private embed!: EmbedBuilder | undefined
+  private buttons!: ActionRowBuilder<ButtonBuilder>[] | undefined
   private readonly interaction: Interaction
   constructor ({ interaction }: { interaction: Interaction }) {
     this.interaction = interaction
@@ -43,9 +45,9 @@ export class TicketBuilder {
   addUsers (user: User) { this.options.users.push(user); return this }
   addTeam (user: User) { this.options.team.push(user); return this }
   addMessage (message: Message) { this.options.messages.push(message); return this }
-  addHistory (content: History) { this.options.history.push(content) }
+  addHistory (content: History) { this.options.history.push(content); return this }
 
-  private permissions () {
+  private permissions (): OverwriteResolvable[] {
     const { guild, user } = this.interaction
     const { team, users, ownerId } = this.options
     const permissionOverwrites: OverwriteResolvable[] = []
@@ -57,7 +59,7 @@ export class TicketBuilder {
       PermissionsBitField.Flags.ReadMessageHistory
     ]
 
-    if (guild) permissionOverwrites.push({
+    permissionOverwrites.push({
       id: guild.id,
       deny: [PermissionsBitField.Flags.ViewChannel]
     })
@@ -93,7 +95,8 @@ export class TicketBuilder {
 
   render() {
     const { guild, user } = this.interaction
-    const { description, title } = this.options
+    const { description, title, closed } = this.options
+    const isOpen = !closed
 
     const embed = new EmbedBuilder({
       title: `👋 Olá ${user.displayName}, boas vindas ao seu ticket.`,
@@ -103,7 +106,40 @@ export class TicketBuilder {
     if (title !== undefined) embed.addFields({ name: '📃 Motivo:', value: codeBlock(title) })
     if (description !== undefined) embed.addFields({ name: '📭 Descrição:', value: codeBlock(description) })
 
+    const buttons: ButtonBuilder[] = []
+    buttons.push(
+      new ButtonBuilder({
+        customId: 'Switch',
+        label: isOpen ? 'Fechar' : 'Abrir',
+        emoji: { name: isOpen ? '🔓' : '🔒' },
+        style: isOpen ? ButtonStyle.Danger : ButtonStyle.Success
+      }),
+      new ButtonBuilder({
+        customId: 'Panel',
+        label: 'Painel',
+        emoji: { name: '🖥️' },
+        style: ButtonStyle.Success
+      })
+    )
+    if (!isOpen) {
+      buttons.push(
+        new ButtonBuilder({
+          customId: 'Question',
+          label: 'Relatorio',
+          emoji: { name: '🛒' },
+          style: ButtonStyle.Primary
+        }),
+        new ButtonBuilder({
+          customId: 'Delete', // 'Delete',
+          label: 'Deletar',
+          emoji: { name: '🗑️' },
+          style: ButtonStyle.Danger
+        })
+      )
+    }
+
     this.embed = embed
+    this.buttons = ActionDrawer(buttons, 5)
     return this
   }
 
@@ -128,10 +164,8 @@ export class TicketBuilder {
       parent: category.id
     })
 
-    if (this.embed === undefined) this.render()
-    const embed = this.embed
-
-    const messageMain = await channel.send({ embeds: [embed] })
+    if (this.embed === undefined || this.buttons === undefined) this.render()
+    const messageMain = await channel.send({ embeds: [this.embed as EmbedBuilder], components: this.buttons })
 
     this.options = {
       ...this.options,
@@ -140,26 +174,35 @@ export class TicketBuilder {
     }
 
     const ticketData = await ticket.create(this.options)
+    const result = await ticket.save(ticketData)
 
-    return await ticket.save(ticketData)
-      .then(async () => {
-        await this.interaction.editReply({
-          embeds: [new EmbedBuilder({ title: '✅ Seu Ticket foi criado com sucesso!' }).setColor('Green')],
-          components: [Discord.buttonRedirect({
-            channelId: channel.id,
-            guildId: guild.id,
-            label: 'Ir ao Ticket',
-            emoji: { name: '🎫' }
-          })]
-        })
-        return ticketData
-      })
-      .catch(async (err) => {
-        console.error(err)
-        await channel.delete('Error')
-        await new Error({ element: 'salvar os dados no Database', interaction: this.interaction }).notPossible().reply()
-        return null
-      })
+    if (result === null || result === undefined) {
+      console.error(result)
+      await channel.delete('Error')
+      await new Error({ element: 'salvar os dados no Database', interaction: this.interaction }).notPossible().reply()
+      return null
+    }
+
+    const claimError = new Error({ element: 'criar o claim do seu ticket', interaction: this.interaction }).notPossible()
+    const claim = await new ClaimBuilder({ interaction: this.interaction })
+      .setChannelId(channel.id)
+      .setTicketId(ticketData.id)
+      .render()
+    
+    if (claim === undefined) { await claimError.reply(); return }
+    const create = await claim.create()
+    if (create === undefined) { await claimError.reply(); return }
+
+    await this.interaction.editReply({
+      embeds: [new EmbedBuilder({ title: '✅ Seu Ticket foi criado com sucesso!' }).setColor('Green')],
+      components: [Discord.buttonRedirect({
+        channelId: channel.id,
+        guildId: guild.id,
+        label: 'Ir ao Ticket',
+        emoji: { name: '🎫' }
+      })]
+    })
+    return ticketData
   }
 
   async load({ id }: { id: number }) {
@@ -189,7 +232,7 @@ export class TicketBuilder {
     if (message === null) { await new Error({ element: ticketData.messageId, interaction: this.interaction }).notFound({ type: 'Message' }).reply(); return }
 
     if (this.embed === undefined) this.render()
-    const embed = this.embed
+    const embed = this.embed as EmbedBuilder
 
     await ticket.update({ id }, { ...this.options })
     await (channel as TextChannel).edit({ permissionOverwrites: this.permissions() })

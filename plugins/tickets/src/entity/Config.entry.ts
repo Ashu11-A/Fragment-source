@@ -1,7 +1,7 @@
 import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import Guild from "./Guild.entry";
 
-interface Roles {
+export interface Roles {
     id: string
     name: string
 } 

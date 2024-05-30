@@ -1,5 +1,6 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 import Guild from './Guild.entry'
+import Claim from './Claim.entry'
 
 export interface User {
   name: string
@@ -78,15 +79,9 @@ export default class Ticket extends BaseEntity {
   @Column()
     messageId!: string
 
-  @Column({
-    type: 'simple-json',
-    nullable: true,
-    transformer: {
-      to(value: string): string { return JSON.stringify(value) },
-      from(value: string): Message { return JSON.parse(value) },
-    }
-  })
-    claim!: Message
+  @OneToOne(() => Claim, (claim) => claim.ticket)
+  @JoinColumn()
+    claim!: Claim
   
   @Column({
     type: 'simple-json',
