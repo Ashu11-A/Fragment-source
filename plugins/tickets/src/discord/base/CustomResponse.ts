@@ -1,8 +1,8 @@
-import { ButtonInteraction, CacheType, ColorResolvable, CommandInteraction, EmbedBuilder, MessageComponentInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js"
+import { ButtonInteraction, CacheType, ColorResolvable, CommandInteraction, EmbedBuilder, Message, MessageComponentInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js"
 
 
 interface ErrorOptions {
-    interaction: CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction<CacheType>
+    interaction: CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction<CacheType> | Message<boolean>
     ephemeral?: boolean
     element: string
     color?: ColorResolvable
@@ -63,12 +63,20 @@ export class Error {
     const { interaction, ephemeral } = this.options
 
     if (this.embed === undefined) return
-    if (interaction.isRepliable() && !interaction.replied) {
+    if (!(interaction instanceof Message) && interaction.isRepliable() && !interaction.replied) {
+      console.log(interaction.deferred)
       if (interaction.deferred) {
         await interaction.editReply({ embeds: [this.embed] })
         return
       }
-      if (!interaction.replied) {await interaction.reply({ embeds: [this.embed], ephemeral: ephemeral ?? true }); return}
+      if (!interaction.replied) {
+        await interaction.reply({ embeds: [this.embed], ephemeral: ephemeral ?? true })
+          .catch(async (err) => {
+            console.log(err)
+            return await interaction.editReply({ embeds: [this.embed as EmbedBuilder] })
+          })
+        return
+      }
       if (interaction instanceof MessageComponentInteraction) {
         await interaction.update({ embeds: [this.embed], components: [] })
         return

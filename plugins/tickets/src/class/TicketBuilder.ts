@@ -3,12 +3,12 @@ import { Database } from "@/controller/database";
 import { Discord } from "@/discord/base";
 import { ButtonBuilder } from "@/discord/base/CustomIntetaction";
 import { Error } from "@/discord/base/CustomResponse";
-import Ticket, { History, Message, TicketCategories, TicketType, User, Voice } from "@/entity/Ticket.entry";
+import Ticket, { Event, History, TicketCategories, Message as TicketMessage, TicketType, User as UserTicket, Voice } from "@/entity/Ticket.entry";
 import { ActionDrawer } from "@/functions/actionDrawer";
-import { ActionRowBuilder, ButtonInteraction, ButtonStyle, ChannelType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction, TextChannel, codeBlock } from "discord.js";
+import { ActionRowBuilder, ButtonInteraction, ButtonStyle, ChannelType, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction, TextChannel, User, codeBlock } from "discord.js";
 import { ClaimBuilder } from "./ClaimBuilder";
 
-type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | StringSelectMenuInteraction<'cached'>
+type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | StringSelectMenuInteraction<'cached'> | Message<true>
 
 const ticket = new Database<Ticket>({ table: 'Ticket' })
 
@@ -16,9 +16,15 @@ export class TicketBuilder {
   private options!: TicketType
   private embed!: EmbedBuilder | undefined
   private buttons!: ActionRowBuilder<ButtonBuilder>[] | undefined
+  private user!: User
   private readonly interaction: Interaction
   constructor ({ interaction }: { interaction: Interaction }) {
     this.interaction = interaction
+    if (interaction instanceof Message) {
+      this.user = interaction.author
+    } else {
+      this.user = interaction.user
+    }
     this.options = {
       ownerId: '',
       title: undefined,
@@ -48,7 +54,7 @@ export class TicketBuilder {
   addHistory (content: History) { this.options.history.push(content); return this }
 
   private permissions (): OverwriteResolvable[] {
-    const { guild, user } = this.interaction
+    const { guild } = this.interaction
     const { team, users, ownerId } = this.options
     const permissionOverwrites: OverwriteResolvable[] = []
     const permissions = [
@@ -86,7 +92,7 @@ export class TicketBuilder {
     }
 
     permissionOverwrites.push({
-      id: user.id,
+      id: this.user.id,
       allow: permissions
     })
 
@@ -94,12 +100,12 @@ export class TicketBuilder {
   }
 
   render() {
-    const { guild, user } = this.interaction
+    const { guild } = this.interaction
     const { description, title, closed } = this.options
     const isOpen = !closed
 
     const embed = new EmbedBuilder({
-      title: `👋 Olá ${user.displayName}, boas vindas ao seu ticket.`,
+      title: `👋 Olá ${this.user.displayName}, boas vindas ao seu ticket.`,
       footer: { text: `Equipe ${guild?.name} | ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`, iconURL: (guild?.iconURL({ size: 64 }) ?? undefined) }
     })
 
@@ -144,9 +150,9 @@ export class TicketBuilder {
   }
 
   async create (): Promise<Ticket | null | undefined> {
-    const { guild, user } = this.interaction
+    const { guild } = this.interaction
     const { category: categoryData } = this.options
-    if (guild === null) return
+    if (guild === null || this.interaction instanceof Message) return
     if (!this.interaction.deferred) await this.interaction.deferReply({ ephemeral: true })
 
     const category = (await guild.channels.fetch()).find((channel) => channel?.type === ChannelType.GuildCategory && channel.name === categoryData.title)
@@ -157,9 +163,9 @@ export class TicketBuilder {
         
 
     const channel = await guild.channels.create({
-      name: `${categoryData.emoji}-${user.displayName}`,
+      name: `${categoryData.emoji}-${this.user.displayName}`,
       type: ChannelType.GuildText,
-      topic: `Ticket do(a) ${user.username}, ID: ${user.id}`,
+      topic: `Ticket do(a) ${this.user.username}, ID: ${this.user.id}`,
       permissionOverwrites: this.permissions(),
       parent: category.id
     })
