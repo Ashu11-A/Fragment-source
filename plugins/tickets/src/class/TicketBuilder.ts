@@ -237,12 +237,13 @@ export class TicketBuilder {
     const message = await channel.messages.fetch(ticketData.messageId).catch(() => null)
     if (message === null) { await new Error({ element: ticketData.messageId, interaction: this.interaction }).notFound({ type: 'Message' }).reply(); return }
 
-    if (this.embed === undefined) this.render()
+    if (this.embed === undefined || this.buttons === undefined) this.render()
     const embed = this.embed as EmbedBuilder
+    const buttons = this.buttons as ActionRowBuilder<ButtonBuilder>[]
 
     await ticket.update({ id }, { ...this.options })
     await (channel as TextChannel).edit({ permissionOverwrites: this.permissions() })
-    await message.edit({ embeds: [embed] })
+    await message.edit({ embeds: [embed], components: buttons })
     return this
   }
 }
