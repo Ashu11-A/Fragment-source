@@ -36,7 +36,8 @@ export class TicketBuilder {
       team: [],
       users: [],
       messages: [],
-      history: []
+      history: [],
+      events: []
     }
   }
 
@@ -46,12 +47,15 @@ export class TicketBuilder {
   setClosed(isClosed: boolean) { this.options.closed = isClosed ?? false; return this }
   setVoice(voice: Voice) { this.options.voice = voice; return this }
   setCategory (category: TicketCategories) { this.options.category = category; return this }
-  setClaim (message: Message) { this.options.claim = message; return this }
+  setClaim (message: TicketMessage) { this.options.claim = message; return this }
 
-  addUsers (user: User) { this.options.users.push(user); return this }
-  addTeam (user: User) { this.options.team.push(user); return this }
-  addMessage (message: Message) { this.options.messages.push(message); return this }
+  setData(data: Ticket) { this.options = Object.assign(this.options, data); return this }
+
+  addTeam (user: UserTicket) { this.options.team.push(user); return this }
+  addUsers (user: UserTicket) { this.options.users.push(user); return this }
+  addEvent (event: Event) { this.options.events.push(event); return this }
   addHistory (content: History) { this.options.history.push(content); return this }
+  addMessage (message: TicketMessage) { this.options.messages.push(message); return this }
 
   private permissions (): OverwriteResolvable[] {
     const { guild } = this.interaction
@@ -109,8 +113,8 @@ export class TicketBuilder {
       footer: { text: `Equipe ${guild?.name} | ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`, iconURL: (guild?.iconURL({ size: 64 }) ?? undefined) }
     })
 
-    if (title !== undefined) embed.addFields({ name: '📃 Motivo:', value: codeBlock(title) })
-    if (description !== undefined) embed.addFields({ name: '📭 Descrição:', value: codeBlock(description) })
+    if (typeof title === 'string') embed.addFields({ name: '📃 Motivo:', value: codeBlock(title) })
+    if (typeof description === 'string') embed.addFields({ name: '📭 Descrição:', value: codeBlock(description) })
 
     const buttons: ButtonBuilder[] = []
     buttons.push(

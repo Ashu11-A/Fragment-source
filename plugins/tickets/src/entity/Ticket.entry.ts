@@ -22,6 +22,15 @@ export interface History {
   deleted: boolean
 }
 
+export interface Event {
+  user: {
+    id: string
+    name: string
+  }
+  message: string
+  date: Date
+}
+
 export interface Message {
   channelId: string
   messageId: string
@@ -51,6 +60,7 @@ export interface TicketType {
   users: User[]
   history: History[]
   messages: Message[]
+  events: Event[]
 }
 
 @Entity({ name: 'tickets' })
@@ -132,6 +142,16 @@ export default class Ticket extends BaseEntity {
     }
   })
     messages!: Message[]
+
+  @Column({
+    type: 'simple-json',
+    nullable: true,
+    transformer: {
+      to(value: string): string { return JSON.stringify(value) },
+      from(value: string): Event[] { return JSON.parse(value) },
+    }
+  })
+    events!: Event[]
 
   @Column({
     type: 'simple-json',
