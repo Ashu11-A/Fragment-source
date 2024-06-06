@@ -2,6 +2,7 @@ import { console } from '@/controller/console'
 import { Database } from '@/controller/database'
 import { SocketClient } from '@/controller/socket'
 import Guild from '@/entity/Guild.entry'
+import ConfigEntry from '@/entity/Config.entry'
 import { APIMessageComponentEmoji, ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, CacheType, Client, IntentsBitField, Partials, type AutocompleteInteraction, type BitFieldResolvable, type ChatInputCommandInteraction, type CommandInteraction, type GatewayIntentsString, type MessageContextMenuCommandInteraction, type UserContextMenuCommandInteraction } from 'discord.js'
 import { glob } from 'glob'
 import { join } from 'path'
@@ -134,15 +135,17 @@ export class Discord {
     Discord.client.once('ready', async client => {
       this.controller()
       console.info(`➝ Connected with ${client.user.username}`)
+      const guildClass = new Database<Guild>({ table: 'Guild' })
+      const config = new Database<ConfigEntry>({ table: 'Config' })
       for (const [guildId, guild] of client.guilds.cache) {
-        const guildClass = new Database<Guild>({ table: 'Guild' })
 
         if (await guildClass.findOne({ where: { id: guildId } }) !== null) {
           console.log(`Servidor ${guild.name} está registrado no banco de dados!`)
           continue
         }
         
-        await guildClass.save(await guildClass.create({ id: guildId }))
+        const result = await guildClass.save(await guildClass.create({ id: guildId })) as Guild
+        await config.save(await config.create({ guild: { id: result.id } }))
       }
     })
   }
