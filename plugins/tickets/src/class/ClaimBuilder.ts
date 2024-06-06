@@ -32,7 +32,6 @@ export class ClaimBuilder {
   }
 
   setTicketId(ticketId: number) { this.options.ticketId = ticketId ; return this }
-  setChannelId(channelId: string) { this.options.channelId = channelId ; return this }
 
   private permissions (roles: Roles[]): OverwriteResolvable[] {
     const permissionOverwrites: OverwriteResolvable[] = []
@@ -124,15 +123,15 @@ export class ClaimBuilder {
   }
   async create(): Promise<Claim | Claim[] | undefined> {
     const { guildId, guild } = this.interaction
-    const configs = await config.findOne({ where: { guild: { id: guildId } }, relations: { guild: true } })
+    const configs = await config.findOne({ where: { guild: { id: guildId } }, relations: { guild: true } }) as Config
     const permissions = this.permissions(configs?.roles ?? [])
-
-    if (this.embed === undefined || this.buttons === undefined) {
-      await this.render()
-    }
+  
+    if (this.embed === undefined || this.buttons === undefined) await this.render()
 
     async function createChannel () {
-      return await guild.channels.create({ name: 'claim-tickets', type: ChannelType.GuildText })
+      const newGuild = await guild.channels.create({ name: 'claim-tickets', type: ChannelType.GuildText })
+      await config.update({ id: configs.id }, { claimId: newGuild.id })
+      return newGuild
     }
 
     const channel = configs?.claimId !== undefined ?
@@ -142,11 +141,29 @@ export class ClaimBuilder {
     await channel.edit({ permissionOverwrites: permissions })
     if (channel.isTextBased()) {
       const message = await channel.send({ embeds: [this.embed as EmbedBuilder], components: this.buttons })
-      const claimData = await claim.create({ ticket: { id: this.options.ticketId }, channelId: this.options.channelId, messageId: message.id })
-      await claim.save(claimData)
+      const claimData = await claim.create({ channelId: channel.id, messageId: message.id })
+      const result = await claim.save(claimData) as Claim
+      await ticket.update({ id: this.options.ticketId }, { claim: { id: result.id } })
       return claimData
     }
     return
+  }
+
+  async delete ({ id }: { id: number }) {
+    const claimData = await claim.findOne({ where: { id } })
+    if (claimData === null) return await new Error({ element: 'claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
+
+    const channel = await this.interaction.client.channels.fetch(claimData.channelId).catch(async() => null)
+
+    if (channel === null) return await new Error({ element: 'do claim', interaction: this.interaction }).notFound({ type: "Channel" }).reply()
+    if (!channel.isTextBased()) return await new Error({ element: 'concluir a ação, pois o channel não é um TextBased', interaction: this.interaction }).notPossible().reply()
+
+
+    const message = await channel.messages.fetch(claimData.messageId).catch(() => null)
+    if (message === null) return await new Error({ element: 'do claim', interaction: this.interaction }).notFound({ type: "Message" }).reply()
+    if (message.deletable) await message.delete()
+
+    return await claim.delete({ id })
   }
 
   // update({ id }: { id: number }) {
