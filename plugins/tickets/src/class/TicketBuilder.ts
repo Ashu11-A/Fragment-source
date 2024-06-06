@@ -231,6 +231,8 @@ export class TicketBuilder {
     await ticket.delete({ id })
   }
 
+  async save ({ id }: { id: number }) { await ticket.update({ id }, { ...this.options }); return this }
+
   async update ({ id }: { id: number }) {
     const ticketData = await ticket.findOne({ where: { id } })
     if (ticketData === null) { await new Error({ element: 'as informações do ticket', interaction: this.interaction }).notFound({ type: 'Database' }).reply(); return }
@@ -245,7 +247,7 @@ export class TicketBuilder {
     const embed = this.embed as EmbedBuilder
     const buttons = this.buttons as ActionRowBuilder<ButtonBuilder>[]
 
-    await ticket.update({ id }, { ...this.options })
+    await this.save({ id })
     await (channel as TextChannel).edit({ permissionOverwrites: this.permissions() })
     await message.edit({ embeds: [embed], components: buttons })
     return this
