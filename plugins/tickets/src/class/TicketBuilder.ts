@@ -14,8 +14,8 @@ const ticket = new Database<Ticket>({ table: 'Ticket' })
 
 export class TicketBuilder {
   private options!: TicketType
-  private embed!: EmbedBuilder | undefined
-  private buttons!: ActionRowBuilder<ButtonBuilder>[] | undefined
+  public embed!: EmbedBuilder | undefined
+  public buttons!: ActionRowBuilder<ButtonBuilder>[] | undefined
   private user!: User
   private readonly interaction: Interaction
   constructor ({ interaction }: { interaction: Interaction }) {
@@ -48,6 +48,7 @@ export class TicketBuilder {
   setClosed(isClosed: boolean) { this.options.closed = isClosed ?? false; return this }
   setVoice(voice: Voice) { this.options.voice = voice; return this }
   setCategory (category: TicketCategories) { this.options.category = category; return this }
+  setUser (user: User) { this.user = user; return this }
 
   setData(data: Ticket) { this.options = Object.assign(this.options, data); return this }
 
