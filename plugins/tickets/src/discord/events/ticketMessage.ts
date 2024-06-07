@@ -1,9 +1,9 @@
-import Ticket from "@/entity/Ticket.entry";
-import { Event } from "../base";
-import { Database } from "@/controller/database";
 import { TicketBuilder } from "@/class/TicketBuilder";
 import { console } from "@/controller/console";
-import { Message } from "discord.js";
+import { Database } from "@/controller/database";
+import Ticket from "@/entity/Ticket.entry";
+import { AuditLogEvent, EmbedBuilder, Message } from "discord.js";
+import { Event } from "../base";
 const ticket = new Database<Ticket>({ table: 'Ticket' })
 
 new Event({
@@ -58,4 +58,35 @@ new Event({
     await builder.setData(ticketData).edit({ id: ticketData.id })
     console.info(`⚠️ Uma mensagem foi apagada! ticketId: ${ticketData.id}`)
   },
+})
+
+new Event({
+  name: 'messageDelete',
+  async run(message) {
+    if (!message.inGuild() || await message.fetch().catch(() => null) !== null) return
+    const { id } = message
+    const ticketData = await ticket.findOne({ where: { messageId: id } })
+    if (ticketData === null) return
+
+    const owner = await message.client.users.fetch(ticketData.ownerId).catch(() => null)
+    if (owner === null) return
+
+    const builder = new TicketBuilder({ interaction: message }).setData(ticketData).setUser(owner).render()
+    const nemMessage = await message.channel.send({ 
+      embeds: [builder.embed as EmbedBuilder],
+      components: builder.buttons
+    })
+
+    ticket.save(Object.assign(ticketData, { messageId: nemMessage.id }))
+
+    const auditLog = (await message.guild.fetchAuditLogs({ type: AuditLogEvent.MessageDelete })).entries.first()
+    await message.channel.send({
+      content: auditLog?.executor?.id !== undefined ? `<@${auditLog?.executor?.id}>` : undefined,
+      embeds: [new EmbedBuilder({
+        title: '⚠️ Não é possivel deletar a messagem acima!',
+        footer: { text: 'Essa mensagem será deletada em 5s' }
+      }).setColor('Red')]
+    })
+      .then(async (msg) => setTimeout(() => { msg.delete() }, 5000))
+  }
 })
