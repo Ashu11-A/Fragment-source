@@ -10,7 +10,8 @@ new Event({
   name: 'messageCreate',
   async run(message) {
     if (!message.inGuild()) return
-    const { channelId, author, content, id } = message
+    const { channelId, author, content, id, client } = message
+    if (author.id === client.user.id) return
     const ticketData = await ticket.findOne({ where: { channelId: channelId } })
     if (ticketData === null) return
 
@@ -32,7 +33,7 @@ new Event({
         role,
         date: new Date()
       })
-      .save({ id: ticketData.id })
+      .edit({ id: ticketData.id })
     console.log(`💬 Nova mensagem salva! TicketId: ${ticketData.id}`)
   },
 })
@@ -54,7 +55,7 @@ new Event({
     }
 
     const builder = new TicketBuilder({ interaction: message })
-    await builder.setData(ticketData).save({ id: ticketData.id })
+    await builder.setData(ticketData).edit({ id: ticketData.id })
     console.info(`⚠️ Uma mensagem foi apagada! ticketId: ${ticketData.id}`)
   },
 })
