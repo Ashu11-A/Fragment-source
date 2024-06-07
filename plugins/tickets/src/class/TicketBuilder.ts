@@ -32,6 +32,7 @@ export class TicketBuilder {
       closed: false,
       channelId: '',
       messageId: '',
+      voice: undefined,
       category: { emoji: '🎫', title: 'Tickets' },
       team: [],
       users: [],
@@ -47,7 +48,6 @@ export class TicketBuilder {
   setClosed(isClosed: boolean) { this.options.closed = isClosed ?? false; return this }
   setVoice(voice: Voice) { this.options.voice = voice; return this }
   setCategory (category: TicketCategories) { this.options.category = category; return this }
-  setClaim (message: TicketMessage) { this.options.claim = message; return this }
 
   setData(data: Ticket) { this.options = Object.assign(this.options, data); return this }
 
@@ -134,14 +134,14 @@ export class TicketBuilder {
     if (!isOpen) {
       buttons.push(
         new ButtonBuilder({
-          customId: 'Question',
-          label: 'Relatorio',
-          emoji: { name: '🛒' },
+          customId: 'Close-With-Question',
+          label: 'Fechar com Relatorio',
+          emoji: { name: '📝' },
           style: ButtonStyle.Primary
         }),
         new ButtonBuilder({
-          customId: 'Delete', // 'Delete',
-          label: 'Deletar',
+          customId: 'Close',
+          label: 'Fechar',
           emoji: { name: '🗑️' },
           style: ButtonStyle.Danger
         })
@@ -177,14 +177,13 @@ export class TicketBuilder {
     if (this.embed === undefined || this.buttons === undefined) this.render()
     const messageMain = await channel.send({ embeds: [this.embed as EmbedBuilder], components: this.buttons })
 
-    this.options = {
-      ...this.options,
+    this.options = Object.assign(this.options, {
       channelId: channel.id,
       messageId: messageMain.id,
-    }
+    })
 
-    const ticketData = await ticket.create(this.options)
-    const result = await ticket.save(ticketData)
+    const ticketData = await ticket.create({ ...this.options, guild: { id: this.interaction.guildId } })
+    const result = await ticket.save(ticketData) as Ticket
 
     if (result === null || result === undefined) {
       console.error(result)
@@ -195,8 +194,7 @@ export class TicketBuilder {
 
     const claimError = new Error({ element: 'criar o claim do seu ticket', interaction: this.interaction }).notPossible()
     const claim = await new ClaimBuilder({ interaction: this.interaction })
-      .setChannelId(channel.id)
-      .setTicketId(ticketData.id)
+      .setTicketId(result.id)
       .render()
     
     if (claim === undefined) { await claimError.reply(); return }
@@ -226,12 +224,21 @@ export class TicketBuilder {
     
     const channel = await this.interaction.client.channels.fetch(ticketData.channelId).catch(() => null)
     if (!channel?.isTextBased()) { await new Error({ element: ticketData.channelId, interaction: this.interaction }).notFound({ type: 'Channel' }).reply(); return }
-
+    
     await channel.delete()
+    for (const { channelId, messageId } of ticketData.messages) {
+      const channel = await this.interaction.client.channels.fetch(channelId).catch(() => null)
+      if (channel === null || !channel.isTextBased()) continue
+      
+      const message = await channel.messages.fetch(messageId).catch(() => null)
+      if (message === null) continue
+
+      if (message.deletable) await message.delete()
+    }
     await ticket.delete({ id })
   }
 
-  async save ({ id }: { id: number }) { await ticket.update({ id }, { ...this.options }); return this }
+  async edit ({ id }: { id: number }) { await ticket.update({ id }, this.options); return this }
 
   async update ({ id }: { id: number }) {
     const ticketData = await ticket.findOne({ where: { id } })
@@ -247,7 +254,7 @@ export class TicketBuilder {
     const embed = this.embed as EmbedBuilder
     const buttons = this.buttons as ActionRowBuilder<ButtonBuilder>[]
 
-    await this.save({ id })
+    await this.edit({ id })
     await (channel as TextChannel).edit({ permissionOverwrites: this.permissions() })
     await message.edit({ embeds: [embed], components: buttons })
     return this
