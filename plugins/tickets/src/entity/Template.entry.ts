@@ -1,6 +1,7 @@
 import { APIEmbed } from "discord.js";
-import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import Guild from "./Guild.entry";
+import Ticket from "./Ticket.entry";
 
 export interface Properties {
     [key: string]: boolean | string
@@ -30,6 +31,9 @@ export default class Template extends BaseEntity {
 
     @ManyToOne(() => Guild, (guild) => guild.templates)
       guild!: Guild
+
+    @OneToMany(() => Ticket, (ticket) => ticket.template)
+      tickets!: Template[]
 
     @Column({ type: 'text' })
       messageId!: string

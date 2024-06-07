@@ -17,6 +17,7 @@ export class TicketBuilder {
   public embed!: EmbedBuilder | undefined
   public buttons!: ActionRowBuilder<ButtonBuilder>[] | undefined
   private user!: User
+  private templateId: number | undefined
   private readonly interaction: Interaction
   constructor ({ interaction }: { interaction: Interaction }) {
     this.interaction = interaction
@@ -43,6 +44,7 @@ export class TicketBuilder {
   }
 
   setOwner (id: string) { this.options.ownerId = id; return this }
+  setTemplateId (id: number) { this.templateId = id; return this}
   setTitle (content: string) { this.options.title = content; return this }
   setDescription(content: string) { this.options.description = content; return this }
   setClosed(isClosed: boolean) { this.options.closed = isClosed ?? false; return this }
@@ -183,7 +185,7 @@ export class TicketBuilder {
       messageId: messageMain.id,
     })
 
-    const ticketData = await ticket.create({ ...this.options, guild: { id: this.interaction.guildId } })
+    const ticketData = await ticket.create({ ...this.options, guild: { id: this.interaction.guildId }, template: { id: this.templateId } })
     const result = await ticket.save(ticketData) as Ticket
 
     if (result === null || result === undefined) {

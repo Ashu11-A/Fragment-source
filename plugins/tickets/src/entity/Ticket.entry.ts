@@ -1,6 +1,7 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 import Guild from './Guild.entry'
 import Claim from './Claim.entry'
+import Template from './Template.entry'
 
 export interface User {
   name: string
@@ -70,6 +71,9 @@ export default class Ticket extends BaseEntity {
 
   @ManyToOne(() => Guild, (guild) => guild.tickets)
     guild!: Guild
+
+  @ManyToOne(() => Template, (template) => template.tickets)
+    template!: Template
 
   @Column()
     ownerId!: string
