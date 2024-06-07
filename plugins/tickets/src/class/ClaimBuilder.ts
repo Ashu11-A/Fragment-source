@@ -4,7 +4,7 @@ import Claim from "@/entity/Claim.entry"
 import Config, { Roles } from "@/entity/Config.entry"
 import Ticket from "@/entity/Ticket.entry"
 import { ActionDrawer } from "@/functions/actionDrawer"
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction } from "discord.js"
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction } from "discord.js"
 const ticket = new Database<Ticket>({ table: 'Ticket' })
 const claim = new Database<Claim>({ table: 'Claim' })
 const config = new Database<Config>({ table: 'Config' })
@@ -14,14 +14,14 @@ interface ClaimOptions {
     channelId: string
 }
 
-type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | StringSelectMenuInteraction<'cached'>
+type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | StringSelectMenuInteraction<'cached'> | Message<true>
 
 
 export class ClaimBuilder {
   private readonly interaction: Interaction
   private options!: ClaimOptions
-  private embed!: EmbedBuilder | undefined
-  private buttons!: ActionRowBuilder<ButtonBuilder>[] | undefined
+  public embed!: EmbedBuilder | undefined
+  public buttons!: ActionRowBuilder<ButtonBuilder>[] | undefined
 
   constructor ({ interaction }: { interaction: Interaction }) {
     this.interaction = interaction
@@ -160,10 +160,10 @@ export class ClaimBuilder {
 
 
     const message = await channel.messages.fetch(claimData.messageId).catch(() => null)
-    if (message === null) return await new Error({ element: 'do claim', interaction: this.interaction }).notFound({ type: "Message" }).reply()
-    if (message.deletable) await message.delete()
+    if (message !== null && message.deletable) await message.delete()
 
-    return await claim.delete({ id })
+    await claim.delete({ id })
+    return this
   }
 
   // update({ id }: { id: number }) {
