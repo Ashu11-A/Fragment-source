@@ -39,7 +39,7 @@
     "express": "^4.19.2",
     "glob": "^10.3.15",
     "isbinaryfile": "^5.0.2",
-    "mysql2": "^3.9.7",
+    "mysql2": "^3.9.8",
     "prompts": "^2.4.2",
     "reflect-metadata": "^0.2.2",
     "signale": "^1.4.0",
