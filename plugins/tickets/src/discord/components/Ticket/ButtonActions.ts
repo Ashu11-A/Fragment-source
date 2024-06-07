@@ -1,10 +1,13 @@
+import { ClaimBuilder } from "@/class/ClaimBuilder";
 import { TicketBuilder } from "@/class/TicketBuilder";
 import { Database } from "@/controller/database";
 import { Component } from "@/discord/base";
 import { Error } from "@/discord/base/CustomResponse";
+import Claim from "@/entity/Claim.entry";
 import Ticket from "@/entity/Ticket.entry";
 import { EmbedBuilder } from "discord.js";
 const ticket = new Database<Ticket>({ table: 'Ticket' })
+const claim = new Database<Claim>({ table: 'Claim' })
 
 new Component({
   customId: 'Switch',
@@ -40,5 +43,25 @@ new Component({
         }).setColor(isClosed ? 'Red' : 'Green')
       ]
     })
+  },
+})
+
+new Component({
+  customId: 'Close',
+  type: "Button",
+  async run(interaction) {
+    if (!interaction.inCachedGuild()) return
+    const { channelId } = interaction
+    const ticketData = await ticket.findOne({ where: { channelId } })
+    if (ticketData === null) return await new Error({ element: 'ticket', interaction }).notFound({ type: "Database" }).reply()
+
+    const claimData = await claim.findOne({ where: { ticket: { id: ticketData.id } }, relations: { ticket: true } })
+    if (claimData === null) return await new Error({ element: 'claim desse ticket', interaction }).notFound({ type: "Database" }).reply()
+
+    const ticketBuilder = new TicketBuilder({ interaction })
+    const claimBuilder = new ClaimBuilder({ interaction })
+  
+    await ticketBuilder.delete({ id: ticketData.id })
+    await claimBuilder.delete({ id: claimData.id })
   },
 })
