@@ -1,5 +1,5 @@
-import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import Guild from "./Guild.entry";
+import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn, Relation } from "typeorm";
+import Guild from "./Guild.entry.js";
 
 export interface Roles {
     id: string
@@ -12,7 +12,7 @@ export default class Config extends BaseEntity {
       id!: number
 
     @OneToOne(() => Guild, (guid) => guid.configs)
-      guild!: Guild
+      guild!: Relation<Guild>
 
     @Column({ type: 'decimal', precision: 3, nullable: true })
       claimLimit?: number

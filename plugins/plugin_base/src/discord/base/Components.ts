@@ -1,5 +1,5 @@
+import { packageData } from '@/index.js'
 import { type ButtonInteraction, type ChannelSelectMenuInteraction, type MentionableSelectMenuInteraction, type ModalSubmitInteraction, type RoleSelectMenuInteraction, type StringSelectMenuInteraction, type UserSelectMenuInteraction, type CacheType } from 'discord.js'
-import { name } from '../../../package.json'
 
 type ComponentProps<Cached extends CacheType = CacheType> = {
   type: 'Button'
@@ -40,7 +40,7 @@ export class Component {
   constructor (data: ComponentData) {
     Component.all.push({
       ...data,
-      customId: `${name}_${data.customId}`
+      customId: `${packageData.name}_${data.customId}`
     })
   }
 }

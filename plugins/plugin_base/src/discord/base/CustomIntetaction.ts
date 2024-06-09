@@ -1,5 +1,5 @@
-import { ActionRowBuilder, BaseSelectMenuComponentData, ButtonBuilder as Button, ButtonStyle, ComponentEmojiResolvable, ComponentType, ModalBuilder as Modal, SelectMenuComponentOptionData, StringSelectMenuBuilder as StringSelect, TextInputBuilder } from "discord.js";
-import { name } from '../../../package.json';
+import { packageData } from "@/index.js";
+import { ActionRowBuilder, ButtonBuilder as Button, ButtonStyle, ComponentEmojiResolvable, ModalBuilder as Modal, SelectMenuComponentOptionData, StringSelectMenuBuilder as StringSelect, TextInputBuilder } from "discord.js";
 
 export interface BaseButtonComponentData {
   customId: string
@@ -16,7 +16,7 @@ export class ButtonBuilder extends Button {
     this.customId = customId
     this.setStyle(style)
     this.setDisabled(disabled ?? false)
-    this.setCustomId(`${name}_${customId}`)
+    this.setCustomId(`${packageData.name}_${customId}`)
     if (label) this.setLabel(label)
     if (emoji) this.setEmoji(emoji)
   }
@@ -42,7 +42,7 @@ export class ModalBuilder extends Modal {
     super()
     this.setTitle(title)
     if (components) this.setComponents(components)
-    this.setCustomId(`${name}_${customId}`)
+    this.setCustomId(`${packageData.name}_${customId}`)
   }
 }
 
@@ -59,7 +59,7 @@ export class StringSelectMenuBuilder extends StringSelect {
   constructor({ customId, options, disabled, maxValues, minValues, placeholder }: StringSelectMenuComponentData) {
     super()
     this.setOptions(options)
-    this.setCustomId(`${name}_${customId}`)
+    this.setCustomId(`${packageData.name}_${customId}`)
     if (disabled) this.setDisabled(disabled)
     if (maxValues) this.setMaxValues(maxValues)
     if (minValues) this.setMinValues(minValues)

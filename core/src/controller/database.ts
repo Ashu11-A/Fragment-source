@@ -2,7 +2,7 @@ import { glob } from 'glob'
 import { join } from 'path'
 import { Socket } from 'socket.io'
 import { DataSource, FindOptionsWhere, ObjectId, type BaseEntity, type DataSourceOptions } from 'typeorm'
-import { RootPATH } from '..'
+import { RootPATH } from '@/index.js'
 
 export interface EntityImport<T extends typeof BaseEntity> { default: T }
 
@@ -38,7 +38,7 @@ export class Database {
     }
 
     const [, { default: Entity }] = entry
-    console.log(`🛎️ [Database] Requisição do plugin ${plugin}`)
+    console.log(`🛎️ [Database - ${type}] Requisição do plugin ${plugin}`)
     try {
       switch (type) {
       case 'find': socket.emit(eventName, await Entity.find(args.options)); break

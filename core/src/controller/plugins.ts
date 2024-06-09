@@ -1,19 +1,21 @@
-import { Discord } from '@/discord/Client'
-import { Command, CommandData } from '@/discord/Commands'
+import { Discord } from '@/discord/Client.js'
+import { Command, CommandData } from '@/discord/Commands.js'
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
 import { existsSync } from 'fs'
 import { mkdir, writeFile } from 'fs/promises'
 import { watch } from 'chokidar'
 import { glob } from 'glob'
 import { isBinaryFile } from 'isbinaryfile'
-import { join } from 'path'
+import { dirname, join } from 'path'
 import { cwd } from 'process'
 import { Socket } from 'socket.io'
 import { BaseEntity } from 'typeorm'
-import { PKG_MODE, RootPATH } from '..'
-import { Config, ConfigOptions } from './config'
-import { Database, EntityImport } from './database'
+import { PKG_MODE, RootPATH } from '@/index.js'
+import { Config, ConfigOptions } from './config.js'
+import { Database, EntityImport } from './database.js'
+import { fileURLToPath } from 'url'
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
 interface Metadata {
   name: string
   version: string
@@ -253,7 +255,7 @@ export class Plugins {
         const content = match[1];
         if (content) {
           console.log(`🔄 Convertendo ${fileName}`);
-          const replacedPath = `${join(__dirname, '../../')}node_modules/${content}`;
+          const replacedPath = `${join(__dirname, '../../')}node_modules/${content}/index.js`;
           code = code.replace(new RegExp(content, 'g'), replacedPath);
         }
       }

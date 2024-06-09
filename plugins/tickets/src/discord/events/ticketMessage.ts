@@ -1,9 +1,9 @@
-import { TicketBuilder } from "@/class/TicketBuilder";
-import { console } from "@/controller/console";
-import { Database } from "@/controller/database";
-import Ticket from "@/entity/Ticket.entry";
+import { TicketBuilder } from "@/class/TicketBuilder.js";
+import { console } from "@/controller/console.js";
+import { Database } from "@/controller/database.js";
+import Ticket from "@/entity/Ticket.entry.js";
 import { AuditLogEvent, EmbedBuilder, Message } from "discord.js";
-import { Event } from "../base";
+import { Event } from "@/discord/base/index.js";
 const ticket = new Database<Ticket>({ table: 'Ticket' })
 
 new Event({
@@ -33,7 +33,7 @@ new Event({
         role,
         date: new Date()
       })
-      .edit({ id: ticketData.id })
+      .edit()
     console.log(`💬 Nova mensagem salva! TicketId: ${ticketData.id}`)
   },
 })
@@ -55,7 +55,7 @@ new Event({
     }
 
     const builder = new TicketBuilder({ interaction: message })
-    await builder.setData(ticketData).edit({ id: ticketData.id })
+    await builder.setData(ticketData).edit()
     console.info(`⚠️ Uma mensagem foi apagada! ticketId: ${ticketData.id}`)
   },
 })
@@ -84,7 +84,6 @@ new Event({
       content: auditLog?.executor?.id !== undefined ? `<@${auditLog?.executor?.id}>` : undefined,
       embeds: [new EmbedBuilder({
         title: '⚠️ Não é possivel deletar a messagem acima!',
-        footer: { text: 'Essa mensagem será deletada em 5s' }
       }).setColor('Red')]
     })
       .then(async (msg) => setTimeout(() => { msg.delete() }, 5000))

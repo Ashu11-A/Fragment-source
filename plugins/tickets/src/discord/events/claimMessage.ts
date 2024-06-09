@@ -1,8 +1,8 @@
-import { ClaimBuilder } from "@/class/ClaimBuilder";
-import { Database } from "@/controller/database";
-import Claim from "@/entity/Claim.entry";
+import { ClaimBuilder } from "@/class/ClaimBuilder.js";
+import { Database } from "@/controller/database.js";
+import Claim from "@/entity/Claim.entry.js";
 import { AuditLogEvent, EmbedBuilder } from "discord.js";
-import { Event } from "../base";
+import { Event } from "@/discord/base/index.js";
 const claim = new Database<Claim>({ table: 'Claim' })
 
 new Event({
@@ -28,7 +28,6 @@ new Event({
       content: auditLog?.executor?.id !== undefined ? `<@${auditLog?.executor?.id}>` : undefined,
       embeds: [new EmbedBuilder({
         title: '⚠️ Não é possivel deletar a messagem acima!',
-        footer: { text: 'Essa mensagem será deletada em 5s' }
       }).setColor('Red')]
     })
       .then(async (msg) => setTimeout(() => { msg.delete() }, 5000))

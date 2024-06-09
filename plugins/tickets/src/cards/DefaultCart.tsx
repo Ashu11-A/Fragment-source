@@ -21,7 +21,7 @@ export class DefaultTicketCart extends Builder<Props> {
   setDescription(value: string) { this.options.set('description', value); return this }
 
   async render() {
-    const { title, description } = this.options.getOptions()
+    // const { title, description } = this.options.getOptions()
 
     return (
       <div className="flex flex-col w-full h-full py-8 px-8 items-center justify-center bg-[#23272A]">

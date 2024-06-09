@@ -1,7 +1,7 @@
-import { type BitFieldResolvable, Client, type GatewayIntentsString, IntentsBitField, Partials, ApplicationCommandType, ChatInputCommandInteraction, CommandInteraction, MessageContextMenuCommandInteraction, UserContextMenuCommandInteraction, PermissionsBitField } from 'discord.js'
-import { Command } from './Commands'
-import { Config } from '@/controller/config'
-import { Auth } from '@/controller/auth'
+import { Auth } from '@/controller/auth.js'
+import { Config } from '@/controller/config.js'
+import { ApplicationCommandType, type BitFieldResolvable, Client, type GatewayIntentsString, IntentsBitField, Partials, PermissionsBitField } from 'discord.js'
+import { Command } from './Commands.js'
 
 export class Discord {
   public static client: Client<boolean>

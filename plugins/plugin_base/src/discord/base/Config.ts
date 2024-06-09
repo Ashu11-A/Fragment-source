@@ -1,5 +1,5 @@
 import { ApplicationCommandOptionData, ApplicationCommandOptionType, ApplicationCommandSubCommandData, ApplicationCommandSubGroupData, AutocompleteInteraction, CacheType, ChatInputCommandInteraction, LocalizationMap } from "discord.js";
-import { C } from "./Commands";
+import { C } from "./Commands.js";
 
 interface BaseApplicationCommandOptionsData {
   name: string;

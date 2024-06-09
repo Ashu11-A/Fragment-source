@@ -1,9 +1,9 @@
 import { type BaseEntity, type FindManyOptions, type FindOptionsWhere, type FindOneOptions, type DeepPartial, type ObjectId, type DeleteResult, SaveOptions, InsertResult } from 'typeorm'
-import { SocketClient } from './socket'
-import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity'
-import { UpsertOptions } from 'typeorm/repository/UpsertOptions'
-import { name } from '../../package.json'
+import { SocketClient } from './socket.js'
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity.js'
+import { UpsertOptions } from 'typeorm/repository/UpsertOptions.js'
 import { nanoid } from 'nanoid'
+import { packageData } from '@/index.js'
 
 interface DatabaseOptions {
   table: string
@@ -16,7 +16,7 @@ export class Database<T extends BaseEntity> {
 
   constructor ({ table }: DatabaseOptions) {
     this.eventName = `database_${nanoid().replace('_', '')}`
-    this.pluginName = name
+    this.pluginName = packageData.name
     this.table = table
   }
 

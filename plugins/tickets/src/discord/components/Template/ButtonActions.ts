@@ -1,6 +1,6 @@
-import { TemplateBuilder } from "@/class/TemplateBuilder";
-import { Component } from "@/discord/base";
-import { ActionDrawer } from "@/functions/actionDrawer";
+import { TemplateBuilder } from "@/class/TemplateBuilder.js";
+import { Component } from "@/discord/base/index.js";
+import { ActionDrawer } from "@/functions/actionDrawer.js";
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
 
 new Component({

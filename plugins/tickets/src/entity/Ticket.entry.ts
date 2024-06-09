@@ -1,7 +1,7 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
-import Guild from './Guild.entry'
-import Claim from './Claim.entry'
-import Template from './Template.entry'
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
+import Guild from './Guild.entry.js'
+import Claim from './Claim.entry.js'
+import Template from './Template.entry.js'
 
 export interface User {
   name: string
@@ -70,27 +70,27 @@ export default class Ticket extends BaseEntity {
     id!: number
 
   @ManyToOne(() => Guild, (guild) => guild.tickets)
-    guild!: Guild
+    guild!: Relation<Guild>
 
   @ManyToOne(() => Template, (template) => template.tickets)
-    template!: Template
+    template!: Relation<Template>
 
-  @Column()
+  @Column({ type: 'text' })
     ownerId!: string
   
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
     title!: string
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
     description!: string
 
   @Column({ type: 'boolean', default: false })
     closed!: boolean
   
-  @Column()
+  @Column({ type: 'text' })
     channelId!: string
 
-  @Column()
+  @Column({ type: 'text' })
     messageId!: string
 
   @OneToOne(() => Claim, (claim) => claim.ticket)

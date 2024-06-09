@@ -1,9 +1,9 @@
-import { Command } from '@/discord/Commands'
+import { Command } from '@/discord/Commands.js'
 import { type Socket } from 'socket.io'
-import { Auth } from './auth'
-import { Config } from './config'
-import { Database } from './database'
-import { Plugins } from './plugins'
+import { Auth } from './auth.js'
+import { Config } from './config.js'
+import { Database } from './database.js'
+import { Plugins } from './plugins.js'
 
 interface EventOptions {
   client: Socket

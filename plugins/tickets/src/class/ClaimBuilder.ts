@@ -1,9 +1,9 @@
-import { Database } from "@/controller/database"
-import { Error } from "@/discord/base/CustomResponse"
-import Claim from "@/entity/Claim.entry"
-import Config, { Roles } from "@/entity/Config.entry"
-import Ticket from "@/entity/Ticket.entry"
-import { ActionDrawer } from "@/functions/actionDrawer"
+import { Database } from "@/controller/database.js"
+import { Error } from "@/discord/base/CustomResponse.js"
+import Claim from "@/entity/Claim.entry.js"
+import Config, { Roles } from "@/entity/Config.entry.js"
+import Ticket from "@/entity/Ticket.entry.js"
+import { ActionDrawer } from "@/functions/actionDrawer.js"
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction } from "discord.js"
 const ticket = new Database<Ticket>({ table: 'Ticket' })
 const claim = new Database<Claim>({ table: 'Claim' })
@@ -123,7 +123,7 @@ export class ClaimBuilder {
   }
   async create(): Promise<Claim | Claim[] | undefined> {
     const { guildId, guild } = this.interaction
-    const configs = await config.findOne({ where: { guild: { id: guildId } }, relations: { guild: true } }) as Config
+    const configs = await config.findOne({ where: { guild: { guildId: guildId } }, relations: { guild: true } }) as Config
     const permissions = this.permissions(configs?.roles ?? [])
   
     if (this.embed === undefined || this.buttons === undefined) await this.render()
@@ -149,15 +149,13 @@ export class ClaimBuilder {
     return
   }
 
-  async delete ({ id }: { id: number }) {
+  async delete (id: number) {
     const claimData = await claim.findOne({ where: { id } })
     if (claimData === null) return await new Error({ element: 'claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
 
     const channel = await this.interaction.client.channels.fetch(claimData.channelId).catch(async() => null)
-
     if (channel === null) return await new Error({ element: 'do claim', interaction: this.interaction }).notFound({ type: "Channel" }).reply()
     if (!channel.isTextBased()) return await new Error({ element: 'concluir a ação, pois o channel não é um TextBased', interaction: this.interaction }).notPossible().reply()
-
 
     const message = await channel.messages.fetch(claimData.messageId).catch(() => null)
     if (message !== null && message.deletable) await message.delete()

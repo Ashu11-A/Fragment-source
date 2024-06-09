@@ -15,7 +15,7 @@ new Event({
         // if (enabled !== undefined && enabled === false) return
 
         // const logsDB = await db.guilds.get(`${interaction?.guild?.id}.channel.logs`) as string
-        const config = await new Database<Config>({ table: 'Config' }).findOne({ where: { guild: { id: guild.id } }, relations: { guild: true } })
+        const config = await new Database<Config>({ table: 'Config' }).findOne({ where: { guild: { guildId: guild.id } }, relations: { guild: true } })
 
         if (config?.logs === undefined) return
 

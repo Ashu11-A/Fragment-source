@@ -1,10 +1,13 @@
-import { BaseEntity, Entity, JoinColumn, OneToOne, PrimaryColumn } from "typeorm";
+import { BaseEntity, Column, Entity, JoinColumn, OneToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import Config from "./Config.entry";
 
 @Entity({ name: 'guild_base' })
 export default class Guild extends BaseEntity {
-  @PrimaryColumn()
-    id!: string
+  @PrimaryGeneratedColumn()
+    id!: number
+
+  @Column({ type: 'text' })
+    guildId!: string
   
   @OneToOne(() => Config, (config) => config.guild)
   @JoinColumn()

@@ -1,14 +1,14 @@
-import { TemplateBuilder } from "@/class/TemplateBuilder";
-import { Database } from "@/controller/database";
-import TemplateTable from "@/entity/Template.entry";
-import { ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, ColorResolvable, Colors, PermissionFlagsBits, resolveColor } from "discord.js";
-import { Command } from "../base";
+import { TemplateBuilder } from "@/class/TemplateBuilder.js";
+import { Database } from "@/controller/database.js";
+import { Command } from "@/discord/base/index.js";
+import TemplateTable from "@/entity/Template.entry.js";
+import { ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, Colors, PermissionFlagsBits } from "discord.js";
 
 const templateDb = new Database<TemplateTable>({ table: 'Template' })
 
 new Command({
   name: 'ticket',
-  description: 'Sistema de tickets por comando',
+  description: '[ 🎫 Ticket ] Comandos slash dos tickets',
   type: ApplicationCommandType.ChatInput,
   defaultMemberPermissions: PermissionFlagsBits.Administrator,
   dmPermission: false,
@@ -66,6 +66,44 @@ new Command({
           type: ApplicationCommandOptionType.Boolean,
         }
       ]
+    },
+    {
+      name: 'manage',
+      description: '[ 🎫 Ticket ] Gerenciar os tickets.',
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [
+        {
+          name: 'add-user',
+          description: '[ 🎫 Ticket ] Adiciona um usuário no ticket atual.',
+          type: ApplicationCommandOptionType.User,
+          required: false
+        },
+        {
+          name: 'remove-user',
+          description: '[ 🎫 Ticket ] Remove um usuário do ticket atual.',
+          type: ApplicationCommandOptionType.String,
+          autocomplete: true,
+          required: false
+        },
+        {
+          name: 'create-call',
+          description: '[ 🎫 Ticket ] Criar uma call de suporte para o ticket atual',
+          type: ApplicationCommandOptionType.Boolean,
+          required: false
+        },
+        {
+          name: 'del-ticket',
+          description: '[ 🎫 Ticket ] Força o ticket atual a ser apagado.',
+          type: ApplicationCommandOptionType.Boolean,
+          required: false
+        },
+        {
+          name: 'del-all-tickets',
+          description: '[ 🎫 Ticket ] Deleta todos os tickets!',
+          type: ApplicationCommandOptionType.Boolean,
+          required: false
+        }
+      ]
     }
   ],
   async autoComplete(interaction) {
@@ -75,7 +113,7 @@ new Command({
 
     switch (options.getFocused(true).name) {
     case 'message_id': {
-      const templateData = await templateDb.find({ where: { guild: { id: guildId } } })
+      const templateData = await templateDb.find({ where: { guild: { guildId: guildId } } })
       respond.push(...templateData.map((template) => ({ name: template?.embed?.title ?? template.messageId, value: template.messageId })))
       break 
     }

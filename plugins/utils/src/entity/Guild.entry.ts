@@ -1,16 +1,19 @@
-import { BaseEntity, Entity, JoinColumn, OneToMany, OneToOne, PrimaryColumn } from "typeorm";
+import { BaseEntity, Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import Config from "./Config.entry";
 import Staff from "./Staff.entry";
 
 @Entity({ name: 'guild_utils' })
 export default class Guild extends BaseEntity {
-    @PrimaryColumn()
-      id!: string
+  @PrimaryGeneratedColumn()
+    id!: number
 
-    @OneToOne(() => Config, (config) => config.guild, { cascade: true })
-    @JoinColumn()
-      config!: Config
+  @Column({ type: 'text' })
+    guildId!: string
 
-    @OneToMany(() => Staff, (staff) => staff.guild, { cascade: true })
-      staff!: Staff[]
+  @OneToOne(() => Config, (config) => config.guild, { cascade: true })
+  @JoinColumn()
+    config!: Config
+
+  @OneToMany(() => Staff, (staff) => staff.guild, { cascade: true })
+    staff!: Staff[]
 }

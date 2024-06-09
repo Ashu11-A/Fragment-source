@@ -1,7 +1,7 @@
 import { APIEmbed } from "discord.js";
-import { BaseEntity, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import Guild from "./Guild.entry";
-import Ticket from "./Ticket.entry";
+import { BaseEntity, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Relation } from "typeorm";
+import Guild from "./Guild.entry.js";
+import Ticket from "./Ticket.entry.js";
 
 export interface Properties {
     [key: string]: boolean | string
@@ -29,11 +29,11 @@ export default class Template extends BaseEntity {
     @PrimaryGeneratedColumn()
       id!: number
 
-    @ManyToOne(() => Guild, (guild) => guild.templates)
-      guild!: Guild
+    @ManyToOne(() => Guild, (guild) => guild.templates, { cascade: true })
+      guild!: Relation<Guild>
 
     @OneToMany(() => Ticket, (ticket) => ticket.template)
-      tickets!: Template[]
+      tickets!: Relation<Template>[]
 
     @Column({ type: 'text' })
       messageId!: string

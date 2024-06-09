@@ -55,7 +55,7 @@ new Command({
         return
     }
 
-    const config = await new Database<Config>({ table: 'Config' }).findOne({ where: { guild: { id: guildId ?? undefined } }, relations: { guild: true } })
+    const config = await new Database<Config>({ table: 'Config' }).findOne({ where: { guild: { guildId: guildId ?? undefined } }, relations: { guild: true } })
 
     if (config?.logStaff === undefined) {
         await interaction.editReply({
@@ -92,7 +92,7 @@ new Command({
     message = `adicionado a equipe como <@&${cargo.id}>`
     member.roles.add(cargo.id)
         .then(async () => {
-            const create = await new Database<Staff>({ table: 'Staff' }).create({ guild: { id: guildId }, role: cargo.id, userName: user.username, userId: user.id })
+            const create = await new Database<Staff>({ table: 'Staff' }).create({ guild: { guildId }, role: cargo.id, userName: user.username, userId: user.id })
             await new Database<Staff>({ table: 'Staff' }).save(create).catch(() => error = true)
         })
         .catch(async (err: { code?: number }) => {
@@ -108,7 +108,7 @@ new Command({
         message = 'não integra mais a equipe'
         member.roles.remove(cargo.id)
             .then(async () => {
-                await new Database<Staff>({ table: 'Staff' }).delete({ guild: { id: guildId }, userId: user.id })
+                await new Database<Staff>({ table: 'Staff' }).delete({ guild: { guildId }, userId: user.id })
             })
             .catch(async (err: { code?: number }) => {
                 console.log(err)

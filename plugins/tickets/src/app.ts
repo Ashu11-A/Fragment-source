@@ -1,9 +1,9 @@
+import { Discord } from '@/discord/base/index.js'
 import { argv } from 'process'
 import 'reflect-metadata'
-import { metadata } from '.'
-import { Crons } from './class/Crons'
-import { SocketClient } from './controller/socket'
-import { Discord } from '@/discord/base'
+import { Crons } from './class/Crons.js'
+import { SocketClient } from './controller/socket.js'
+import { metadata } from './index.js'
 
 interface Args {
   command: string

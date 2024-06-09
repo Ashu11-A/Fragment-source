@@ -1,9 +1,10 @@
-import { exists, readFile, writeFile } from "fs-extra";
-import { RootPATH } from "..";
+import { RootPATH } from "@/index.js";
 import prompt from 'prompts'
 import { marked, Renderer } from 'marked'
 import TerminalRenderer from 'marked-terminal'
 import { watch } from 'chokidar'
+import { existsSync } from "fs";
+import { readFile, writeFile } from "fs/promises";
 
 let watched = false
 
@@ -15,7 +16,7 @@ export class License {
 
       wather.on('all', () => this.checker())
     }
-    if (await exists(`${RootPATH}/.license`)) {
+    if (existsSync(`${RootPATH}/.license`)) {
       const data = await readFile(`${RootPATH}/.license`, { encoding: 'utf-8' })
       const accept = /true/i.test(data)
       if (!accept) return await this.ask()

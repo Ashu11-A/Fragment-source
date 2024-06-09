@@ -6,8 +6,8 @@ export interface ConfigOptions extends ApplicationCommandSubCommandData {
 }
 
 export class Config {
-    public static all: ConfigOptions[] = []
-    constructor (data: ConfigOptions) {
-        Config.all.push(data)
-    }
+  public static all: ConfigOptions[] = []
+  constructor (data: ConfigOptions) {
+    Config.all.push(data)
+  }
 }

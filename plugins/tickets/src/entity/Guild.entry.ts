@@ -1,20 +1,23 @@
-import { BaseEntity, Entity, JoinColumn, OneToMany, OneToOne, PrimaryColumn } from "typeorm";
-import Ticket from "./Ticket.entry";
-import Config from "./Config.entry";
-import Template from "./Template.entry";
+import { BaseEntity, Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, Relation } from "typeorm";
+import Config from "./Config.entry.js";
+import Template from "./Template.entry.js";
+import Ticket from "./Ticket.entry.js";
 
 @Entity({ name: 'guild_tickets' })
 export default class Guild extends BaseEntity {
-    @PrimaryColumn()
-      id!: string
+  @PrimaryGeneratedColumn()
+    id!: number
 
-    @OneToMany(() => Ticket, (ticket) => ticket.guild, { cascade: true })
-      tickets!: Ticket[]
+  @Column({ type: 'text' })
+    guildId!: string
 
-    @OneToMany(() => Template, (ticket) => ticket.guild, { cascade: true })
-      templates!: Template[]
+  @OneToMany(() => Ticket, (ticket) => ticket.guild, { cascade: true })
+    tickets!: Relation<Ticket>[]
 
-    @OneToOne(() => Config, (config) => config.guild, { cascade: true })
-    @JoinColumn()
-      configs!: Config
+  @OneToMany(() => Template, (ticket) => ticket.guild)
+    templates!: Relation<Template>[]
+
+  @OneToOne(() => Config, (config) => config.guild, { cascade: true })
+  @JoinColumn()
+    configs!: Relation<Config>
 }

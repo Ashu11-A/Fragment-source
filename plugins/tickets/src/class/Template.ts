@@ -1,8 +1,8 @@
-import { Database } from "@/controller/database"
-import TemplateTable, { TypeTemplate } from "@/entity/Template.entry"
-import { checkChannel } from "@/functions/checkChannel"
+import { Database } from "@/controller/database.js"
+import TemplateTable, { TypeTemplate } from "@/entity/Template.entry.js"
+import { checkChannel } from "@/functions/checkChannel.js"
 import { ButtonInteraction, CacheType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js"
-import { TemplateButtonBuilder } from "./TemplateButtonBuilder"
+import { TemplateButtonBuilder } from "./TemplateButtonBuilder.js"
 const template = new Database<TemplateTable>({ table: 'Template' })
 interface TicketOptions {
     interaction: CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction<CacheType>
@@ -40,7 +40,7 @@ export class Template {
       footer: { text: `Equipe ${this.interaction.guild?.name}`, iconURL: (this.interaction?.guild?.iconURL({ size: 64 }) ?? undefined) }
     })
 
-    const buttonBuilder = new TemplateButtonBuilder({ interaction: this.interaction })
+    const buttonBuilder = new TemplateButtonBuilder()
     const components = buttonBuilder
       .setMode('debug')
       .setType(TypeTemplate.Button)
@@ -48,10 +48,10 @@ export class Template {
 
     await channel.send({ embeds: [embed], components }).then(async (message) => {
       const create = await template.create({
-        guild: { id: guildId },
+        guild: { guildId },
         messageId: message.id,
         channelId: channel.id,
-        embed: embed.data
+        embed: embed.data,
       })
       await template.save(create)
     })

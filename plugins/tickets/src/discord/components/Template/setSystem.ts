@@ -1,8 +1,7 @@
-import { Template } from "@/class/Template"
-import { TemplateButtonBuilder } from "@/class/TemplateButtonBuilder"
-import { Database } from "@/controller/database"
-import { Component } from "@/discord/base"
-import TemplateTable, { TypeTemplate } from "@/entity/Template.entry"
+import { TemplateButtonBuilder } from "@/class/TemplateButtonBuilder.js"
+import { Database } from "@/controller/database.js"
+import { Component } from "@/discord/base/index.js"
+import TemplateTable, { TypeTemplate } from "@/entity/Template.entry.js"
 import { EmbedBuilder } from "discord.js"
 
 const template = new Database<TemplateTable>({ table: 'Template' })
@@ -30,7 +29,7 @@ for (const [action, type] of Object.entries(actions)) {
               }).setColor('Green')]
             })
 
-            const buttonBuilder = new TemplateButtonBuilder({ interaction })
+            const buttonBuilder = new TemplateButtonBuilder()
             const components = buttonBuilder
               .setMode('debug')
               .setProperties(templateData.properties)

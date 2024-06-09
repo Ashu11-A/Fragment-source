@@ -1,4 +1,4 @@
-import { Discord } from "@/discord/base";
+import { Discord } from "@/discord/base/index.js";
 import { CacheType, CommandInteraction, DMChannel, EmbedBuilder, NewsChannel, PartialDMChannel, PrivateThreadChannel, PublicThreadChannel, StageChannel, TextChannel, VoiceChannel } from "discord.js";
 
 export async function checkChannel(channelId: string, interaction: CommandInteraction<CacheType>): Promise<DMChannel | PartialDMChannel | NewsChannel | StageChannel | TextChannel | PrivateThreadChannel | PublicThreadChannel<any> | VoiceChannel | false> {

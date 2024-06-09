@@ -1,9 +1,10 @@
 import { EventEmitter } from 'events'
 import { randomUUID } from 'crypto'
 import cronParser, { type CronExpression } from 'cron-parser'
-import { join } from 'path'
+import { dirname, join } from 'path'
 import { glob } from 'glob'
-import { console } from '@/controller/console'
+import { console } from '@/controller/console.js'
+import { fileURLToPath } from 'url'
 
 /**
  * Configuration object for defining recurring cron jobs.
@@ -168,6 +169,7 @@ export class Crons<Metadata> {
   }
 
   public static async register() {
+    const __dirname = dirname(fileURLToPath(import.meta.url))
     const path = join(__dirname, '../')
     const paths = await glob(['crons/**/*.{ts,js}'], { cwd: path })
   

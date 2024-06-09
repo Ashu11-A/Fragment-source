@@ -1,11 +1,11 @@
-import { AccessToken, AuthData, BotInfo, User } from '@/interfaces/auth'
-import { DataCrypted } from '@/interfaces/crypt'
+import { AccessToken, AuthData, BotInfo, User } from '@/interfaces/auth.js'
+import { DataCrypted } from '@/interfaces/crypt.js'
 import { CronJob } from 'cron'
 import { rm } from 'fs/promises'
 import prompts, { Choice, PromptObject } from 'prompts'
-import { RootPATH } from '..'
+import { RootPATH } from '@/index.js'
 import { api } from '../../package.json'
-import { credentials, Crypt } from './crypt'
+import { credentials, Crypt } from './crypt.js'
 
 const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g
 const crypt = new Crypt()

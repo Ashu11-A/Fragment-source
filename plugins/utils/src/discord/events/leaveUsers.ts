@@ -9,7 +9,7 @@ new Event({
     console.log(`Um usuário saiu do servidor: | ${interaction.guild.name} | ${interaction.user.username}`)
     try {
       const { guild, user } = interaction
-      const config = await new Database<Config>({ table: 'Config' }).findOne({ where: { guild: { id: guild.id } }, relations: { guild: true } })
+      const config = await new Database<Config>({ table: 'Config' }).findOne({ where: { guild: { guildId: guild.id } }, relations: { guild: true } })
       // const enabled = await db.system.get(`${interaction.guild?.id}.status.systemWelcomer`)
       // if (enabled !== undefined && enabled === false) return
 

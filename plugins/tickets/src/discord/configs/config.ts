@@ -1,9 +1,9 @@
 import { ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ChannelType, EmbedBuilder } from "discord.js";
-import { Database } from "@/controller/database";
-import ConfigORM from "@/entity/Config.entry";
-import { Config } from "../base/Config";
-import { Template } from "@/class/Template";
-import { ButtonBuilder } from "../base/CustomIntetaction";
+import { Database } from "@/controller/database.js";
+import ConfigORM from "@/entity/Config.entry.js";
+import { Config } from "../base/Config.js";
+import { Template } from "@/class/Template.js";
+import { ButtonBuilder } from "../base/CustomIntetaction.js";
 
 new Config({
   name: 'ticket',
@@ -70,7 +70,7 @@ new Config({
       switch (options.data[0].options?.[0].name) {
       case 'rem-role-team': {
         haveInteraction = true
-        const roles = (await config.findOne({ where: { guild: { id: guildId } } }))?.roles
+        const roles = (await config.findOne({ where: { guild: { guildId } } }))?.roles
         console.log(roles)
         if (roles !== undefined) {
           for (const role of roles) {
@@ -99,7 +99,7 @@ new Config({
     const template = new Template({ interaction })
 
     const config = new Database<ConfigORM>({ table: 'Config' })
-    const dataDB = await config.findOne({ where: { guild: { id: guildId } }})
+    const dataDB = await config.findOne({ where: { guild: { guildId } }})
     let data = dataDB ?? {} as Record<string, any>
     const text = []
 
@@ -179,7 +179,7 @@ new Config({
       if (dataDB !== null) {
         await config.save(data)
       } else {
-        await config.save(await config.create({ ...data, guild: { id: guildId } }))
+        await config.save(await config.create({ ...data, guild: { guildId } }))
       }
 
       await interaction.editReply({

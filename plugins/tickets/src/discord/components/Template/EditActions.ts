@@ -1,10 +1,9 @@
-import { Template } from "@/class/Template";
-import { TemplateButtonBuilder } from "@/class/TemplateButtonBuilder";
-import { Database } from "@/controller/database";
-import { Component } from "@/discord/base";
-import { ModalBuilder } from "@/discord/base/CustomIntetaction";
-import TemplateTable from "@/entity/Template.entry";
-import { checkHexCor, checkURL } from "@/functions/checker";
+import { TemplateButtonBuilder } from "@/class/TemplateButtonBuilder.js";
+import { Database } from "@/controller/database.js";
+import { Component } from "@/discord/base/index.js";
+import { ModalBuilder } from "@/discord/base/CustomIntetaction.js";
+import TemplateTable from "@/entity/Template.entry.js";
+import { checkHexCor, checkURL } from "@/functions/checker.js";
 import { TextInputBuilder } from "@discordjs/builders";
 import { ActionRowBuilder, APIEmbed, APITextInputComponent, ComponentType, EmbedBuilder, HexColorString } from "discord.js";
 const template = new Database<TemplateTable>({ table: 'Template' })
@@ -161,7 +160,7 @@ for (const [action, data] of Object.entries(modalData)) {
 
       await template.save(templateData)
         .then(async () => {
-          const buttonBuilder = new TemplateButtonBuilder({ interaction })
+          const buttonBuilder = new TemplateButtonBuilder()
           const components = buttonBuilder
             .setMode('debug')
             .setProperties(templateData.properties)

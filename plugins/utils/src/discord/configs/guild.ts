@@ -53,7 +53,7 @@ new Config({
 
     /* Database settings */
     const config = new Database<ConfigTable>({ table: 'Config' })
-    const dataDB = await config.findOne({ where: { guild: { id: guildId } }})
+    const dataDB = await config.findOne({ where: { guild: { guildId: guildId } }})
     let data = dataDB ?? {}
     const text = []
 
@@ -96,7 +96,7 @@ new Config({
     if (dataDB !== null) {
       await config.save(data)
     } else {
-      await config.save(await config.create({ ...data, guild: { id: guildId } }))
+      await config.save(await config.create({ ...data, guild: { guildId: guildId } }))
     }
 
     await interaction.editReply({

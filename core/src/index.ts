@@ -1,9 +1,8 @@
-import { existsSync } from 'fs'
 import { readFile } from 'fs/promises'
-import path, { resolve } from 'path'
+import path, { dirname } from 'path'
+import { fileURLToPath } from 'url'
 
-const developmentEnvPath = resolve(process.cwd(), '.env.development')
-const dev = existsSync(developmentEnvPath)
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export const PKG_MODE = `${process.cwd()}/src` !== __dirname
 export const RootPATH: string = PKG_MODE ? path.join(process.cwd()) : path.join(__dirname, '..')

@@ -1,19 +1,14 @@
-import { ButtonBuilder, StringSelectMenuBuilder } from "@/discord/base/CustomIntetaction";
-import { Properties, Select, TypeTemplate } from "@/entity/Template.entry";
-import { ActionDrawer } from "@/functions/actionDrawer";
-import { CommandInteraction, CacheType, ModalSubmitInteraction, ButtonInteraction, StringSelectMenuInteraction, ButtonStyle, ActionRowBuilder } from "discord.js";
-
-type Interaction = CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction<CacheType>
+import { ButtonBuilder, StringSelectMenuBuilder } from "@/discord/base/CustomIntetaction.js";
+import { Properties, Select, TypeTemplate } from "@/entity/Template.entry.js";
+import { ActionDrawer } from "@/functions/actionDrawer.js";
+import { ActionRowBuilder, ButtonStyle } from "discord.js";
 
 export class TemplateButtonBuilder {
-  private readonly interaction
   private mode: 'production' | 'debug' = 'production'
   private type: TypeTemplate = TypeTemplate.Button
   private properties: Properties = {}
   private selects: Select[] = []
-  constructor ({ interaction }: { interaction: Interaction}) {
-    this.interaction = interaction
-  }
+  constructor () {}
 
   setMode(mode: 'production' | 'debug') { this.mode = mode; return this }
   setType(type: TypeTemplate) { this.type = type; return this }

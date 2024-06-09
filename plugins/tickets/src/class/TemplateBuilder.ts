@@ -1,9 +1,9 @@
-import { Database } from "@/controller/database";
-import { Error } from "@/discord/base/CustomResponse";
-import TemplateTable from "@/entity/Template.entry";
+import { Database } from "@/controller/database.js";
+import { Error } from "@/discord/base/CustomResponse.js";
+import TemplateTable from "@/entity/Template.entry.js";
 import { EmbedBuilder } from "@discordjs/builders";
 import { APIEmbed as APIEmbedDiscord, ButtonInteraction, CacheType, Colors, CommandInteraction, MessageComponentInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js";
-import { TemplateButtonBuilder } from "./TemplateButtonBuilder";
+import { TemplateButtonBuilder } from "./TemplateButtonBuilder.js";
 
 const database = new Database<TemplateTable>({ table: 'Template' })
 
@@ -58,7 +58,7 @@ export class TemplateBuilder {
   }
 
   async edit ({ messageId }: { messageId: string }) {
-    const buttonBuilder = new TemplateButtonBuilder({ interaction: this.interaction })
+    const buttonBuilder = new TemplateButtonBuilder()
     const templateData = await database.findOne({ where: { messageId } })
     if (templateData === null) { await new Error({ element: 'o template', interaction: this.interaction }).notFound({ type: 'Database' }).reply(); return }
 
@@ -69,7 +69,7 @@ export class TemplateBuilder {
     if (!channel?.isTextBased()) { await new Error({ element: templateData.messageId, interaction: this.interaction }).notFound({ type: "Message" }).reply(); return }
 
     if (Object.values(Colors).find((color) => color === Number(this.options.color)) === undefined) {
-      await new Error({ element: 'cor', interaction: this.interaction }).invalidProperty('Format').reply()
+      await new Error({ element: 'cor', interaction: this.interaction }).invalidProperty().reply()
       return
     }
 

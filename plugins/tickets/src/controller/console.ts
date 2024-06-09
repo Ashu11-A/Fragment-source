@@ -1,4 +1,4 @@
-import { SocketClient } from "./socket";
+import { SocketClient } from "./socket.js";
 
 export class console {
   constructor () {}

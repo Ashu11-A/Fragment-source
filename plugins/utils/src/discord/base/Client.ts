@@ -1,15 +1,16 @@
-import { console } from '@/controller/console'
-import { Database } from '@/controller/database'
-import { SocketClient } from '@/controller/socket'
-import Guild from '@/entity/Guild.entry'
-import ConfigEntry from '@/entity/Config.entry'
+import { console } from '@/controller/console.js'
+import { Database } from '@/controller/database.js'
+import { SocketClient } from '@/controller/socket.js'
+import Guild from '@/entity/Guild.entry.js'
+import ConfigEntry from '@/entity/Config.entry.js'
 import { APIMessageComponentEmoji, ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, CacheType, Client, IntentsBitField, Partials, type AutocompleteInteraction, type BitFieldResolvable, type ChatInputCommandInteraction, type CommandInteraction, type GatewayIntentsString, type MessageContextMenuCommandInteraction, type UserContextMenuCommandInteraction } from 'discord.js'
 import { glob } from 'glob'
-import { join } from 'path'
-import { Command } from './Commands'
-import { Component } from './Components'
-import { Config } from './Config'
-import { name } from '../../../package.json'
+import { dirname, join } from 'path'
+import { Command } from './Commands.js'
+import { Component } from './Components.js'
+import { Config } from './Config.js'
+import { fileURLToPath } from 'url'
+import { packageData } from '@/index.js'
 export class Discord {
   public static client: Client<boolean>
   private timestamp!: number
@@ -18,6 +19,7 @@ export class Discord {
   constructor () {}
 
   public static async register () {
+    const __dirname = dirname(fileURLToPath(import.meta.url))
     const dir = join(__dirname, '..')
     const paths = await glob([
       'commands/**/*.{ts,js}',
@@ -93,7 +95,7 @@ export class Discord {
 
       if (!interaction.isModalSubmit() && !interaction.isMessageComponent()) return
 
-      if (interaction.customId.split('_')[0] !== name) return
+      if (interaction.customId.split('_')[0] !== packageData.name) return
 
       this.customId = interaction.customId
       this.username = interaction.user.username
@@ -139,12 +141,12 @@ export class Discord {
       const config = new Database<ConfigEntry>({ table: 'Config' })
       for (const [guildId, guild] of client.guilds.cache) {
 
-        if (await guildClass.findOne({ where: { id: guildId } }) !== null) {
+        if (await guildClass.findOne({ where: { guildId: guildId } }) !== null) {
           console.log(`Servidor ${guild.name} está registrado no banco de dados!`)
           continue
         }
         
-        const result = await guildClass.save(await guildClass.create({ id: guildId })) as Guild
+        const result = await guildClass.save(await guildClass.create({ guildId: guildId })) as Guild
         await config.save(await config.create({ guild: { id: result.id } }))
       }
     })

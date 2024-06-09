@@ -1,7 +1,7 @@
 import express, { type Application } from 'express'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
-import { Event } from './events'
+import { Event } from './events.js'
 
 export class SocketController {
   protected readonly app: Application

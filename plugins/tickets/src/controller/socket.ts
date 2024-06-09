@@ -1,12 +1,14 @@
+import { Config } from '@/discord/base/Config.js'
+import { Command, Component, Discord, Event } from '@/discord/base/index.js'
 import { readFile } from 'fs/promises'
 import { glob } from 'glob'
-import { basename, join } from 'path'
+import { basename, dirname, join } from 'path'
 import { io, type Socket } from 'socket.io-client'
-import { metadata } from '..'
-import { Command, Component, Discord, Event } from '@/discord/base'
-import { formatBytes } from '../functions/format'
-import { Config } from '@/discord/base/Config'
+import { fileURLToPath } from 'url'
+import { formatBytes } from '../functions/format.js'
+import { metadata } from '../index.js'
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
 export class SocketClient {
   public static key: string
   public static client: Socket

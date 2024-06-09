@@ -1,13 +1,14 @@
-import { isJson } from "@/functions/validate";
-import { DataCrypted } from "@/interfaces/crypt";
+import { isJson } from "@/functions/validate.js";
+import { DataCrypted } from "@/interfaces/crypt.js";
 import { compare, hash } from 'bcrypt';
 import { passwordStrength } from 'check-password-strength';
 import { watch } from 'chokidar';
 import { randomBytes } from 'crypto';
-import { AES, Blowfish, enc, TripleDES } from "crypto-js";
-import { exists, readFile, rm, writeFile } from "fs-extra";
+import CryptoJS from 'crypto-js';
 import prompts from "prompts";
-import { RootPATH } from "..";
+import { RootPATH } from "@/index.js";
+import { existsSync } from "fs";
+import { readFile, rm, writeFile } from "fs/promises";
 
 export const credentials = new Map<string, string | object | boolean | number>()
 
@@ -15,9 +16,9 @@ export class Crypt {
   constructor() {}
 
   async checker () {
-    if (!(await exists(`${RootPATH}/.key`)) && process.env?.Token === undefined) await this.create()
+    if (!existsSync(`${RootPATH}/.key`) && process.env?.Token === undefined) await this.create()
 
-    if (await exists(`${RootPATH}/.key`) && await exists(`${RootPATH}/.hash`)) {
+    if (existsSync(`${RootPATH}/.key`) && existsSync(`${RootPATH}/.hash`)) {
         
     }
 
@@ -97,21 +98,21 @@ export class Crypt {
   }
 
   async delete () {
-    if (await exists(`${RootPATH}/.key`)) await rm(`${RootPATH}/.key`)
-    if (await exists(`${RootPATH}/.hash`)) await rm(`${RootPATH}/.hash`)
-    if (await exists(`${RootPATH}/.env`)) await rm(`${RootPATH}/.env`)
+    if (existsSync(`${RootPATH}/.key`)) await rm(`${RootPATH}/.key`)
+    if (existsSync(`${RootPATH}/.hash`)) await rm(`${RootPATH}/.hash`)
+    if (existsSync(`${RootPATH}/.env`)) await rm(`${RootPATH}/.env`)
   }
 
   async read (): Promise<DataCrypted | {}> {
     const token = this.getToken()
-    if (!(await exists(`${RootPATH}/.key`))) return {}
+    if (!existsSync(`${RootPATH}/.key`)) return {}
     await this.validate()
     console.log('⚠️ Informações sensíveis sendo lidas...')
     const data = await readFile(`${RootPATH}/.key`, { encoding: 'utf-8' }).catch(() => '')
     try {
-      const TripleDESCrypt =  TripleDES.decrypt(data, token).toString(enc.Utf8)
-      const BlowfishCrypt =  Blowfish.decrypt(TripleDESCrypt, token).toString(enc.Utf8)
-      const AESCrypt =  AES.decrypt(BlowfishCrypt, token).toString(enc.Utf8)
+      const TripleDESCrypt =  CryptoJS.TripleDES.decrypt(data, token).toString(CryptoJS.enc.Utf8)
+      const BlowfishCrypt =  CryptoJS.Blowfish.decrypt(TripleDESCrypt, token).toString(CryptoJS.enc.Utf8)
+      const AESCrypt =  CryptoJS.AES.decrypt(BlowfishCrypt, token).toString(CryptoJS.enc.Utf8)
 
       const outputData = JSON.parse(AESCrypt) as DataCrypted
 
@@ -134,9 +135,9 @@ export class Crypt {
     const token = this.getToken()
     const data = Object.assign(await this.read(), value)
 
-    const AESCrypt = AES.encrypt(JSON.stringify(data), token).toString()
-    const BlowfishCrypt = Blowfish.encrypt(AESCrypt, token).toString()
-    const TripleDESCrypt = TripleDES.encrypt(BlowfishCrypt, token).toString()
+    const AESCrypt = CryptoJS.AES.encrypt(JSON.stringify(data), token).toString()
+    const BlowfishCrypt = CryptoJS.Blowfish.encrypt(AESCrypt, token).toString()
+    const TripleDESCrypt = CryptoJS.TripleDES.encrypt(BlowfishCrypt, token).toString()
     const hashCrypt = await hash(TripleDESCrypt, 10)
 
     await writeFile(`${RootPATH}/.key`, TripleDESCrypt)

@@ -47,7 +47,7 @@ new Command({
     const reason = options.getString('motivo') ?? 'Nenhum motivo especificado'
     await interaction.deferReply({ ephemeral: true })
 
-    const logsDB = await new Database<Config>({ table: 'Config' }).findOne({ where: { guild: { id: guildId ?? undefined  }}, relations: { guild: true } })
+    const logsDB = await new Database<Config>({ table: 'Config' }).findOne({ where: { guild: { guildId: guildId ?? undefined  }}, relations: { guild: true } })
     const logsChannel = logsDB?.logBanKick !== undefined ? await interaction.guild?.channels.fetch(logsDB?.logBanKick) as TextChannel : undefined
 
     if (user.id === interaction.user.id) {

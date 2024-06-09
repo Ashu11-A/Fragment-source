@@ -9,7 +9,6 @@ interface ErrorOptions {
 }
 
 type TypesNotFound = 'Database' | 'Channel' | 'Message'
-type TypesInvalidProperty = 'Format'
 
 export class Error {
   private readonly options: ErrorOptions
@@ -42,7 +41,7 @@ export class Error {
     return this
   }
 
-  invalidProperty (type: TypesInvalidProperty) {
+  invalidProperty () {
     const { element, color } = this.options
     const embed = new EmbedBuilder({
       title: `Propriedade ${element} é invalida!`

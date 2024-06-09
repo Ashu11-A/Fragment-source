@@ -1,8 +1,8 @@
-import { TemplateButtonBuilder } from "@/class/TemplateButtonBuilder";
-import { Database } from "@/controller/database";
-import { Component } from "@/discord/base";
-import { ModalBuilder } from "@/discord/base/CustomIntetaction";
-import TemplateTable from "@/entity/Template.entry";
+import { TemplateButtonBuilder } from "@/class/TemplateButtonBuilder.js";
+import { Database } from "@/controller/database.js";
+import { Component } from "@/discord/base/index.js";
+import { ModalBuilder } from "@/discord/base/CustomIntetaction.js";
+import TemplateTable from "@/entity/Template.entry.js";
 import { ActionRowBuilder, APITextInputComponent, ComponentType, EmbedBuilder, TextInputBuilder } from "discord.js";
 
 const templateDb = new Database<TemplateTable>({ table: 'Template' })
@@ -63,7 +63,7 @@ new Component({
     const emoji = interaction.fields.getTextInputValue('emoji')
     const description = interaction.fields.getTextInputValue('description')
     const templateData = await templateDb.findOne({ where: { messageId: interaction.message?.id } })
-    const buttonBuilder = new TemplateButtonBuilder({ interaction })
+    const buttonBuilder = new TemplateButtonBuilder()
 
     if (templateData === null) {
       await interaction.reply({ embeds: [notFound] })
@@ -110,19 +110,18 @@ new Component({
   customId: 'EditSelectMenu',
   type: 'StringSelect',
   async run(interaction) {
-    const { values } = interaction
-    const buttonBuilder = new TemplateButtonBuilder({ interaction })
+    // const buttonBuilder = new TemplateButtonBuilder()
     
     const templateData = await templateDb.findOne({ where: { messageId: interaction.message.id } })
     if (templateData === null) return
     
-    const components = buttonBuilder
-      .setMode('debug')
-      .setProperties(templateData.properties)
-      .setSelects(templateData.selects)
-      .setType(templateData.type)
-      .render()
-    
+    // const components = buttonBuilder
+    //   .setMode('debug')
+    //   .setProperties(templateData.properties)
+    //   .setSelects(templateData.selects)
+    //   .setType(templateData.type)
+    //   .render()    
+
   },
 })
 

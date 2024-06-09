@@ -1,5 +1,5 @@
-import { BaseEntity, PrimaryGeneratedColumn, Column, OneToOne, Entity } from "typeorm"
-import Ticket from "./Ticket.entry"
+import { BaseEntity, PrimaryGeneratedColumn, Column, OneToOne, Entity, Relation } from "typeorm"
+import Ticket from "./Ticket.entry.js"
 
 @Entity({ name: 'claim' })
 export default class Claim extends BaseEntity {
@@ -7,7 +7,7 @@ export default class Claim extends BaseEntity {
       id!: number
 
     @OneToOne(() => Ticket, (ticket) => ticket.claim)
-      ticket!: Ticket
+      ticket!: Relation<Ticket>
 
     @Column({ type: 'text' })
       channelId!: string
