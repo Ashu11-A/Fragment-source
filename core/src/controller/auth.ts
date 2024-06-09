@@ -1,114 +1,80 @@
-import { AES, enc } from 'crypto-js'
-import { readFile, rm, writeFile } from 'fs/promises'
-import { RootPATH } from '..'
-import { api, key } from '../../package.json'
+import { AccessToken, AuthData, BotInfo, User } from '@/interfaces/auth'
+import { DataCrypted } from '@/interfaces/crypt'
 import { CronJob } from 'cron'
+import { rm } from 'fs/promises'
 import prompts, { Choice, PromptObject } from 'prompts'
-import { existsSync } from 'fs'
+import { RootPATH } from '..'
+import { api } from '../../package.json'
+import { credentials, Crypt } from './crypt'
 
-type Credentials = {
-    email: string
-    password: string
-    uuid: string
-    token: string
-}
+const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g
+const crypt = new Crypt()
+let attempts = 0
+let lastTry: Date | undefined
 
-interface User {
-    name: string;
-    email: string;
-    uuid: string;
-}
-
-interface AccessToken {
-    token: string;
-    expireIn: number;
-}
-
-interface RefreshToken {
-    token: string;
-    expireIn: number;
-}
-
-interface AuthData {
-    user: User;
-    accessToken: AccessToken;
-    refreshToken: RefreshToken;
-}
-interface BotInfo {
-    uuid: string;
-    name: string;
-    token: string
-    enabled: boolean;
-    expired: boolean;
-    expire_at: string;
-    created_at: string;
-}
-
+const questions: PromptObject<string>[] = [
+  {
+    name: 'email',
+    message: 'Email',
+    type: 'text',
+    initial: 'Cadastrado em https://fragmentbot.com',
+    validate: (value: string) => !emailRegex.test(value) ? 'Informe um email valido!' : true
+  },
+  {
+    name: 'password',
+    message: 'Senha (Cadastrado em https://fragmentbot.com)',
+    type: 'password',
+    validate: (value: string) => value.length < 0 ? 'Senha muito pequena!' : true },
+  {
+    name: 'uuid',
+    message: 'UUID', 
+    type: 'text',
+    initial: 'Visível no Dashboard (https://fragmentbot.com)',
+    validate: (value: string) => value.split('-').length < 5 ? 'UUID invalido!' : true },
+  {
+    name: 'token',
+    message: 'Token (Token Do seu Bot https://discord.com/developers/applications)',
+    type: 'password'
+  }
+]
 export class Auth {
-  public static user: User
-  public static accessToken: AccessToken
-  public static bot: BotInfo | undefined
-  private credentials: Credentials | undefined
+  public static user?: User
+  public static bot?: BotInfo
+  private accessToken?: AccessToken
     
-  async askCredentials ({ question }: { question?: (keyof Credentials)[]  }): Promise<Credentials> {
-    const questions: PromptObject<string>[] = [
-      { name: 'email', message: 'Email', type: 'text', warn: 'Apenas cadastrado em https://paymentbot.com' },
-      { name: 'password', message: 'Senha', type: 'password', warn: 'Apenas cadastrado em https://paymentbot.com' },
-      { name: 'uuid', message: 'UUID', type: 'text', warn: 'Visível no Dashboard (https://paymentbot.com)' },
-      { name: 'token', message: 'Token', type: 'password', warn: 'Token Do seu Bot https://discord.com/developers/applications' }
-    ]
+  async askCredentials ({ question }: { question?: (keyof DataCrypted)[]  }): Promise<DataCrypted> {
+    const filteredQuestions = questions.filter((propmt) => question === undefined || question?.includes(propmt.name as keyof DataCrypted))
+    const response = await prompts(filteredQuestions) as DataCrypted
+    
+    if (Object.keys(response).length !== filteredQuestions.length || Object.entries(response).filter(([, content]) => content === '').length > 0) {
+      throw new Error('Formulário não respondido!')
+    }
 
-    const filter = questions.filter((propmt) => question === undefined || question?.includes(propmt.name as keyof Credentials))
-    const response = await prompts(filter) as Credentials
-    
-    if (Object.keys(response).length !== filter.length || Object.entries(response).filter(([, content]) => content === '').length > 0) throw new Error('Formulário não respondido!')
-    await this.encryptCredentials(response)
+    await crypt.write(response)
     return response
   }
 
-  async encryptCredentials(credentials: Credentials): Promise<void> {
-    credentials = {
-      ...(await this.decryptCredentials()),
-      ...credentials
-    }
 
-    await writeFile(`${RootPATH}/.key`, AES.encrypt(JSON.stringify(credentials), key).toString())
-  }
+  async login(): Promise<User> {
+    await this.timeout()
+    await new Crypt().read()
+    const email = credentials.get('email')
+    const password = credentials.get('password')
 
-  async decryptCredentials(): Promise<Credentials> {
-    const encrypted = existsSync(`${RootPATH}/.key`) ? AES.decrypt(await readFile(`${RootPATH}/.key`, { encoding: 'utf-8' }), key).toString(enc.Utf8) : '{}'
-    return JSON.parse(encrypted)
-  }
-
-
-  async initialize() {
-    const credentials = await this.decryptCredentials()
-    const keys = ['email', 'password', 'uuid', 'token']
-    let hasError = false
-
-    for (const key of keys) {
-      const credential = credentials[key as keyof Credentials]
-      if (credential === undefined || credential === '') hasError = true
-    }
-    if (hasError) {
+    if (email === undefined || password === undefined) {
       await this.askCredentials({})
-      await this.initialize()
-      return
-    }
-    this.credentials = credentials
-  }
-
-  async login(): Promise<AuthData | undefined> {
-    if (this.credentials === undefined) {
-      await this.initialize()
+      return await this.login()
     }
 
     const response = await fetch(`${api}/auth/login`, {
       method: 'POST',
-      body: JSON.stringify({ email: this.credentials?.email, password: this.credentials?.password }),
+      body: JSON.stringify({ email: email, password: password }),
       headers: {
         "Content-Type": "application/json",
       }
+    }).catch((err) => {
+      console.log(`🔴 API instável!`)
+      return err
     })
     
     if (!response.ok) {
@@ -120,7 +86,7 @@ export class Auth {
       const conclusion = await prompts({
         type: 'select',
         name: 'Error',
-        message: `Erro ${response.statusText} ao tentar logar!`,
+        message: `Erro ${response?.statusText} ao tentar logar!`,
         choices,
         initial: 1
       })
@@ -129,22 +95,21 @@ export class Auth {
       case 'logout': {
         await this.logout()
         await this.askCredentials({})
-        await this.initialize()
-        await this.login()
+        return await this.login()
       }
       case 'try_again': {
-        await this.login()
+        return await this.login()
       }
+      default: throw new Error('Nenhum elemento selecionado!')
       }
-      return
     }
     const data = await response.json() as AuthData
 
     Auth.user = data.user
-    Auth.accessToken = data.accessToken
+    this.accessToken = data.accessToken
     
     console.log(`\n👋 Olá ${data.user.name}\n`)
-    return data
+    return data.user
   }
 
 
@@ -152,22 +117,36 @@ export class Auth {
     await rm(`${RootPATH}/.key`)
   }
 
-  async validator() {
-    if (this.credentials === undefined) {
-      await this.initialize()
+  async timeout () {
+    if (lastTry !== undefined && (new Date().getTime() - new Date(lastTry ?? 0).getTime()) < 10 * 1000) {
+      console.log('⏳ Timeout de 10 segundos... tentando após o timeout')
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 10 * 1000))
     }
+    lastTry = new Date()
+  }
+
+  async validator() {
+    await this.timeout()
+    if (
+      this.accessToken === undefined ||
+      Auth.user === undefined
+    ) {
+      await this.login()
+      return
+    }
+    const uuid = credentials.get('uuid')
         
-    const response = await fetch(`${api}/bots/${this.credentials?.uuid}`, {
+    const response: Response = await fetch(`${api}/bots/${uuid}`, {
       headers: {
-        Authorization: `Bearer ${Auth.accessToken.token}`
+        Authorization: `Bearer ${(this.accessToken as AccessToken).token}`
       }
     }).catch((err) => {
       console.log(`🔴 API instável!`)
       return err
     })
 
-    if (!response.ok) {
-      console.log(`☝️ Então ${Auth.user.name}, não achei o registro do seu bot!`)
+    if (!response.ok && attempts >= 4 || response.status === 404) {
+      console.log(`☝️ Então ${(Auth.user as User).name}, não achei o registro do seu bot!`)
       const choices: Choice[] = [
         { title: 'Mudar Token', value: 'change' },
         { title: 'Tentar Novamente', value: 'try_again' },
@@ -185,7 +164,6 @@ export class Auth {
       switch (conclusion.Error) {
       case 'change': {
         await this.askCredentials({ question: ['uuid'] })
-        await this.initialize()
         await this.login()
         await this.validator()
         break
@@ -197,35 +175,31 @@ export class Auth {
       case 'logout': {
         await this.logout()
         await this.askCredentials({})
-        await this.initialize()
         await this.login()
         await this.validator()
         break
       }
+      default: throw new Error('Nenhum elemento selecionado!')
       }
 
       return
-    }
+    } else {
+      attempts = attempts + 1
 
-    const data = await response.json() as BotInfo
+      const data = await response.json() as BotInfo
 
-    if (data.expired) {
-      console.log('❌ Bot expirou!')
-    } else if (!data.enabled) {
-      console.log('❌ Bot desabilitado!')
-    }
+      if (data.expired) {
+        console.log('❌ Bot expirou!')
+      } else if (!data.enabled) {
+        console.log('❌ Bot desabilitado!')
+      }
 
-    if (Auth.bot === undefined) this.startCron()
-    const bot = await this.decryptCredentials()
+      if (Auth.bot === undefined) this.cron()
+      const token = credentials.get('token')
 
-    Auth.bot = {
-      ...data,
-      token: bot.token
+      Auth.bot = Object.assign(data, { token })
     }
   }
 
-  startCron (): void {
-    const job = new CronJob('* * * * *', () => this.validator())
-    job.start()
-  }
+  cron (): void { new CronJob('* * * * *', () => this.validator()).start()}
 }

@@ -4,4 +4,6 @@ release
 .vscode/settings.json
 /pkg-cache
 *.cjs
-core/.key
+*.key
+*.hash
+*.license

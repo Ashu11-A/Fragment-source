@@ -1,5 +1,6 @@
+import { Auth } from '@/controller/auth'
 import { existsSync } from 'fs'
-import { readFile, rm, writeFile } from 'fs/promises'
+import { readFile, rm } from 'fs/promises'
 import { join } from 'path'
 import { argv, cwd } from 'process'
 import prompts from 'prompts'
@@ -7,8 +8,12 @@ import 'reflect-metadata'
 import { PKG_MODE } from '.'
 import { Plugins } from './controller/plugins'
 import { SocketController } from './controller/socket'
-import { Auth } from '@/controller/auth'
 import { generatePort } from './functions/port'
+import { Crypt } from './controller/crypt'
+import { License } from './controller/license'
+import('dotenv').then(async (dotenv) => {
+  dotenv.config()
+})
 
 interface Args {
   command: string
@@ -24,8 +29,8 @@ const argsList: Args[] = [
 
 (async () => {
   prompts.override((await import('yargs')).argv)
-
-  
+  await new License().checker()
+  await new Crypt().checker()
   const auth = new Auth()
   
   await auth.login()
