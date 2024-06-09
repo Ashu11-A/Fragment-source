@@ -59,7 +59,7 @@ export class SocketClient {
     socket.on('kill', () => {
       process.kill(process.pid)
     })
-    socket.once('discord', async (key: string) => {
+    socket.on('discord', async (key: string) => {
       const client = new Discord()
       SocketClient.key = key
 

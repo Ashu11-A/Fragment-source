@@ -38,10 +38,7 @@ export class Database {
     }
 
     const [, { default: Entity }] = entry
-    console.log(eventName, args)
-    console.log(entry)
-    console.log(Object.keys(Database.entries))
-    console.log(Entity)
+    console.log(`🛎️ [Database] Requisição do plugin ${plugin}`)
     try {
       switch (type) {
       case 'find': socket.emit(eventName, await Entity.find(args.options)); break

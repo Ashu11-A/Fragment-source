@@ -1,10 +1,9 @@
+import { Command } from '@/discord/Commands'
 import { type Socket } from 'socket.io'
+import { Auth } from './auth'
+import { Config } from './config'
 import { Database } from './database'
 import { Plugins } from './plugins'
-import { Command } from '@/discord/Commands'
-import { Config } from './config'
-import { Discord } from '@/discord/Client'
-import { Auth } from './auth'
 
 interface EventOptions {
   client: Socket
@@ -26,7 +25,7 @@ export class Event {
         const pluginName = Plugins.running.find((plugin) => plugin.id ===  this.client.id)?.metadata?.name ??  this.client.id
         const type = args?.type as 'warn' | 'log' | 'error' | 'info' | undefined ?? 'log'
 
-        console[type](`Plugin ${pluginName}: ${message} ${optionalParams.join('\n')}`)
+        console[type](`\n💠 Plugin ${pluginName}: ${message} ${optionalParams.join('\n')}\n`)
         return
       }
       if (eventName.split('_').includes('database')) { await database.events(this.client, eventName, args); return }
@@ -35,8 +34,10 @@ export class Event {
     this.client.on('disconnect', async () => { await this.disconnect() })
   }
 
-  async connected () {
-    this.client.emit('discord', Auth.bot?.token)
+  connected () {
+    if (Auth.bot?.token === undefined) throw new Error('Token do Discord está vazio!')
+    console.log(`⚠️ Token sendo enviado para: ${this.client.id}`)
+    this.client.emit('discord', Auth.bot.token)
   }
 
   async disconnect () {
@@ -46,10 +47,5 @@ export class Event {
     Plugins.running = Plugins.running.filter((plugin) => plugin.id !== this.client.id)
     
     console.info(`\n🔌 Plugin Desconectado: ${pluginFind?.metadata?.name ?? this.client.id}\n`)
-    
-    // const discord = new Discord()
-    // discord.stop()
-    // await discord.createClient()
-    // await discord.start()
   }
 }
