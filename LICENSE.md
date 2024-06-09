@@ -4,7 +4,7 @@ Copyright © Ashu11-A. <Matheusn.biolowons@gmail.com> and contributors
 ```
 
 
-Este software, um bot para a plataforma Discord, é fornecido por [Ashu11-A](https://github.com/Ashu11-A) (Desenvolvedor) e seus mantenedores no estado em que se encontra, sem garantias de qualquer tipo, expressas ou implícitas. O Desenvolvedor não oferece suporte técnico e não se responsabiliza por quaisquer danos ou problemas decorrentes do uso deste bot.
+Este software, um bot para a plataforma Discord, é fornecido por [Ashu11-A](https://github.com/Ashu11-A) (Desenvolvedor) e seus mantenedores no estado em que se encontra, sem garantias de qualquer tipo, expressas ou implícitas. O Desenvolvedor não se responsabiliza por quaisquer danos ou problemas decorrentes do uso deste bot.
 
 Você, ao usar este bot, concorda com os seguintes termos:
 
@@ -16,6 +16,6 @@ Esta licença não concede a você direitos adicionais para redistribuir ou subl
 
 O aviso de direitos autorais acima e este aviso de permissão serão incluídos em todas as cópias ou partes substanciais do Software.
 
-- Esta licença está sujeita às leis da ``República Federativa do Brasil``, e quaisquer disputas relacionadas a este bot serão resolvidas de acordo com as leis dessa jurisdição.
+- Esta licença está sujeita às leis da ``República Federativa do Brasil``, e quaisquer disputas relacionadas a este software serão resolvidas de acordo com as leis dessa jurisdição.
 
 © [Ashu11-A](https://github.com/Ashu11-A)
