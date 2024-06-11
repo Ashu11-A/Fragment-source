@@ -1,4 +1,4 @@
-import { Command } from '@/discord/base'
+import { Command } from '@/discord/base/index.js'
 import { ApplicationCommandType, EmbedBuilder } from 'discord.js'
 
 new Command({

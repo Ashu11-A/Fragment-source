@@ -3,6 +3,7 @@
    "version": "1.0.0",
    "description": "Controler dos modulos do PaymentBot",
    "main": "src/app.ts",
+   "type": "module",
    "scripts": {
       "build": "tsc && tsc-alias",
       "dev": "ts-node -r tsconfig-paths/register src/app.ts",

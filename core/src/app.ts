@@ -1,19 +1,18 @@
-import { Auth } from '@/controller/auth'
+import { Auth } from '@/controller/auth.js'
 import { existsSync } from 'fs'
 import { readFile, rm } from 'fs/promises'
 import { join } from 'path'
 import { argv, cwd } from 'process'
 import prompts from 'prompts'
 import 'reflect-metadata'
-import { PKG_MODE } from '.'
-import { Plugins } from './controller/plugins'
-import { SocketController } from './controller/socket'
-import { generatePort } from './functions/port'
-import { Crypt } from './controller/crypt'
-import { License } from './controller/license'
-import('dotenv').then(async (dotenv) => {
-  dotenv.config()
-})
+import yargs from 'yargs'
+import { Crypt } from './controller/crypt.js'
+import { License } from './controller/license.js'
+import { Plugins } from './controller/plugins.js'
+import { SocketController } from './controller/socket.js'
+import { generatePort } from './functions/port.js'
+import { PKG_MODE } from './index.js'
+import { config } from 'dotenv'
 
 interface Args {
   command: string
@@ -28,13 +27,12 @@ const argsList: Args[] = [
 ];
 
 (async () => {
-  prompts.override((await import('yargs')).argv)
+  prompts.override(yargs().argv)
+  config()
+
   await new License().checker()
   await new Crypt().checker()
-  const auth = new Auth()
-  
-  await auth.login()
-  await auth.validator()
+  await new Auth().checker()
 
   if (existsSync(join(cwd(), 'entries'))) await rm(join(cwd(), 'entries'), { recursive: true })
 

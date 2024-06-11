@@ -1,8 +1,8 @@
-import { console } from '@/controller/console'
-import { Database } from '@/controller/database'
-import { Command } from '@/discord/base'
-import Config from '@/entity/Config.entry'
-import Staff from '@/entity/Staff.entry'
+import { console } from '@/controller/console.js'
+import { Database } from '@/controller/database.js'
+import { Command } from '@/discord/base/index.js'
+import Config from '@/entity/Config.entry.js'
+import Staff from '@/entity/Staff.entry.js'
 import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, PermissionsBitField } from 'discord.js'
 
 new Command({

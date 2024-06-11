@@ -1,6 +1,6 @@
-import { Command } from '@/discord/base'
-import { calculateImageSize, formatBytes } from '@/functions/format'
-import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, codeBlock } from 'discord.js'
+import { Command } from '@/discord/base/index.js'
+import { calculateImageSize, formatBytes } from '@/functions/format.js'
+import { ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder } from 'discord.js'
 
 const arrayTamanho = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096]
 const tamanhoChoices = arrayTamanho.map(size => ({

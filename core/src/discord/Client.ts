@@ -1,5 +1,5 @@
-import { Auth } from '@/controller/auth.js'
 import { Config } from '@/controller/config.js'
+import { credentials } from '@/controller/crypt.js'
 import { ApplicationCommandType, type BitFieldResolvable, Client, type GatewayIntentsString, IntentsBitField, Partials, PermissionsBitField } from 'discord.js'
 import { Command } from './Commands.js'
 
@@ -49,7 +49,7 @@ export class Discord {
 
     console.log('📌 Iniciando Discord...')
 
-    await Discord.client.login(Auth.bot?.token)
+    await Discord.client.login(credentials.get('token') as string)
     Discord.client.prependOnceListener('ready', async (client) => {
       await new Discord().register()
       console.info(`📡 Connected with ${client.user.username}`)

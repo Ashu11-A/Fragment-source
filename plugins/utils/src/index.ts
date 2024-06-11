@@ -10,7 +10,7 @@ interface Metadata {
   license: string
 }
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
+export const __dirname = dirname(fileURLToPath(import.meta.url))
 export const packageData = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), { encoding: 'utf-8' })) as Record<string, string>
 
 export const PKG_MODE = `${process.cwd()}/src` !== __dirname

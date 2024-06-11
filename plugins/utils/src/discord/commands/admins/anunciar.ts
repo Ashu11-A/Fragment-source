@@ -1,5 +1,5 @@
-import { Command, Component, Discord } from '@/discord/base'
-import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, AttachmentBuilder, ButtonBuilder, ButtonStyle, Collection, ComponentType, EmbedBuilder, ModalBuilder, ModalComponentBuilder, PermissionsBitField, TextInputBuilder, TextInputStyle, codeBlock, type Attachment, type ColorResolvable, type TextChannel } from 'discord.js'
+import { Command, Component, Discord } from '@/discord/base/index.js'
+import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, AttachmentBuilder, ButtonBuilder, ButtonStyle, Collection, ComponentType, EmbedBuilder, ModalBuilder, PermissionsBitField, TextInputBuilder, TextInputStyle, codeBlock, type Attachment, type ColorResolvable, type TextChannel } from 'discord.js'
 
 const members = new Collection<string, { channelId: string, image: Attachment | null }>()
 

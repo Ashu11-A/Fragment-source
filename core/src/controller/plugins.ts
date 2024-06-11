@@ -76,7 +76,7 @@ export class Plugins {
       const childInfo = spawn(filePath, ['--info'])
       let info: Metadata | undefined
 
-      childInfo.on('exit', (code, signal) => {
+      childInfo.on('exit', (code) => {
         if (code === 0 && info !== undefined) {
           const process = Plugins.running.find((run) => run.metadata?.name === info?.name)
 

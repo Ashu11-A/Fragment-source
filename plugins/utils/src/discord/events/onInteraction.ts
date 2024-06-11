@@ -1,6 +1,6 @@
-import { Database } from '@/controller/database'
-import { Event } from '@/discord/base'
-import Config from '@/entity/Config.entry'
+import { Database } from '@/controller/database.js'
+import { Event } from '@/discord/base/index.js'
+import Config from '@/entity/Config.entry.js'
 import { EmbedBuilder, time } from 'discord.js'
 
 new Event({

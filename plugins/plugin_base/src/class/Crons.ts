@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto'
 import cronParser, { type CronExpression } from 'cron-parser'
 import { join } from 'path'
 import { glob } from 'glob'
-import { console } from '@/controller/console'
+import { console } from '@/controller/console.js'
 
 /**
  * Configuration object for defining recurring cron jobs.
