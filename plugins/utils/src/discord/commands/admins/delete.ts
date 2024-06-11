@@ -1,4 +1,4 @@
-import { Command } from "@/discord/base";
+import { Command } from "@/discord/base/index.js";
 import { ApplicationCommandOptionType, ApplicationCommandType } from "discord.js";
 
 new Command({
@@ -21,11 +21,11 @@ new Command({
     async run(interaction) {
         const { options, guild } = interaction
         if (guild === null) return
-        const database = options.getBoolean('database')
+        // const database = options.getBoolean('database')
         const channels = options.getBoolean('channels')
 
         if (channels) {
-            for await (const [id, channel] of await guild.channels.fetch()) channel?.delete()
+            // for await (const [id, channel] of await guild.channels.fetch()) channel?.delete()
         }
     },
 })

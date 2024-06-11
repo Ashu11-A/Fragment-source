@@ -1,7 +1,7 @@
-import { console } from "@/controller/console";
-import { Database } from "@/controller/database";
-import { Config } from "@/discord/base/Config";
-import ConfigTable from "@/entity/Config.entry";
+import { console } from "@/controller/console.js";
+import { Database } from "@/controller/database.js";
+import { Config } from "@/discord/base/Config.js";
+import ConfigTable from "@/entity/Config.entry.js";
 import { ApplicationCommandOptionType, ChannelType, EmbedBuilder, TextChannel } from "discord.js";
 
 new Config({

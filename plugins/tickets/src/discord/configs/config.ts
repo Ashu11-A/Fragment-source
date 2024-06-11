@@ -103,10 +103,8 @@ new Config({
     let data = dataDB ?? {} as Record<string, any>
     const text = []
 
-    console.log(dataDB)
-
     if (claimLimit !== null) {
-      data = { ...data, claimLimit }
+      data = Object.assign(data, { claimLimit })
       text.push(`Limite de claim definido para ${claimLimit}`)
     }
 
@@ -129,7 +127,7 @@ new Config({
 
       console.log(roles, newRoles)
 
-      data = { ...data, roles: newRoles }
+      data = Object.assign(data, { roles: newRoles })
       text.push(`${addRole.name} definido para interações com os tickets`)
     }
 
@@ -137,7 +135,7 @@ new Config({
       const roles = data.roles
       const removedRole = roles.filter((role: { id: string; }) => role.id !== remRole)
 
-      data = { ...data, roles: removedRole }
+      data = Object.assign(data, { roles: removedRole })
       text.push(`Cargo ${remRole} removido dos tickets`)
     }
 
@@ -164,22 +162,22 @@ new Config({
       })
     }
     if (limit !== null) {
-      data = { ...data, limit }
+      data = Object.assign(data, limit)
       text.push(`Limite de tickets por pessoa agora é de ${limit}!`)
     }
     if (claimChannel !== null) {
-      data = { ...data, claimId: claimChannel.id }
+      data = Object.assign(data, { claimId: claimChannel.id })
       text.push(`Channel para os pedidos de claim definido para: ${claimChannel.name}!`)
     }
     if (logs !== null) {
-      data = { ...data, logsId: logs.id }
+      data = Object.assign(data, { logsId: logs.id })
       text.push(`Channel para os envios de logs definido para: ${logs.name}!`)
     }
     try {
       if (dataDB !== null) {
         await config.save(data)
       } else {
-        await config.save(await config.create({ ...data, guild: { guildId } }))
+        await config.save(await config.create(Object.assign(data, { guild: { guildId } })))
       }
 
       await interaction.editReply({

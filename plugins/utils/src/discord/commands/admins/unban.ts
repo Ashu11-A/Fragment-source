@@ -1,7 +1,7 @@
 import { EmbedBuilder, ApplicationCommandOptionType, ApplicationCommandType, type TextChannel, codeBlock, PermissionsBitField } from 'discord.js'
-import { Command } from '@/discord/base'
-import { Database } from '@/controller/database'
-import Config from '@/entity/Config.entry'
+import { Command } from '@/discord/base/index.js'
+import { Database } from '@/controller/database.js'
+import Config from '@/entity/Config.entry.js'
 
 new Command({
   name: 'unban',
@@ -22,7 +22,7 @@ new Command({
       type: ApplicationCommandOptionType.String
     }
   ],
-  async run (interaction) {
+  async run (interaction): Promise<void> {
     await interaction.deferReply({ ephemeral: true })
 
     const { guild, options, guildId } = interaction
@@ -37,7 +37,8 @@ new Command({
           .setTitle('Erro')
           .setDescription('O ID do usuário especificado é inválido.')
           .setColor('Red')
-        return await interaction.editReply({ embeds: [embed] })
+        await interaction.editReply({ embeds: [embed] })
+        return
       }
 
       const bans = await guild?.bans.fetch()
@@ -46,7 +47,8 @@ new Command({
           .setTitle('Erro')
           .setDescription('O usuário especificado não está banido.')
           .setColor('Red')
-        return await interaction.editReply({ embeds: [embed] })
+        await interaction.editReply({ embeds: [embed] })
+        return
       }
 
       await guild?.members.unban(userID, reason)

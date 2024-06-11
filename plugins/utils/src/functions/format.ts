@@ -1,4 +1,5 @@
-import { console } from "@/controller/console"
+import { console } from "@/controller/console.js"
+import fetch from 'node-fetch'
 
 export async function calculateImageSize (url: string): Promise<number> {
   try {

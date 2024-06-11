@@ -1,8 +1,8 @@
 import { EmbedBuilder, ApplicationCommandOptionType, ApplicationCommandType, type TextChannel, GuildMember, codeBlock, PermissionsBitField } from 'discord.js'
-import { Command, Discord } from '@/discord/base'
-import { Database } from '@/controller/database'
-import Config from '@/entity/Config.entry'
-import { console } from '@/controller/console'
+import { Command, Discord } from '@/discord/base/index.js'
+import { Database } from '@/controller/database.js'
+import Config from '@/entity/Config.entry.js'
+import { console } from '@/controller/console.js'
 
 new Command({
   name: 'ban',
@@ -39,7 +39,7 @@ new Command({
       type: ApplicationCommandOptionType.String
     }
   ],
-  async run (interaction) {
+  async run (interaction): Promise<void> {
     const { options, guildId } = interaction
     const user = options.getUser('usuário', true)
     const member = options.getMember('usuário')
@@ -51,7 +51,7 @@ new Command({
     const logsChannel = logsDB?.logBanKick !== undefined ? await interaction.guild?.channels.fetch(logsDB?.logBanKick) as TextChannel : undefined
 
     if (user.id === interaction.user.id) {
-      return await interaction.editReply({
+      await interaction.editReply({
         embeds: [
           new EmbedBuilder({
             title: '❌ Não permitido!',
@@ -59,10 +59,11 @@ new Command({
           }).setColor('Orange')
         ]
       })
+      return
     }
 
     if (user.id === Discord.client?.user?.id) {
-      return await interaction.editReply({ 
+      await interaction.editReply({ 
         embeds: [
           new EmbedBuilder({
             title: '❌ Não permitido!',
@@ -70,16 +71,18 @@ new Command({
           }).setColor('Orange')
         ]
       })
+      return
     }
 
     // Tenta banir o usuário
     try {
       if (!(member instanceof GuildMember)) {
-        return await interaction.editReply({
+        await interaction.editReply({
           embeds: [new EmbedBuilder({
             title: '❌ Usuário não está disponível na lista de membros do bot! tente mais tarde.'
           }).setColor('Red')]
         })
+        return
       }
       await member.ban({ reason, deleteMessageSeconds: deleteMSG })
       // Adiciona o log de warning após o comando ter sido executado

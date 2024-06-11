@@ -1,8 +1,8 @@
-import { Database } from '@/controller/database'
-import type User from '@/entity/User.entry'
+import { Database } from '@/controller/database.js'
+import type User from '@/entity/User.entry.js'
 import { ApplicationCommandType } from 'discord.js'
-import { Command } from '../base'
-import { console } from '@/controller/console'
+import { Command } from '../base/index.js'
+import { console } from '@/controller/console.js'
 
 new Command({
   name: 'test',

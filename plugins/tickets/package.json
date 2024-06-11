@@ -19,6 +19,7 @@
    "license": "LSC",
    "devDependencies": {
       "@types/node": "^16.18.98",
+      "@types/node-fetch": "^2.6.11",
       "@types/react": "^18.3.3",
       "@types/socket.io": "^3.0.2",
       "@typescript-eslint/eslint-plugin": "^6.21.0",

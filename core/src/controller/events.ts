@@ -1,7 +1,7 @@
 import { Command } from '@/discord/Commands.js'
 import { type Socket } from 'socket.io'
-import { Auth } from './auth.js'
 import { Config } from './config.js'
+import { credentials } from './crypt.js'
 import { Database } from './database.js'
 import { Plugins } from './plugins.js'
 
@@ -35,9 +35,11 @@ export class Event {
   }
 
   connected () {
-    if (Auth.bot?.token === undefined) throw new Error('Token do Discord está vazio!')
+    const token = credentials.get('token')
+    console.log(token)
+    if (token === undefined || typeof token !== 'string') throw new Error('Token do Discord está vazio!')
     console.log(`⚠️ Token sendo enviado para: ${this.client.id}`)
-    this.client.emit('discord', Auth.bot.token)
+    this.client.emit('discord', token)
   }
 
   async disconnect () {

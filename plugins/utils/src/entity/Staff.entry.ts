@@ -1,5 +1,5 @@
 import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm"
-import Guild from "./Guild.entry"
+import Guild from "./Guild.entry.js"
 
 @Entity({ name: 'staff_utils' })
 export default class Staff extends BaseEntity {

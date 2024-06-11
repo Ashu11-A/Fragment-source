@@ -3,6 +3,7 @@
    "version": "1.0.0",
    "description": "Controler dos modulos do PaymentBot",
    "main": "src/app.ts",
+   "type": "module",
    "scripts": {
       "build": "tsc && tsc-alias",
       "dev": "ts-node -r tsconfig-paths/register src/app.ts",
@@ -14,6 +15,7 @@
    "license": "LSC",
    "devDependencies": {
       "@types/node": "^16.11.10",
+      "@types/node-fetch": "^2.6.11",
       "@types/socket.io": "^3.0.2",
       "@typescript-eslint/eslint-plugin": "^6.21.0",
       "@typescript-eslint/parser": "^6.21.0",

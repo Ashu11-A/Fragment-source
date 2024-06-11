@@ -1,11 +1,12 @@
+import { RootPATH } from '@/index.js'
 import { AccessToken, AuthData, BotInfo, User } from '@/interfaces/auth.js'
 import { DataCrypted } from '@/interfaces/crypt.js'
 import { CronJob } from 'cron'
 import { rm } from 'fs/promises'
 import prompts, { Choice, PromptObject } from 'prompts'
-import { RootPATH } from '@/index.js'
 import { api } from '../../package.json'
 import { credentials, Crypt } from './crypt.js'
+import fetch from 'node-fetch'
 
 const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g
 const crypt = new Crypt()
@@ -40,9 +41,11 @@ const questions: PromptObject<string>[] = [
 export class Auth {
   public static user?: User
   public static bot?: BotInfo
+  private email?: string
+  private password?: string
   private accessToken?: AccessToken
     
-  async askCredentials ({ question }: { question?: (keyof DataCrypted)[]  }): Promise<DataCrypted> {
+  async askCredentials (question?: (keyof DataCrypted)[]): Promise<DataCrypted> {
     const filteredQuestions = questions.filter((propmt) => question === undefined || question?.includes(propmt.name as keyof DataCrypted))
     const response = await prompts(filteredQuestions) as DataCrypted
     
@@ -54,21 +57,32 @@ export class Auth {
     return response
   }
 
+  async timeout () {
+    if (lastTry !== undefined && (new Date().getTime() - new Date(lastTry ?? 0).getTime()) < 10 * 1000) {
+      console.log('⏳ Timeout de 10 segundos... tentando após o timeout')
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 10 * 1000))
+    }
+    lastTry = new Date()
+  }
+
+  async checker (): Promise<void> {
+    await new Crypt().read()
+    this.email = credentials.get('email') as string | undefined
+    this.password = credentials.get('password') as string | undefined
+
+    if (this.email === undefined || this.password === undefined) {
+      await this.askCredentials()
+      return await this.checker()
+    }
+    await this.login().then(() => setTimeout(() => this.validator(), 10000))
+  }
 
   async login(): Promise<User> {
     await this.timeout()
-    await new Crypt().read()
-    const email = credentials.get('email')
-    const password = credentials.get('password')
-
-    if (email === undefined || password === undefined) {
-      await this.askCredentials({})
-      return await this.login()
-    }
 
     const response = await fetch(`${api}/auth/login`, {
       method: 'POST',
-      body: JSON.stringify({ email: email, password: password }),
+      body: JSON.stringify({ email: this.email, password: this.password }),
       headers: {
         "Content-Type": "application/json",
       }
@@ -94,7 +108,7 @@ export class Auth {
       switch (conclusion.Error) {
       case 'logout': {
         await this.logout()
-        await this.askCredentials({})
+        await this.askCredentials()
         return await this.login()
       }
       case 'try_again': {
@@ -112,17 +126,8 @@ export class Auth {
     return data.user
   }
 
-
   async logout () {
     await rm(`${RootPATH}/.key`)
-  }
-
-  async timeout () {
-    if (lastTry !== undefined && (new Date().getTime() - new Date(lastTry ?? 0).getTime()) < 10 * 1000) {
-      console.log('⏳ Timeout de 10 segundos... tentando após o timeout')
-      await new Promise<void>((resolve) => setTimeout(() => resolve(), 10 * 1000))
-    }
-    lastTry = new Date()
   }
 
   async validator() {
@@ -163,7 +168,7 @@ export class Auth {
 
       switch (conclusion.Error) {
       case 'change': {
-        await this.askCredentials({ question: ['uuid'] })
+        await this.askCredentials(['uuid'])
         await this.login()
         await this.validator()
         break
@@ -174,7 +179,7 @@ export class Auth {
       }
       case 'logout': {
         await this.logout()
-        await this.askCredentials({})
+        await this.askCredentials()
         await this.login()
         await this.validator()
         break
@@ -195,9 +200,7 @@ export class Auth {
       }
 
       if (Auth.bot === undefined) this.cron()
-      const token = credentials.get('token')
-
-      Auth.bot = Object.assign(data, { token })
+      Auth.bot = data
     }
   }
 

@@ -1,7 +1,7 @@
-import { console } from '@/controller/console'
-import { Database } from '@/controller/database'
-import { Command, Discord } from '@/discord/base'
-import Config from '@/entity/Config.entry'
+import { console } from '@/controller/console.js'
+import { Database } from '@/controller/database.js'
+import { Command, Discord } from '@/discord/base/index.js'
+import Config from '@/entity/Config.entry.js'
 import { EmbedBuilder, ApplicationCommandType, ApplicationCommandOptionType, type TextChannel, codeBlock, PermissionsBitField } from 'discord.js'
 
 new Command({

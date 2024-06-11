@@ -1,5 +1,5 @@
-import { BaseEntity, Entity, OneToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
-import Guild from "./Guild.entry";
+import { BaseEntity, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import Guild from "./Guild.entry.js";
 
 @Entity({ name: 'base_config' })
 export default class Config extends BaseEntity {
