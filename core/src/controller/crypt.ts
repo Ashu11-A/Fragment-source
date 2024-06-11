@@ -1,14 +1,14 @@
+import { exists } from "@/functions/fs-extra.js";
 import { isJson } from "@/functions/validate.js";
+import { RootPATH } from "@/index.js";
 import { DataCrypted } from "@/interfaces/crypt.js";
-import { compare, hash } from 'bcrypt';
+import * as argon2 from "argon2";
 import { passwordStrength } from 'check-password-strength';
 import { watch } from 'chokidar';
 import { randomBytes } from 'crypto';
 import CryptoJS from 'crypto-js';
-import prompts from "prompts";
-import { RootPATH } from "@/index.js";
-import { existsSync } from "fs";
 import { readFile, rm, writeFile } from "fs/promises";
+import prompts from "prompts";
 
 export const credentials = new Map<string, string | object | boolean | number>()
 
@@ -16,11 +16,7 @@ export class Crypt {
   constructor() {}
 
   async checker () {
-    if (!existsSync(`${RootPATH}/.key`) && process.env?.Token === undefined) await this.create()
-
-    if (existsSync(`${RootPATH}/.key`) && existsSync(`${RootPATH}/.hash`)) {
-        
-    }
+    if (!(await exists(`${RootPATH}/.key`)) && process.env?.Token === undefined) await this.create()
 
     for (const path of ['.key', '.hash']) {
       const wather = watch(path, { cwd: RootPATH })
@@ -90,22 +86,26 @@ export class Crypt {
     const data = await readFile(`${RootPATH}/.key`, { encoding: 'utf-8' }).catch(() => '')
     const dataHash = await readFile(`${RootPATH}/.hash`, { encoding: 'utf-8' }).catch(() => '')
 
-    const hash = await compare(data, dataHash)
-    if (!hash) {
+    const invalid = async () => {
       await this.delete()
       throw new Error('Hash invalido! deletando arquivos encriptados!')
     }
+
+    const hash = await argon2.verify(dataHash, data).catch(async () => await invalid())
+    if (!hash) await invalid()
   }
 
   async delete () {
-    if (existsSync(`${RootPATH}/.key`)) await rm(`${RootPATH}/.key`)
-    if (existsSync(`${RootPATH}/.hash`)) await rm(`${RootPATH}/.hash`)
-    if (existsSync(`${RootPATH}/.env`)) await rm(`${RootPATH}/.env`)
+    if (await exists(`${RootPATH}/.key`)) await rm(`${RootPATH}/.key`)
+    if (await exists(`${RootPATH}/.hash`)) await rm(`${RootPATH}/.hash`)
+    if (await exists(`${RootPATH}/.env`)) await rm(`${RootPATH}/.env`)
   }
 
   async read (): Promise<DataCrypted | {}> {
     const token = this.getToken()
-    if (!existsSync(`${RootPATH}/.key`)) return {}
+    const existKey = await exists(`${RootPATH}/.key`)
+    if (!existKey) return {}
+
     await this.validate()
     console.log('⚠️ Informações sensíveis sendo lidas...')
     const data = await readFile(`${RootPATH}/.key`, { encoding: 'utf-8' }).catch(() => '')
@@ -138,7 +138,7 @@ export class Crypt {
     const AESCrypt = CryptoJS.AES.encrypt(JSON.stringify(data), token).toString()
     const BlowfishCrypt = CryptoJS.Blowfish.encrypt(AESCrypt, token).toString()
     const TripleDESCrypt = CryptoJS.TripleDES.encrypt(BlowfishCrypt, token).toString()
-    const hashCrypt = await hash(TripleDESCrypt, 10)
+    const hashCrypt = await argon2.hash(TripleDESCrypt)
 
     await writeFile(`${RootPATH}/.key`, TripleDESCrypt)
     await writeFile(`${RootPATH}/.hash`, hashCrypt)

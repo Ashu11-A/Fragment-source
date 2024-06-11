@@ -17,13 +17,13 @@
 		"noUnusedParameters": true,
 		"noImplicitReturns": true,
 
-		"lib": ["ESNext"],
+		"lib": ["ESNext", "DOM"],
 		"target": "ESNext",
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
 
-    "outDir": "dist",
-    "rootDir": "./src",
+    "outDir": "./build/esm",
+    "rootDir": "./",
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"]

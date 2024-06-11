@@ -18,7 +18,7 @@ export async function generatePort () {
 
     server.listen(port, 'localhost')
   })
-  console.log(port)
+
   if (!result) return await generatePort()
   return port
 }

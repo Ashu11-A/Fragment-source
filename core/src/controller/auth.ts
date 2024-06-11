@@ -1,12 +1,10 @@
-import { RootPATH } from '@/index.js'
+import { metadata, RootPATH } from '@/index.js'
 import { AccessToken, AuthData, BotInfo, User } from '@/interfaces/auth.js'
 import { DataCrypted } from '@/interfaces/crypt.js'
 import { CronJob } from 'cron'
 import { rm } from 'fs/promises'
 import prompts, { Choice, PromptObject } from 'prompts'
-import { api } from '../../package.json'
 import { credentials, Crypt } from './crypt.js'
-import fetch from 'node-fetch'
 
 const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g
 const crypt = new Crypt()
@@ -79,6 +77,7 @@ export class Auth {
 
   async login(): Promise<User> {
     await this.timeout()
+    const { api } = await metadata()
 
     const response = await fetch(`${api}/auth/login`, {
       method: 'POST',
@@ -132,6 +131,7 @@ export class Auth {
 
   async validator() {
     await this.timeout()
+    const { api } = await metadata()
     if (
       this.accessToken === undefined ||
       Auth.user === undefined

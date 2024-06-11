@@ -1,15 +1,16 @@
+import babel from "@babel/core"
 import { formatBytes } from 'bytes-formatter'
-import { exec, exec as processChild } from 'child_process'
+import { exec } from 'child_process'
 import { Presets, SingleBar } from 'cli-progress'
 import { createHash } from 'crypto'
 import { build } from 'esbuild'
-import { createWriteStream, existsSync, mkdirSync, rmSync, writeFileSync } from 'fs'
-import { exists, move } from 'fs-extra'
-import { mkdir, readdir, readFile, rm, stat, writeFile } from 'fs/promises'
+import { createWriteStream, existsSync } from 'fs'
+import { exists } from 'fs-extra'
+import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import obfuscate from 'javascript-obfuscator'
 import os from 'os'
-import path, { join } from 'path'
+import path, { basename, dirname, join } from 'path'
 import { cwd } from 'process'
 import { Readable } from 'stream'
 import { minify } from 'terser'
@@ -106,25 +107,58 @@ class Build {
     await this.obfuscate()
     await this.install()
     await this.clear()
+    await this.convertToCJS(`${this.options.outBuild}/node_modules`, `${this.options.outBuild}/node_modules`)
     await this.compress({ directory: `${this.options.outBuild}/node_modules`, outBuild: `${this.options.outBuild}/node_modules` })
     await this.pkgbuild()
   }
 
   async build() {
-    if (existsSync(this.options.outBuild)) rm(this.options.outBuild, { recursive: true }) // Remover o diretorio caso ele exista
+    if (existsSync(this.options.outBuild)) rm(this.options.outBuild, { recursive: true })
 
-    const sucess = await new Promise<boolean>((resolve, reject) => {
-      processChild(`cd ${this.options.source} && npm i && npm run build`, (err, stdout, stderr) => { // Buildar typescript
-        if (err !== null || stderr !== '') {
-          console.log(stderr !== "" ? stderr : err)
-          reject(false)
-        }
-        resolve(true)
-      })
-    })
+    console.log('Buildando projeto...\n')
 
-    if (sucess) { await move(`${this.options.source}/dist`, `./${this.options.outBuild}/src`, { overwrite: true }); return }
-    throw new Error(`Ocorreu um erro ao tentar buildar o projeto ${this.options.source}`)
+    const sucess = await execProcess(`cd ${this.options.source} && npm i && npm run build`)
+    if (!sucess) throw new Error(`Ocorreu um erro ao tentar buildar o projeto ${this.options.source}`)
+
+    const pathBuild = join(this.options.source, '/build/esm/src')
+    const files = await glob(`${pathBuild}/**/*.js`)
+
+    console.log('Convertendo em cjs...')
+    await this.convertToCJS(files, this.options.outBuild)
+  }
+
+  async convertToCJS(files: string[] | string, output: string) {
+    if (typeof files === 'string') files = await glob(`${files}/**/*.js`)
+      
+    this.progressBar.start(files.length, 0)
+    for (const file of files) {
+      try {
+        if ((await stat(file)).isDirectory()) { this.progressBar.increment(); continue }
+
+        const filePath = dirname(file).split('esm/')[1]
+        const fileName = basename(file)
+        const outputPath = `${output}/${filePath}`
+        const outputFile = join(outputPath, fileName)
+        const data = await readFile(file, { encoding: 'utf-8' })
+        const result = await babel.transformAsync(data, {
+          presets: ["@babel/preset-env", "@babel/preset-typescript"],
+          plugins: ["babel-plugin-transform-import-meta", "@babel/plugin-transform-modules-commonjs", "@babel/plugin-syntax-dynamic-import" /*['babel-plugin-cjs-esm-interop', { format: 'cjs' }]*/],
+          filename: fileName,
+
+        });
+
+        if (typeof result?.code !== 'string') continue
+        if (!(await exists(outputPath))) await mkdir(outputPath, { recursive: true })
+
+        await writeFile(outputFile, result.code)
+      } catch (err) {
+        console.log(`Ocorreu um erro ao tentar converter o projeto ${this.options.source}`)
+        console.log(err)
+      } finally {
+        this.progressBar.increment()
+      }
+    }
+    this.progressBar.stop()
   }
 
   async sign(): Promise<void> {
@@ -154,7 +188,7 @@ class Build {
       const fileContent = await readFile(filePath)
       const fileName = path.basename(filePath)
 
-      if (!existsSync(newPath)) mkdirSync(newPath, { recursive: true })
+      if (!existsSync(newPath)) await mkdir(newPath, { recursive: true })
 
       const result = await minify({ [filePath]: fileContent.toString('utf-8') }, {
         compress: true,
@@ -203,7 +237,7 @@ class Build {
         disableConsoleOutput: false
       })
 
-      writeFileSync(filePath, response.getObfuscatedCode(), 'utf8')
+      await writeFile(filePath, response.getObfuscatedCode(), 'utf8')
       this.progressBar.increment()
     }
     this.progressBar.stop()
@@ -218,7 +252,8 @@ class Build {
       scripts: [
         "src/**/*.js",
         "src/**/*.json",
-        "package.json"
+        "package.json",
+        "LICENSE.md"
       ],
       assets: [
         "node_modules/**/*.js",
@@ -228,10 +263,10 @@ class Build {
       ]
     }
 
-    const remove = ['devDependencies', 'scripts', 'keywords', 'repository', 'bugs', 'homepage']
+    const remove = ['devDependencies', 'scripts', 'keywords', 'repository', 'bugs', 'homepage', 'type']
 
     for (const name of remove) delete packageJson?.[name]
-
+    await cp('LICENSE.md', `${this.options.outBuild}/LICENSE.md`)
     await writeFile(path.join(process.cwd(), `${this.options.outBuild}/package.json`), JSON.stringify(packageJson, null, 2))
   }
 
@@ -308,8 +343,8 @@ class Build {
       const buildName = `${packageJson?.name ?? `paymentbot-${Date.now()}`}-${nameSplit[1]}-${nameSplit[2]}${nameSplit[1] === 'win' ? '.exe' : nameSplit[1] === 'macos' ? '.app' : ''}`
       const newArg: string[] = []
 
-      if (existsSync(buildName)) rmSync(buildName)
-      if (existsSync(`${this.options.outRelease}/manifest-${nameSplit[1]}.json`)) rmSync(`release/manifest-${manifestName}.json`)
+      if (existsSync(buildName)) await rm(buildName)
+      if (existsSync(`${this.options.outRelease}/manifest-${nameSplit[1]}.json`)) await rm(`release/manifest-${manifestName}.json`)
 
       console.debug(`\n\nIniciando Build ${nameSplit[2]}...`)
       newArg.push(...args, '-t', build, '--output', `${this.options.outRelease}/${buildName}`)
@@ -576,14 +611,15 @@ release [options] <input>
   await Promise.all(exec.map((option) => option()))
 })()
 
-const execProcess = async (command: string) => await new Promise<void>((resolve, reject) => {
+const execProcess = async (command: string) => await new Promise<boolean>((resolve, reject) => {
   const child = exec(command)
   child.stdout?.on('data', (output: string) => console.log(output))
   child.stderr?.on('data', (output: string) => console.log(output))
   child.on('close', (code, signal) => {
     if (code !== 0) {
-      reject(signal)
+      console.log(signal)
+      reject(false)
     }
-    resolve()
+    resolve(true)
   })
 })

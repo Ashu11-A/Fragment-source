@@ -1,5 +1,10 @@
 {
   "compilerOptions": {
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
 
@@ -13,18 +18,13 @@
 		"noUnusedParameters": true,
 		"noImplicitReturns": true,
 
-		"lib": ["ESNext"],
-		"target": "ESNext",
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
-
-    "outDir": "dist",
+    "outDir": "./build/esm",
     "rootDir": "./",
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"]
     },
   },
-  "include": ["src", "../tailwind.config.ts", "entries"],
+  "include": ["src", "../tailwind.config.ts", "entries", "build.ts"],
   "exclude": ["node_modules"]
 }

@@ -5,6 +5,8 @@ import TerminalRenderer from 'marked-terminal'
 import { watch } from 'chokidar'
 import { existsSync } from "fs";
 import { readFile, writeFile } from "fs/promises";
+import { join } from "path";
+import { __dirname } from '@/index.js'
 
 let watched = false
 
@@ -25,7 +27,7 @@ export class License {
     await this.ask()
   }
   async ask () {
-    const data = await readFile(`${RootPATH}/LICENSE.md`, { encoding: 'utf-8' })
+    const data = await readFile(join(__dirname, '../LICENSE.md'), { encoding: 'utf-8' })
     marked.setOptions({
       renderer: new TerminalRenderer() as Renderer
     })

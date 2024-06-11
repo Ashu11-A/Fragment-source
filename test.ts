@@ -1,12 +1,18 @@
-import { watch } from 'fs/promises'
+import { readFile } from "fs/promises";
+import { join } from "path";
+import { fileURLToPath } from "url";
 
-(async () => {
-  try {
-    const watcher = watch('test') // pode ser um arquivo ou diretorio
-    for await (const event of watcher) {
-        console.log(event)
-    }
-  } catch (err: any) {
-    throw err
+let code = await readFile('Claim.entry.js', { encoding: 'utf-8' })
+const regex = /require\("(?!\.\/)([^"]+)"\)/g
+
+let match;
+while ((match = regex.exec(code)) !== null) {
+  const content = match[1];
+  console.log(content)
+  if (content) {
+    const __dirname = fileURLToPath(import.meta.url)
+    const replacedPath = `"${join(__dirname, '../../')}node_modules/${content}"`;
+    const genRegex = new RegExp(`"${content}"`, 'g')
+    code = code.replace(genRegex, replacedPath);
   }
-})();
+}

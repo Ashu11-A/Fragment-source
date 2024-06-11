@@ -253,10 +253,11 @@ export class Plugins {
       let match;
       while ((match = regex.exec(code)) !== null) {
         const content = match[1];
+        console.log(content)
         if (content) {
-          console.log(`🔄 Convertendo ${fileName}`);
-          const replacedPath = `${join(__dirname, '../../')}node_modules/${content}/index.js`;
-          code = code.replace(new RegExp(content, 'g'), replacedPath);
+          const replacedPath = `"${join(__dirname, '../../')}node_modules/${content}"`;
+          const genRegex = new RegExp(`"${content}"`, 'g')
+          code = code.replace(genRegex, replacedPath);
         }
       }
 
