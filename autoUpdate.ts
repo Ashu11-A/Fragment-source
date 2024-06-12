@@ -7,7 +7,8 @@ import { glob } from 'glob'
 import gradient from 'gradient-string'
 import { basename, dirname } from 'path'
 import prompts, { Choice } from 'prompts'
-prompts.override((await import('yargs')).argv)
+import yargs from 'yargs'
+prompts.override(yargs().argv)
 console.log(gradient('#8752a3', '#6274e7')(figlet.textSync('Synch System', 'Elite')))
 console.log()
 
@@ -93,7 +94,7 @@ const checkFiles = async (files: Map<string, string[]>) => {
       differentBytes.push({ fileName, size: baseSize })
       choices.push(...differentBytes.map((file) => ({ title: file.fileName, description: `${file.size} Bytes`, value: file.fileName })))
 
-      const select= await prompts({
+      const select = await prompts({
         type: 'select',
         name: 'value',
         message: tilte('Arquivos com conteúdos diferentes!'),
@@ -118,7 +119,7 @@ const watchPaths = await glob(['plugins/**/base/**/', 'plugins/**/controller/**/
 
 console.log(`📦 Watching ${number(String(watchPaths.filter((path) => statSync(path).isDirectory()).length))} directories and ${number(String(watchPaths.filter((path) => !statSync(path).isDirectory()).length))} files\n`)
 
-await checkFiles(await separator(await getFiles({ extension: '*.ts' })))
+export const check = async () => await checkFiles(await separator(await getFiles({ extension: '*.ts' })))
 
 let running: string[] = []
 
