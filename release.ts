@@ -2,7 +2,7 @@ import babel from "@babel/core"
 import { formatBytes } from 'bytes-formatter'
 import { exec } from 'child_process'
 import { Presets, SingleBar } from 'cli-progress'
-import { createHash } from 'crypto'
+import { createHash, createSign, createVerify, sign } from 'crypto'
 import { build } from 'esbuild'
 import { createWriteStream, existsSync } from 'fs'
 import { exists } from 'fs-extra'
@@ -15,14 +15,16 @@ import { cwd } from 'process'
 import { Readable } from 'stream'
 import { minify } from 'terser'
 
+const SIGNATURE_LENGTH = 512
+
 interface BuildInfo {
   path: string
   platform: string
   arch: string
-  size: string
   timeBuild: string
-  hashMD5: string
-  hashSHA: string
+  size?: string
+  hashMD5?: string
+  hashSHA?: string
 }
 
 type BuildManifest = Record<string, BuildInfo>
@@ -92,6 +94,8 @@ interface Asset {
 
 class Build {
   public readonly options: BuildConstructor
+  private outputPath?: string
+  private manifests: ({ [key: string]: BuildInfo })[] = []
 
   private readonly progressBar = new SingleBar({}, Presets.rect)
   private readonly startTime = Date.now()
@@ -110,6 +114,9 @@ class Build {
     await this.convertToCJS(`${this.options.outBuild}/node_modules`, `${this.options.outBuild}/node_modules`)
     await this.compress({ directory: `${this.options.outBuild}/node_modules`, outBuild: `${this.options.outBuild}/node_modules` })
     await this.pkgbuild()
+    await this.sign()
+    await this.singCheck()
+    await this.saveManifest()
   }
 
   async build() {
@@ -159,10 +166,6 @@ class Build {
       }
     }
     this.progressBar.stop()
-  }
-
-  async sign(): Promise<void> {
-
   }
 
   async compress(options?: { directory: string, outBuild: string }): Promise<void> {
@@ -253,7 +256,8 @@ class Build {
         "src/**/*.js",
         "src/**/*.json",
         "package.json",
-        "LICENSE.md"
+        "LICENSE.md",
+        "public_key.pem"
       ],
       assets: [
         "node_modules/**/*.js",
@@ -267,6 +271,7 @@ class Build {
 
     for (const name of remove) delete packageJson?.[name]
     await cp('LICENSE.md', `${this.options.outBuild}/LICENSE.md`)
+    await cp('public_key.pem', `${this.options.outBuild}/public_key.pem`)
     await writeFile(path.join(process.cwd(), `${this.options.outBuild}/package.json`), JSON.stringify(packageJson, null, 2))
   }
 
@@ -321,7 +326,6 @@ class Build {
   async pkgbuild(): Promise<void> {
     const args = ['.', '--compress', 'Brotli', '--no-bytecode', '--public-packages', '"*"', '--public']
     const builds: string[] = []
-    const manifests: BuildManifest[] = []
 
     if (os.platform() !== 'win32') {
       for (const platform of this.options.platforms) {
@@ -348,39 +352,76 @@ class Build {
 
       console.debug(`\n\nIniciando Build ${nameSplit[2]}...`)
       newArg.push(...args, '-t', build, '--output', `${this.options.outRelease}/${buildName}`)
+      this.outputPath = `${this.options.outRelease}/${buildName}`
 
       await execProcess(`cd ${this.options.outBuild} && PKG_CACHE_PATH=${join(process.cwd(), 'pkg-cache')} PKG_IGNORE_TAG=true npx pkg ${newArg.join(" ")}`)
 
       const timeSpent = (Date.now() - this.startTime) / 1000 + 's'
       console.info(`Build | ${nameSplit[1]}-${nameSplit[2]} | ${timeSpent}`)
 
-      const file = await readFile(`${this.options.outRelease}/${buildName}`)
-      const hashMD5 = createHash('md5').update(file).digest('hex')
-      const hashSHA = createHash('sha256').update(file).digest('hex')
-
-      manifests.push({
+      this.manifests.push({
         [manifestName]: {
           path: buildName.replace('./release/', ''),
           platform: nameSplit[1],
           arch: nameSplit[2],
-          size: formatBytes(file.byteLength),
           timeBuild: timeSpent,
-          hashMD5,
-          hashSHA
         }
       })
     }
+  }
 
-    console.log(...manifests)
+  async sign(): Promise<void> {
+    if (this.outputPath === undefined) throw new Error('Não foi definido o path de output, tente buildar com PKG antes!')
+    const binary = await readFile(this.outputPath)
+    const privateKey = await readFile('private_key.pem', { encoding: 'utf8' })
+    
+    const signer = createSign(`sha${SIGNATURE_LENGTH}`)
+    signer.update(binary)
+    signer.end()
+    
+    const signature = signer.sign(privateKey)
+    const output = Buffer.concat([binary, signature])
+    await writeFile(this.outputPath, output)
+  }
 
-    for (const manifest of manifests) {
+  async singCheck(): Promise<void> {
+    if (this.outputPath === undefined) throw new Error('Não foi definido o path de output, tente buildar com PKG antes!')
+    const binary = await readFile(this.outputPath)
+    const publicKey = await readFile('public_key.pem', 'utf8')
+
+    const data = binary.subarray(0, binary.length - SIGNATURE_LENGTH)
+    const signature = binary.subarray(binary.length - SIGNATURE_LENGTH)
+
+
+    const verifier = createVerify(`sha${SIGNATURE_LENGTH}`)
+    verifier.update(data)
+    verifier.end()
+
+    const isValid = verifier.verify(publicKey, signature)
+
+    if (isValid) {
+      console.log('Assinatura verificada com sucesso!')
+    } else {
+      throw new Error('Falha na verificação da assinatura. O arquivo pode ter sido alterado.')
+    }
+  }
+
+  async saveManifest() {
+    if (this.outputPath === undefined) throw new Error('Não foi definido o path de output, tente buildar com PKG antes!')
+      
+    for (const manifest of this.manifests) {
       for (const [key, value] of Object.entries(manifest)) {
+        const file = await readFile(`release/${value.path}`)
+        const hashMD5 = createHash('md5').update(file).digest('hex')
+        const hashSHA = createHash('sha512').update(file).digest('hex')
+
         const values = [value]
         if (existsSync(`release/manifest-${key}.json`)) {
           const existContent = JSON.parse(await readFile(`release/manifest-${key}.json`, { encoding: 'utf-8' })) as BuildInfo[]
           values.push(...existContent)
         }
-        await writeFile(`release/manifest-${key}.json`, JSON.stringify(values, null, 4))
+        const data = JSON.stringify(Object.assign(values, Object.assign(value, { size: formatBytes(file.byteLength), hashMD5: hashMD5, hashSHA: hashSHA })), null, 4)
+        await writeFile(`release/manifest-${key}.json`, data)
       }
     }
   }
@@ -595,7 +636,7 @@ release [options] <input>
         break
       }
       case 'pkg': {
-        buildFunctions.push(() => build.pkgbuild())
+        buildFunctions.push(async () => { await build.pkgbuild(); await build.sign(); await build.singCheck() })
         break
       }
       case 'esbuild': {
@@ -604,7 +645,7 @@ release [options] <input>
       }
       }
     }
-
+    buildFunctions.push(() => build.saveManifest())
     exec.push(async () => await execQueue(buildFunctions))
   }
 

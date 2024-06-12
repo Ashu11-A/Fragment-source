@@ -2,7 +2,7 @@ import { Discord } from '@/discord/Client.js'
 import { Command, CommandData } from '@/discord/Commands.js'
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
 import { existsSync } from 'fs'
-import { mkdir, writeFile } from 'fs/promises'
+import { mkdir, readFile, writeFile } from 'fs/promises'
 import { watch } from 'chokidar'
 import { glob } from 'glob'
 import { isBinaryFile } from 'isbinaryfile'
@@ -14,6 +14,7 @@ import { PKG_MODE, RootPATH } from '@/index.js'
 import { Config, ConfigOptions } from './config.js'
 import { Database, EntityImport } from './database.js'
 import { fileURLToPath } from 'url'
+import { createVerify } from 'crypto'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 interface Metadata {
@@ -65,6 +66,7 @@ export class Plugins {
     const valid = []
     for (const filePath of plugins) {
       if (!(await isBinaryFile(filePath))) continue
+      if (!(await this.validate(filePath))) continue
       valid.push(filePath)
     }
     Plugins.plugins = valid.length
@@ -114,6 +116,28 @@ export class Plugins {
     })
   }
 
+  async validate (filePath: string): Promise<boolean> {
+    const binary = await readFile(filePath)
+    const publicKey = await readFile(join(__dirname, '../../public_key.pem'), 'utf8')
+
+    const data = binary.subarray(0, binary.length - 512)
+    const signature = binary.subarray(binary.length - 512)
+
+
+    const verifier = createVerify('sha512')
+    verifier.update(data)
+    verifier.end()
+
+    const isValid = verifier.verify(publicKey, signature)
+
+    if (isValid) {
+      console.log('Plugin Valido!')
+    } else {
+      console.log(`Falha na verificação da assinatura. ${filePath} não é um arquivo valido!`)
+    }
+    return isValid
+  }
+
   async load(): Promise<void> {
     const plugins = await this.list()
     if (plugins.length === 0) {
@@ -134,6 +158,8 @@ export class Plugins {
         console.log(`Arquivo invalido! ${filePath} não é um plugin!`)
         return
       }
+
+      if (!(await this.validate(filePath))) return
 
       console.log('\n✨ Novo plugin adicionado!')
       this.start(filePath)
