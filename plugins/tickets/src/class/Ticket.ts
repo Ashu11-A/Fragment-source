@@ -1,8 +1,11 @@
 import { Error } from "@/discord/base/CustomResponse.js"
-import { claimDB, configDB } from "@/functions/database.js"
-import { AttachmentBuilder, ButtonInteraction, ChannelType, ChatInputCommandInteraction, codeBlock, EmbedBuilder, ModalSubmitInteraction, PermissionsBitField, StringSelectMenuInteraction, TextBasedChannel } from "discord.js"
+import { claimDB, configDB, ticketDB } from "@/functions/database.js"
+import { AttachmentBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, ComponentType, EmbedBuilder, ModalSubmitInteraction, PermissionsBitField, StringSelectMenuInteraction, TextBasedChannel } from "discord.js"
+import TicketInterface from '@/entity/Ticket.entry.js'
+import { TicketBuilder } from "./TicketBuilder.js"
+import { ActionDrawer } from "@/functions/actionDrawer.js"
 
-type Interaction = StringSelectMenuInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | ChatInputCommandInteraction<'cached'>
+type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | StringSelectMenuInteraction<'cached'>
   
 export class Ticket {
   private readonly interaction
@@ -10,12 +13,66 @@ export class Ticket {
     this.interaction = interaction
   }
 
-  async transcript (options: { messageId: string, reason?: string, observation?: string }): Promise<void> {
+  async delete ({ channelId }: { channelId: string }) {
+    const { user } = this.interaction
+    const messagePrimary = await this.interaction.editReply({
+      embeds: [new EmbedBuilder({
+        description: 'Tem certeza que deseja fechar o Ticket?'
+      }).setColor('Orange')],
+      components: ActionDrawer<ButtonBuilder>([
+        new ButtonBuilder({ customId: 'embed-confirm-button', label: 'Confirmar', style: ButtonStyle.Success }),
+        new ButtonBuilder({ customId: 'embed-cancel-button', label: 'Cancelar', style: ButtonStyle.Danger })
+      ])
+    })
+    const collector = messagePrimary.createMessageComponentCollector({ componentType: ComponentType.Button })
+        
+    collector.on('collect', async (subInteraction) => {
+      collector.stop()
+      const clearData = { components: [], embeds: [] }
+    
+      if (subInteraction.customId === 'embed-cancel-button') {
+        await subInteraction.update({
+          ...clearData,
+          embeds: [
+            new EmbedBuilder({
+              title: 'Você cancelou a ação'
+            }).setColor('Green')
+          ]
+        })
+      } else if (subInteraction.customId === 'embed-confirm-button') {
+        const now = new Date()
+        const futureTime = new Date(now.getTime() + 5000)
+        const futureTimeString = `<t:${Math.floor(futureTime.getTime() / 1000)}:R>`
+        const ticketBuilder = new TicketBuilder({ interaction: this.interaction })
+    
+        await subInteraction.update({
+          ...clearData,
+          embeds: [new EmbedBuilder({
+            title: `👋 | Olá ${user.username}`,
+            description: `❗️ | Esse ticket será excluído em ${futureTimeString} segundos.`
+          }).setColor('Red')]
+        })
+        await new Promise<void>((resolve) => setTimeout(() => resolve(), 5000))
+          
+        await (await ticketBuilder.setTicket(channelId).loader()).delete()
+      }
+    })
+  }
+
+  async transcript (options: { messageId?: string, channelId?: string, reason?: string, observation?: string }): Promise<void> {
     const { guildId, guild } = this.interaction
-    const { messageId, observation, reason } = options
-    const claimData = await claimDB.findOne({ where: { messageId }, relations: { ticket: true } })
-    if (claimData === undefined || claimData?.ticket === undefined) return await new Error({ element: 'Claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
-    const user = await (await this.interaction.client.guilds.fetch(guildId)).members.fetch(claimData.ticket.ownerId).catch(() => undefined)
+    const { messageId, channelId, observation, reason } = options
+    let ticket: TicketInterface | undefined
+
+    if (messageId !== undefined) {
+      const claimData = await claimDB.findOne({ where: { messageId }, relations: { ticket: true } })
+      ticket = claimData?.ticket as TicketInterface
+    } else if (channelId !== undefined) {
+      const ticketData = await ticketDB.findOne({ where: { channelId } })
+      ticket  = ticketData as TicketInterface
+    }
+    if (ticket === undefined) return await new Error({ element: 'Claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
+    const user = await (await this.interaction.client.guilds.fetch(guildId)).members.fetch(ticket.ownerId).catch(() => undefined)
     const config = await configDB.findOne({ where: { guild: { guildId } }, relations: { guild: true } })
 
 
@@ -36,19 +93,19 @@ export class Ticket {
       title: '📄 Historico do ticket',
       fields: [
         { name: '🧑🏻‍💻 Usuário:', value: codeBlock(user?.displayName ?? 'Saiu do servidor...'), inline: true },
-        { name: '🪪 ID:', value: codeBlock(claimData.ticket.ownerId), inline: true },
+        { name: '🪪 ID:', value: codeBlock(ticket.ownerId), inline: true },
         { name: '\u200E', value: '\u200E', inline: true },
   
-        { name: '🤝 Claim:', value: codeBlock(claimData.ticket.team.length > 0 ? claimData.ticket.team.map((user) => user.displayName).join(', ') : 'Ninguém reivindicou o ticket'), inline: true },
-        { name: '🪪 ID:', value: codeBlock(claimData.ticket.team.length > 0 ? claimData.ticket.team.map((user) => user.id).join(', ') : 'None'), inline: true },
+        { name: '🤝 Claim:', value: codeBlock(ticket.team.length > 0 ? ticket.team.map((user) => user.displayName).join(', ') : 'Ninguém reivindicou o ticket'), inline: true },
+        { name: '🪪 ID:', value: codeBlock(ticket.team.length > 0 ? ticket.team.map((user) => user.id).join(', ') : 'None'), inline: true },
         { name: '\u200E', value: '\u200E', inline: true },
   
-        { name: '❓ Motivo:', value: codeBlock(claimData.ticket.category.title), inline: true },
-        { name: '📃 Descrição:', value: codeBlock(claimData.ticket?.description ?? 'Desconhecido'), inline: true },
+        { name: '❓ Motivo:', value: codeBlock(ticket.category.title), inline: true },
+        { name: '📃 Descrição:', value: codeBlock(ticket?.description ?? 'Desconhecido'), inline: true },
         { name: '\u200E', value: '\u200E', inline: true },
   
-        { name: '🔎 Ticket ID:', value: codeBlock(claimData.ticket.channelId), inline: true },
-        { name: '🤝 Convidados:', value: codeBlock(claimData.ticket.users.length === 0 ? 'Não houve convidados!' : claimData.ticket.users?.map((user) => `\n\nUser: ${user.displayName} \nId: ${user.id}`)?.join(', ')), inline: true },
+        { name: '🔎 Ticket ID:', value: codeBlock(ticket.channelId), inline: true },
+        { name: '🤝 Convidados:', value: codeBlock(ticket.users.length === 0 ? 'Não houve convidados!' : ticket.users?.map((user) => `\n\nUser: ${user.displayName} \nId: ${user.id}`)?.join(', ')), inline: true },
         { name: '\u200E', value: '\u200E', inline: true }
       ]
     }).setColor(user?.roles.color?.hexColor ?? 'Green')
@@ -66,7 +123,7 @@ export class Ticket {
       elements++
     }
 
-    for (const message of (claimData.ticket.history ?? [])) {
+    for (const message of (ticket.history ?? [])) {
       if (message === undefined) continue
       const data = new Date(message.date)
       const ano = data.getFullYear()
@@ -85,12 +142,12 @@ export class Ticket {
 
     await channel.send({ embeds: [embed] })
     await channel.send({ files: [
-      new AttachmentBuilder(Buffer.from(text), { name: `${claimData.ticket.ownerId}.log`, description: `Transcript do usuário ${user?.displayName ?? claimData.ticket.ownerId}` })
+      new AttachmentBuilder(Buffer.from(text), { name: `${ticket.ownerId}.log`, description: `Transcript do usuário ${user?.displayName ?? ticket.ownerId}` })
     ] })
-    await this.interaction.editReply({
+    if (this.interaction.deferred) await this.interaction.editReply({
       embeds: [new EmbedBuilder({
         title: '✅ Logs salvas com sucesso'
       }).setColor('Green')]
-    })
+    }).catch(() => undefined)
   }
 }
