@@ -2,21 +2,23 @@ import { packageData } from "@/index.js";
 import { ActionRowBuilder, ButtonBuilder as Button, ButtonStyle, ComponentEmojiResolvable, ModalBuilder as Modal, SelectMenuComponentOptionData, StringSelectMenuBuilder as StringSelect, TextInputBuilder } from "discord.js";
 
 export interface BaseButtonComponentData {
-  customId: string
+  customId?: string
   style: ButtonStyle
   disabled?: boolean
   emoji?: ComponentEmojiResolvable
   label?: string
+  url?: string
 }
 
 export class ButtonBuilder extends Button {
-  public readonly customId: string
-  constructor ({ customId, style, label, disabled, emoji }: BaseButtonComponentData) {
+  public readonly customId?: string
+  constructor ({ customId, style, label, disabled, emoji, url }: BaseButtonComponentData) {
     super()
     this.customId = customId
     this.setStyle(style)
     this.setDisabled(disabled ?? false)
-    this.setCustomId(`${packageData.name}_${customId}`)
+    if (url === undefined) this.setCustomId(`${packageData.name}_${customId}`)
+    else if (url !== undefined) this.setURL(url)
     if (label) this.setLabel(label)
     if (emoji) this.setEmoji(emoji)
   }
