@@ -38,7 +38,7 @@ export class Database {
     }
 
     const [, { default: Entity }] = entry
-    console.log(`🛎️ [Database - ${type}] Requisição do plugin ${plugin}`)
+    console.log(`🛎️ [${plugin}]: Database -> ${type}`)
     try {
       switch (type) {
       case 'find': socket.emit(eventName, await Entity.find(args.options)); break
