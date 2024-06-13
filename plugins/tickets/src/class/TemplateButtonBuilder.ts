@@ -139,9 +139,10 @@ export class TemplateButtonBuilder {
       
     for (const button of buttons) {
       const { customId } = button
+      if (customId === undefined) continue
       const ButtonType = Object.entries(buttonType).find(([key]) => key === button.customId ) // [ 'SetModal', 'modal' ]
 
-      if (ButtonType?.[0] === button.customId && this.type === ButtonType[1]) button.setStyle(ButtonStyle.Primary)
+      if (ButtonType?.[0] === customId && this.type === ButtonType[1]) button.setStyle(ButtonStyle.Primary)
       if (customId === 'AddSelect' && this.type === TypeTemplate.Select) button.setDisabled(false)
       if (this.properties[customId] === true) button.setStyle(ButtonStyle.Primary)
     }
