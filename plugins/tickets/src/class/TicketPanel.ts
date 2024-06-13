@@ -133,7 +133,8 @@ export class TicketPanel {
         url: voiceChannel.url
       }))]
     }).then(async (message) => {
-      await (await new TicketBuilder({ interaction: this.interaction }).setTicket(channelId).loader())
+      await new TicketBuilder({ interaction: this.interaction })
+        .setData(ticketData)
         .setVoice({ 
           id: voiceChannel.id,
           messageId: message.id
