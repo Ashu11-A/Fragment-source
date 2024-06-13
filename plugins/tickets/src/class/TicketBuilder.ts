@@ -243,6 +243,18 @@ export class TicketBuilder {
     return this
   }
 
+  async send (embeds: EmbedBuilder[]) {
+    if (this.ticketId === undefined) throw new Error({ element: 'executar essa ação, pois o Id do ticket não foi setado!', interaction: this.interaction }).notPossible().reply()
+
+    const ticketData = await ticket.findOne({ where: { id: this.ticketId } })
+    if (ticketData === null) { await new Error({ element: 'as informações do ticket', interaction: this.interaction }).notFound({ type: 'Database' }).reply(); return }
+      
+    const channel = await this.interaction.client.channels.fetch(ticketData.channelId).catch(() => null)
+    if (channel === null && channel === undefined || !channel?.isTextBased()) { await new Error({ element: ticketData.channelId, interaction: this.interaction }).notFound({ type: 'Channel' }).reply(); return }
+  
+    await channel.send({ embeds })
+  }
+
   async update () {
     if (this.ticketId === undefined) throw new Error({ element: 'executar essa ação, pois o Id do ticket não foi setado!', interaction: this.interaction }).notPossible().reply()
 
