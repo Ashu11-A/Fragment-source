@@ -7,6 +7,8 @@ import Ticket, { Event, History, TicketCategories, Message as TicketMessage, Tic
 import { ActionDrawer } from "@/functions/actionDrawer.js";
 import { ActionRowBuilder, ButtonInteraction, ButtonStyle, ChannelType, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction, TextChannel, User, codeBlock } from "discord.js";
 import { ClaimBuilder } from "./ClaimBuilder.js";
+import { Ticket as TicketFunctions } from './Ticket.js'
+import { guildDB } from "@/functions/database.js";
 
 type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | StringSelectMenuInteraction<'cached'> | Message<true>
 
@@ -30,12 +32,12 @@ export class TicketBuilder {
       this.user = interaction.user
     }
     this.options = {
-      ownerId: '',
+      ownerId: undefined,
       title: undefined,
       description: undefined,
       closed: false,
-      channelId: '',
-      messageId: '',
+      channelId: undefined,
+      messageId: undefined,
       voice: undefined,
       category: { emoji: '🎫', title: 'Tickets' },
       team: [],
@@ -169,12 +171,20 @@ export class TicketBuilder {
     if (this.embed === undefined || this.buttons === undefined) this.render()
     const messageMain = await channel.send({ embeds: [this.embed as EmbedBuilder], components: this.buttons })
 
+    const guildRelaction = await guildDB.findOne({ where: { guildId: guild.id } })
+    if (guildRelaction === null) return await new Error({ element: 'Guild', interaction: this.interaction }).notFound({ type: "Database" }).reply()
+
+    const templateRelaction = await template.findOne({ where: { id: this.templateId } })
+    if (templateRelaction === null) return await new Error({ element: 'Template', interaction: this.interaction }).notFound({ type: "Database" }).reply()
+
     this.options = Object.assign(this.options, {
       channelId: channel.id,
       messageId: messageMain.id,
+      guild: guildRelaction,
+      template: templateRelaction
     })
 
-    const ticketData = await ticket.create({ ...this.options, guild: { guildId: this.interaction.guildId }, template: { id: this.templateId } })
+    const ticketData = await ticket.create(this.options)
     const result = await ticket.save(ticketData) as Ticket
 
     if (result === null || result === undefined) {
@@ -232,6 +242,7 @@ export class TicketBuilder {
 
       if (message.deletable) await message.delete()
     }
+    await new TicketFunctions({ interaction: this.interaction }).transcript({ messageId: ticketData.claim.messageId })
     await ticket.delete({ id: ticketData.id })
     await claimBuilder.delete(ticketData.claim.id)
   }
