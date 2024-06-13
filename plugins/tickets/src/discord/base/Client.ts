@@ -49,86 +49,90 @@ export class Discord {
 
   controller () {
     Discord.client.on('interactionCreate', async (interaction) => {
-      this.timestamp = Date.now()
+      try {
+        this.timestamp = Date.now()
 
-      const onAutoComplete = (autoCompleteInteraction: AutocompleteInteraction): void => {
-        console.log(autoCompleteInteraction.commandName)
-        if (autoCompleteInteraction.commandName === 'config') {
-          const config = Config.all.find((config) => config.name === autoCompleteInteraction.options.getSubcommand())
-          if (config?.autoComplete !== undefined) config.autoComplete(autoCompleteInteraction)
-          return
+        const onAutoComplete = (autoCompleteInteraction: AutocompleteInteraction): void => {
+          console.log(autoCompleteInteraction.commandName)
+          if (autoCompleteInteraction.commandName === 'config') {
+            const config = Config.all.find((config) => config.name === autoCompleteInteraction.options.getSubcommand())
+            if (config?.autoComplete !== undefined) config.autoComplete(autoCompleteInteraction)
+            return
+          }
+          const command = Command.all.get(autoCompleteInteraction.commandName)
+          const interaction = autoCompleteInteraction
+          if (command?.type === ApplicationCommandType.ChatInput && (command.autoComplete !== undefined)) {
+            command.autoComplete(interaction)
+          }
         }
-        const command = Command.all.get(autoCompleteInteraction.commandName)
-        const interaction = autoCompleteInteraction
-        if (command?.type === ApplicationCommandType.ChatInput && (command.autoComplete !== undefined)) {
-          command.autoComplete(interaction)
-        }
-      }
-      const onCommand = (commandInteraction: CommandInteraction): void => {
-        if (commandInteraction.commandName === 'config') {
-          const interaction = commandInteraction as ChatInputCommandInteraction<CacheType>
-          const config = Config.all.find((config) => config.name === interaction.options.getSubcommand())
-          config?.run(interaction)
-          return
-        }
-        const command = Command.all.get(commandInteraction.commandName)
+        const onCommand = (commandInteraction: CommandInteraction): void => {
+          if (commandInteraction.commandName === 'config') {
+            const interaction = commandInteraction as ChatInputCommandInteraction<CacheType>
+            const config = Config.all.find((config) => config.name === interaction.options.getSubcommand())
+            config?.run(interaction)
+            return
+          }
+          const command = Command.all.get(commandInteraction.commandName)
 
-        switch (command?.type) {
-        case ApplicationCommandType.ChatInput:{
-          const interaction = commandInteraction as ChatInputCommandInteraction
-          command.run(interaction)
-          return
+          switch (command?.type) {
+          case ApplicationCommandType.ChatInput:{
+            const interaction = commandInteraction as ChatInputCommandInteraction
+            command.run(interaction)
+            return
+          }
+          case ApplicationCommandType.Message:{
+            const interaction = commandInteraction as MessageContextMenuCommandInteraction
+            command.run(interaction)
+            return
+          }
+          case ApplicationCommandType.User:{
+            const interaction = commandInteraction as UserContextMenuCommandInteraction
+            command.run(interaction)
+          }
+          }
         }
-        case ApplicationCommandType.Message:{
-          const interaction = commandInteraction as MessageContextMenuCommandInteraction
-          command.run(interaction)
-          return
+        if (interaction.isCommand()) onCommand(interaction)
+        if (interaction.isAutocomplete()) onAutoComplete(interaction)
+
+        if (!interaction.isModalSubmit() && !interaction.isMessageComponent()) return
+
+        if (interaction.customId.split('_')[0] !== packageData.name) return
+
+        this.customId = interaction.customId
+        this.username = interaction.user.username
+
+        if (interaction.isModalSubmit()) {
+          const component = Component.find(this.customId, 'Modal')
+          await component?.run(interaction)
         }
-        case ApplicationCommandType.User:{
-          const interaction = commandInteraction as UserContextMenuCommandInteraction
-          command.run(interaction)
+        if (interaction.isButton()) {
+          const component = Component.find(this.customId, 'Button')
+          await component?.run(interaction)
         }
+        if (interaction.isStringSelectMenu()) {
+          const component = Component.find(this.customId, 'StringSelect')
+          await component?.run(interaction)
         }
+        if (interaction.isChannelSelectMenu()) {
+          const component = Component.find(this.customId, 'ChannelSelect')
+          await component?.run(interaction)
+        }
+        if (interaction.isRoleSelectMenu()) {
+          const component = Component.find(this.customId, 'RoleSelect')
+          await component?.run(interaction)
+        }
+        if (interaction.isUserSelectMenu()) {
+          const component = Component.find(this.customId, 'UserSelect')
+          await component?.run(interaction)
+        }
+        if (interaction.isMentionableSelectMenu()) {
+          const component = Component.find(this.customId, 'MentionableSelect')
+          await component?.run(interaction)
+        }
+        if (this.customId) this.end()
+      } catch (err) {
+        console.error(err)
       }
-      if (interaction.isCommand()) onCommand(interaction)
-      if (interaction.isAutocomplete()) onAutoComplete(interaction)
-
-      if (!interaction.isModalSubmit() && !interaction.isMessageComponent()) return
-
-      if (interaction.customId.split('_')[0] !== packageData.name) return
-
-      this.customId = interaction.customId
-      this.username = interaction.user.username
-
-      if (interaction.isModalSubmit()) {
-        const component = Component.find(this.customId, 'Modal')
-        await component?.run(interaction)
-      }
-      if (interaction.isButton()) {
-        const component = Component.find(this.customId, 'Button')
-        await component?.run(interaction)
-      }
-      if (interaction.isStringSelectMenu()) {
-        const component = Component.find(this.customId, 'StringSelect')
-        await component?.run(interaction)
-      }
-      if (interaction.isChannelSelectMenu()) {
-        const component = Component.find(this.customId, 'ChannelSelect')
-        await component?.run(interaction)
-      }
-      if (interaction.isRoleSelectMenu()) {
-        const component = Component.find(this.customId, 'RoleSelect')
-        await component?.run(interaction)
-      }
-      if (interaction.isUserSelectMenu()) {
-        const component = Component.find(this.customId, 'UserSelect')
-        await component?.run(interaction)
-      }
-      if (interaction.isMentionableSelectMenu()) {
-        const component = Component.find(this.customId, 'MentionableSelect')
-        await component?.run(interaction)
-      }
-      if (this.customId) this.end()
     })
   }
 
