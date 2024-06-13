@@ -47,11 +47,3 @@ new Component({
     await (await builder.setTicket(channelId).loader()).delete()
   }
 })
-
-// new Component({
-//   customId: 'Panel',
-//   type: "Button",
-//   async run(interaction) {
-          
-//   },
-// })
