@@ -48,12 +48,12 @@ export interface Voice {
 }
 
 export interface TicketType {
-  ownerId: string
+  ownerId?: string
   title?: string
   description?: string
   closed: boolean
-  channelId: string
-  messageId: string
+  channelId?: string
+  messageId?: string
   claim?: Message
   voice?: Voice
   category: TicketCategories
