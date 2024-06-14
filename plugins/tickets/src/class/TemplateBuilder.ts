@@ -4,6 +4,7 @@ import TemplateTable from "@/entity/Template.entry.js";
 import { EmbedBuilder } from "@discordjs/builders";
 import { APIEmbed as APIEmbedDiscord, ButtonInteraction, CacheType, Colors, CommandInteraction, MessageComponentInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js";
 import { TemplateButtonBuilder } from "./TemplateButtonBuilder.js";
+import { checkURL } from "@/functions/checker.js";
 
 const database = new Database<TemplateTable>({ table: 'Template' })
 
@@ -73,9 +74,22 @@ export class TemplateBuilder {
       return
     }
 
+    const [isImageURL] = checkURL(this.options.image)
+    const [isThumbURL] = checkURL(this.options.thumbnail)
+
+    if (this.options.image !== '' && !isImageURL) {
+      await new Error({ element: 'Image', interaction: this.interaction }).invalidProperty().reply()
+      return
+    }
+
+    if (this.options.thumbnail !== '' && !isThumbURL) {
+      await new Error({ element: 'Thumbnail', interaction: this.interaction }).invalidProperty().reply()
+      return
+    }
+
     const embed = this.render(templateData.embed)
     const components = buttonBuilder
-      .setMode(this.mode)
+      .setMode(this.mode ?? 'production')
       .setProperties(templateData.properties)
       .setSelects(templateData.selects)
       .setType(templateData.type)
