@@ -2,39 +2,40 @@ import { Database } from "@/controller/database.js";
 import { Error } from "@/discord/base/CustomResponse.js";
 import TemplateTable from "@/entity/Template.entry.js";
 import { EmbedBuilder } from "@discordjs/builders";
-import { APIEmbed as APIEmbedDiscord, ButtonInteraction, CacheType, Colors, CommandInteraction, MessageComponentInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js";
+import { APIEmbed as APIEmbedDiscord, ButtonInteraction, CacheType, Colors, CommandInteraction, Message, MessageComponentInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js";
 import { TemplateButtonBuilder } from "./TemplateButtonBuilder.js";
 import { checkURL } from "@/functions/checker.js";
+import Template from "@/entity/Template.entry.js";
 
 const database = new Database<TemplateTable>({ table: 'Template' })
 
-type Interaction = CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction<CacheType>
+type Interaction = CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction<CacheType> | Message<true>
 interface TemplateBuilderOptions {
     interaction: Interaction
 }
 
 interface APIEmbed {
-    title: string;
-    description: string;
-    color: string;
-    image: string;
-    thumbnail: string;
+    title?: string;
+    description?: string;
+    color?: string | number;
+    image?: string;
+    thumbnail?: string;
 }
 
 
 export class TemplateBuilder {
   private readonly interaction: Interaction
-  private readonly options!: APIEmbed
+  private options!: APIEmbed
   private mode!: 'debug' | 'production'
 
   constructor ({ interaction }: TemplateBuilderOptions) {
     this.interaction = interaction
     this.options = {
-      title: '',
-      description: '',
-      image: '',
-      thumbnail: '',
-      color: ''
+      title: undefined,
+      description: undefined,
+      image: undefined,
+      thumbnail: undefined,
+      color: undefined
     }
   }
 
@@ -45,15 +46,24 @@ export class TemplateBuilder {
   setColor (value: string) { this.options.color = value; return this }
   setMode (value: 'debug' | 'production') { this.mode = value; return this}
 
+  setData (data: Template) { 
+    this.options.title = data.embed.title
+    this.options.description = data.embed.description
+    this.options.color = data.embed.color
+    this.options.image = data.embed.image?.url
+    this.options.thumbnail = data.embed.thumbnail?.url
+    return this
+  }
+
   render (original: APIEmbedDiscord): EmbedBuilder {
     const { color, description, image, thumbnail, title } = this.options
     const embed = new EmbedBuilder(original)
 
-    if (title !== '') embed.setTitle(title)
-    if (description !== '') embed.setDescription(description)
-    if (image !== '') embed.setImage(image)
-    if (thumbnail !== '') embed.setThumbnail(thumbnail)
-    if (color !== '') embed.setColor(Number(color))
+    if (title !== undefined) embed.setTitle(title)
+    if (description !==undefined) embed.setDescription(description)
+    if (image !== undefined) embed.setImage(image)
+    if (thumbnail !== undefined) embed.setThumbnail(thumbnail)
+    if (color !== undefined) embed.setColor(Number(color))
 
     return embed
   }
@@ -69,22 +79,19 @@ export class TemplateBuilder {
     const message = await channel.messages.fetch(templateData.messageId)
     if (!channel?.isTextBased()) { await new Error({ element: templateData.messageId, interaction: this.interaction }).notFound({ type: "Message" }).reply(); return }
 
-    if (Object.values(Colors).find((color) => color === Number(this.options.color)) === undefined) {
+    if (this.options.color !== undefined && Object.values(Colors).find((color) => color === Number(this.options.color)) === undefined) {
       await new Error({ element: 'cor', interaction: this.interaction }).invalidProperty().reply()
       return
     }
 
-    const [isImageURL] = checkURL(this.options.image)
-    const [isThumbURL] = checkURL(this.options.thumbnail)
-
-    if (this.options.image !== '' && !isImageURL) {
-      await new Error({ element: 'Image', interaction: this.interaction }).invalidProperty().reply()
-      return
+    if (this.options.image !== undefined) {
+      const [isImageURL] = checkURL(this.options.image)
+      if (!isImageURL) { await new Error({ element: 'Image', interaction: this.interaction }).invalidProperty().reply(); return }
     }
-
-    if (this.options.thumbnail !== '' && !isThumbURL) {
-      await new Error({ element: 'Thumbnail', interaction: this.interaction }).invalidProperty().reply()
-      return
+      
+    if (this.options.thumbnail !== undefined) {
+      const [isThumbURL] = checkURL(this.options.thumbnail)
+      if (!isThumbURL) { await new Error({ element: 'Thumbnail', interaction: this.interaction }).invalidProperty().reply(); return }
     }
 
     const embed = this.render(templateData.embed)
@@ -101,31 +108,33 @@ export class TemplateBuilder {
   }
 
   async delete ({ messageId }: { messageId: string }) {
+    const interaction = this.interaction
+    if (interaction instanceof Message) return
     const templateData = await database.findOne({ where: { messageId } })
-    if (templateData === null) { await new Error({ element: 'o template', interaction: this.interaction }).notFound({ type: 'Database' }).reply(); return }
+    if (templateData === null) { await new Error({ element: 'o template', interaction }).notFound({ type: 'Database' }).reply(); return }
 
-    const channel = await this.interaction.guild?.channels.fetch(templateData.channelId)
-    if (!channel?.isTextBased()) { await new Error({ element: templateData.channelId, interaction: this.interaction }).notFound({ type: "Channel" }).reply(); return }
+    const channel = await interaction.guild?.channels.fetch(templateData.channelId)
+    if (!channel?.isTextBased()) { await new Error({ element: templateData.channelId, interaction }).notFound({ type: "Channel" }).reply(); return }
 
     const message = await channel.messages.fetch(templateData.messageId)
-    if (!channel?.isTextBased()) { await new Error({ element: templateData.messageId, interaction: this.interaction }).notFound({ type: "Message" }).reply(); return }
+    if (!channel?.isTextBased()) { await new Error({ element: templateData.messageId, interaction }).notFound({ type: "Message" }).reply(); return }
 
     await database.delete({ messageId }).then(async (result) => {
-      const isCollector = this.interaction instanceof MessageComponentInteraction
-      const deferred = this.interaction.deferred
+      const isCollector = interaction instanceof MessageComponentInteraction
+      const deferred = interaction.deferred
       if ((result?.affected ?? 0) > 0) {
         const embed = new EmbedBuilder({ title: '✅ Template apagado com sucesso!' }).setColor(Colors.Green)
         
         if (message.deletable) message.delete()
-        if (deferred) { await this.interaction.editReply({ embeds: [embed] }); return }
-        if (isCollector) { await this.interaction.update({ embeds: [embed], components: [] }); return }
-        await this.interaction.reply({ embeds: [embed] })
+        if (deferred) { await interaction.editReply({ embeds: [embed] }); return }
+        if (isCollector) { await interaction.update({ embeds: [embed], components: [] }); return }
+        await interaction.reply({ embeds: [embed] })
       } else {
         const embed = new EmbedBuilder({ title: '❌ Ocorreu um erro ao tentar apagar o template!' }).setColor(Colors.Red)
 
-        if (deferred) { await this.interaction.editReply({ embeds: [embed] }); return }
-        if (isCollector) { await this.interaction.update({ embeds: [embed], components: [] }); return }
-        await this.interaction.reply({ embeds: [embed] })
+        if (deferred) { await interaction.editReply({ embeds: [embed] }); return }
+        if (isCollector) { await interaction.update({ embeds: [embed], components: [] }); return }
+        await interaction.reply({ embeds: [embed] })
       }
     })
   }
