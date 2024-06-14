@@ -60,7 +60,7 @@ export class TemplateBuilder {
   async edit ({ messageId }: { messageId: string }) {
     const buttonBuilder = new TemplateButtonBuilder()
     const templateData = await database.findOne({ where: { messageId } })
-    if (templateData === null) { await new Error({ element: 'o template', interaction: this.interaction }).notFound({ type: 'Database' }).reply(); return }
+    if (templateData === null) { throw await new Error({ element: 'o template', interaction: this.interaction }).notFound({ type: 'Database' }).reply(); return }
 
     const channel = await this.interaction.guild?.channels.fetch(templateData.channelId)
     if (!channel?.isTextBased()) { await new Error({ element: templateData.channelId, interaction: this.interaction }).notFound({ type: "Channel" }).reply(); return }
