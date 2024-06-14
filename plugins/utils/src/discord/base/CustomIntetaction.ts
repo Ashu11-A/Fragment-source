@@ -1,5 +1,6 @@
+import { ActionDrawer } from "@/functions/actionDrawer.js";
 import { packageData } from "@/index.js";
-import { ActionRowBuilder, ButtonBuilder as Button, ButtonStyle, ComponentEmojiResolvable, ModalBuilder as Modal, SelectMenuComponentOptionData, StringSelectMenuBuilder as StringSelect, TextInputBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder as Button, ButtonInteraction, ButtonStyle, CacheType, CommandInteraction, ComponentEmojiResolvable, ComponentType, EmbedBuilder, ModalBuilder as Modal, ModalSubmitInteraction, SelectMenuComponentOptionData, StringSelectMenuBuilder as StringSelect, StringSelectMenuInteraction, TextInputBuilder } from "discord.js";
 
 export interface BaseButtonComponentData {
   customId?: string
@@ -66,5 +67,51 @@ export class StringSelectMenuBuilder extends StringSelect {
     if (maxValues) this.setMaxValues(maxValues)
     if (minValues) this.setMinValues(minValues)
     if (placeholder) this.setPlaceholder(placeholder)
+  }
+}
+
+type Interaction = CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction<CacheType>
+export class YouSure {
+  private readonly interaction: Interaction
+  private readonly title?: string
+  constructor ({ interaction, title }: { interaction: Interaction, title: string }) {
+    this.interaction = interaction
+    this.title = title
+  }
+
+  async question () {
+    return await new Promise<boolean>(async (resolve, reject) => {
+      const embed = new EmbedBuilder({ title: this.title ?? 'Tem certeza que deseja fazer isso?' }).setColor('Orange')
+      const buttons = ActionDrawer([
+        new Button({ customId: 'confirm-button', label: 'Confirmar', style: ButtonStyle.Success }),
+        new Button({ customId: 'cancel-button', label: 'Cancelar', style: ButtonStyle.Danger })
+      ])
+      const message = this.interaction.deferred
+        ? await this.interaction.editReply({ embeds: [embed], components: buttons })
+        : await this.interaction.reply({ embeds: [embed], components: buttons })
+
+      const collector = message.createMessageComponentCollector({ componentType: ComponentType.Button, maxUsers: 1 })
+      collector.once('collect', async (subInteraction) => {
+        switch (subInteraction.customId) {
+        case 'confirm-button': {
+          resolve(true)
+          break
+        }
+        case 'cancel-button': {
+          if (subInteraction.isRepliable()) {
+            const embed = new EmbedBuilder({
+              title: 'Ação cancelada!'
+            }).setColor('Red')
+            await subInteraction.update({ embeds: [embed], components: [] }).catch(async () => {
+              if (subInteraction.deferred) { await this.interaction.editReply({ embeds: [embed], components: [] }); return }
+              await this.interaction.reply({ ephemeral: true, embeds: [embed], components: [] })
+            })
+            setTimeout(async () => await subInteraction.deleteReply().catch(() => undefined), 5000)
+          }
+          reject(false)
+        }
+        }
+      })
+    })
   }
 }
