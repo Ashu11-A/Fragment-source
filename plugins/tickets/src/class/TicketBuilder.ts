@@ -16,7 +16,7 @@ const ticket = new Database<Ticket>({ table: 'Ticket' })
 const template = new Database<Template>({ table: 'Template' })
 
 export class TicketBuilder {
-  private options!: TicketType
+  public options!: TicketType
   public embed?: EmbedBuilder
   public buttons?: ActionRowBuilder<ButtonBuilder>[]
   private user!: User
@@ -264,6 +264,7 @@ export class TicketBuilder {
     if (channel === null && channel === undefined || !channel?.isTextBased()) { await new Error({ element: ticketData.channelId, interaction: this.interaction }).notFound({ type: 'Channel' }).reply(); return }
   
     await channel.send({ embeds })
+    return this
   }
 
   async update () {
