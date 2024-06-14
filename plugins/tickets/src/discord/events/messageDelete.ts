@@ -5,6 +5,9 @@ import Claim from "@/entity/Claim.entry.js"
 import Ticket from "@/entity/Ticket.entry.js"
 import { AuditLogEvent, EmbedBuilder, Message, MessageFlagsBitField } from "discord.js"
 import { Event } from "../base/Event.js"
+import { templateDB, ticketDB } from "@/functions/database.js"
+import { TemplateBuilder } from "@/class/TemplateBuilder.js"
+import { TemplateButtonBuilder } from "@/class/TemplateButtonBuilder.js"
 
 const ticket = new Database<Ticket>({ table: 'Ticket' })
 const claim = new Database<Claim>({ table: 'Claim' })
@@ -31,6 +34,30 @@ new Event({
     const builder = new TicketBuilder({ interaction: message })
     await builder.setData(ticketData).edit()
     console.info(`⚠️ Uma mensagem foi apagada! ticketId: ${ticketData.id}`)
+  },
+})
+
+/**
+ *  Se o Template for apagado (Recrie-o)
+ */
+new Event({
+  name: 'messageDelete',
+  async run(message) {
+    if (!message.author?.bot || !(message instanceof Message) || !message.inGuild()) return
+    const template = await templateDB.findOne({ where: { messageId: message.id } })
+    if (template === null) return
+
+    const embed = new TemplateBuilder({ interaction: message })
+      .render(message.embeds[0].toJSON())
+    const buttons = new TemplateButtonBuilder()
+      .setProperties(template.properties)
+      .setSelects(template.selects)
+      .setMode('production')
+      .render()
+
+    const newMessage = await message.channel.send({ embeds: [embed], components: buttons })
+
+    await templateDB.update({ id: template.id }, { messageId: newMessage.id })
   },
 })
 
