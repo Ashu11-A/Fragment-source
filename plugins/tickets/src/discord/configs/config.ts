@@ -1,9 +1,7 @@
-import { ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ChannelType, EmbedBuilder } from "discord.js";
-import { Database } from "@/controller/database.js";
-import ConfigORM from "@/entity/Config.entry.js";
-import { Config } from "../base/Config.js";
 import { Template } from "@/class/Template.js";
-import { ButtonBuilder } from "../base/CustomIntetaction.js";
+import { configDB } from "@/functions/database.js";
+import { ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ChannelType, EmbedBuilder } from "discord.js";
+import { Config } from "../base/Config.js";
 
 new Config({
   name: 'ticket',
@@ -61,18 +59,18 @@ new Config({
   async autoComplete (interaction) {
     const { options, guildId } = interaction
     if (guildId === null) return
-    const config = new Database<ConfigORM>({ table: 'Config' })
     const respond: Array<ApplicationCommandOptionChoiceData<string | number>> = []
     let haveInteraction = false
 
+    console.log(options.getSubcommand(), options.getFocused(true))
+
     switch (options.getSubcommand()) {
     case 'ticket': {
-      switch (options.data[0].options?.[0].name) {
+      switch (options.getFocused(true).name) {
       case 'rem-role-team': {
         haveInteraction = true
-        const roles = (await config.findOne({ where: { guild: { guildId } } }))?.roles
-        console.log(roles)
-        if (roles !== undefined) {
+        const roles = (await configDB.findOne({ where: { guild: { guildId } }}))?.roles ?? []
+        if (roles.length > 0) {
           for (const role of roles) {
             respond.push({ name: `${role.name} | ${role.id}`, value: role.id })
           }
@@ -98,8 +96,7 @@ new Config({
     const remRole = options.getString('rem-role-team')
     const template = new Template({ interaction })
 
-    const config = new Database<ConfigORM>({ table: 'Config' })
-    const dataDB = await config.findOne({ where: { guild: { guildId } }})
+    const dataDB = await configDB.findOne({ where: { guild: { guildId } }})
     let data = dataDB ?? {} as Record<string, any>
     const text = []
 
@@ -109,9 +106,9 @@ new Config({
     }
 
     if (addRole !== null) {
-      const roles = data.roles
+      const roles = data.roles ?? []
 
-      if ((roles ?? []).some((role: { id: string; }) => role.id === addRole.id)) {
+      if (roles.some((role: { id: string; }) => role.id === addRole.id)) {
         await interaction.editReply({
           embeds: [new EmbedBuilder({
             title: '❌ Esse cargo já está na lista!'
@@ -120,19 +117,14 @@ new Config({
         return
       }
 
-      const newRoles = [
-        ...(roles ?? []),
-        { name: addRole.name, id: addRole.id }
-      ]
-
-      console.log(roles, newRoles)
+      const newRoles = [ ...roles, { name: addRole.name, id: addRole.id } ]
 
       data = Object.assign(data, { roles: newRoles })
       text.push(`${addRole.name} definido para interações com os tickets`)
     }
 
     if (remRole !== null) {
-      const roles = data.roles
+      const roles = data.roles ?? []
       const removedRole = roles.filter((role: { id: string; }) => role.id !== remRole)
 
       data = Object.assign(data, { roles: removedRole })
@@ -152,8 +144,6 @@ new Config({
         return
       }
 
-      ButtonBuilder
-
       if (sendChannel !== undefined) template.create({
         title: 'Pedir suporte',
         description: 'Se você estiver precisando de ajuda clique no botão abaixo',
@@ -162,7 +152,7 @@ new Config({
       })
     }
     if (limit !== null) {
-      data = Object.assign(data, limit)
+      data = Object.assign(data, { limit })
       text.push(`Limite de tickets por pessoa agora é de ${limit}!`)
     }
     if (claimChannel !== null) {
@@ -175,9 +165,9 @@ new Config({
     }
     try {
       if (dataDB !== null) {
-        await config.save(data)
+        await configDB.update({ id: dataDB.id }, data)
       } else {
-        await config.save(await config.create(Object.assign(data, { guild: { guildId } })))
+        await configDB.save(await configDB.create(Object.assign(data, { guild: { guildId } })))
       }
 
       await interaction.editReply({
@@ -188,7 +178,7 @@ new Config({
           }).setColor('Green')
         ]
       })
-      setTimeout(() => interaction.deleteReply(), 2000)
+      setTimeout(() => interaction.deleteReply(), 10000)
     } catch (err) {
       await interaction.editReply({
         embeds: [new EmbedBuilder({
