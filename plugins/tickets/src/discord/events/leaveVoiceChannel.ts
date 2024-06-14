@@ -2,6 +2,9 @@ import { guildDB } from "@/functions/database.js"
 import { TextChannel } from "discord.js"
 import { Event } from "../base/Event.js"
 
+/**
+ * Caso a última pessoa se desconecte do channel voice do ticket: apague-o
+ */
 new Event({
   name: 'voiceStateUpdate',
   async run (oldState, newState) {
