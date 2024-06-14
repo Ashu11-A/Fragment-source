@@ -2,6 +2,7 @@ import { ButtonBuilder } from "@/discord/base/CustomIntetaction.js"
 import { Error } from "@/discord/base/CustomResponse.js"
 import Claim from "@/entity/Claim.entry.js"
 import Config, { Roles } from "@/entity/Config.entry.js"
+import Ticket from "@/entity/Ticket.entry.js"
 import { ActionDrawer } from "@/functions/actionDrawer.js"
 import { claimDB, configDB, ticketDB } from "@/functions/database.js"
 import { ActionRowBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction } from "discord.js"
@@ -17,6 +18,7 @@ type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached
 export class ClaimBuilder {
   private readonly interaction: Interaction
   private options!: ClaimOptions
+  private ticketData: Ticket | undefined
   public embed!: EmbedBuilder | undefined
   public buttons!: ActionRowBuilder<ButtonBuilder>[] | undefined
 
@@ -29,6 +31,7 @@ export class ClaimBuilder {
   }
 
   setTicketId(ticketId: number) { this.options.ticketId = ticketId ; return this }
+  setData (ticket: Ticket) { this.ticketData = ticket; return this }
 
   private permissions (roles: Roles[]): OverwriteResolvable[] {
     const permissionOverwrites: OverwriteResolvable[] = []
@@ -55,8 +58,8 @@ export class ClaimBuilder {
 
   async render() {
     const { guild } = this.interaction
-    const ticketData = await ticketDB.findOne({ where: { id: this.options.ticketId } })
-    if (ticketData === null) { await new Error({ element: 'ticket', interaction: this.interaction }).notFound({ type: 'Database' }).reply(); return }
+    const ticketData = this.ticketData !== null ? this.ticketData : await ticketDB.findOne({ where: { id: this.options.ticketId } })
+    if (ticketData === null || ticketData === undefined) throw await new Error({ element: 'ticket', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
     const { team, ownerId, category: { emoji, title }, description, createAt } = ticketData
     const user = (await guild.members.fetch()).find((user) => user.id === ownerId)
 
@@ -144,6 +147,24 @@ export class ClaimBuilder {
       return claimData
     }
     return
+  }
+
+  async edit ({ messageId }: { messageId: string }) {
+    const claimData = await claimDB.findOne({ where: { messageId } })
+    if (claimData === null) throw await new Error({ element: 'claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
+    
+    const channel = await this.interaction.client.channels.fetch(claimData.channelId).catch(async() => null)
+    if (channel === null) throw await new Error({ element: 'do claim', interaction: this.interaction }).notFound({ type: "Channel" }).reply()
+    if (!channel.isTextBased()) throw await new Error({ element: 'concluir a ação, pois o channel não é um TextBased', interaction: this.interaction }).notPossible().reply()
+
+    if (this.embed === undefined || this.buttons) await this.render()
+
+    const message = await channel.messages.fetch(claimData.messageId).catch(() => null)
+    if (message === null) throw await new Error({ element: 'message do claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
+    await message.edit({
+      embeds: [this.embed as EmbedBuilder],
+      components: this.buttons
+    })
   }
 
   async delete (id: number) {
