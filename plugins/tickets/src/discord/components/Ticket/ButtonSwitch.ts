@@ -10,7 +10,7 @@ new Component({
   customId: 'Switch',
   type: "Button",
   async run(interaction) {
-    const { guild, channelId, channel, user, message } = interaction
+    const { guild, channelId, user, message } = interaction
     if (!interaction.inCachedGuild()) return
     interaction.deferReply({ ephemeral: true })
     if (guild === null) return await new Error({ element: 'executar essa ação pois você teve estar em uma Guilda!', interaction }).notPossible().reply()
@@ -60,6 +60,5 @@ new Component({
       return
     }
     await interaction.deleteReply()
-    await channel?.send({ embeds: [embed] })
   },
 })
