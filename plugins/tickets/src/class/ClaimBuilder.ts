@@ -123,13 +123,16 @@ export class ClaimBuilder {
   }
   async create(): Promise<Claim | Claim[] | undefined> {
     const { guildId, guild } = this.interaction
+    const ticketData = this.ticketData !== undefined ? this.ticketData : await ticketDB.findOne({ where: { id: this.options.ticketId } })
+    if (ticketData === null) throw await new Error({ element: 'executar a ação de criação do claim, pois o setData ou setTicketId não foi definido!', interaction: this.interaction }).notPossible().reply()
+
     const configs = await configDB.findOne({ where: { guild: { guildId: guildId } }, relations: { guild: true } }) as Config
     const permissions = this.permissions(configs?.roles ?? [])
   
     if (this.embed === undefined || this.buttons === undefined) await this.render()
 
     async function createChannel () {
-      const newGuild = await guild.channels.create({ name: 'claim-tickets', type: ChannelType.GuildText })
+      const newGuild = await guild.channels.create({ name: '🎫・ticket-claim', type: ChannelType.GuildText })
       await configDB.update({ id: configs.id }, { claimId: newGuild.id })
       return newGuild
     }
@@ -141,9 +144,13 @@ export class ClaimBuilder {
     await channel.edit({ permissionOverwrites: permissions })
     if (channel.isTextBased()) {
       const message = await channel.send({ embeds: [this.embed as EmbedBuilder], components: this.buttons })
-      const claimData = await claimDB.create({ channelId: channel.id, messageId: message.id })
+      const claimData = await claimDB.create({ channelId: channel.id, messageId: message.id, ticket: ticketData ?? undefined })
       const result = await claimDB.save(claimData) as Claim
-      await ticketDB.update({ id: this.options.ticketId }, { claim: { id: result.id } })
+
+      if (result === null || result === undefined) {
+        await new Error({ element: 'criar o claim', interaction: this.interaction }).notPossible().reply()
+        return
+      }
       return claimData
     }
     return
@@ -151,7 +158,7 @@ export class ClaimBuilder {
 
   async edit ({ messageId }: { messageId: string }) {
     const claimData = await claimDB.findOne({ where: { messageId } })
-    if (claimData === null) throw await new Error({ element: 'claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
+    if (claimData === null) throw await new Error({ element: 'o claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
     
     const channel = await this.interaction.client.channels.fetch(claimData.channelId).catch(async() => null)
     if (channel === null) throw await new Error({ element: 'do claim', interaction: this.interaction }).notFound({ type: "Channel" }).reply()
