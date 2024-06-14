@@ -13,7 +13,7 @@ new Component({
     if (!interaction.inCachedGuild()) return
     await interaction.deferReply({ ephemeral: true })
 
-    const { message, user, guildId, guild } = interaction
+    const { message, user, guildId, guild, channel } = interaction
     const claimData = await claimDB.findOne({ where: { messageId: message.id }, relations: { ticket: true } })
     if (claimData === undefined || claimData?.ticket === undefined) return await new Error({ element: 'Claim', interaction }).notFound({ type: 'Database' }).reply()
     const userTicket = await guild.client.users.fetch(claimData.ticket.ownerId).catch(() => undefined)
@@ -60,6 +60,13 @@ new Component({
           }).setColor('Green')
         ],
         components: [goTicket]
+      })
+      await channel?.send({ 
+        embeds: [
+          new EmbedBuilder({ 
+            title: `Usuário ${user.displayName}, reivindicou o ticket do ${userTicket.displayName}`
+          }).setColor('Green')
+        ]
       })
     })
   },
