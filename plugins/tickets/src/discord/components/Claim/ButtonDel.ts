@@ -3,7 +3,6 @@ import { Component } from "@/discord/base/Components.js";
 import { YouSure } from "@/discord/base/CustomIntetaction.js";
 import { Error } from "@/discord/base/CustomResponse.js";
 import { claimDB } from "@/functions/database.js";
-import { EmbedBuilder } from "discord.js";
 
 new Component({
   customId: 'Delete',
