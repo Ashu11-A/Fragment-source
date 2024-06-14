@@ -195,7 +195,7 @@ export class TicketBuilder {
 
     const claimError = new Error({ element: 'criar o claim do seu ticket', interaction: this.interaction }).notPossible()
     const claim = await new ClaimBuilder({ interaction: this.interaction })
-      .setTicketId(result.id)
+      .setData(result)
       .render()
     
     if (claim === undefined) { await claimError.reply(); return }

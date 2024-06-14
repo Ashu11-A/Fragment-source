@@ -58,7 +58,7 @@ export class ClaimBuilder {
 
   async render() {
     const { guild } = this.interaction
-    const ticketData = this.ticketData !== null ? this.ticketData : await ticketDB.findOne({ where: { id: this.options.ticketId } })
+    const ticketData = this.ticketData !== undefined ? this.ticketData : await ticketDB.findOne({ where: { id: this.options.ticketId } })
     if (ticketData === null || ticketData === undefined) throw await new Error({ element: 'ticket', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
     const { team, ownerId, category: { emoji, title }, description, createAt } = ticketData
     const user = (await guild.members.fetch()).find((user) => user.id === ownerId)
