@@ -1,10 +1,10 @@
-import { TicketBuilder } from "@/class/TicketBuilder.js"
-import { Event } from "../base/Event.js"
-import { AuditLogEvent, EmbedBuilder, Message } from "discord.js"
-import { Database } from "@/controller/database.js"
-import Ticket from "@/entity/Ticket.entry.js"
-import Claim from "@/entity/Claim.entry.js"
 import { ClaimBuilder } from "@/class/ClaimBuilder.js"
+import { TicketBuilder } from "@/class/TicketBuilder.js"
+import { Database } from "@/controller/database.js"
+import Claim from "@/entity/Claim.entry.js"
+import Ticket from "@/entity/Ticket.entry.js"
+import { AuditLogEvent, EmbedBuilder, Message, MessageFlagsBitField } from "discord.js"
+import { Event } from "../base/Event.js"
 
 const ticket = new Database<Ticket>({ table: 'Ticket' })
 const claim = new Database<Claim>({ table: 'Claim' })
@@ -15,7 +15,7 @@ const claim = new Database<Claim>({ table: 'Claim' })
 new Event({
   name: 'messageDelete',
   async run(message) {
-    if (!(message instanceof Message) || !message.inGuild()) return
+    if (!(message instanceof Message) || !message.inGuild() || message.author?.bot || message.flags.has(MessageFlagsBitField.Flags.Ephemeral)) return
     const { channelId, id } = message
     const ticketData = await ticket.findOne({ where: { channelId } })
     if (ticketData === null) return
@@ -35,12 +35,12 @@ new Event({
 })
 
 /**
- * Se a mensagem inicial do ticket for apagada )isso irá recriar ela).
+ * Se a mensagem inicial do ticket for apagada (isso irá recriar ela).
  */
 new Event({
   name: 'messageDelete',
   async run(message) {
-    if (!message.inGuild() || await message.fetch().catch(() => null) !== null) return
+    if (!message.author?.bot || message.flags.has(MessageFlagsBitField.Flags.Ephemeral) || !message.inGuild() || await message.fetch().catch(() => null) !== null) return
     const { id } = message
     const ticketData = await ticket.findOne({ where: { messageId: id } })
     if (ticketData === null) return
@@ -73,7 +73,7 @@ new Event({
 new Event({
   name: 'messageDelete',
   async run(message) {
-    if (!message.inGuild()) return
+    if (!message.author?.bot || message.flags.has(MessageFlagsBitField.Flags.Ephemeral) || !message.inGuild()) return
     const { id } = message
     const claimData = await claim.findOne({ where: { messageId: id }, relations: { ticket: true } })
     if (claimData === null || claimData?.ticket?.id === undefined) return

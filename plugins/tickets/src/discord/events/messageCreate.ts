@@ -1,7 +1,8 @@
-import { Database } from "@/controller/database.js"
-import { Event } from "../base/Event.js"
-import Ticket from "@/entity/Ticket.entry.js"
 import { TicketBuilder } from "@/class/TicketBuilder.js"
+import { Database } from "@/controller/database.js"
+import Ticket from "@/entity/Ticket.entry.js"
+import { MessageFlagsBitField } from "discord.js"
+import { Event } from "../base/Event.js"
 
 const ticket = new Database<Ticket>({ table: 'Ticket' })
 
@@ -11,7 +12,7 @@ const ticket = new Database<Ticket>({ table: 'Ticket' })
 new Event({
   name: 'messageCreate',
   async run(message) {
-    if (!message.inGuild()) return
+    if (message.flags.has(MessageFlagsBitField.Flags.Ephemeral) || !message.inGuild()) return
     const { channelId, author, content, id, client } = message
     if (author.id === client.user.id) return
     const ticketData = await ticket.findOne({ where: { channelId: channelId } })
