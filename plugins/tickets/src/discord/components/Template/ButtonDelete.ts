@@ -4,32 +4,6 @@ import { ActionDrawer } from "@/functions/actionDrawer.js";
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
 
 new Component({
-  customId: 'Save',
-  type: "Button",
-  async run(interaction) {
-    await interaction.deferReply({ ephemeral: true })
-    await new TemplateBuilder({ interaction })
-      .setMode('production')
-      .edit({ messageId: interaction.message.id })
-
-    if (!interaction.replied) await interaction.deleteReply()
-  }
-})
-
-new Component({
-  customId: 'Config',
-  type: "Button",
-  async run(interaction) {
-    await interaction.deferReply({ ephemeral: true })
-    await new TemplateBuilder({ interaction })
-      .setMode('debug')
-      .edit({ messageId: interaction.message.id })
-
-    if (interaction.deferred && !interaction.replied) await interaction.deleteReply()
-  }
-})
-
-new Component({
   customId: 'DeleteTemplate',
   type: "Button",
   async run(interaction) {
