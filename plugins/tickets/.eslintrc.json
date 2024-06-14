@@ -7,7 +7,6 @@
         "commonjs": true
     },
     "parser": "@typescript-eslint/parser",
-    "extends": "eslint-config-next",
     "parserOptions": {
         "ecmaVersion": "latest",
         "project": ["plugins/tickets/tsconfig.json"]
