@@ -23,11 +23,11 @@ export class Error {
     let embed: EmbedBuilder
     switch (type) {
     case "Database": {
-      embed = new EmbedBuilder({ title: `Não encontrei ${element} no database!`})
+      embed = new EmbedBuilder({ title: `Não encontrei \`${element}\` no database!`})
       break
     }
     case "Channel": {
-      embed = new EmbedBuilder({ title: `Não encontrei o channel ${element} no servidor!`})
+      embed = new EmbedBuilder({ title: `Não encontrei o channel \`${element}\` no servidor!`})
       break
     }
     case "Message": {
@@ -44,7 +44,7 @@ export class Error {
   invalidProperty () {
     const { element, color } = this.options
     const embed = new EmbedBuilder({
-      title: `Propriedade ${element} é invalida!`
+      title: `Propriedade \`${element}\` é invalida!`
     }).setColor(color ?? 'Red')
     this.embed = embed
     return this
@@ -53,7 +53,15 @@ export class Error {
   notPossible () {
     const { element, color } = this.options
     this.embed = new EmbedBuilder({
-      title: `Não foi possivel ${element}`
+      title: `Não foi possivel \`${element}\``
+    }).setColor(color ?? 'Red')
+    return this
+  }
+
+  forbidden() {
+    const { element, color } = this.options
+    this.embed = new EmbedBuilder({
+      title: `Não é fazer isso, pois \`${element}\` não tem permisão!`
     }).setColor(color ?? 'Red')
     return this
   }
