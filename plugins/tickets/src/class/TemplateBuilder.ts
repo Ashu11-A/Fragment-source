@@ -22,11 +22,12 @@ interface APIEmbed {
     thumbnail?: string;
 }
 
-
 export class TemplateBuilder {
   private readonly interaction: Interaction
   private options!: APIEmbed
-  private mode!: 'debug' | 'production'
+  private mode?: 'debug' | 'production'
+  private data!: Template
+  private switch?: string | string[]
 
   constructor ({ interaction }: TemplateBuilderOptions) {
     this.interaction = interaction
@@ -54,6 +55,8 @@ export class TemplateBuilder {
     this.options.thumbnail = data.embed.thumbnail?.url
     return this
   }
+
+  switchData (data: string | string[]) { this.switch = data; return this }
 
   render (original: APIEmbedDiscord): EmbedBuilder {
     const { color, description, image, thumbnail, title } = this.options
@@ -84,6 +87,18 @@ export class TemplateBuilder {
       return
     }
 
+    /**
+     * Controle das funções que podem ser desabilitadas ou habilitadas (Ex: MoreDetails)
+     */
+    if (this.switch !== undefined) {
+      if (!Array.isArray(this.switch)) this.switch = [this.switch]
+      for (const name of this.switch) {
+        const index = (templateData.systems ?? []).findIndex((system) => system.name === name)
+        if (index !== -1) { templateData.systems[index].isEnabled = !templateData.systems[index].isEnabled; continue }
+        templateData.systems = [ ...(templateData.systems ?? []), { name, isEnabled: true }]
+      }
+    }
+
     if (this.options.image !== undefined) {
       const [isImageURL] = checkURL(this.options.image)
       if (!isImageURL) { await new Error({ element: 'Image', interaction: this.interaction }).invalidProperty().reply(); return }
@@ -100,6 +115,7 @@ export class TemplateBuilder {
       .setProperties(templateData.properties)
       .setSelects(templateData.selects)
       .setType(templateData.type)
+      .setSystem(templateData.systems)
       .render()
 
     templateData.embed = embed.toJSON()

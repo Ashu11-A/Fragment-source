@@ -1,5 +1,5 @@
 import { ButtonBuilder, StringSelectMenuBuilder } from "@/discord/base/CustomIntetaction.js";
-import { Properties, Select, TypeTemplate } from "@/entity/Template.entry.js";
+import { Properties, Select, System, TypeTemplate } from "@/entity/Template.entry.js";
 import { ActionDrawer } from "@/functions/actionDrawer.js";
 import { ActionRowBuilder, ButtonStyle } from "discord.js";
 
@@ -9,10 +9,12 @@ export class TemplateButtonBuilder {
   private properties: Properties = {}
   private selects: Select[] = []
   constructor () {}
+  private system: System[] = []
 
   setMode(mode: 'production' | 'debug') { this.mode = mode; return this }
   setType(type: TypeTemplate) { this.type = type; return this }
   setProperties(elements?: Properties) { this.properties = elements ?? {}; return this }
+  setSystem(elements?: System[]) { this.system = elements ?? []; return this }
   setSelects(selects?: Select[]) { this.selects = selects ?? []; return this }
 
   render(): (ActionRowBuilder<StringSelectMenuBuilder> | ActionRowBuilder<ButtonBuilder>)[] {
@@ -141,7 +143,7 @@ export class TemplateButtonBuilder {
       const { customId } = button
       if (customId === undefined) continue
       const ButtonType = Object.entries(buttonType).find(([key]) => key === button.customId ) // [ 'SetModal', 'modal' ]
-
+      if (this.system.find((module) => module.name === button.customId && module.isEnabled)) button.setStyle(ButtonStyle.Primary)
       if (ButtonType?.[0] === customId && this.type === ButtonType[1]) button.setStyle(ButtonStyle.Primary)
       if (customId === 'AddSelect' && this.type === TypeTemplate.Select) button.setDisabled(false)
       if (this.properties[customId] === true) button.setStyle(ButtonStyle.Primary)
