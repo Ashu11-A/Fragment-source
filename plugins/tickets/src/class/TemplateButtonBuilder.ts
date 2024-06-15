@@ -8,7 +8,6 @@ export class TemplateButtonBuilder {
   private type: TypeTemplate = TypeTemplate.Button
   private properties: Properties = {}
   private selects: Select[] = []
-  constructor () {}
   private system: System[] = []
 
   setMode(mode: 'production' | 'debug') { this.mode = mode; return this }
@@ -81,6 +80,13 @@ export class TemplateButtonBuilder {
         customId: 'AddCategory',
         label: 'Add Categoria',
         emoji: { name: '🔖' },
+        style: ButtonStyle.Secondary,
+        disabled: true
+      }),
+      new ButtonBuilder({
+        customId: 'MoreDetails',
+        label: 'Mais Detalhes',
+        emoji: { name: '📃' },
         style: ButtonStyle.Secondary
       }),
       new ButtonBuilder({
