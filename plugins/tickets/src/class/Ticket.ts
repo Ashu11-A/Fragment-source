@@ -104,7 +104,7 @@ export class Ticket {
         { name: '📃 Descrição:', value: codeBlock(ticket?.description ?? 'Desconhecido'), inline: true },
         { name: '\u200E', value: '\u200E', inline: true },
   
-        { name: '🔎 Ticket ID:', value: codeBlock(ticket.channelId), inline: true },
+        { name: '🔎 Ticket ID:', value: codeBlock(String(ticket.id)), inline: true },
         { name: '🤝 Convidados:', value: codeBlock(ticket.users.length === 0 ? 'Não houve convidados!' : ticket.users?.map((user) => `\n\nUser: ${user.displayName} \nId: ${user.id}`)?.join(', ')), inline: true },
         { name: '\u200E', value: '\u200E', inline: true }
       ]
