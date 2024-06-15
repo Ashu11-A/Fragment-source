@@ -77,8 +77,8 @@ export class TemplateButtonBuilder {
         emoji: { name: '📄' }
       }),
       new ButtonBuilder({
-        customId: 'AddCategory',
-        label: 'Add Categoria',
+        customId: 'Category',
+        label: 'Categoria',
         emoji: { name: '🔖' },
         style: ButtonStyle.Secondary,
         disabled: true
@@ -152,6 +152,7 @@ export class TemplateButtonBuilder {
       if (this.system.find((module) => module.name === button.customId && module.isEnabled)) button.setStyle(ButtonStyle.Primary)
       if (ButtonType?.[0] === customId && this.type === ButtonType[1]) button.setStyle(ButtonStyle.Primary)
       if (customId === 'AddSelect' && this.type === TypeTemplate.Select) button.setDisabled(false)
+      if (customId === 'Category' && (this.type === TypeTemplate.Button || this.type === TypeTemplate.Modal)) button.setDisabled(false)
       if (this.properties[customId] === true) button.setStyle(ButtonStyle.Primary)
     }
 
