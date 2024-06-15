@@ -53,6 +53,7 @@ export class TemplateBuilder {
     this.options.color = data.embed.color
     this.options.image = data.embed.image?.url
     this.options.thumbnail = data.embed.thumbnail?.url
+    this.data = data
     return this
   }
 
@@ -73,7 +74,7 @@ export class TemplateBuilder {
 
   async edit ({ messageId }: { messageId: string }) {
     const buttonBuilder = new TemplateButtonBuilder()
-    const templateData = await database.findOne({ where: { messageId } })
+    const templateData = this.data !== undefined ? this.data : await database.findOne({ where: { messageId } })
     if (templateData === null) { throw await new Error({ element: 'o template', interaction: this.interaction }).notFound({ type: 'Database' }).reply(); return }
 
     const channel = await this.interaction.guild?.channels.fetch(templateData.channelId)
@@ -120,7 +121,8 @@ export class TemplateBuilder {
 
     templateData.embed = embed.toJSON()
     await database.save(templateData)
-    await message.edit({ embeds: [embed], components })
+    if (this.mode !== undefined) { await message.edit({ embeds: [embed], components }); return }
+    await message.edit({ embeds: [embed] })
   }
 
   async delete ({ messageId }: { messageId: string }) {
