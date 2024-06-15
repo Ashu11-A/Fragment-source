@@ -90,13 +90,13 @@ new Component({
   customId: 'Close-With-Question',
   type: "Modal",
   async run(interaction) {
-    const { channelId } = interaction
+    const { channelId, fields } = interaction
     if (!interaction.inCachedGuild() || channelId === null) return
-    // const observation = fields.getTextInputValue('observation')
-    // const reason = fields.getTextInputValue('reason')
+    const observation = fields.getTextInputValue('observation')
+    const reason = fields.getTextInputValue('reason')
     const builder = new TicketBuilder({ interaction })
 
     await interaction.deferReply({ ephemeral: true })
-    await (await builder.setTicket(channelId).loader()).delete()
+    await (await builder.setTicket(channelId).loader()).delete({ observation, reason })
   }
 })

@@ -223,7 +223,7 @@ export class TicketBuilder {
     return this
   }
 
-  async delete () {
+  async delete (options?: { reason?: string, observation?: string }) {
     if (this.interaction instanceof Message) return
     const claimBuilder = new ClaimBuilder({ interaction: this.interaction })
     const ticketData = await ticket.findOne({ where: { channelId: this.channelId }, relations: { claim: true } })
@@ -242,7 +242,7 @@ export class TicketBuilder {
 
       if (message.deletable) await message.delete()
     }
-    await new TicketFunctions({ interaction: this.interaction }).transcript({ messageId: ticketData.claim.messageId })
+    await new TicketFunctions({ interaction: this.interaction }).transcript({ messageId: ticketData.claim.messageId, observation: options?.observation, reason: options?.reason })
     await ticket.delete({ id: ticketData.id })
     await claimBuilder.delete(ticketData.claim.id)
   }
