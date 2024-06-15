@@ -129,20 +129,25 @@ export class TemplateButtonBuilder {
       SetModal: TypeTemplate.Modal,
     }
 
-    if (this.selects.length > 0 && this.type === TypeTemplate.Select) {
+    if (this.type === TypeTemplate.Select) {
       const options: Array<{ label: string, description: string, value: string, emoji: string }> = []
 
-      options.push({ label: 'Editar', description: 'Apenas para Administradores', emoji: '⚙️', value: 'config' })
+      if (this.mode === 'production') options.push({ label: 'Editar', description: 'Apenas para Administradores', emoji: '⚙️', value: 'config' })
 
-      for (const [index, { emoji, title, description }] of Object.entries(this.selects )) {
-        options.push({ label: title, description, emoji, value: index })
+      if (this.selects.length > 0) {
+        for (const [index, { emoji, title, description }] of Object.entries(this.selects )) {
+          options.push({ label: title, description, emoji, value: index })
+        }
       }
 
-      selects.push(new StringSelectMenuBuilder({
-        customId: this.mode === 'debug' ? 'EditSelectMenu' : 'SelectMenu',
-        placeholder: this.mode === 'debug' ? 'Modo edição, escolha um valor para remover' : 'Selecione o tipo de ticket que deseja abrir',
-        options
-      }))
+      // Error: Invalid Form Body (if length is 0)
+      if (options.length > 0) {
+        selects.push(new StringSelectMenuBuilder({
+          customId: this.mode === 'debug' ? 'EditSelectMenu' : 'SelectMenu',
+          placeholder: this.mode === 'debug' ? 'Modo edição, escolha um valor para remover' : 'Selecione o tipo de ticket que deseja abrir',
+          options
+        }))
+      }
     }
       
     for (const button of buttons) {
