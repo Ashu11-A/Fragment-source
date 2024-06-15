@@ -149,8 +149,8 @@ export class TicketBuilder {
     const { category: categoryData } = this.options
     if (guild === null || this.interaction instanceof Message || this.interaction instanceof CommandInteraction) return
     if (!this.interaction.deferred) await this.interaction.deferReply({ ephemeral: true })
-
-    const templateData = await template.findOne({ where: { messageId: this.interaction.message?.id } })
+    const request = this?.templateId !== undefined ? { id: this.templateId } : { messageId: this.interaction.message?.id }
+    const templateData = await template.findOne({ where: request })
     if (templateData === null) return await new Error({ element: 'esse template', interaction: this.interaction }).notFound({ type: "Database" }).reply()
 
     const category = (await guild.channels.fetch()).find((channel) => channel?.type === ChannelType.GuildCategory && channel.name === categoryData.title)
