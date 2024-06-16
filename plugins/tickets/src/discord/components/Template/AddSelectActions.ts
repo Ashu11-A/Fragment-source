@@ -105,17 +105,3 @@ new Component({
     setTimeout(() => interaction.deleteReply(), 2000)
   }
 })
-
-new Component({
-  customId: 'Category',
-  type: "Button",
-  async run(interaction) {
-    await interaction.reply({
-      ephemeral: true,
-      embeds: [new EmbedBuilder({
-        title: 'Recurso movido!',
-        description: 'Use os comandos:\n`/ticket category add`\n`/ticket category rem`'
-      }).setColor('Orange')]
-    })
-  },
-})
