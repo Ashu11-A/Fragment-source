@@ -2,7 +2,7 @@ import babel from "@babel/core"
 import { formatBytes } from 'bytes-formatter'
 import { exec } from 'child_process'
 import { Presets, SingleBar } from 'cli-progress'
-import { createHash, createSign, createVerify, sign } from 'crypto'
+import { createHash, createSign, createVerify } from 'crypto'
 import { build } from 'esbuild'
 import { createWriteStream, existsSync } from 'fs'
 import { exists } from 'fs-extra'
@@ -26,8 +26,6 @@ interface BuildInfo {
   hashMD5?: string
   hashSHA?: string
 }
-
-type BuildManifest = Record<string, BuildInfo>
 
 interface BuildConstructor {
   /**
@@ -111,7 +109,7 @@ class Build {
     await this.obfuscate()
     await this.install()
     await this.clear()
-    await this.convertToCJS(`${this.options.outBuild}/node_modules`, `${this.options.outBuild}/node_modules`)
+    // await this.convertToCJS(`${this.options.outBuild}/node_modules`, `${this.options.outBuild}/node_modules`, this.options.outBuild)
     await this.compress({ directory: `${this.options.outBuild}/node_modules`, outBuild: `${this.options.outBuild}/node_modules` })
     await this.pkgbuild()
     await this.sign()
@@ -127,14 +125,14 @@ class Build {
     const sucess = await execProcess(`cd ${this.options.source} && npm i && npm run build`)
     if (!sucess) throw new Error(`Ocorreu um erro ao tentar buildar o projeto ${this.options.source}`)
 
-    const pathBuild = join(this.options.source, '/build/esm/src')
+    const pathBuild = join(this.options.source, '/build/esm')
     const files = await glob(`${pathBuild}/**/*.js`)
 
     console.log('Convertendo em cjs...')
-    await this.convertToCJS(files, this.options.outBuild)
+    await this.convertToCJS(files, this.options.outBuild, pathBuild)
   }
 
-  async convertToCJS(files: string[] | string, output: string) {
+  async convertToCJS(files: string[] | string, output: string, homePath: string) {
     if (typeof files === 'string') files = await glob(`${files}/**/*.js`)
       
     this.progressBar.start(files.length, 0)
@@ -142,10 +140,10 @@ class Build {
       try {
         if ((await stat(file)).isDirectory()) { this.progressBar.increment(); continue }
 
-        const filePath = dirname(file).split('esm/')[1]
-        const fileName = basename(file)
-        const outputPath = `${output}/${filePath}`
-        const outputFile = join(outputPath, fileName)
+        const filePath = dirname(path.normalize(file.replace(`${homePath}/`, ''))) // src/functions
+        const fileName = basename(file) // port.js
+        const outputPath = join(output, filePath) // build/core/src/functions
+        const outputFile = join(outputPath, fileName) // build/core/src/functions/port.js
         const data = await readFile(file, { encoding: 'utf-8' })
         const result = await babel.transformAsync(data, {
           presets: ["@babel/preset-env", "@babel/preset-typescript"],
@@ -193,23 +191,27 @@ class Build {
 
       if (!existsSync(newPath)) await mkdir(newPath, { recursive: true })
 
-      const result = await minify({ [filePath]: fileContent.toString('utf-8') }, {
+      const result = await minify({ [filePath]: fileContent.toString('utf-8') }, { 
         compress: true,
-        module: true,
+        module: false,
+        ecma: 5,
         toplevel: true,
-        parse: {
-          bare_returns: true
-        },
+        mangle: true,
         format: {
+          ascii_only: true,
           braces: true,
           comments: 'some',
           keep_quoted_props: true,
           wrap_iife: true
         },
-        nameCache: {},
         keep_classnames: true,
         keep_fnames: true
       })
+        .catch((err) => {
+          console.log(filePath)
+          console.log(err)
+          return { code: fileContent.toString('utf-8') }
+        })
 
       if (result.code === undefined) { this.progressBar.increment(length); continue }
 
@@ -455,6 +457,7 @@ const archs = ['arm64', 'x64'];
     { command: 'obfuscate', alias: ['-f'], rank: 6 },
     { command: 'esbuild', alias: ['-esb'], rank: 7 },
     { command: 'pkg', alias: [''], rank: 7 },
+    { command: 'sing', alias: ['-sn'], rank: 8 },
   ]
 
   for (const arg of args.filter((arg) => arg.includes('-'))) {
@@ -643,9 +646,13 @@ release [options] <input>
         buildFunctions.push(() => build.esbuild())
         break
       }
+      case 'sing' : {
+        buildFunctions.push(async () => { await build.sign(); await build.singCheck() })
+        break
+      }
       }
     }
-    buildFunctions.push(() => build.saveManifest())
+    if (newArgs.find((arg) => arg.command === 'pkg')?.command !== undefined) buildFunctions.push(() => build.saveManifest())
     exec.push(async () => await execQueue(buildFunctions))
   }
 
