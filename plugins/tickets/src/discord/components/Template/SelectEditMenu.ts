@@ -9,6 +9,7 @@ new Component({
   type: "StringSelect",
   async run(interaction) {
     if (!interaction.inCachedGuild()) return
+    await interaction.deferReply()
     if (!interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator)) throw await new Error({ element: 'você', interaction }).forbidden().reply()
     
     const { message, values } = interaction
@@ -22,6 +23,6 @@ new Component({
     await new TemplateBuilder({ interaction })
       .setData(templateData)
       .setMode('debug')
-      .edit({ messageId: message.id })
+      .edit({ messageId: message.id }).then(() => interaction.deleteReply())
   }
 })
