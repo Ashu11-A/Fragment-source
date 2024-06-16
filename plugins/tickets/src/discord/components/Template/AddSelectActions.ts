@@ -66,11 +66,30 @@ new Component({
     const buttonBuilder = new TemplateButtonBuilder()
 
     if (templateData === null) {
-      await interaction.reply({ embeds: [notFound] })
+      await interaction.reply({ embeds: [notFound], ephemeral: true })
       return
     }
 
-    templateData.selects = [ ...(templateData.selects ?? []), { emoji, title, description }]
+    const exist = (templateData.selects ?? []).find((select) => select.title.toLowerCase() === title.toLowerCase())
+
+    if (exist !== undefined) {
+      await interaction.reply({
+        ephemeral: true,
+        embeds: [new EmbedBuilder({
+          title: 'Já existe um select com este nome, tente outro que não exista!'
+        }).setColor('Red')]
+      })
+      return
+    }
+
+    templateData.selects = [
+      ...(templateData.selects ?? []),
+      {
+        emoji,
+        title,
+        description
+      }
+    ]
 
     await templateDb.save(templateData)
       .then(async () => {
