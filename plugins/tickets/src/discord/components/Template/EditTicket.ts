@@ -166,6 +166,7 @@ for (const [action, data] of Object.entries(modalData)) {
             .setProperties(templateData.properties)
             .setSelects(templateData.selects)
             .setType(templateData.type)
+            .setSystem(templateData.systems)
             .render()
           interaction.message?.edit({ embeds: [embed], components })
   

@@ -88,6 +88,7 @@ new Component({
           .setProperties(templateData.properties)
           .setSelects(templateData.selects)
           .setType(templateData.type)
+          .setSystem(templateData.systems)
           .render()
 
         await interaction.message?.edit({ components })

@@ -29,11 +29,14 @@ for (const [action, type] of Object.entries(actions)) {
               }).setColor('Green')]
             })
 
+            setTimeout(() => interaction.deleteReply(), 5000)
+
             const buttonBuilder = new TemplateButtonBuilder()
             const components = buttonBuilder
               .setMode('debug')
               .setProperties(templateData.properties)
               .setSelects(templateData.selects)
+              .setSystem(templateData.systems)
               .setType(type)
               .render()
 
