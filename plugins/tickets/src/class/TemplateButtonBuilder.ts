@@ -158,6 +158,7 @@ export class TemplateButtonBuilder {
       if (ButtonType?.[0] === customId && this.type === ButtonType[1]) button.setStyle(ButtonStyle.Primary)
       if (customId === 'AddSelect' && this.type === TypeTemplate.Select) button.setDisabled(false)
       if (customId === 'Category' && (this.type === TypeTemplate.Button || this.type === TypeTemplate.Modal)) button.setDisabled(false)
+      if (customId === 'MoreDetails' && this.type === TypeTemplate.Modal) button.setDisabled(true)
       if (this.properties[customId] === true) button.setStyle(ButtonStyle.Primary)
     }
 
