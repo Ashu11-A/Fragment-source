@@ -2,7 +2,7 @@ import { TicketBuilder } from "@/class/TicketBuilder.js";
 import { ModalBuilder, StringSelectMenuBuilder } from "@/discord/base/CustomIntetaction.js";
 import { Error } from "@/discord/base/CustomResponse.js";
 import { Component } from "@/discord/base/index.js";
-import { TypeTemplate, Category } from "@/entity/Template.entry.js";
+import { TypeTemplate, Category, Select } from "@/entity/Template.entry.js";
 import { ActionDrawer } from "@/functions/actionDrawer.js";
 import { templateDB } from "@/functions/database.js";
 import { SelectMenuComponentOptionData, TextInputBuilder, TextInputStyle } from "discord.js";
@@ -26,10 +26,11 @@ new Component({
 
     const templateData = await templateDB.findOne({ where: { messageId: message.id } })
     if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
-
-    if (templateData.type === TypeTemplate.Button) await interaction.deferReply({ ephemeral: true })
+    const moreDetails = templateData.systems.find((system) => system.name === 'MoreDetails')?.isEnabled
     
     if ((templateData.categories ?? []).length > 0) {
+      await interaction.deferReply({ ephemeral: true })
+
       switch (templateData.type) {
       case TypeTemplate.Button:
       case TypeTemplate.Modal:
@@ -48,8 +49,26 @@ new Component({
         await interaction.editReply({ components: select })
       }
     } else {
+      if (templateData.type === TypeTemplate.Button && !moreDetails) await interaction.deferReply({ ephemeral: true })
+
       switch (templateData.type) {
       case TypeTemplate.Button: {
+        if (moreDetails) {
+          const modal = new ModalBuilder({ customId: 'MoreDetails', title: 'Conte-nos mais sobre o seu problema' })
+          const row = ActionDrawer<TextInputBuilder>([
+            new TextInputBuilder({
+              customId: 'description',
+              label: 'Qual a descrição?',
+              required: true,
+              maxLength: 255,
+              style: TextInputStyle.Paragraph,
+              placeholder: 'Queria saber mais informações sobre...'
+            })
+          ], 1)
+          await interaction.showModal(modal.setComponents(row))
+          return
+        }
+
         await ticket.setOwner(user.id).render().create()
         break
       }
@@ -153,6 +172,8 @@ new Component({
   },
 })
 
+const cacheSelectMenu = new Map<string, Select>()
+
 /**
  * Se o Type do template for Select.
  */
@@ -161,11 +182,11 @@ new Component({
   type: 'StringSelect',
   async run(interaction) {
     if (!interaction.inCachedGuild()) return
-    await interaction.deferReply({ ephemeral: true })
     const { values, message, user } = interaction
     const select = values[0]
     
     if (select === 'config') {
+      await interaction.deferReply({ ephemeral: true })
       if (!(interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator ?? false))){
         throw await new Error({ element: 'você', interaction }).forbidden().reply()
       }
@@ -180,6 +201,25 @@ new Component({
     const typeTicket = templateData?.selects[Number(select)]
     if (typeTicket === undefined) throw await new Error({ element: 'select', interaction }).notFound({ type: "Database" }).reply()
 
+    const moreDetails = templateData.systems.find((system) => system.name === 'MoreDetails')?.isEnabled
+    if (moreDetails) {
+      const modal = new ModalBuilder({ customId: 'MoreDetails', title: 'Conte-nos mais sobre o seu problema' })
+      const row = ActionDrawer<TextInputBuilder>([
+        new TextInputBuilder({
+          customId: 'description',
+          label: 'Qual a descrição?',
+          required: true,
+          maxLength: 255,
+          style: TextInputStyle.Paragraph,
+          placeholder: 'Queria saber mais informações sobre...'
+        })
+      ], 1)
+      await interaction.showModal(modal.setComponents(row))
+      cacheSelectMenu.set(user.id, typeTicket)
+      return
+    }
+    await interaction.deferReply({ ephemeral: true })
+
     await new TicketBuilder({ interaction })
       .setOwner(user.id)
       .setTitle(typeTicket.title)
@@ -187,4 +227,24 @@ new Component({
       .setCategory({ emoji: typeTicket.emoji, title: typeTicket.title })
       .create()
   }
+})
+
+new Component({
+  customId: 'MoreDetails',
+  type: 'Modal',
+  async run(interaction) {
+    const { fields, user } = interaction
+    if (!interaction.inCachedGuild()) return
+    const description = fields.getTextInputValue('description')
+    const cache = cacheSelectMenu.get(user.id)
+    if (cache !== undefined) cacheSelectMenu.delete(user.id)
+
+    const builder = new TicketBuilder({ interaction })
+      .setOwner(user.id)
+      .setDescription(description)
+
+    if (cache !== undefined) builder.setTitle(cache.title).setCategory(cache)
+
+    await builder.create()
+  },
 })
