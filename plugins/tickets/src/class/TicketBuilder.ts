@@ -102,7 +102,7 @@ export class TicketBuilder {
     const embed = new EmbedBuilder({
       title: `👋 Olá ${this.user.displayName}, boas vindas ao seu ticket.`,
       footer: { text: `Equipe ${guild?.name} | ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`, iconURL: (guild?.iconURL({ size: 64 }) ?? undefined) }
-    })
+    }).setColor('Blue')
 
     if (typeof title === 'string') embed.addFields({ name: '📃 Motivo:', value: codeBlock(title) })
     if (typeof description === 'string') embed.addFields({ name: '📭 Descrição:', value: codeBlock(description) })
