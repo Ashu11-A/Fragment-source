@@ -15,7 +15,10 @@
          "src/*"
       ]
    },
-   "author": "Ashu11-a",
+   "author": {
+      "name": "Ashu11-a",
+      "email": "matheusn.biolowons@gmail.com"
+    },
    "license": "LSC",
    "devDependencies": {
       "@types/node": "^16.18.98",

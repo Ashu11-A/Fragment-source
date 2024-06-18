@@ -11,7 +11,10 @@
     "dev": "tsx src/app.ts",
     "lint": "eslint --ext .tsx,.ts --fix ./src -c .eslintrc.json"
   },
-  "author": "Ashu11-a",
+  "author": {
+    "name": "Ashu11-a",
+    "email": "matheusn.biolowons@gmail.com"
+  },
   "api": "http://node.seventyhost.net:24398",
   "license": "LSC",
   "imports": {

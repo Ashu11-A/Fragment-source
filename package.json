@@ -20,7 +20,10 @@
     "Mercado Pago",
     "MP"
   ],
-  "author": "Ashu11-a",
+  "author": {
+    "name": "Ashu11-a",
+    "email": "matheusn.biolowons@gmail.com"
+  },
   "license": "MIT",
   "devDependencies": {
     "@babel/cli": "^7.24.7",
