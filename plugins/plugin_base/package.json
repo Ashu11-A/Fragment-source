@@ -36,5 +36,9 @@
       "reflect-metadata": "^0.1.13",
       "socket.io-client": "^4.7.5",
       "typeorm": "0.3.20"
+   },
+   "optionalDependencies": {
+      "bufferutil": "^4.0.8",
+      "utf-8-validate": "^5.0.10"
    }
 }
