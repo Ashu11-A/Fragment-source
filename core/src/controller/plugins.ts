@@ -1,12 +1,12 @@
-import { Discord } from '@/discord/Client.js'
-import { Command, CommandData } from '@/discord/Commands.js'
+import { Discord } from '@/discord/base/Client.js'
+import { Command, CommandData } from '@/discord/base/Commands.js'
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
 import { existsSync } from 'fs'
 import { mkdir, readFile, writeFile } from 'fs/promises'
 import { watch } from 'chokidar'
 import { glob } from 'glob'
 import { isBinaryFile } from 'isbinaryfile'
-import { dirname, join } from 'path'
+import { basename, dirname, join } from 'path'
 import { cwd } from 'process'
 import { Socket } from 'socket.io'
 import { BaseEntity } from 'typeorm'
@@ -15,6 +15,7 @@ import { Config, ConfigOptions } from './config.js'
 import { Database, EntityImport } from './database.js'
 import { fileURLToPath } from 'url'
 import { createVerify } from 'crypto'
+import { i18 } from '@/lang.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const cacheWatcher = new Map<string, boolean>()
@@ -85,7 +86,7 @@ export class Plugins {
 
           if (process !== undefined) {
             Plugins.plugins = Plugins.plugins - 1
-            console.log(`❌ Plugin ${info?.name} está duplicado!`)
+            console.log(i18('plugins.duplicate', { name: info.name }))
             return resolve(null)
           }
 
@@ -98,7 +99,7 @@ export class Plugins {
             if (code === 0) resolve(null)
             Plugins.plugins = Plugins.plugins - 1
             cacheWatcher.delete(filePath)
-            return reject(`O binário ${filePath} saiu com código de erro ${code} e sinal ${signal}`)
+            return reject(i18('plugins.reject', { filePath, code, signal }))
           })
 
           child.stderr.on('data', (message) => {
@@ -143,9 +144,9 @@ export class Plugins {
     const isValid = verifier.verify(publicKey, signature)
 
     if (isValid) {
-      console.log('Plugin Valido!')
+      console.log(i18('plugins.invalid'))
     } else {
-      console.log(`Falha na verificação da assinatura. ${filePath} não é um arquivo valido!`)
+      console.log(i18('plugins.invalid_signature', { fileName: basename(filePath) }))
     }
     return isValid
   }
@@ -153,7 +154,7 @@ export class Plugins {
   async load(): Promise<void> {
     const plugins = await this.list()
     if (plugins.length === 0) {
-      console.log('🚫 Nenhum plugin encontrado!')
+      console.log(i18('error.no_found', { name: 'plugin' }))
       return
     }
 
@@ -169,13 +170,14 @@ export class Plugins {
       // Isso é necessario para que os bytes do arquivo movido termine de serem processados pela maquina host
       await new Promise<void>((resolve) => setInterval(resolve, 2000))
       if (!(await isBinaryFile(filePath))) {
-        console.log(`Arquivo invalido! ${filePath} não é um plugin!`)
+        console.log(i18('plugins.invalid_file', { fileName: basename(filePath) }))
         return
       }
 
       if (!(await this.validate(filePath))) return
 
-      console.log('\n✨ Novo plugin adicionado!')
+      console.log()
+      console.log(i18('plugins.new'))
       this.start(filePath)
     })
   }
@@ -190,7 +192,7 @@ export class Plugins {
 
       if (index !== -1) {
         if (process?.listen === true) {
-          console.log(`❌ Plugin ${info.metadata?.name} está duplicado, enviando pedido de shutdown!`)
+          console.log(i18('plugins.duplicate', { name: info.metadata?.name ?? socket.id }))
           socket.emit('kill')
           Plugins.running.splice(index, 1)
           break
@@ -213,29 +215,29 @@ export class Plugins {
         const entry = await import(pathFile) as EntityImport<typeof BaseEntity>
 
         Object.assign(Database.entries, ({ [fileName]: entry }))
-        console.log(`⏳ Carregando entry: ${fileName.split('.')[0]}`)
+        console.log(i18('plugins.entry_load', { name: fileName.split('.')[0] }))
       }
 
       for (const command of ((info.commands ?? []) as Array<CommandData<boolean>>)) {
         Command.all.set(command.name, Object.assign(command, { pluginId: socket.id }))
       }
-
-      console.log(`
-✅ Iniciando Plugin ${info.metadata?.name}...
-  🤖 Commands: ${info.commands.length}
-  🧩 Components: ${info.components.length}
-  🎉 Events: ${info.events.length}
-  ⚙️  Configs: ${info.configs.length}
-  🕑 Crons: ${info.crons.length}
-        `)
+      console.log()
+      console.log(i18('plugins.starting', { name: info.metadata?.name }))
+      console.log('  ', i18('plugins.commands', { length: info.commands.length }))
+      console.log('  ', i18('plugins.components', { length: info.components.length }))
+      console.log('  ', i18('plugins.events', { length: info.events.length }))
+      console.log('  ', i18('plugins.configs', { length: info.configs.length }))
+      console.log('  ', i18('plugins.crons', { length: info.crons.length }))
 
       for (const config of info.configs) new Config({ ...config, pluginId: socket.id })
 
+      console.log()
       if (Plugins.loaded === 0 && Plugins.plugins === 0) {
-        console.log('\n🚨 Modo de desenvolvimento\n')
+        console.log(i18('plugins.devlop'))
       } else if (Plugins.loaded === Plugins.plugins) {
-        console.log(`\n🚩 Último plugin carregado (${Plugins.loaded + 1}/${Plugins.plugins})\n`)
+        console.log(i18('plugins.last_plugin', { current: Plugins.loaded + 1, total: Plugins.plugins }))
       }
+      console.log()
 
       // Apenas o ultimo iniciará o Discord [Plugins.loaded < Plugins.plugins]
       if (Plugins.loaded < (Plugins.plugins - 1)) {
@@ -245,13 +247,13 @@ export class Plugins {
       
       if (Plugins.running.length > 0 && Database.client?.isInitialized) {
         Database.client?.destroy()
-        console.log('🧨 Destruindo Banco de dados')
+        console.log(i18('discord.close'))
         Database.client = undefined
       }
 
       if (Database.client === undefined) {
         const database = new Database()
-        console.log('🗂️ Iniciando Banco de dados...')
+        console.log(i18('database.starting'))
 
         await database.create({
           type: 'mysql',
@@ -269,7 +271,7 @@ export class Plugins {
         client.create()
         await client.start()
       } else {
-        console.log('⚠️ Atenção: Plugin adicionado após o primeiro registro, talvez seja necessário expulsar o bot, e adicioná-lo novamente ao servidor!')
+        console.log(i18('plugins.hasLoaded'))
         await client.register()
       }
 

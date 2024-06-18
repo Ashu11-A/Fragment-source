@@ -2,14 +2,16 @@ import { exists } from "@/functions/fs-extra.js";
 import { isJson } from "@/functions/validate.js";
 import { RootPATH } from "@/index.js";
 import { DataCrypted } from "@/interfaces/crypt.js";
+import { i18 } from "@/lang.js";
 import * as argon2 from "argon2";
 import { passwordStrength } from 'check-password-strength';
 import { watch } from 'chokidar';
 import { randomBytes } from 'crypto';
 import CryptoJS from 'crypto-js';
 import { readFile, rm, writeFile } from "fs/promises";
+import i18next from "i18next";
+import forge from 'node-forge';
 import prompts from "prompts";
-import forge from 'node-forge'
 
 export const credentials = new Map<string, string | object | boolean | number>()
 
@@ -22,7 +24,8 @@ export class Crypt {
       const wather = watch(path, { cwd: RootPATH })
 
       wather.on('change', async () => {
-        console.log('\n⚠️ Foi detectado uma mudança em um arquivo protegido!')
+        console.log()
+        console.log(i18('crypt.file_change'))
         await this.validate()
       })
     }
@@ -36,12 +39,12 @@ export class Crypt {
   }
 
   async privateKey () {
-    if (!(await exists(`${RootPATH}/privateKey.pem`))) throw new Error('PrivateKey não existe!')
+    if (!(await exists(`${RootPATH}/privateKey.pem`))) throw new Error(i18('error.not_exist', { name: 'PrivateKey' }))
     return forge.pki.privateKeyFromPem(await readFile(`${RootPATH}/privateKey.pem`, { encoding: 'utf8' }))
   }
     
   async publicKey () {
-    if (!await (exists(`${RootPATH}/privateKey.pem`))) throw new Error('PublicKey não existe!')
+    if (!await (exists(`${RootPATH}/privateKey.pem`))) throw new Error(i18('error.not_exist', { name: 'PublicKey' }))
     return forge.pki.publicKeyFromPem(await readFile(`${RootPATH}/publicKey.pem`, { encoding: 'utf8' }))
   }
 
@@ -57,17 +60,17 @@ export class Crypt {
     const select = await prompts({
       name: 'type',
       type: 'select',
-      message: 'Como deseja proteger suas informações locais?',
+      message: i18('crypt.question'),
       initial: 0,
       choices: [
         {
-          title: 'Gerar senha aleatória',
-          description: 'Será usada para criptografar suas informações',
+          title: i18('crypt.generate_title'),
+          description: i18('crypt.generate_description'),
           value: 'random'
         },
         {
-          title: 'Definir senha',
-          description: 'Será usada para criptografar suas informações',
+          title: i18('crypt.define_title'),
+          description: i18('crypt.define_description'),
           value: 'defined'
         }
       ]
@@ -85,16 +88,16 @@ export class Crypt {
       const key = await prompts({
         name: 'value',
         type: "password",
-        message: 'Sua senha:',
-        validate: (value: string) => passwordStrength(value).id < 2 ? 'Senha muito fraca! (1 Letra maiúscula, 1 Letra Minuscula, 1 Numero, 1 Carácter especial)' : true
+        message: i18('crypt.your_password'),
+        validate: (value: string) => passwordStrength(value).id < 2 ? i18('crypt.weak_password') : true
       })
-      if (key.value === undefined) throw new Error('Defina um valor!')
+      if (key.value === undefined) throw new Error(i18('error.undefined', { element: 'Password' }))
       await writeFile(`${RootPATH}/.env`, `Token=${key.value}`)
       credentials.set('Token', key.value)
       await this.write({})
       break
     }
-    default: throw new Error('Nenhuma opção selecionada!')
+    default: throw new Error(i18('error.not_select'))
     }
   }
 
@@ -102,7 +105,7 @@ export class Crypt {
     let token = process.env.Token
 
     if (token === undefined) token = credentials.get('Token') as string
-    if (token === undefined) throw new Error('Token de criptografia indefinido!')
+    if (token === undefined) throw new Error(i18('error.undefined', { element: 'Token' }))
 
     return token
   }
@@ -113,7 +116,7 @@ export class Crypt {
 
     const invalid = async () => {
       await this.delete()
-      throw new Error('Hash invalido! deletando arquivos encriptados!')
+      throw new Error((i18('error.invalid', { element: 'Hash' }), i18('crypt.delete_file')))
     }
 
     const hash = await argon2.verify(dataHash, data).catch(async () => await invalid())
@@ -126,13 +129,13 @@ export class Crypt {
     if (await exists(`${RootPATH}/.env`)) await rm(`${RootPATH}/.env`)
   }
 
-  async read (): Promise<DataCrypted | {}> {
+  async read (): Promise<DataCrypted | undefined> {
     const token = this.getToken()
     const existKey = await exists(`${RootPATH}/.key`)
-    if (!existKey) return {}
+    if (!existKey) return undefined
 
     await this.validate()
-    console.log('⚠️ Informações sensíveis sendo lidas...')
+    console.log(i18('crypt.sensitive_information'))
     const data = await readFile(`${RootPATH}/.key`, { encoding: 'utf-8' }).catch(() => '')
     try {
       const TripleDESCrypt =  CryptoJS.TripleDES.decrypt(data, token).toString(CryptoJS.enc.Utf8)
@@ -140,6 +143,10 @@ export class Crypt {
       const AESCrypt =  CryptoJS.AES.decrypt(BlowfishCrypt, token).toString(CryptoJS.enc.Utf8)
 
       const outputData = JSON.parse(AESCrypt) as DataCrypted
+
+      if (outputData.language !== undefined) {
+        i18next.changeLanguage(outputData.language)
+      }
 
 
       for (const [key, value] of Object.entries(outputData) as Array<[string, string | object | boolean | number]>) {
@@ -150,15 +157,15 @@ export class Crypt {
       return outputData
     } catch {
       await this.delete()
-      throw new Error('Token invalido!')
+      throw new Error(i18('error.invalid', { element: 'Token' }))
     }
   }
 
-  async write (value: JSON | string | {}) {
-    if (!isJson(value)) throw new Error('Tentatica de salvar informações invalidas, em .key')
+  async write (value: Record<string, string> | string | {}) {
+    if (!isJson(value)) throw new Error(i18('error.invalid', { element: '.key' }))
 
     const token = this.getToken()
-    const data = Object.assign(await this.read(), value)
+    const data = Object.assign(await this.read() ?? {}, value)
 
     const AESCrypt = CryptoJS.AES.encrypt(JSON.stringify(data), token).toString()
     const BlowfishCrypt = CryptoJS.Blowfish.encrypt(AESCrypt, token).toString()

@@ -25,6 +25,6 @@
       "@/*": ["src/*"]
     },
   },
-  "include": ["src", "../tailwind.config.ts", "entries", "build.ts"],
+  "include": ["src", "../tailwind.config.ts", "entries", "build.ts", "locales"],
   "exclude": ["node_modules"]
 }

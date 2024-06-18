@@ -4,6 +4,7 @@ import { Server } from 'socket.io'
 import ws from 'ws'
 import { Event } from './events.js'
 import eiows from 'eiows'
+import { i18 } from '@/lang.js'
 
 export class SocketController {
   protected readonly app: Application
@@ -21,7 +22,7 @@ export class SocketController {
 
   listen(port: string) {
     this.server.listen(port, () => {
-      console.log(`🚀 Servidor inicializado na porta ${port}`)
+      console.log(i18('websocket.initialized', { port }))
     })
   }
 

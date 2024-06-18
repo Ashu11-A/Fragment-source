@@ -1,10 +1,11 @@
-import { Command } from '@/discord/Commands.js'
+import { Command } from '@/discord/base/Commands.js'
 import { PKG_MODE } from '@/index.js'
 import { type Socket } from 'socket.io'
 import { Config } from './config.js'
 import { credentials, Crypt } from './crypt.js'
 import { Database } from './database.js'
 import { Plugins } from './plugins.js'
+import { i18 } from '@/lang.js'
 
 interface EventOptions {
   client: Socket
@@ -36,9 +37,9 @@ export class Event {
     this.client.on('send_me_the_Discord_token_please', async () => {
       const token = credentials.get('token')
       
-      if (token === undefined || typeof token !== 'string') throw new Error('Token do Discord está vazio!')
+      if (token === undefined || typeof token !== 'string') throw new Error(i18('discord.token_not_found'))
 
-      console.log(`⚠️  Token${PKG_MODE ? ' criptografado' : ''} sendo enviado para: ${this.client.id}`)
+      console.log(i18('discord.token_send', { isEncrypted: PKG_MODE ? ' criptografado' : '', pluginId: this.client.id }))
       this.client.emit('discord', PKG_MODE ? (await new Crypt().encript(token)) : token)
     })
   }
@@ -48,7 +49,9 @@ export class Event {
     Config.all = Config.all.filter((config) => config.pluginId !== this.client.id)
     Command.all = Command.all.filter((command) => command.pluginId !== this.client.id && command.name !== 'config')
     Plugins.running = Plugins.running.filter((plugin) => plugin.id !== this.client.id)
-    
-    console.info(`\n🔌 Plugin Desconectado: ${pluginFind?.metadata?.name ?? this.client.id}\n`)
+
+    console.log()
+    console.info(i18('plugins.disconnect', { name: pluginFind?.metadata?.name ?? this.client.id }))
+    console.log()
   }
 }

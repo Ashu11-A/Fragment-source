@@ -30,6 +30,7 @@ const argsList: Args[] = [
   prompts.override(yargs().argv)
   config()
 
+  await import('./lang.js')
   await new License().checker()
   await new Crypt().checker()
   await new Auth().checker()

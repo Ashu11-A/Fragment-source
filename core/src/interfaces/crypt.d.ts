@@ -3,4 +3,5 @@ export interface DataCrypted {
     password: string
     uuid: string
     token: string
+    language: string
 }

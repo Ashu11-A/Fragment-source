@@ -3,6 +3,7 @@ import { join } from 'path'
 import { Socket } from 'socket.io'
 import { DataSource, FindOptionsWhere, ObjectId, type BaseEntity, type DataSourceOptions } from 'typeorm'
 import { RootPATH } from '@/index.js'
+import { i18 } from '@/lang.js'
 
 export interface EntityImport<T extends typeof BaseEntity> { default: T }
 
@@ -25,7 +26,8 @@ export class Database {
 
   async start () {
     await Database.client?.initialize()
-    console.log(`✨ Banco de dados inicializado com ${Object.keys(Database.entries).length} entries\n`)
+    console.log(i18('database.initialized', { length: Object.keys(Database.entries).length }))
+    console.log()
   }
 
   async events (socket: Socket, eventName: string, args: any) {
@@ -33,7 +35,7 @@ export class Database {
     const entry = Object.entries(Database.entries).find(([key]) => key.split('.')[0] === `${plugin}/${table}`)
 
     if (entry === undefined) {
-      console.log(`${table} Entidade invalida, Entidades carregadas: ${JSON.stringify(Database.entries, null, 2)}`)
+      console.log(i18('database.invalid_entity', { tableName: table }), JSON.stringify(Database.entries, null, 2))
       return
     }
 

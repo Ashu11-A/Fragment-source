@@ -7,6 +7,7 @@ import { existsSync } from "fs";
 import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import { __dirname } from '@/index.js'
+import { i18 } from "@/lang.js";
 
 let watched = false
 
@@ -37,7 +38,7 @@ export class License {
     const response = await prompt({
       name: 'accept',
       type: 'toggle',
-      message: 'Você concorda com os termos apresentados acima?',
+      message: i18('license.accept'),
       initial: false
     })
 
@@ -48,7 +49,7 @@ export class License {
     }
     default: {
       await writeFile(`${RootPATH}/.license`, 'ACCEPT=false')
-      throw new Error('Não é possivel continuar!')
+      throw new Error(i18('error.no_possible'))
     }
     }
   }
