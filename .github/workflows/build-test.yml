@@ -41,7 +41,7 @@ jobs:
     needs: prepare
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [20.11.1]
         path: ${{ fromJson(needs.prepare.outputs.paths) }}
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:

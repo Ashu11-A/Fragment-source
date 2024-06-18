@@ -3,7 +3,7 @@ import { createServer } from 'http'
 import { Server } from 'socket.io'
 import ws from 'ws'
 import { Event } from './events.js'
-import eiows from '../../node_modules/eiows/dist/eiows.js'
+import eiows from 'eiows'
 
 export class SocketController {
   protected readonly app: Application
