@@ -109,7 +109,7 @@ class Build {
     await this.obfuscate()
     await this.install()
     await this.clear()
-    // await this.convertToCJS(`${this.options.outBuild}/node_modules`, `${this.options.outBuild}/node_modules`, this.options.outBuild)
+    await this.convertToCJS(`${this.options.outBuild}/node_modules`, `${this.options.outBuild}/node_modules`, this.options.outBuild)
     await this.compress({ directory: `${this.options.outBuild}/node_modules`, outBuild: `${this.options.outBuild}/node_modules` })
     await this.pkgbuild()
     await this.sign()
@@ -147,7 +147,7 @@ class Build {
         const data = await readFile(file, { encoding: 'utf-8' })
         const result = await babel.transformAsync(data, {
           presets: ["@babel/preset-env", "@babel/preset-typescript"],
-          plugins: ["babel-plugin-transform-import-meta", "@babel/plugin-transform-modules-commonjs", "@babel/plugin-syntax-dynamic-import" /*['babel-plugin-cjs-esm-interop', { format: 'cjs' }]*/],
+          plugins: !file.includes('node_modules') ? ["babel-plugin-transform-import-meta", "@babel/plugin-transform-modules-commonjs", "@babel/plugin-syntax-dynamic-import"] : [['babel-plugin-cjs-esm-interop', { format: 'cjs' }]],
           filename: fileName,
 
         });
