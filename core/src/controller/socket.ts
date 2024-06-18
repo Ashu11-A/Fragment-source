@@ -21,10 +21,6 @@ export class SocketController {
   }
 
   ready () {
-    SocketController.io.on('connection', async (client) => {
-      const event = new Event({ client })
-      event.connected()
-      event.controller()
-    })
+    SocketController.io.on('connection', async (client) => new Event({ client }).controller())
   }
 }

@@ -1,7 +1,8 @@
 import { Command } from '@/discord/Commands.js'
+import { PKG_MODE } from '@/index.js'
 import { type Socket } from 'socket.io'
 import { Config } from './config.js'
-import { credentials } from './crypt.js'
+import { credentials, Crypt } from './crypt.js'
 import { Database } from './database.js'
 import { Plugins } from './plugins.js'
 
@@ -32,14 +33,14 @@ export class Event {
       await Plugins.events(this.client, eventName, args)
     })
     this.client.on('disconnect', async () => { await this.disconnect() })
-  }
+    this.client.on('send_me_the_Discord_token_please', async () => {
+      const token = credentials.get('token')
+      
+      if (token === undefined || typeof token !== 'string') throw new Error('Token do Discord está vazio!')
 
-  connected () {
-    const token = credentials.get('token')
-    console.log(token)
-    if (token === undefined || typeof token !== 'string') throw new Error('Token do Discord está vazio!')
-    console.log(`⚠️ Token sendo enviado para: ${this.client.id}`)
-    this.client.emit('discord', token)
+      console.log(`⚠️  Token${PKG_MODE ? ' criptografado' : ''} sendo enviado para: ${this.client.id}`)
+      this.client.emit('discord', PKG_MODE ? (await new Crypt().encript(token)) : token)
+    })
   }
 
   async disconnect () {

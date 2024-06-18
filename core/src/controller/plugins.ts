@@ -17,6 +17,7 @@ import { fileURLToPath } from 'url'
 import { createVerify } from 'crypto'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
+const cacheWatcher = new Map<string, boolean>()
 interface Metadata {
   name: string
   version: string
@@ -27,14 +28,14 @@ interface Metadata {
 
 interface Plugin {
   metadata?: Metadata,
-  commands?: { name: string, description: string, dmPermission: boolean, type: number }[]
-  events?: { name: string }[]
-  components?: { customId: string, cache: string, type: string }[]
-  configs?: ConfigOptions[]
+  commands: { name: string, description: string, dmPermission: boolean, type: number }[]
+  events: { name: string }[]
+  components: { customId: string, cache: string, type: string }[]
+  configs: ConfigOptions[]
+  crons: string[]
   // signature: string
   // date: Date
   // size: string
-  // crons: string[]
 }
 
 interface PluginsOptions {
@@ -96,6 +97,7 @@ export class Plugins {
           child.on('exit', (code, signal) => {
             if (code === 0) resolve(null)
             Plugins.plugins = Plugins.plugins - 1
+            cacheWatcher.delete(filePath)
             return reject(`O binário ${filePath} saiu com código de erro ${code} e sinal ${signal}`)
           })
 
@@ -104,7 +106,17 @@ export class Plugins {
           })
   
           child.stdout.once('data', (message) => {
-            Plugins.running.push({ process: child, metadata: info as Metadata, entries: [], listen: false })
+            Plugins.running.push({
+              metadata: info,
+              process: child,
+              listen: false,
+              components: [],
+              commands: [],
+              entries: [],
+              configs: [],
+              events: [],
+              crons: []
+            })
   
   
             return resolve(message)
@@ -152,6 +164,8 @@ export class Plugins {
     const watcher = watch(this.path)
 
     watcher.on('add', async (filePath) => {
+      if (!cacheWatcher.get(filePath)) cacheWatcher.set(filePath, true)
+      else return
       // Isso é necessario para que os bytes do arquivo movido termine de serem processados pela maquina host
       await new Promise<void>((resolve) => setInterval(resolve, 2000))
       if (!(await isBinaryFile(filePath))) {
@@ -181,19 +195,16 @@ export class Plugins {
           Plugins.running.splice(index, 1)
           break
         } else {
-          Plugins.running[index] = {
-            ...Plugins.running[index],
-            ...info,
-            listen: true
-          }
+          Plugins.running[index] = Object.assign(Plugins.running[index], info, { listen: true })
         }
       } else {
-        Plugins.running.push({
-          ...info,
-          entries: [],
-          id: socket.id,
-          listen: true
-        })
+        Plugins.running.push(Object.assign(info,
+          {
+            entries: [],
+            id: socket.id,
+            listen: true
+          }
+        ))
       }
 
       for (const pathFile of Plugins.running[index].entries) {
@@ -206,19 +217,19 @@ export class Plugins {
       }
 
       for (const command of ((info.commands ?? []) as Array<CommandData<boolean>>)) {
-        console.log(command.name, socket.id, )
-        Command.all.set(command.name, { ...command, pluginId: socket.id })
+        Command.all.set(command.name, Object.assign(command, { pluginId: socket.id }))
       }
 
       console.log(`
 ✅ Iniciando Plugin ${info.metadata?.name}...
-  🤖 Commands: ${info.commands?.length}
-  🧩 Components: ${info.components?.length}
-  🎉 Events: ${info.events?.length}
-  ⚙️  Configs: ${info.configs?.length}
+  🤖 Commands: ${info.commands.length}
+  🧩 Components: ${info.components.length}
+  🎉 Events: ${info.events.length}
+  ⚙️  Configs: ${info.configs.length}
+  🕑 Crons: ${info.crons.length}
         `)
 
-      for (const config of (info?.configs ?? [])) new Config({ ...config, pluginId: socket.id })
+      for (const config of info.configs) new Config({ ...config, pluginId: socket.id })
 
       if (Plugins.loaded === 0 && Plugins.plugins === 0) {
         console.log('\n🚨 Modo de desenvolvimento\n')
@@ -239,10 +250,10 @@ export class Plugins {
       }
 
       if (Database.client === undefined) {
-        const client = new Database()
+        const database = new Database()
         console.log('🗂️ Iniciando Banco de dados...')
 
-        await client.create({
+        await database.create({
           type: 'mysql',
           host: 'node.seventyhost.net',
           port: 3306,
@@ -250,12 +261,12 @@ export class Plugins {
           password: 't2y9gseoHzo+mm!VX=bva9Gt',
           database: 's1692_SeventyHost'
         })
-        await client.start()
+        await database.start()
       }
 
       const client = new Discord()
-      if (Discord?.client === undefined) {
-        client.createClient()
+      if (Discord.client === undefined) {
+        client.create()
         await client.start()
       } else {
         console.log('⚠️ Atenção: Plugin adicionado após o primeiro registro, talvez seja necessário expulsar o bot, e adicioná-lo novamente ao servidor!')
@@ -279,7 +290,6 @@ export class Plugins {
       let match;
       while ((match = regex.exec(code)) !== null) {
         const content = match[1];
-        console.log(content)
         if (content) {
           const replacedPath = `"${join(__dirname, '../../')}node_modules/${content}"`;
           const genRegex = new RegExp(`"${content}"`, 'g')
@@ -294,7 +304,17 @@ export class Plugins {
       if (pluginIndex !== -1) {
         Plugins.running[pluginIndex].entries.push(`${path}/${fileName}`)
       } else {
-        Plugins.running.push({ id: socket.id, entries: [`${path}/${fileName}`], listen: false })
+        Plugins.running.push({
+          id: socket.id,
+          entries: [`${path}/${fileName}`],
+          listen: false,
+          metadata: undefined,
+          commands: [],
+          events: [],
+          components: [],
+          configs: [],
+          crons: []
+        })
       }
       socket.emit(`${fileName}_OK`)
       break

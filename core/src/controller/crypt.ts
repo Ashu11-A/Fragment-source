@@ -9,14 +9,14 @@ import { randomBytes } from 'crypto';
 import CryptoJS from 'crypto-js';
 import { readFile, rm, writeFile } from "fs/promises";
 import prompts from "prompts";
+import forge from 'node-forge'
 
 export const credentials = new Map<string, string | object | boolean | number>()
 
 export class Crypt {
-  constructor() {}
-
   async checker () {
     if (!(await exists(`${RootPATH}/.key`)) && process.env?.Token === undefined) await this.create()
+    if (!(await exists(`${RootPATH}/privateKey.pem`)) || !(await exists(`${RootPATH}/publicKey.pem`))) await this.genKeys()
 
     for (const path of ['.key', '.hash']) {
       const wather = watch(path, { cwd: RootPATH })
@@ -26,6 +26,31 @@ export class Crypt {
         await this.validate()
       })
     }
+  }
+
+  async genKeys () {
+    const { privateKey, publicKey } = forge.pki.rsa.generateKeyPair(4096)
+
+    await writeFile('privateKey.pem', forge.pki.privateKeyToPem(privateKey))
+    await writeFile('publicKey.pem', forge.pki.publicKeyToPem(publicKey))
+  }
+
+  async privateKey () {
+    if (!(await exists(`${RootPATH}/privateKey.pem`))) throw new Error('PrivateKey não existe!')
+    return forge.pki.privateKeyFromPem(await readFile(`${RootPATH}/privateKey.pem`, { encoding: 'utf8' }))
+  }
+    
+  async publicKey () {
+    if (!await (exists(`${RootPATH}/privateKey.pem`))) throw new Error('PublicKey não existe!')
+    return forge.pki.publicKeyFromPem(await readFile(`${RootPATH}/publicKey.pem`, { encoding: 'utf8' }))
+  }
+
+  async encript (data: string) {
+    return (await this.publicKey()).encrypt(data, 'RSA-OAEP')
+  }
+
+  async decrypt (data: string) {
+    return (await this.privateKey()).decrypt(data, 'RSA-OAEP')
   }
 
   async create () {

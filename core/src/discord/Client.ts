@@ -4,10 +4,10 @@ import { ApplicationCommandType, type BitFieldResolvable, Client, type GatewayIn
 import { Command } from './Commands.js'
 
 export class Discord {
-  public static client: Client<boolean>
+  public static client?: Client<boolean>
   constructor () {}
 
-  async createClient () {
+  async create () {
     console.log('💡 Criando o client do Discord')
     Discord.client = new Client({
       intents: Object.keys(IntentsBitField.Flags) as BitFieldResolvable<GatewayIntentsString, number>,
@@ -17,6 +17,7 @@ export class Discord {
   }
 
   public async register () {
+    if (Discord.client === undefined) await this.create()
     if (Config.all.length > 0) {
       new Command({
         name: 'config',
@@ -31,26 +32,29 @@ export class Discord {
     }
     
     const commands = Array.from(Command.all.values())
-    await Discord.client.application?.commands.set(commands)
+    await (Discord.client as Client<boolean>).application?.commands.set(commands)
       .then(() => { console.log(`📝 ${commands.length} Commands defined successfully!`) })
       .catch((err) => { console.error(err) })
   }
 
   async stop () {
+    if (Discord.client === undefined) await this.create()
     console.log(`💥 Destruindo conexão com o Discord`)
-    void Discord.client.destroy()
+    void (Discord.client as Client<boolean>).destroy()
   }
 
   async start () {
-    if (Discord.client.isReady()) {
+    if (Discord.client?.isReady()) {
       console.log('⛔ Desculpe, mas já estou conectado ao Discord!')
       return
     }
 
+    if (Discord.client === undefined) await this.create()
+
     console.log('📌 Iniciando Discord...')
 
-    await Discord.client.login(credentials.get('token') as string)
-    Discord.client.prependOnceListener('ready', async (client) => {
+    await (Discord.client as Client<boolean>).login(credentials.get('token') as string);
+    (Discord.client as Client<boolean>).once('ready', async (client) => {
       await new Discord().register()
       console.info(`📡 Connected with ${client.user.username}`)
     })

@@ -1,8 +1,8 @@
 import { ApplicationCommandSubCommandData } from "discord.js";
 
 export interface ConfigOptions extends ApplicationCommandSubCommandData {
-    name: string
-    pluginId: string
+  name: string
+  pluginId: string
 }
 
 export class Config {

@@ -6,7 +6,9 @@ import { basename, dirname, join } from 'path'
 import { io, type Socket } from 'socket.io-client'
 import { fileURLToPath } from 'url'
 import { formatBytes } from '../functions/format.js'
-import { metadata } from '../index.js'
+import { metadata, PKG_MODE } from '../index.js'
+import { Crons } from '@/class/Crons.js'
+import { Crypt } from './crypt.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 export class SocketClient {
@@ -53,17 +55,19 @@ export class SocketClient {
           commands,
           components: Component.all,
           events: Event.all,
-          configs: Config.all
+          configs: Config.all,
+          crons: Crons.all
         })
       }
-
+      socket.emit('send_me_the_Discord_token_please')
     })
-    socket.on('kill', () => {
-      process.kill(process.pid)
-    })
+    socket.on('kill', () => process.kill(process.pid))
     socket.on('discord', async (key: string) => {
       const client = new Discord()
-      SocketClient.key = key
+      const processedKey = PKG_MODE
+        ? await new Crypt().decrypt(key)
+        : key
+      SocketClient.key = processedKey
 
       client.create()
       await client.start()
