@@ -7,7 +7,7 @@ import { existsSync } from "fs";
 import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import { __dirname } from '@/index.js'
-import { i18 } from "@/lang.js";
+import { i18 } from '@/controller/lang.js';
 
 let watched = false
 

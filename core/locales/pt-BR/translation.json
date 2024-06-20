@@ -3,7 +3,7 @@
     "start": "📌 Iniciando Discord",
     "create": "💡 Criando o client do Discord",
     "close": "💥 Destruindo conexão com o Discord",
-    "connected": "📡 Connected with {{botName}}`",
+    "connected": "📡 Connected with {{botName}}",
     "isConnected": "⛔ Desculpe, mas já estou conectado ao Discord!",
     "commands": "📝 {{length}} Comandos definidos com sucesso!",
     "token_send": "⚠️ Token{{isEncrypted}} sendo enviado para: {{pluginId}}",

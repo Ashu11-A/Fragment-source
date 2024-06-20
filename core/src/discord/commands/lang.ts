@@ -4,7 +4,7 @@ import { glob } from "glob";
 import i18next from "i18next";
 import { Command } from "../base/Commands.js";
 import { Crypt } from "@/controller/crypt.js";
-import { i18 } from "@/lang.js";
+import { i18 } from '@/controller/lang.js';
 
 new Command({
   name: 'language',

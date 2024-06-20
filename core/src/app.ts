@@ -13,6 +13,7 @@ import { SocketController } from './controller/socket.js'
 import { generatePort } from './functions/port.js'
 import { PKG_MODE } from './index.js'
 import { config } from 'dotenv'
+import { Lang } from './controller/lang.js'
 
 interface Args {
   command: string
@@ -30,7 +31,7 @@ const argsList: Args[] = [
   prompts.override(yargs().argv)
   config()
 
-  await import('./lang.js')
+  await new Lang().register()
   await new License().checker()
   await new Crypt().checker()
   await new Auth().checker()

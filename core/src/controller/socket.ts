@@ -4,7 +4,7 @@ import { Server } from 'socket.io'
 import ws from 'ws'
 import { Event } from './events.js'
 import eiows from 'eiows'
-import { i18 } from '@/lang.js'
+import { i18 } from '@/controller/lang.js'
 
 export class SocketController {
   protected readonly app: Application

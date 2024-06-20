@@ -5,7 +5,7 @@ import { CronJob } from 'cron'
 import { rm } from 'fs/promises'
 import prompts, { Choice, PromptObject } from 'prompts'
 import { credentials, Crypt } from './crypt.js'
-import { i18 } from '@/lang.js'
+import { i18 } from '@/controller/lang.js'
 
 const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g
 const crypt = new Crypt()

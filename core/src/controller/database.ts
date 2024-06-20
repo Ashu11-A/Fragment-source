@@ -3,7 +3,7 @@ import { join } from 'path'
 import { Socket } from 'socket.io'
 import { DataSource, FindOptionsWhere, ObjectId, type BaseEntity, type DataSourceOptions } from 'typeorm'
 import { RootPATH } from '@/index.js'
-import { i18 } from '@/lang.js'
+import { i18 } from '@/controller/lang.js'
 
 export interface EntityImport<T extends typeof BaseEntity> { default: T }
 

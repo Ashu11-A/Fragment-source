@@ -1,15 +1,14 @@
+import { i18, Lang } from '@/controller/lang.js';
 import { exists } from "@/functions/fs-extra.js";
 import { isJson } from "@/functions/validate.js";
 import { RootPATH } from "@/index.js";
 import { DataCrypted } from "@/interfaces/crypt.js";
-import { i18 } from "@/lang.js";
 import * as argon2 from "argon2";
 import { passwordStrength } from 'check-password-strength';
 import { watch } from 'chokidar';
 import { randomBytes } from 'crypto';
 import CryptoJS from 'crypto-js';
 import { readFile, rm, writeFile } from "fs/promises";
-import i18next from "i18next";
 import forge from 'node-forge';
 import prompts from "prompts";
 
@@ -144,9 +143,7 @@ export class Crypt {
 
       const outputData = JSON.parse(AESCrypt) as DataCrypted
 
-      if (outputData.language !== undefined) {
-        i18next.changeLanguage(outputData.language)
-      }
+      if (outputData.language !== undefined) new Lang().setLanguage(outputData.language)
 
 
       for (const [key, value] of Object.entries(outputData) as Array<[string, string | object | boolean | number]>) {
