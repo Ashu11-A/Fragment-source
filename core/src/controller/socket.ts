@@ -1,10 +1,8 @@
+import { i18 } from '@/index.js'
 import express, { type Application } from 'express'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
-import ws from 'ws'
 import { Event } from './events.js'
-import eiows from 'eiows'
-import { i18 } from '@/controller/lang.js'
 
 export class SocketController {
   protected readonly app: Application
@@ -16,7 +14,6 @@ export class SocketController {
     this.server = createServer(this.app)
     SocketController.io = new Server(this.server, {
       path: '/socket.io',
-      wsEngine: process.platform !== 'win32' ? eiows.Server : ws.Server
     })
   }
 
