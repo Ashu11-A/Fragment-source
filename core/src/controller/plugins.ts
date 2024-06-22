@@ -15,7 +15,7 @@ import { Config, ConfigOptions } from './config.js'
 import { Database, EntityImport } from './database.js'
 import { fileURLToPath } from 'url'
 import { createVerify } from 'crypto'
-import { i18 } from '@/controller/lang.js'
+import { i18 } from '@/index.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const cacheWatcher = new Map<string, boolean>()

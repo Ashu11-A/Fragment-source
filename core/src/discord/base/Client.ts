@@ -1,6 +1,6 @@
 import { Config } from '@/controller/config.js'
 import { credentials } from '@/controller/crypt.js'
-import { i18 } from '@/controller/lang.js'
+import { i18 } from '@/index.js'
 import { ApplicationCommandType, AutocompleteInteraction, type BitFieldResolvable, ChatInputCommandInteraction, Client, CommandInteraction, type GatewayIntentsString, IntentsBitField, MessageContextMenuCommandInteraction, Partials, PermissionsBitField, UserContextMenuCommandInteraction } from 'discord.js'
 import { glob } from 'glob'
 import { dirname, join } from 'path'

@@ -1,10 +1,9 @@
+import { Lang } from '@/controller/lang.js';
 import { RootPATH } from "@/index.js";
 import { ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder } from "discord.js";
 import { glob } from "glob";
-import i18next from "i18next";
 import { Command } from "../base/Commands.js";
-import { Crypt } from "@/controller/crypt.js";
-import { i18 } from '@/controller/lang.js';
+import { i18 } from '@/index.js';
 
 new Command({
   name: 'language',
@@ -42,9 +41,7 @@ new Command({
     const { options } = interaction
     const lang = options.getString('name', true)
 
-    await new Crypt().write({ language: lang })
-
-    await i18next.changeLanguage(lang)
+    await new Lang().setLanguage(lang, true)
       .then(async () => {
         await interaction.editReply({
           embeds: [new EmbedBuilder({

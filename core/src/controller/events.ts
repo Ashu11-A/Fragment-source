@@ -5,7 +5,7 @@ import { Config } from './config.js'
 import { credentials, Crypt } from './crypt.js'
 import { Database } from './database.js'
 import { Plugins } from './plugins.js'
-import { i18 } from '@/controller/lang.js'
+import { i18 } from '@/index.js'
 
 interface EventOptions {
   client: Socket

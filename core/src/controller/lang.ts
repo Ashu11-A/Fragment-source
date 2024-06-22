@@ -1,12 +1,14 @@
-import { RootPATH } from '@/index.js'
+import { exists } from '@/functions/fs-extra.js'
+import { __dirname, RootPATH } from '@/index.js'
 import { watch } from 'chokidar'
+import flags from 'country-code-to-flag-emoji'
 import { mkdir, readFile, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import i18next from 'i18next'
 import Backend, { FsBackendOptions } from 'i18next-fs-backend'
 import { dirname, join } from 'path'
-import { exists } from '@/functions/fs-extra.js'
-import { __dirname } from '@/index.js'
+import prompts, { Choice } from 'prompts'
+import { Crypt } from './crypt.js'
 
 export class Lang {
   /**
@@ -45,26 +47,54 @@ export class Lang {
       }
     }
   }
-  async setLanguage (lang: string) {
+
+  
+  async setLanguage (lang: string, change?: boolean) {
     const path = join(RootPATH, 'locales', lang)
+    const crypt = new Crypt()
+    
     if (!(await exists(path))) {
       console.log(`⛔ The selected language (${lang}) does not exist, using English by default`)
+      if (change) await crypt.write({ language: 'en' })
       i18next.changeLanguage('en')
       return
     }
-    await i18next.changeLanguage(lang)
+    await i18next.changeLanguage(lang).then(async () => { 
+      if (change) await crypt.write({ language: lang })
+    })
+  }
+  
+  async selectLanguage () {
+    const path = join(RootPATH, 'locales')
+    const allLangs = (await glob('**/*.json', { cwd: path })).map((lang) => lang.split('/')[0])
+    const langs = []
+    for (const lang of allLangs) {
+      if (langs.filter((langExist) => langExist === lang).length == 0) langs.push(lang)
+    }
+    const choices: Choice[] = langs.map((lang) => ({ title: `${flags(lang)} - ${lang}`, value: lang } satisfies Choice))
+    const response = await prompts({
+      name: 'Language',
+      type: 'select',
+      choices,
+      message: 'Which language should I continue with?',
+      initial: 1
+    })
+    if (response.Language === undefined) throw new Error('Please select a language')
+      
+    this.setLanguage(response.Language, true)
+  }
+  /**
+   * Inicializar i18
+  */
+  async create () {
+    return await i18next.use(Backend).init<FsBackendOptions>({
+      debug: false,
+      lng: 'en',
+      backend: {
+        loadPath: join(RootPATH, 'locales', '{{lng}}', '{{ns}}.json'),
+      }
+    })
+
   }
 }
-
-
-
-/**
- * Inicializar i18
- */
-export const i18 = await i18next.use(Backend).init<FsBackendOptions>({
-  debug: false,
-  lng: 'en',
-  backend: {
-    loadPath: join(RootPATH, 'locales', '{{lng}}', '{{ns}}.json'),
-  }
-})
+  

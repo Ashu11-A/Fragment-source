@@ -1,5 +1,5 @@
 import { Auth } from '@/controller/auth.js'
-import { existsSync } from 'fs'
+import { config } from 'dotenv'
 import { readFile, rm } from 'fs/promises'
 import { join } from 'path'
 import { argv, cwd } from 'process'
@@ -7,13 +7,13 @@ import prompts from 'prompts'
 import 'reflect-metadata'
 import yargs from 'yargs'
 import { Crypt } from './controller/crypt.js'
+import { Lang } from './controller/lang.js'
 import { License } from './controller/license.js'
 import { Plugins } from './controller/plugins.js'
 import { SocketController } from './controller/socket.js'
+import { exists } from './functions/fs-extra.js'
 import { generatePort } from './functions/port.js'
-import { PKG_MODE } from './index.js'
-import { config } from 'dotenv'
-import { Lang } from './controller/lang.js'
+import { loader, PKG_MODE } from './index.js'
 
 interface Args {
   command: string
@@ -28,15 +28,18 @@ const argsList: Args[] = [
 ];
 
 (async () => {
-  prompts.override(yargs().argv)
+  await loader()
   config()
+  prompts.override(yargs().argv)
 
-  await new Lang().register()
+  const lang = new Lang()
+  await lang.register()
+  if ((await new Crypt().read(true))?.language === undefined) await lang.selectLanguage()
   await new License().checker()
   await new Crypt().checker()
   await new Auth().checker()
 
-  if (existsSync(join(cwd(), 'entries'))) await rm(join(cwd(), 'entries'), { recursive: true })
+  if (await exists(join(cwd(), 'entries'))) await rm(join(cwd(), 'entries'), { recursive: true })
 
   const port = PKG_MODE ? String(await generatePort()) : '3000'
   const plugins = new Plugins({ port })

@@ -5,7 +5,7 @@ import { CronJob } from 'cron'
 import { rm } from 'fs/promises'
 import prompts, { Choice, PromptObject } from 'prompts'
 import { credentials, Crypt } from './crypt.js'
-import { i18 } from '@/controller/lang.js'
+import { i18 } from '@/index.js'
 
 const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g
 const crypt = new Crypt()
@@ -22,7 +22,7 @@ const questions: PromptObject<string>[] = [
   },
   {
     name: 'password',
-    message: `${i18('authenticate.registered')} https://fragmentbot.com`,
+    message: `${i18('crypt.your_password')} - ${i18('authenticate.registered')} https://fragmentbot.com`,
     type: 'password',
     validate: (value: string) => value.length < 0 ? 'Senha muito pequena!' : true },
   {

@@ -7,7 +7,7 @@ import { existsSync } from "fs";
 import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import { __dirname } from '@/index.js'
-import { i18 } from '@/controller/lang.js';
+import { i18 } from '@/index.js';
 
 let watched = false
 
@@ -17,7 +17,7 @@ export class License {
       watched = true
       const wather = watch('.license', { cwd: RootPATH })
 
-      wather.on('all', () => this.checker())
+      wather.on('change', () => this.checker())
     }
     if (existsSync(`${RootPATH}/.license`)) {
       const data = await readFile(`${RootPATH}/.license`, { encoding: 'utf-8' })

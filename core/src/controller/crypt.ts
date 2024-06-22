@@ -1,4 +1,5 @@
-import { i18, Lang } from '@/controller/lang.js';
+import { i18 } from '@/index.js';
+import { Lang } from '@/controller/lang.js';
 import { exists } from "@/functions/fs-extra.js";
 import { isJson } from "@/functions/validate.js";
 import { RootPATH } from "@/index.js";
@@ -128,13 +129,13 @@ export class Crypt {
     if (await exists(`${RootPATH}/.env`)) await rm(`${RootPATH}/.env`)
   }
 
-  async read (): Promise<DataCrypted | undefined> {
+  async read (ephemeral?: boolean): Promise<DataCrypted | undefined> {
     const token = this.getToken()
     const existKey = await exists(`${RootPATH}/.key`)
     if (!existKey) return undefined
 
     await this.validate()
-    console.log(i18('crypt.sensitive_information'))
+    if (!ephemeral) console.log(i18('crypt.sensitive_information'))
     const data = await readFile(`${RootPATH}/.key`, { encoding: 'utf-8' }).catch(() => '')
     try {
       const TripleDESCrypt =  CryptoJS.TripleDES.decrypt(data, token).toString(CryptoJS.enc.Utf8)
