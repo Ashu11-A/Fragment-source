@@ -1,15 +1,15 @@
 <div align="center">
 
-# PaymentBot
+# Fragment
 
 ![license-info](https://img.shields.io/badge/license-Ashu11%2D%2DA-a?style=for-the-badge&colorA=302D41&colorB=f9e2af&logoColor=f9e2af&logo=AdBlock)
-![stars-infoa](https://img.shields.io/github/stars/Ashu11-A/PaymentBot?colorA=302D41&colorB=f9e2af&style=for-the-badge)
+![stars-infoa](https://img.shields.io/github/stars/Ashu11-A/Fragment-source?colorA=302D41&colorB=f9e2af&style=for-the-badge)
 
-![Last-Comitt](https://img.shields.io/github/last-commit/Ashu11-A/PaymentBot?style=for-the-badge&colorA=302D41&colorB=b4befe)
-![Comitts Year](https://img.shields.io/github/commit-activity/y/Ashu11-A/PaymentBot?style=for-the-badge&colorA=302D41&colorB=f9e2af&logoColor=f9e2af)
-![reposize-info](https://img.shields.io/github/languages/code-size/Ashu11-A/PaymentBot?style=for-the-badge&colorA=302D41&colorB=90dceb)
+![Last-Comitt](https://img.shields.io/github/last-commit/Ashu11-A/Fragment-source?style=for-the-badge&colorA=302D41&colorB=b4befe)
+![Comitts Year](https://img.shields.io/github/commit-activity/y/Ashu11-A/Fragment-source?style=for-the-badge&colorA=302D41&colorB=f9e2af&logoColor=f9e2af)
+![reposize-info](https://img.shields.io/github/languages/code-size/Ashu11-A/Fragment-source?style=for-the-badge&colorA=302D41&colorB=90dceb)
 
-![SourceForge Languages](https://img.shields.io/github/languages/top/Ashu11-A/PaymentBot?style=for-the-badge&colorA=302D41&colorB=90dceb)
+![SourceForge Languages](https://img.shields.io/github/languages/top/Ashu11-A/Fragment-source?style=for-the-badge&colorA=302D41&colorB=90dceb)
 
 </div>
 <div align="left">
