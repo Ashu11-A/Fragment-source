@@ -12,8 +12,16 @@ import obfuscate from 'javascript-obfuscator'
 import os from 'os'
 import path, { basename, dirname, join } from 'path'
 import { cwd } from 'process'
+import { rollup } from 'rollup'
 import { Readable } from 'stream'
 import { minify } from 'terser'
+
+import communjs from "@rollup/plugin-commonjs"
+import json from "@rollup/plugin-json"
+import { nodeResolve } from "@rollup/plugin-node-resolve"
+import esbuild from "rollup-plugin-esbuild"
+import externals from "rollup-plugin-node-externals"
+import { typescriptPaths } from "rollup-plugin-typescript-paths"
 
 const SIGNATURE_LENGTH = 512
 
@@ -147,9 +155,18 @@ class Build {
         const data = await readFile(file, { encoding: 'utf-8' })
         const result = await babel.transformAsync(data, {
           presets: ["@babel/preset-env", "@babel/preset-typescript"],
-          plugins: !file.includes('node_modules') ? ["babel-plugin-transform-import-meta", "@babel/plugin-transform-modules-commonjs", "@babel/plugin-syntax-dynamic-import"] : [['babel-plugin-cjs-esm-interop', { format: 'cjs' }]],
+          plugins: !file.includes('node_modules')
+            ? [
+              "babel-plugin-transform-import-meta",
+              "@babel/plugin-transform-modules-commonjs",
+              "@babel/plugin-syntax-dynamic-import",
+              "@babel/plugin-transform-async-generator-functions",
+              "@babel/plugin-syntax-top-level-await"
+            ]
+            : [
+              ['babel-plugin-cjs-esm-interop', { format: 'cjs' }]
+            ],
           filename: fileName,
-
         });
 
         if (typeof result?.code !== 'string') continue
@@ -268,6 +285,9 @@ class Build {
         "node_modules/**/*.node"
       ]
     }
+    packageJson.engines = {
+      node: "20.x"
+    }
 
     const remove = ['devDependencies', 'scripts', 'keywords', 'repository', 'bugs', 'homepage', 'type']
 
@@ -280,7 +300,7 @@ class Build {
   async install(): Promise<void> {
     console.debug('\n\nInstalando Modulos...')
     if (existsSync(`${this.options.outBuild}/node_modules`)) execProcess(`cd ${this.options.outBuild} && rm -r node_modules`)
-    await execProcess(`cd ${this.options.outBuild} && npm i && npm rebuild better_sqlite3 && npm rebuild`)
+    await execProcess(`cd ${this.options.outBuild} && bun i`)
   }
 
   async clear(): Promise<void> {
@@ -299,6 +319,32 @@ class Build {
     this.progressBar.stop()
   }
 
+  async rollup() {
+    const bundle = await rollup({
+      input: await glob(`${this.options.source}/build/esm/**/*.js`, { ignore: ['**/node_modules/**/*'] }),
+      logLevel: 'debug',
+      plugins: [
+        esbuild({ target: 'node20' }),
+        typescriptPaths({ preserveExtensions: false }),
+        communjs(),
+        json(),
+        externals(),
+        nodeResolve()
+      ]
+    })
+
+    bundle.write({
+      dir: 'dist',
+      format: 'cjs',
+      exports: 'named',
+      compact: true,
+      esModule: false,
+      dynamicImportInCjs: true,
+      noConflict: true,
+      preserveModules: true,
+    })
+  }
+
   async esbuild(options?: { entryPoints: string[], outfile: string }) {
     const packagePath = path.join(process.cwd(), `${this.options.outBuild}/package.json`)
     const packageJson = JSON.parse(await readFile(packagePath, { encoding: 'utf-8' })) as Record<string, string | object | null>
@@ -306,11 +352,10 @@ class Build {
       entryPoints: options?.entryPoints ?? [`${this.options.outBuild}/src/app.js`],
       bundle: true,
       minify: true,
-      logLevel: 'silent',
+      logLevel: 'debug',
       outfile: options?.outfile ?? `${this.options.outBuild}/bundle.cjs`,
       platform: 'node',
-      format: 'cjs'
-      // plugins: []
+      format: 'cjs',
     })
     await rm(path.join(process.cwd(), `${this.options.outBuild}/node_modules`), { recursive: true })
     await rm(path.join(process.cwd(), `${this.options.outBuild}/src`), { recursive: true })
@@ -324,6 +369,7 @@ class Build {
         encoding: 'utf-8'
       })
   }
+
 
   async pkgbuild(): Promise<void> {
     const args = ['.', '--compress', 'Brotli', '--no-bytecode', '--public-packages', '"*"', '--public']
@@ -456,6 +502,7 @@ const archs = ['arm64', 'x64'];
     { command: 'compress', alias: ['-c'], rank: 5 },
     { command: 'obfuscate', alias: ['-f'], rank: 6 },
     { command: 'esbuild', alias: ['-esb'], rank: 7 },
+    { command: 'rollup', alias: [''], rank: 7 },
     { command: 'pkg', alias: [''], rank: 7 },
     { command: 'sing', alias: ['-sn'], rank: 8 },
   ]
@@ -648,6 +695,10 @@ release [options] <input>
       }
       case 'sing' : {
         buildFunctions.push(async () => { await build.sign(); await build.singCheck() })
+        break
+      }
+      case 'rollup': {
+        buildFunctions.push(() => build.rollup())
         break
       }
       }
