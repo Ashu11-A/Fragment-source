@@ -1,5 +1,5 @@
-import { BaseEntity, PrimaryGeneratedColumn, Column, OneToOne, Entity, Relation } from "typeorm"
-import Ticket from "./Ticket.entry.js"
+import { BaseEntity, PrimaryGeneratedColumn, Column, OneToOne, Entity, Relation } from 'typeorm'
+import Ticket from './Ticket.entry.js'
 
 @Entity({ name: 'claim' })
 export default class Claim extends BaseEntity {

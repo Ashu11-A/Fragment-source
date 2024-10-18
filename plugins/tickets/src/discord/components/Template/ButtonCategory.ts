@@ -1,9 +1,9 @@
-import { Component } from "@/discord/base/Components.js"
-import { EmbedBuilder } from "discord.js"
+import { Component } from '@/discord/base/Components.js'
+import { EmbedBuilder } from 'discord.js'
 
 new Component({
   customId: 'Category',
-  type: "Button",
+  type: 'Button',
   async run(interaction) {
     await interaction.reply({
       ephemeral: true,

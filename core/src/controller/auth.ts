@@ -5,9 +5,9 @@ import { CronJob } from 'cron'
 import { rm } from 'fs/promises'
 import prompts, { Choice, PromptObject } from 'prompts'
 import { credentials, Crypt } from './crypt.js'
-import { i18 } from '@/index.js'
+import { i18 } from '@/controller/lang.js'
 
-const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g
+const emailRegex = /^[\w-\\.]+@([\w-]+\.)+[\w-]{2,4}$/g
 const crypt = new Crypt()
 let attempts = 0
 let lastTry: Date | undefined
@@ -52,7 +52,7 @@ export class Auth {
       throw new Error(i18('error.no_reply'))
     }
 
-    await crypt.write(response)
+    await crypt.write(JSON.stringify(response))
     return response
   }
 
@@ -78,13 +78,13 @@ export class Auth {
 
   async login(): Promise<User> {
     await this.timeout()
-    const { api } = await metadata()
+    const { api } = metadata
 
     const response = await fetch(`${api}/auth/login`, {
       method: 'POST',
       body: JSON.stringify({ email: this.email, password: this.password }),
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       }
     }).catch((err) => {
       console.log(i18('error.unstable', { element: 'API' }))
@@ -133,7 +133,7 @@ export class Auth {
 
   async validator() {
     await this.timeout()
-    const { api } = await metadata()
+    const { api } = metadata
     if (
       this.accessToken === undefined ||
       Auth.user === undefined

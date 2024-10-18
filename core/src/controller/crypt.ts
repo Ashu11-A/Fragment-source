@@ -1,17 +1,18 @@
-import { i18 } from '@/index.js';
-import { Lang } from '@/controller/lang.js';
-import { exists } from "@/functions/fs-extra.js";
-import { isJson } from "@/functions/validate.js";
-import { RootPATH } from "@/index.js";
-import { DataCrypted } from "@/interfaces/crypt.js";
-import * as argon2 from "argon2";
-import { passwordStrength } from 'check-password-strength';
-import { watch } from 'chokidar';
-import { randomBytes } from 'crypto';
-import CryptoJS from 'crypto-js';
-import { readFile, rm, writeFile } from "fs/promises";
-import forge from 'node-forge';
-import prompts from "prompts";
+import { i18 } from '@/controller/lang.js'
+import { Lang } from '@/controller/lang.js'
+import { exists } from '@/functions/fs-extra.js'
+import { isJson } from '@/functions/validate.js'
+import { RootPATH } from '@/index.js'
+import { DataCrypted } from '@/interfaces/crypt.js'
+import * as argon2 from 'argon2'
+import { passwordStrength } from 'check-password-strength'
+import { watch } from 'fs'
+import { randomBytes } from 'crypto'
+import CryptoJS from 'crypto-js'
+import { readFile, rm, writeFile } from 'fs/promises'
+import forge from 'node-forge'
+import prompts from 'prompts'
+import { join } from 'path'
 
 export const credentials = new Map<string, string | object | boolean | number>()
 
@@ -21,9 +22,9 @@ export class Crypt {
     if (!(await exists(`${RootPATH}/privateKey.pem`)) || !(await exists(`${RootPATH}/publicKey.pem`))) await this.genKeys()
 
     for (const path of ['.key', '.hash']) {
-      const wather = watch(path, { cwd: RootPATH })
+      const watcher = watch(join(RootPATH, path))
 
-      wather.on('change', async () => {
+      watcher.on('change', async () => {
         console.log()
         console.log(i18('crypt.file_change'))
         await this.validate()
@@ -87,7 +88,7 @@ export class Crypt {
     case 'defined': {
       const key = await prompts({
         name: 'value',
-        type: "password",
+        type: 'password',
         message: i18('crypt.your_password'),
         validate: (value: string) => passwordStrength(value).id < 2 ? i18('crypt.weak_password') : true
       })
@@ -159,7 +160,7 @@ export class Crypt {
     }
   }
 
-  async write (value: Record<string, string> | string | {}) {
+  async write (value: Record<string, string> | string) {
     if (!isJson(value)) throw new Error(i18('error.invalid', { element: '.key' }))
 
     const token = this.getToken()

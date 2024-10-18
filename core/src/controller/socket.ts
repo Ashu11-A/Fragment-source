@@ -1,8 +1,9 @@
-import { i18 } from '@/index.js'
+import { i18 } from '@/controller/lang.js'
 import express, { type Application } from 'express'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
 import { Event } from './events.js'
+import { cache } from '@/index.js'
 
 export class SocketController {
   protected readonly app: Application
@@ -17,9 +18,13 @@ export class SocketController {
     })
   }
 
-  listen(port: string) {
+  listen(port: number) {
     this.server.listen(port, () => {
       console.log(i18('websocket.initialized', { port }))
+    }).on('error', (err) => {
+      console.log(err)
+      cache.set('port', port + 1)
+      return this.listen(port + 1)
     })
   }
 

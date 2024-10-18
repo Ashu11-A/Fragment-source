@@ -1,10 +1,10 @@
-import { Ticket } from "@/class/Ticket.js";
-import { TicketPanel } from "@/class/TicketPanel.js";
-import { Component } from "@/discord/base/index.js";
+import { Ticket } from '@/class/Ticket.js'
+import { TicketPanel } from '@/class/TicketPanel.js'
+import { Component } from '@/discord/base/index.js'
 
 new Component({
   customId: 'PanelSelect',
-  type: "StringSelect",
+  type: 'StringSelect',
   async run(interaction) {
     if (!interaction.inCachedGuild()) return
     await interaction.deferReply({ ephemeral: true })

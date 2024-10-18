@@ -16,6 +16,6 @@ Esta licença não concede a você direitos adicionais para redistribuir ou subl
 
 O aviso de direitos autorais acima e este aviso de permissão serão incluídos em todas as cópias ou partes substanciais do Software.
 
-- Esta licença está sujeita às leis da ``República Federativa do Brasil``, e quaisquer disputas relacionadas a este software serão resolvidas de acordo com as leis dessa jurisdição.
+- Esta licença está sujeita às leis da ``República Federativa do Brasil``, sendo a legislação do ``Distrito Federal`` responsável pela regulamentação e interpretação de quaisquer disputas ou controvérsias decorrentes deste software, que serão resolvidas de acordo com as normas vigentes nessa jurisdição.
 
 © [Ashu11-A](https://github.com/Ashu11-A)

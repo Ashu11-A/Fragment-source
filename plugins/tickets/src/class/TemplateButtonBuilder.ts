@@ -1,7 +1,7 @@
-import { ButtonBuilder, StringSelectMenuBuilder } from "@/discord/base/CustomIntetaction.js";
-import { Properties, Select, System, TypeTemplate } from "@/entity/Template.entry.js";
-import { ActionDrawer } from "@/functions/actionDrawer.js";
-import { ActionRowBuilder, ButtonStyle } from "discord.js";
+import { type Properties, type Select, type System, TypeTemplate } from '@/entity/Template.entry.js'
+import { ButtonBuilder, StringSelectMenuBuilder } from 'discord'
+import { ActionRowBuilder, ButtonStyle } from 'discord.js'
+import { ActionDrawer } from 'utils'
 
 export class TemplateButtonBuilder {
   private mode: 'production' | 'debug' = 'production'
@@ -22,31 +22,31 @@ export class TemplateButtonBuilder {
 
     if (this.mode === 'debug') {
       buttons.push(new ButtonBuilder({
-        customId: `setTitle`,
+        customId: 'setTitle',
         style: ButtonStyle.Secondary,
         label: 'Nome',
         emoji: { name: '📝' }
       }),
       new ButtonBuilder({
-        customId: `setDescription`,
+        customId: 'setDescription',
         style: ButtonStyle.Secondary,
         label: 'Descrição',
         emoji: { name: '📑' }
       }),
       new ButtonBuilder({
-        customId: `setThumbnail`,
+        customId: 'setThumbnail',
         style: ButtonStyle.Secondary,
         label: 'Miniatura',
         emoji: { name: '🖼️' }
       }),
       new ButtonBuilder({
-        customId: `setImage`,
+        customId: 'setImage',
         style: ButtonStyle.Secondary,
         label: 'Banner',
         emoji: { name: '🌄' }
       }),
       new ButtonBuilder({
-        customId: `setColor`,
+        customId: 'setColor',
         style: ButtonStyle.Secondary,
         label: 'Cor',
         emoji: { name: '🎨' }

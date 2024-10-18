@@ -1,9 +1,8 @@
-import { Database } from "@/controller/database.js"
-import { ModalBuilder, StringSelectMenuBuilder } from "@/discord/base/CustomIntetaction.js"
-import { Error } from "@/discord/base/CustomResponse.js"
-import Ticket from "@/entity/Ticket.entry.js"
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, SelectMenuComponentOptionData, StringSelectMenuInteraction, TextInputBuilder, TextInputStyle } from "discord.js"
-import { TicketBuilder } from "./TicketBuilder.js"
+import Ticket from '@/entity/Ticket.entry.js'
+import { Error, ModalBuilder, StringSelectMenuBuilder } from 'discord'
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, type SelectMenuComponentOptionData, StringSelectMenuInteraction, TextInputBuilder, TextInputStyle } from 'discord.js'
+import { Database } from 'socket-client'
+import { TicketBuilder } from './TicketBuilder.js'
 
 type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | StringSelectMenuInteraction<'cached'>
 const ticket = new Database<Ticket>({ table: 'Ticket' })

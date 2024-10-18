@@ -1,13 +1,10 @@
-import { TicketBuilder } from "@/class/TicketBuilder.js";
-import { ModalBuilder, StringSelectMenuBuilder } from "@/discord/base/CustomIntetaction.js";
-import { Error } from "@/discord/base/CustomResponse.js";
-import { Component } from "@/discord/base/index.js";
-import { TypeTemplate, Category, Select } from "@/entity/Template.entry.js";
-import { ActionDrawer } from "@/functions/actionDrawer.js";
-import { templateDB } from "@/functions/database.js";
-import { SelectMenuComponentOptionData, TextInputBuilder, TextInputStyle } from "discord.js";
-import { TemplateBuilder } from "@/class/TemplateBuilder.js";
-import { PermissionsBitField } from "discord.js";
+import { TemplateBuilder } from '@/class/TemplateBuilder.js'
+import { TicketBuilder } from '@/class/TicketBuilder.js'
+import { TypeTemplate, type Category, type Select } from '@/entity/Template.entry.js'
+import { templateDB } from '@/utils/database'
+import { Component, Error, ModalBuilder, StringSelectMenuBuilder } from 'discord'
+import { PermissionsBitField, TextInputBuilder, TextInputStyle, type SelectMenuComponentOptionData } from 'discord.js'
+import { ActionDrawer } from 'utils'
 
 export const userSelect = new Map<string, { category: Category, templateId: number }>()
 
@@ -33,7 +30,7 @@ new Component({
 
       switch (templateData.type) {
       case TypeTemplate.Button:
-      case TypeTemplate.Modal:
+      case TypeTemplate.Modal: {
         const options: SelectMenuComponentOptionData[] = []
 
         for (const [index, category] of Object.entries(templateData.categories)) {
@@ -47,6 +44,7 @@ new Component({
           options
         })], 1)
         await interaction.editReply({ components: select })
+      }
       }
     } else {
       if (templateData.type === TypeTemplate.Button && !moreDetails) await interaction.deferReply({ ephemeral: true })
@@ -114,10 +112,10 @@ new Component({
     const [messageId, index] = values[0].split('_') as [string, string]
   
     const templateData = await templateDB.findOne({ where: { messageId } })
-    if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: "Database" }).reply()
+    if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
       
     const category = templateData.categories[Number(index)]
-    if (category === undefined) throw await new Error({ element: 'categoria', interaction }).notFound({ type: "Database" }).reply()
+    if (category === undefined) throw await new Error({ element: 'categoria', interaction }).notFound({ type: 'Database' }).reply()
   
     switch (templateData.type) {
     case TypeTemplate.Button:
@@ -128,7 +126,7 @@ new Component({
         .setCategory({ emoji: category.emoji, title: category.title })
         .create()
       break
-    case TypeTemplate.Modal:
+    case TypeTemplate.Modal: {
       const modal = new ModalBuilder({ customId: 'ModalOpen', title: 'Abrir novo ticket' })
       const rows = ActionDrawer<TextInputBuilder>([
         new TextInputBuilder({
@@ -144,6 +142,7 @@ new Component({
       await interaction.showModal(modal.setComponents(rows))
       break
     }
+    }
   }
 })
 
@@ -153,7 +152,7 @@ new Component({
  */
 new Component({
   customId: 'ModalOpen',
-  type: "Modal",
+  type: 'Modal',
   async run(interaction) {
     if (!interaction.inCachedGuild()) return
     const { fields, user } = interaction
@@ -196,10 +195,10 @@ new Component({
     }
 
     const templateData = await templateDB.findOne({ where: { messageId: message.id } })
-    if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: "Database" }).reply()
+    if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
 
     const typeTicket = templateData?.selects[Number(select)]
-    if (typeTicket === undefined) throw await new Error({ element: 'select', interaction }).notFound({ type: "Database" }).reply()
+    if (typeTicket === undefined) throw await new Error({ element: 'select', interaction }).notFound({ type: 'Database' }).reply()
 
     const moreDetails = templateData.systems.find((system) => system.name === 'MoreDetails')?.isEnabled
     if (moreDetails) {

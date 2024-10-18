@@ -1,6 +1,6 @@
 import { Auth } from '@/controller/auth.js'
 import { config } from 'dotenv'
-import { readFile, rm } from 'fs/promises'
+import { rm } from 'fs/promises'
 import { join } from 'path'
 import { argv, cwd } from 'process'
 import prompts from 'prompts'
@@ -12,8 +12,8 @@ import { License } from './controller/license.js'
 import { Plugins } from './controller/plugins.js'
 import { SocketController } from './controller/socket.js'
 import { exists } from './functions/fs-extra.js'
-import { generatePort } from './functions/port.js'
-import { loader, PKG_MODE } from './index.js'
+import { cache, metadata, PKG_MODE } from './index.js'
+import './register.js'
 
 interface Args {
   command: string
@@ -28,7 +28,6 @@ const argsList: Args[] = [
 ];
 
 (async () => {
-  await loader()
   config()
   prompts.override(yargs().argv)
 
@@ -40,15 +39,14 @@ const argsList: Args[] = [
   await new Auth().checker()
 
   if (await exists(join(cwd(), 'entries'))) await rm(join(cwd(), 'entries'), { recursive: true })
+  if (args.length === 0) socket.listen(cache.get('port'))
 
-  const port = PKG_MODE ? String(await generatePort()) : '3000'
-  const plugins = new Plugins({ port })
+  const plugins = new Plugins({ port: String(cache.get('port')) })
 
   await plugins.load()
   void plugins.wather()
   socket.ready()
 
-  if (args.length === 0) socket.listen(port)
   for (let argNum = 0; argNum < args.length; argNum++) {
     for (const { alias, command } of argsList) {
       if (alias.includes(args[argNum])) args[argNum] = command
@@ -56,14 +54,14 @@ const argsList: Args[] = [
 
     switch (args[argNum]) {
     case 'info': {
-      const packageJSON = JSON.parse(await readFile(join(__dirname, '../package.json'), { encoding: 'utf-8' })) as Record<string, string | object | []>
+      const packageJSON = metadata
       const infos = ['name', 'version', 'description', 'author', 'license'].reverse()
       console.info(Object.entries(packageJSON).reverse().filter(([key]) => infos.includes(key)).reduce((object, [key, value]) => ({ [key]: value, ...object }), {}))
       break
     }
     case 'port': {
       argNum++
-      socket.listen(args[argNum])
+      socket.listen(Number(args[argNum]))
       break
     }
     }
@@ -79,6 +77,6 @@ const argsList: Args[] = [
         }
       }
       process.exit()
-    });
-  });
+    })
+  })
 })()

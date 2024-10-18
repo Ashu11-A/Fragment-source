@@ -1,21 +1,20 @@
+import { i18 } from '@/controller/lang.js'
 import { Discord } from '@/discord/base/Client.js'
 import { Command, CommandData } from '@/discord/base/Commands.js'
+import { PKG_MODE, RootPATH } from '@/index.js'
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
-import { existsSync } from 'fs'
+import { createVerify } from 'crypto'
+import { existsSync, watch } from 'fs'
 import { mkdir, readFile, writeFile } from 'fs/promises'
-import { watch } from 'chokidar'
 import { glob } from 'glob'
 import { isBinaryFile } from 'isbinaryfile'
 import { basename, dirname, join } from 'path'
 import { cwd } from 'process'
 import { Socket } from 'socket.io'
 import { BaseEntity } from 'typeorm'
-import { PKG_MODE, RootPATH } from '@/index.js'
+import { fileURLToPath } from 'url'
 import { Config, ConfigOptions } from './config.js'
 import { Database, EntityImport } from './database.js'
-import { fileURLToPath } from 'url'
-import { createVerify } from 'crypto'
-import { i18 } from '@/index.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const cacheWatcher = new Map<string, boolean>()
@@ -76,7 +75,7 @@ export class Plugins {
   }
 
   async start (filePath: string) {
-    return await new Promise(async (resolve, reject) => {
+    return await new Promise((resolve, reject) => {
       const childInfo = spawn(filePath, ['--info'])
       let info: Metadata | undefined
 
@@ -138,10 +137,10 @@ export class Plugins {
 
 
     const verifier = createVerify('sha512')
-    verifier.update(data)
+    verifier.update(new Uint8Array(data))
     verifier.end()
 
-    const isValid = verifier.verify(publicKey, signature)
+    const isValid = verifier.verify(publicKey, new Uint8Array(signature))
 
     if (isValid) {
       console.log(i18('plugins.invalid'))
@@ -164,7 +163,9 @@ export class Plugins {
   async wather () {
     const watcher = watch(this.path)
 
-    watcher.on('add', async (filePath) => {
+    watcher.on('change', async (_eventName, fileName) => {
+      const filePath = join(this.path, fileName.toString())
+      
       if (!cacheWatcher.get(filePath)) cacheWatcher.set(filePath, true)
       else return
       // Isso é necessario para que os bytes do arquivo movido termine de serem processados pela maquina host
@@ -173,15 +174,16 @@ export class Plugins {
         console.log(i18('plugins.invalid_file', { fileName: basename(filePath) }))
         return
       }
-
+  
       if (!(await this.validate(filePath))) return
-
+  
       console.log()
       console.log(i18('plugins.new'))
       this.start(filePath)
     })
   }
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static async events (socket: Socket, eventName: string, args: any) {
     switch (eventName) {
     case 'info': {
@@ -278,8 +280,9 @@ export class Plugins {
       break
     }
 
-    case 'entries':
-      let { code, fileName, dirName } = args as { fileName: string, code: string, dirName: string }
+    case 'entries': {
+      let { code } = args as Record<string, string>
+      const { fileName, dirName } = args as Record<string, string>
       const path = join(cwd(), `entries/${dirName}`)
       let regex: RegExp
 
@@ -289,13 +292,13 @@ export class Plugins {
         regex = /from "(?!\.\/)([^"]+)"/g
       }
       
-      let match;
+      let match
       while ((match = regex.exec(code)) !== null) {
-        const content = match[1];
+        const content = match[1]
         if (content) {
-          const replacedPath = `"${join(__dirname, '../../')}node_modules/${content}"`;
+          const replacedPath = `"${join(__dirname, '../../')}node_modules/${content}"`
           const genRegex = new RegExp(`"${content}"`, 'g')
-          code = code.replace(genRegex, replacedPath);
+          code = code.replace(genRegex, replacedPath)
         }
       }
 
@@ -320,6 +323,7 @@ export class Plugins {
       }
       socket.emit(`${fileName}_OK`)
       break
+    }
     }
   }
 }

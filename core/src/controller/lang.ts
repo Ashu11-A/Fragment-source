@@ -1,8 +1,9 @@
 import { exists } from '@/functions/fs-extra.js'
-import { __dirname, RootPATH } from '@/index.js'
-import { watch } from 'chokidar'
+import { RootPATH } from '@/index.js'
+import { languages } from '@/register.js'
 import flags from 'country-code-to-flag-emoji'
-import { mkdir, readFile, writeFile } from 'fs/promises'
+import { existsSync, watch } from 'fs'
+import { mkdir, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import i18next from 'i18next'
 import Backend, { FsBackendOptions } from 'i18next-fs-backend'
@@ -10,40 +11,36 @@ import { dirname, join } from 'path'
 import prompts, { Choice } from 'prompts'
 import { Crypt } from './crypt.js'
 
+
 export class Lang {
   /**
    * Recriar os arquivos de lang externamente (do PKG) para possibilitar customizações
    */
   async register () {
-    const path = join(__dirname, '..', 'locales')
-    const internalLangs = await glob('**/*.json', { cwd: path })
-    const wather = watch(path)
+    const path = join(RootPATH, 'locales')
     const cache = new Map<string, boolean>()
-    void wather.on('all', async (action, path) => {
+
+    if (!existsSync(path)) await mkdir(path)
+    const watcher = watch(path, { recursive: true })
+
+    watcher.on('change', async () => {
       const language = path.split('/')[path.split('/').length - 2]
-    
-      if (cache.get(path)) return
-      switch (action) {
-      case 'add': {
-        i18next.options.backend = {
-          backend: join(RootPATH, 'locales', '{{lng}}', '{{ns}}.json'),
-        }
-        break
+  
+      i18next.options.backend = {
+        backend: join(RootPATH, 'locales', '{{lng}}', '{{ns}}.json'),
       }
-      case 'change':
-        cache.set(path, true)
-        await i18next.reloadResources(language).finally(() => setTimeout(() => cache.delete(path), 5000))
-        break
-      }
+  
+      cache.set(path, true)
+      await i18next.reloadResources(language).finally(() => setTimeout(() => cache.delete(path), 5000))
     })
-    for (const lang of internalLangs) {
-      const content = await readFile(join(path, lang), { encoding: 'utf8' })
-      const externalDir = join(RootPATH, 'locales', dirname(lang.split('/')[0]))
-      const externalPath = join(externalDir, lang)
+
+    for (const lang of Object.keys(languages)) {
+      const content = languages[lang]
+      const externalPath = join(RootPATH, 'locales', dirname(lang.split('/')[0]), lang)
     
       if (!(await exists(externalPath))) {
-        await mkdir(externalDir, { recursive: true }).catch(() => undefined)
-        await writeFile(externalPath, content, { encoding: 'utf8' })
+        await mkdir(externalPath, { recursive: true }).catch(() => undefined)
+        await writeFile(join(externalPath, '/translation.json'), JSON.stringify(content, null, 2), { encoding: 'utf8' })
       }
     }
   }
@@ -98,3 +95,4 @@ export class Lang {
   }
 }
   
+export const i18 = await new Lang().create()

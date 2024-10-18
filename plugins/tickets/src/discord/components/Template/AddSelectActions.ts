@@ -1,9 +1,9 @@
-import { TemplateButtonBuilder } from "@/class/TemplateButtonBuilder.js";
-import { Database } from "@/controller/database.js";
-import { Component } from "@/discord/base/index.js";
-import { ModalBuilder } from "@/discord/base/CustomIntetaction.js";
-import TemplateTable from "@/entity/Template.entry.js";
-import { ActionRowBuilder, APITextInputComponent, ComponentType, EmbedBuilder, TextInputBuilder } from "discord.js";
+import { TemplateButtonBuilder } from '@/class/TemplateButtonBuilder.js'
+import { Database } from '@/controller/database.js'
+import { Component } from '@/discord/base/index.js'
+import { ModalBuilder } from '@/discord/base/CustomIntetaction.js'
+import TemplateTable from '@/entity/Template.entry.js'
+import { ActionRowBuilder, APITextInputComponent, ComponentType, EmbedBuilder, TextInputBuilder } from 'discord.js'
 
 const templateDb = new Database<TemplateTable>({ table: 'Template' })
 const notFound = new EmbedBuilder({
@@ -40,7 +40,7 @@ const elementsSelect: APITextInputComponent[] = [
 
 new Component({
   customId: 'AddSelect',
-  type: "Button",
+  type: 'Button',
   async run(interaction) {
     const modal = new ModalBuilder({
       title: 'Adicionar opções do SelectMenu',
@@ -57,7 +57,7 @@ new Component({
 
 new Component({
   customId: 'AddSelect',
-  type: "Modal",
+  type: 'Modal',
   async run(interaction) {
     const title = interaction.fields.getTextInputValue('title')
     const emoji = interaction.fields.getTextInputValue('emoji')

@@ -1,9 +1,9 @@
-import { Lang } from '@/controller/lang.js';
-import { RootPATH } from "@/index.js";
-import { ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder } from "discord.js";
-import { glob } from "glob";
-import { Command } from "../base/Commands.js";
-import { i18 } from '@/index.js';
+import { Lang } from '@/controller/lang.js'
+import { RootPATH } from '@/index.js'
+import { ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder } from 'discord.js'
+import { glob } from 'glob'
+import { Command } from '../base/Commands.js'
+import { i18 } from '@/controller/lang.js'
 
 new Command({
   name: 'language',
@@ -26,7 +26,7 @@ new Command({
 
     switch (options.getFocused(true).name) {
     case 'name': {
-      const languages = await glob(`locales/**/*.json`, { cwd: RootPATH })
+      const languages = await glob('locales/**/*.json', { cwd: RootPATH })
       response.push(...languages.map((lang) => ({
         name: lang.split('/')[lang.split('/').length - 2], // pt-BR
         value: lang.split('/')[lang.split('/').length - 2]

@@ -1,9 +1,9 @@
-import { Error } from "@/discord/base/CustomResponse.js"
-import { claimDB, configDB, ticketDB } from "@/functions/database.js"
-import { AttachmentBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, ComponentType, EmbedBuilder, ModalSubmitInteraction, PermissionsBitField, StringSelectMenuInteraction, TextBasedChannel } from "discord.js"
 import TicketInterface from '@/entity/Ticket.entry.js'
-import { TicketBuilder } from "./TicketBuilder.js"
-import { ActionDrawer } from "@/functions/actionDrawer.js"
+import { claimDB, configDB, ticketDB } from '@/utils/database.js'
+import { Error } from 'discord'
+import { AttachmentBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, ComponentType, EmbedBuilder, ModalSubmitInteraction, PermissionsBitField, StringSelectMenuInteraction } from 'discord.js'
+import { ActionDrawer } from 'utils'
+import { TicketBuilder } from './TicketBuilder.js'
 
 type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | StringSelectMenuInteraction<'cached'>
   
@@ -84,7 +84,7 @@ export class Ticket {
       })
     }
     const channel = config?.logsId !== null
-      ? (await guild.channels.fetch()).find((channel) => channel?.id === config?.logsId && channel?.type === ChannelType.GuildText) as TextBasedChannel ?? await createChannel()
+      ? (await guild.channels.fetch()).find((channel) => channel?.id === config?.logsId && channel?.type === ChannelType.GuildText) ?? await createChannel()
       : await createChannel()
     
     if (config?.logsId === null) await configDB.save(Object.assign(config ?? {}, { logsId: channel.id }))
@@ -140,6 +140,7 @@ export class Ticket {
       dayCache = dia
     }
 
+    if (!channel.isTextBased()) return await new Error({ element: `pois o channel: ${channel.name}, não tem a permissão de envio de mensagens.`, interaction: this.interaction }).notPossible().reply()
     await channel.send({ embeds: [embed] })
     await channel.send({ files: [
       new AttachmentBuilder(Buffer.from(text), { name: `${ticket.ownerId}.log`, description: `Transcript do usuário ${user?.displayName ?? ticket.ownerId}` })

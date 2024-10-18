@@ -1,16 +1,14 @@
-import { Discord } from '@/discord/base/index.js'
 import { argv } from 'process'
 import 'reflect-metadata'
-import { Crons } from './class/Crons.js'
-import { SocketClient } from './controller/socket.js'
-import { metadata } from './index.js'
+import { Crons, Discord } from 'discord'
+import { SocketClient } from 'socket-client'
+import { metadata } from 'utils'
 
 interface Args {
   command: string
   alias: string[]
 }
-
-const client = new SocketClient()
+const root = process.cwd()
 const args = argv.splice(2).map((arg) => arg.replaceAll('-', ''))
 const argsList: Args[] = [
   { command: 'info', alias: ['i'] },
@@ -21,7 +19,7 @@ async function app () {
   await Crons.register()
   await Discord.register()
 
-  if (args.length === 0) client.connect('3000')
+  if (args.length === 0) new SocketClient({ port: 3000, path: root })
   for (let argNum = 0; argNum < args.length; argNum++) {
     for (const { alias, command } of argsList) {
       if (alias.includes(args[argNum])) args[argNum] = command
@@ -29,14 +27,14 @@ async function app () {
 
     switch (args[argNum]) {
     case 'info': {
-      const info = JSON.stringify(await metadata())
+      const info = JSON.stringify(metadata())
       console.clear()
       console.log(info)
       break
     }
     case 'port': {
       argNum++
-      client.connect(args[argNum])
+      new SocketClient({ port: Number(args[argNum]), path: root })
       break
     }
     }

@@ -1,7 +1,7 @@
-import { Template } from "@/class/Template.js";
-import { configDB } from "@/functions/database.js";
-import { ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ChannelType, EmbedBuilder } from "discord.js";
-import { Config } from "../base/Config.js";
+import { Template } from '@/class/Template.js'
+import { configDB } from '@/utils/database'
+import { Config } from 'discord'
+import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ChannelType, EmbedBuilder } from 'discord.js'
 
 new Config({
   name: 'ticket',
@@ -97,6 +97,7 @@ new Config({
     const template = new Template({ interaction })
 
     const dataDB = await configDB.findOne({ where: { guild: { guildId } }})
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let data = dataDB ?? {} as Record<string, any>
     const text = []
 
@@ -179,7 +180,7 @@ new Config({
         ]
       })
       setTimeout(() => interaction.deleteReply(), 10000)
-    } catch (err) {
+    } catch {
       await interaction.editReply({
         embeds: [new EmbedBuilder({
           title: 'Database não respondeu de forma correta!'

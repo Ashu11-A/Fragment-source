@@ -1,11 +1,10 @@
-import { TemplateButtonBuilder } from "@/class/TemplateButtonBuilder.js";
-import { Database } from "@/controller/database.js";
-import { Component } from "@/discord/base/index.js";
-import { ModalBuilder } from "@/discord/base/CustomIntetaction.js";
-import TemplateTable from "@/entity/Template.entry.js";
-import { checkHexCor, checkURL } from "@/functions/checker.js";
-import { TextInputBuilder } from "@discordjs/builders";
-import { ActionRowBuilder, APIEmbed, APITextInputComponent, ComponentType, EmbedBuilder, HexColorString } from "discord.js";
+import { TemplateButtonBuilder } from '@/class/TemplateButtonBuilder.js'
+import TemplateTable from '@/entity/Template.entry.js'
+import { Component, ModalBuilder } from 'discord'
+import { ActionRowBuilder, type APIEmbed, type APITextInputComponent, ComponentType, EmbedBuilder, type HexColorString, TextInputBuilder } from 'discord.js'
+import { Database } from 'socket-client'
+import { checkHexCor, checkURL } from 'utils'
+
 const template = new Database<TemplateTable>({ table: 'Template' })
 const notFound = new EmbedBuilder({
   title: '❌ Não encontrei esse template no meu banco de dados!'
@@ -71,7 +70,7 @@ const modalData: Record<string, TextInputComponent> = {
 for (const [action, data] of Object.entries(modalData)) {
   new Component({
     customId: action,
-    type: "Button",
+    type: 'Button',
     async run(interaction) {
       const templateData = await template.findOne({ where: { messageId: interaction.message.id } })
       const value = templateData?.embed?.[data.database as keyof APIEmbed]
@@ -93,10 +92,10 @@ for (const [action, data] of Object.entries(modalData)) {
       })
       await interaction.showModal(modal)
     },
-  }),
+  })
   new Component({
     customId: action,
-    type: "Modal",
+    type: 'Modal',
     async run(interaction) {
       await interaction.deferReply({ ephemeral: true })
       const templateData = await template.findOne({ where: { messageId: interaction.message?.id } })
@@ -187,7 +186,6 @@ for (const [action, data] of Object.entries(modalData)) {
             }).setColor('Red')]
           })
         })
-
-    },
+    }
   })
 }

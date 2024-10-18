@@ -1,12 +1,11 @@
-import { TemplateBuilder } from "@/class/TemplateBuilder.js";
-import { Component } from "@/discord/base/Components.js";
-import { Error } from "@/discord/base/CustomResponse.js";
-import { templateDB } from "@/functions/database.js";
-import { PermissionsBitField } from "discord.js";
+import { TemplateBuilder } from '@/class/TemplateBuilder.js'
+import { templateDB } from '@/utils/database'
+import { Component, Error } from 'discord'
+import { PermissionsBitField } from 'discord.js'
 
 new Component({
   customId: 'EditSelectMenu',
-  type: "StringSelect",
+  type: 'StringSelect',
   async run(interaction) {
     if (!interaction.inCachedGuild()) return
     await interaction.deferReply()

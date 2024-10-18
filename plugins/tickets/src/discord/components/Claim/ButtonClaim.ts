@@ -1,14 +1,13 @@
-import { TicketBuilder } from "@/class/TicketBuilder.js";
-import { Discord } from "@/discord/base/Client.js";
-import { Component } from "@/discord/base/Components.js";
-import { Error } from "@/discord/base/CustomResponse.js";
-import { claimDB } from "@/functions/database.js";
-import { EmbedBuilder } from "discord.js";
+import { TicketBuilder } from '@/class/TicketBuilder.js'
+import { claimDB } from '@/utils/database'
+import { Component, Error } from 'discord'
+import { EmbedBuilder } from 'discord.js'
+import { buttonRedirect } from 'utils'
 
 
 new Component({
   customId: 'Claim',
-  type: "Button",
+  type: 'Button',
   async run(interaction) {
     if (!interaction.inCachedGuild()) return
     await interaction.deferReply({ ephemeral: true })
@@ -27,7 +26,7 @@ new Component({
       return
     }
 
-    const goTicket = Discord.buttonRedirect({
+    const goTicket = buttonRedirect({
       guildId,
       channelId: claimData.ticket.channelId,
       emoji: { name: '🎫' },
@@ -35,7 +34,7 @@ new Component({
     })
     
 
-    if (claimData.ticket.team.find((userTeam) => userTeam.id === user.id) !== undefined ?? false) {
+    if (claimData.ticket.team.find((userTeam) => userTeam.id === user.id) !== undefined) {
       await interaction.editReply({
         embeds: [new EmbedBuilder({
           title: '❌ | Você já está atendendo este ticket!'

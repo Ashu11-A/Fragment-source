@@ -1,11 +1,10 @@
-import { Database } from "@/controller/database.js";
-import { Error } from "@/discord/base/CustomResponse.js";
-import TemplateTable from "@/entity/Template.entry.js";
-import { EmbedBuilder } from "@discordjs/builders";
-import { APIEmbed as APIEmbedDiscord, ButtonInteraction, CacheType, Colors, CommandInteraction, Message, MessageComponentInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js";
-import { TemplateButtonBuilder } from "./TemplateButtonBuilder.js";
-import { checkURL } from "@/functions/checker.js";
-import Template from "@/entity/Template.entry.js";
+import TemplateTable from '@/entity/Template.entry.js'
+import { Colors, EmbedBuilder, Message, MessageComponentInteraction, type APIEmbed as APIEmbedDiscord, type ButtonInteraction, type CacheType, type CommandInteraction, type ModalSubmitInteraction, type StringSelectMenuInteraction } from 'discord.js'
+import { TemplateButtonBuilder } from './TemplateButtonBuilder.js'
+import Template from '@/entity/Template.entry.js'
+import { Database } from 'socket-client'
+import { checkURL } from 'utils'
+import { Error } from 'discord'
 
 const database = new Database<TemplateTable>({ table: 'Template' })
 
@@ -78,10 +77,10 @@ export class TemplateBuilder {
     if (templateData === null) { throw await new Error({ element: 'o template', interaction: this.interaction }).notFound({ type: 'Database' }).reply(); return }
 
     const channel = await this.interaction.guild?.channels.fetch(templateData.channelId)
-    if (!channel?.isTextBased()) { await new Error({ element: templateData.channelId, interaction: this.interaction }).notFound({ type: "Channel" }).reply(); return }
+    if (!channel?.isTextBased()) { await new Error({ element: templateData.channelId, interaction: this.interaction }).notFound({ type: 'Channel' }).reply(); return }
 
     const message = await channel.messages.fetch(templateData.messageId)
-    if (!channel?.isTextBased()) { await new Error({ element: templateData.messageId, interaction: this.interaction }).notFound({ type: "Message" }).reply(); return }
+    if (!channel?.isTextBased()) { await new Error({ element: templateData.messageId, interaction: this.interaction }).notFound({ type: 'Message' }).reply(); return }
 
     if (this.options.color !== undefined && Object.values(Colors).find((color) => color === Number(this.options.color)) === undefined) {
       await new Error({ element: 'cor', interaction: this.interaction }).invalidProperty().reply()
@@ -132,10 +131,10 @@ export class TemplateBuilder {
     if (templateData === null) { await new Error({ element: 'o template', interaction }).notFound({ type: 'Database' }).reply(); return }
 
     const channel = await interaction.guild?.channels.fetch(templateData.channelId)
-    if (!channel?.isTextBased()) { await new Error({ element: templateData.channelId, interaction }).notFound({ type: "Channel" }).reply(); return }
+    if (!channel?.isTextBased()) { await new Error({ element: templateData.channelId, interaction }).notFound({ type: 'Channel' }).reply(); return }
 
     const message = await channel.messages.fetch(templateData.messageId)
-    if (!channel?.isTextBased()) { await new Error({ element: templateData.messageId, interaction }).notFound({ type: "Message" }).reply(); return }
+    if (!channel?.isTextBased()) { await new Error({ element: templateData.messageId, interaction }).notFound({ type: 'Message' }).reply(); return }
 
     await database.delete({ messageId }).then(async (result) => {
       const isCollector = interaction instanceof MessageComponentInteraction

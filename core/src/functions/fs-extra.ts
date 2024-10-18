@@ -1,4 +1,4 @@
-import { stat } from "fs/promises"
+import { stat } from 'fs/promises'
 
 export async function exists(path: string): Promise<boolean> {
   try {

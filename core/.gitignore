@@ -4,3 +4,7 @@ dist
 .env.development
 plugins
 entries
+
+privateKey.pem
+publicKey.pem
+public_key.pem

@@ -1,6 +1,6 @@
-import { TemplateBuilder } from "@/class/TemplateBuilder.js";
-import { Component } from "@/discord/base/Components.js";
-import { EmbedBuilder } from "discord.js";
+import { TemplateBuilder } from '@/class/TemplateBuilder.js'
+import { Component } from 'discord'
+import { EmbedBuilder } from 'discord.js'
 
 new Component({
   customId: 'MoreDetails',
@@ -18,7 +18,7 @@ new Component({
       embeds: [
         new EmbedBuilder({
           title: 'Sobre:',
-          description: 'A opção \`Mais Detalhes\`, fará com que um modal seja mostrado para melhor detalhamento do problema.'
+          description: 'A opção `Mais Detalhes`, fará com que um modal seja mostrado para melhor detalhamento do problema.'
         }).setColor('Orange')
       ]
     })

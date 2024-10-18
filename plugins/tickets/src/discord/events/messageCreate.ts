@@ -1,8 +1,8 @@
-import { TicketBuilder } from "@/class/TicketBuilder.js"
-import { Database } from "@/controller/database.js"
-import Ticket from "@/entity/Ticket.entry.js"
-import { MessageFlagsBitField } from "discord.js"
-import { Event } from "../base/Event.js"
+import { TicketBuilder } from '@/class/TicketBuilder.js'
+import { Database } from '@/controller/database.js'
+import Ticket from '@/entity/Ticket.entry.js'
+import { MessageFlagsBitField } from 'discord.js'
+import { Event } from '../base/Event.js'
 
 const ticket = new Database<Ticket>({ table: 'Ticket' })
 

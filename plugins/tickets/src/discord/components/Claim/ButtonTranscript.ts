@@ -1,9 +1,9 @@
-import { Ticket } from "@/class/Ticket.js"
-import { Component } from "@/discord/base/Components.js"
+import { Ticket } from '@/class/Ticket.js'
+import { Component } from '@/discord/base/Components.js'
 
 new Component({
   customId: 'Transcript',
-  type: "Button",
+  type: 'Button',
   async run(interaction) {
     if (!interaction.inCachedGuild()) return
     await interaction.deferReply({ ephemeral: true })

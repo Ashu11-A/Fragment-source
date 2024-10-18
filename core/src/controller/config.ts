@@ -1,4 +1,4 @@
-import { ApplicationCommandSubCommandData } from "discord.js";
+import { ApplicationCommandSubCommandData } from 'discord.js'
 
 export interface ConfigOptions extends ApplicationCommandSubCommandData {
   name: string

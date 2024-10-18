@@ -5,7 +5,7 @@ import { Config } from './config.js'
 import { credentials, Crypt } from './crypt.js'
 import { Database } from './database.js'
 import { Plugins } from './plugins.js'
-import { i18 } from '@/index.js'
+import { i18 } from '@/controller/lang.js'
 
 interface EventOptions {
   client: Socket
@@ -23,7 +23,8 @@ export class Event {
     this.client.onAny(async (eventName: string, args) => {
       if (eventName === 'console') {
         const message = args?.message instanceof Object ? JSON.stringify(args?.message, null, 2) : args?.message
-        const optionalParams: any[] = (args?.optionalParams as any[]).map((param) => param instanceof Object ? JSON.stringify(param, null, 2): param)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const optionalParams = (args?.optionalParams as any[]).map((param) => param instanceof Object ? JSON.stringify(param, null, 2): param)
         const pluginName = Plugins.running.find((plugin) => plugin.id ===  this.client.id)?.metadata?.name ??  this.client.id
         const type = args?.type as 'warn' | 'log' | 'error' | 'info' | undefined ?? 'log'
 

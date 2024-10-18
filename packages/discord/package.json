@@ -1,0 +1,27 @@
+{
+  "name": "discord",
+  "version": "1.0.0",
+  "private": true,
+  "module": "src/index.ts",
+  "types": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint -c eslint.config.js --fix"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.12.0",
+    "@types/bun": "latest",
+    "eslint": "^9.12.0",
+    "globals": "^15.11.0",
+    "socket-client": "workspace:../socket",
+    "typescript-eslint": "^8.9.0",
+    "utils": "workspace:../utils"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "cron-parser": "^4.9.0",
+    "discord.js": "^14.16.3"
+  }
+}

@@ -1,8 +1,8 @@
-import { TemplateButtonBuilder } from "@/class/TemplateButtonBuilder.js"
-import { Database } from "@/controller/database.js"
-import { Component } from "@/discord/base/index.js"
-import TemplateTable, { TypeTemplate } from "@/entity/Template.entry.js"
-import { EmbedBuilder } from "discord.js"
+import { TemplateButtonBuilder } from '@/class/TemplateButtonBuilder.js'
+import { Database } from '@/controller/database.js'
+import { Component } from '@/discord/base/index.js'
+import TemplateTable, { TypeTemplate } from '@/entity/Template.entry.js'
+import { EmbedBuilder } from 'discord.js'
 
 const template = new Database<TemplateTable>({ table: 'Template' })
 const actions = {

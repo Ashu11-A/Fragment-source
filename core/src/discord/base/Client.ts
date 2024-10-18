@@ -1,10 +1,7 @@
 import { Config } from '@/controller/config.js'
 import { credentials } from '@/controller/crypt.js'
-import { i18 } from '@/index.js'
+import { i18 } from '@/controller/lang.js'
 import { ApplicationCommandType, AutocompleteInteraction, type BitFieldResolvable, ChatInputCommandInteraction, Client, CommandInteraction, type GatewayIntentsString, IntentsBitField, MessageContextMenuCommandInteraction, Partials, PermissionsBitField, UserContextMenuCommandInteraction } from 'discord.js'
-import { glob } from 'glob'
-import { dirname, join } from 'path'
-import { fileURLToPath } from 'url'
 import { Command } from './Commands.js'
 
 export class Discord {
@@ -73,17 +70,10 @@ export class Discord {
         async run() {},
       })
     }
-    const __dirname = dirname(fileURLToPath(import.meta.url))
-    const dir = join(__dirname, '..')
-    const localeCommands = await glob('commands/**/*.{ts,js}', { cwd: dir })
-
-    for (const command of localeCommands) {
-      await import(join(dir, command))
-    }
     
     const commands = Array.from(Command.all.values())
     await (Discord.client as Client<boolean>).application?.commands.set(commands)
-      .then(() => { console.log(i18('discord.commands', { length: commands.length })); })
+      .then(() => { console.log(i18('discord.commands', { length: commands.length })) })
       .catch((err) => { console.error(err) })
   }
 

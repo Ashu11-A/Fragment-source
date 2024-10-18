@@ -1,11 +1,11 @@
-import { TemplateBuilder } from "@/class/TemplateBuilder.js";
-import { Component } from "@/discord/base/index.js";
-import { ActionDrawer } from "@/functions/actionDrawer.js";
-import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from "discord.js";
+import { TemplateBuilder } from '@/class/TemplateBuilder.js'
+import { Component } from '@/discord/base/index.js'
+import { ActionDrawer } from '@/functions/actionDrawer.js'
+import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from 'discord.js'
 
 new Component({
   customId: 'DeleteTemplate',
-  type: "Button",
+  type: 'Button',
   async run(interaction) {
     const initialInteraction = await interaction.reply({
       fetchReply: true,

@@ -1,7 +1,7 @@
-import { APIEmbed } from "discord.js";
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from "typeorm";
-import Guild from "./Guild.entry.js";
-import Ticket from "./Ticket.entry.js";
+import { APIEmbed } from 'discord.js'
+import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
+import Guild from './Guild.entry.js'
+import Ticket from './Ticket.entry.js'
 
 export interface Properties {
     [key: string]: boolean | string

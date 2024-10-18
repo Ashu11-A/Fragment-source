@@ -1,14 +1,14 @@
-import { ClaimBuilder } from "@/class/ClaimBuilder.js";
-import { TicketBuilder } from "@/class/TicketBuilder.js";
-import { Error } from "@/discord/base/CustomResponse.js";
-import { Component } from "@/discord/base/index.js";
-import Ticket from "@/entity/Ticket.entry.js";
-import { claimDB, ticketDB } from "@/functions/database.js";
-import { EmbedBuilder } from "discord.js";
+import { ClaimBuilder } from '@/class/ClaimBuilder.js'
+import { TicketBuilder } from '@/class/TicketBuilder.js'
+import { Error } from '@/discord/base/CustomResponse.js'
+import { Component } from '@/discord/base/index.js'
+import Ticket from '@/entity/Ticket.entry.js'
+import { claimDB, ticketDB } from '@/functions/database.js'
+import { EmbedBuilder } from 'discord.js'
 
 new Component({
   customId: 'Switch',
-  type: "Button",
+  type: 'Button',
   async run(interaction) {
     const { guild, channelId, user, message } = interaction
     if (!interaction.inCachedGuild()) return
@@ -30,7 +30,7 @@ new Component({
       claimId = ticketData.claim?.messageId
     }
     if (ticketData === null) return await new Error({ element: `o ticket ${channelId}`, interaction }).notFound({ type: 'Database' }).reply()
-    if (claimId === undefined) return await new Error({ element: 'claim', interaction }).notFound({ type: "Database" }).reply()
+    if (claimId === undefined) return await new Error({ element: 'claim', interaction }).notFound({ type: 'Database' }).reply()
     
     const isClosed = !ticketData.closed
     const builder = new TicketBuilder({ interaction })

@@ -1,10 +1,10 @@
-import { StringSelectMenuBuilder } from "@/discord/base/CustomIntetaction.js";
-import { Component } from "@/discord/base/index.js";
-import { ActionRowBuilder, EmbedBuilder, SelectMenuComponentOptionData } from "discord.js";
+import { StringSelectMenuBuilder } from '@/discord/base/CustomIntetaction.js'
+import { Component } from '@/discord/base/index.js'
+import { ActionRowBuilder, EmbedBuilder, SelectMenuComponentOptionData } from 'discord.js'
 
 new Component({
   customId: 'Panel',
-  type: "Button",
+  type: 'Button',
   async run(interaction) {
     await interaction.deferReply({ ephemeral: true })
     const embed = new EmbedBuilder({

@@ -1,11 +1,10 @@
-import { ButtonBuilder } from "@/discord/base/CustomIntetaction.js"
-import { Error } from "@/discord/base/CustomResponse.js"
-import Claim from "@/entity/Claim.entry.js"
-import Config, { Roles } from "@/entity/Config.entry.js"
-import Ticket from "@/entity/Ticket.entry.js"
-import { ActionDrawer } from "@/functions/actionDrawer.js"
-import { claimDB, configDB, ticketDB } from "@/functions/database.js"
-import { ActionRowBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction } from "discord.js"
+import Claim from '@/entity/Claim.entry.js'
+import Config, { type Roles } from '@/entity/Config.entry.js'
+import Ticket from '@/entity/Ticket.entry.js'
+import { claimDB, configDB, ticketDB } from '@/utils/database.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction } from 'discord.js'
+import { ActionDrawer } from 'utils'
+import { Error } from 'discord'
 
 interface ClaimOptions {
     ticketId: number
@@ -88,18 +87,18 @@ export class ClaimBuilder {
       new ButtonBuilder({
         emoji: { name: '🛎️' },
         label: 'Responder',
-        customId: `Claim`,
+        customId: 'Claim',
         style: ButtonStyle.Success,
         disabled: ticketData.team.length !== 0
       }),
       new ButtonBuilder({
         emoji: { name: '📃' },
         label: 'Salvar Logs',
-        customId: `Transcript`,
+        customId: 'Transcript',
         style: ButtonStyle.Primary
       }),
       new ButtonBuilder({
-        customId: `Switch`,
+        customId: 'Switch',
         label: ticketData.closed ? 'Abrir' : 'Fechar',
         emoji: { name: ticketData.closed ? '🔒' : '🔓' },
         style: ticketData.closed ? ButtonStyle.Success : ButtonStyle.Danger
@@ -107,7 +106,7 @@ export class ClaimBuilder {
       new ButtonBuilder({
         emoji: { name: '🗑️' },
         label: 'Deletar',
-        customId: `Delete`,
+        customId: 'Delete',
         style: ButtonStyle.Danger
       }),
       new ButtonBuilder({
@@ -161,7 +160,7 @@ export class ClaimBuilder {
     if (claimData === null) throw await new Error({ element: 'o claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
     
     const channel = await this.interaction.client.channels.fetch(claimData.channelId).catch(async() => null)
-    if (channel === null) throw await new Error({ element: 'do claim', interaction: this.interaction }).notFound({ type: "Channel" }).reply()
+    if (channel === null) throw await new Error({ element: 'do claim', interaction: this.interaction }).notFound({ type: 'Channel' }).reply()
     if (!channel.isTextBased()) throw await new Error({ element: 'concluir a ação, pois o channel não é um TextBased', interaction: this.interaction }).notPossible().reply()
 
     if (this.embed === undefined || this.buttons) await this.render()
@@ -179,7 +178,7 @@ export class ClaimBuilder {
     if (claimData === null) return await new Error({ element: 'claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
 
     const channel = await this.interaction.client.channels.fetch(claimData.channelId).catch(async() => null)
-    if (channel === null) return await new Error({ element: 'do claim', interaction: this.interaction }).notFound({ type: "Channel" }).reply()
+    if (channel === null) return await new Error({ element: 'do claim', interaction: this.interaction }).notFound({ type: 'Channel' }).reply()
     if (!channel.isTextBased()) return await new Error({ element: 'concluir a ação, pois o channel não é um TextBased', interaction: this.interaction }).notPossible().reply()
 
     const message = await channel.messages.fetch(claimData.messageId).catch(() => null)

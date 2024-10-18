@@ -1,10 +1,11 @@
-import { Database } from "@/controller/database.js"
-import TemplateTable, { TypeTemplate } from "@/entity/Template.entry.js"
-import { checkChannel } from "@/functions/checkChannel.js"
-import { ButtonInteraction, CacheType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js"
-import { TemplateButtonBuilder } from "./TemplateButtonBuilder.js"
-import { guildDB } from "@/functions/database.js"
-import { Error } from "@/discord/base/CustomResponse.js"
+import TemplateTable, { TypeTemplate } from '@/entity/Template.entry.js'
+import { ButtonInteraction, type CacheType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, StringSelectMenuInteraction } from 'discord.js'
+import { TemplateButtonBuilder } from './TemplateButtonBuilder.js'
+import { Database } from 'socket-client'
+import { checkChannel } from 'utils'
+import { guildDB } from '@/utils/database.js'
+import { Error } from 'discord'
+
 const template = new Database<TemplateTable>({ table: 'Template' })
 interface TicketOptions {
     interaction: CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction<CacheType>
@@ -50,7 +51,7 @@ export class Template {
 
     await channel.send({ embeds: [embed], components }).then(async (message) => {
       const guild = await guildDB.findOne({ where: { guildId } })
-      if (guild === null) return await new Error({ element: 'Guild', interaction: this.interaction }).notFound({ type: "Database" }).reply()
+      if (guild === null) return await new Error({ element: 'Guild', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
       const create = await template.create({
         guild,
         messageId: message.id,

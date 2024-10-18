@@ -1,10 +1,8 @@
-import { TemplateBuilder } from "@/class/TemplateBuilder.js";
-import { Database } from "@/controller/database.js";
-import { Command } from "@/discord/base/index.js";
-import TemplateTable from "@/entity/Template.entry.js";
-import { templateDB } from "@/functions/database.js";
-import { ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, Colors, EmbedBuilder, PermissionFlagsBits } from "discord.js";
-import { Error } from "../base/CustomResponse.js";
+import TemplateTable from '@/entity/Template.entry.js'
+import { templateDB } from '@/utils/database'
+import { Command } from 'discord'
+import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js'
+import { Database } from 'socket-client'
 
 const templateDb = new Database<TemplateTable>({ table: 'Template' })
 
@@ -225,7 +223,7 @@ new Command({
           const templateId = options.getString('message_id', true)
 
           const templateData = await templateDB.findOne({ where: { messageId: templateId } })
-          if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: "Database" }).reply()
+          if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
           templateData.categories = [ ...(templateData.categories ?? []), { emoji, title }]
 
           await new TemplateBuilder({ interaction }).setData(templateData).edit({ messageId: templateId }).then(async () => {
@@ -243,7 +241,7 @@ new Command({
           const templateId = options.getString('message_id', true)
 
           const templateData = await templateDB.findOne({ where: { messageId: templateId } })
-          if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: "Database" }).reply()
+          if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
           templateData.categories = templateData?.categories.filter((category) => category.title !== title)
 
           await new TemplateBuilder({ interaction }).setData(templateData).edit({ messageId: templateId }).then(async () => {

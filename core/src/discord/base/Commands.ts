@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { type ApplicationCommandData, type ApplicationCommandType, type AutocompleteInteraction, type CacheType, type ChatInputCommandInteraction, Collection, type CommandInteraction, type MessageContextMenuCommandInteraction, type UserContextMenuCommandInteraction } from 'discord.js'
 
 type C<B extends boolean, I extends CommandInteraction | AutocompleteInteraction> =

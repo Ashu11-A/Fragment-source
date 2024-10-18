@@ -1,5 +1,5 @@
-import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn, Relation } from "typeorm";
-import Guild from "./Guild.entry.js";
+import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn, Relation } from 'typeorm'
+import Guild from './Guild.entry.js'
 
 export interface Roles {
     id: string
@@ -30,10 +30,10 @@ export default class Config extends BaseEntity {
       type: 'json',
       nullable: true, transformer: {
         to(value: Roles[]): string {
-          return JSON.stringify(value);
+          return JSON.stringify(value)
         },
         from(value: string): Roles[] {
-          return JSON.parse(value);
+          return JSON.parse(value)
         },
       }, })
       roles?: Roles[]

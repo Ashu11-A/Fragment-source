@@ -1,4 +1,4 @@
-export function isJson (value: string | JSON | {}) {
+export function isJson (value: string | object) {
   try {
     if (typeof value === 'string') JSON.parse(value)
     if (typeof value === 'object') return true

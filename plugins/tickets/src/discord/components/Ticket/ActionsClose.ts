@@ -1,12 +1,12 @@
-import { TicketBuilder } from "@/class/TicketBuilder.js";
-import { ModalBuilder } from "@/discord/base/CustomIntetaction.js";
-import { Component } from "@/discord/base/index.js";
-import { ActionDrawer } from "@/functions/actionDrawer.js";
-import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
+import { TicketBuilder } from '@/class/TicketBuilder.js'
+import { ModalBuilder } from '@/discord/base/CustomIntetaction.js'
+import { Component } from '@/discord/base/index.js'
+import { ActionDrawer } from '@/functions/actionDrawer.js'
+import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, TextInputBuilder, TextInputStyle } from 'discord.js'
 
 new Component({
   customId: 'Close',
-  type: "Button",
+  type: 'Button',
   async run(interaction) {
     if (!interaction.inCachedGuild()) return
     const { user, channelId } = interaction
@@ -59,7 +59,7 @@ new Component({
 
 new Component({
   customId: 'Close-With-Question',
-  type: "Button",
+  type: 'Button',
   async run(interaction) {
     const modal = new ModalBuilder({ customId: 'Close-With-Question', title: 'Conclução do atendimento' })
 
@@ -88,7 +88,7 @@ new Component({
 
 new Component({
   customId: 'Close-With-Question',
-  type: "Modal",
+  type: 'Modal',
   async run(interaction) {
     const { channelId, fields } = interaction
     if (!interaction.inCachedGuild() || channelId === null) return

@@ -1,14 +1,12 @@
-import { Database } from "@/controller/database.js";
-import { Discord } from "@/discord/base/index.js";
-import { ButtonBuilder } from "@/discord/base/CustomIntetaction.js";
-import { Error } from "@/discord/base/CustomResponse.js";
-import Template from "@/entity/Template.entry.js";
-import Ticket, { Event, History, TicketCategories, Message as TicketMessage, TicketType, User as UserTicket, Voice } from "@/entity/Ticket.entry.js";
-import { ActionDrawer } from "@/functions/actionDrawer.js";
-import { ActionRowBuilder, ButtonInteraction, ButtonStyle, ChannelType, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction, TextChannel, User, codeBlock } from "discord.js";
-import { ClaimBuilder } from "./ClaimBuilder.js";
+import Template from '@/entity/Template.entry.js'
+import Ticket, { type Event, type History, type TicketCategories, type Message as TicketMessage, type TicketType, type User as UserTicket, type Voice } from '@/entity/Ticket.entry.js'
+import { guildDB } from '@/utils/database.js'
+import { ButtonBuilder, Error } from 'discord'
+import { ActionRowBuilder, ButtonInteraction, ButtonStyle, ChannelType, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, type OverwriteResolvable, PartialGroupDMChannel, PermissionsBitField, StringSelectMenuInteraction, TextChannel, User, codeBlock } from 'discord.js'
+import { Database } from 'socket-client'
+import { ActionDrawer, buttonRedirect } from 'utils'
+import { ClaimBuilder } from './ClaimBuilder.js'
 import { Ticket as TicketFunctions } from './Ticket.js'
-import { guildDB } from "@/functions/database.js";
 
 type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | StringSelectMenuInteraction<'cached'> | Message<true>
 
@@ -151,7 +149,7 @@ export class TicketBuilder {
     if (!this.interaction.deferred) await this.interaction.deferReply({ ephemeral: true })
     const request = this?.templateId !== undefined ? { id: this.templateId } : { messageId: this.interaction.message?.id }
     const templateData = await template.findOne({ where: request })
-    if (templateData === null) return await new Error({ element: 'esse template', interaction: this.interaction }).notFound({ type: "Database" }).reply()
+    if (templateData === null) return await new Error({ element: 'esse template', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
 
     const category = (await guild.channels.fetch()).find((channel) => channel?.type === ChannelType.GuildCategory && channel.name === categoryData.title)
         ?? await guild.channels.create({
@@ -172,10 +170,10 @@ export class TicketBuilder {
     const messageMain = await channel.send({ embeds: [this.embed as EmbedBuilder], components: this.buttons })
 
     const guildRelaction = await guildDB.findOne({ where: { guildId: guild.id } })
-    if (guildRelaction === null) return await new Error({ element: 'Guild', interaction: this.interaction }).notFound({ type: "Database" }).reply()
+    if (guildRelaction === null) return await new Error({ element: 'Guild', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
 
     const templateRelaction = await template.findOne({ where: { id: this.templateId } })
-    if (templateRelaction === null) return await new Error({ element: 'Template', interaction: this.interaction }).notFound({ type: "Database" }).reply()
+    if (templateRelaction === null) return await new Error({ element: 'Template', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
 
     this.options = Object.assign(this.options, {
       channelId: channel.id,
@@ -204,7 +202,7 @@ export class TicketBuilder {
 
     await this.interaction.editReply({
       embeds: [new EmbedBuilder({ title: '✅ Seu Ticket foi criado com sucesso!' }).setColor('Green')],
-      components: [Discord.buttonRedirect({
+      components: [buttonRedirect({
         channelId: channel.id,
         guildId: guild.id,
         label: 'Ir ao Ticket',
@@ -261,7 +259,7 @@ export class TicketBuilder {
     if (ticketData === null) { await new Error({ element: 'as informações do ticket', interaction: this.interaction }).notFound({ type: 'Database' }).reply(); return }
       
     const channel = await this.interaction.client.channels.fetch(ticketData.channelId).catch(() => null)
-    if (channel === null && channel === undefined || !channel?.isTextBased()) { await new Error({ element: ticketData.channelId, interaction: this.interaction }).notFound({ type: 'Channel' }).reply(); return }
+    if (channel === null && channel === undefined || !channel?.isTextBased() || channel instanceof PartialGroupDMChannel) { await new Error({ element: ticketData.channelId, interaction: this.interaction }).notFound({ type: 'Channel' }).reply(); return }
   
     await channel.send({ embeds })
     return this
