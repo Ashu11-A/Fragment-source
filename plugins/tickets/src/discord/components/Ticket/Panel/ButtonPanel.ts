@@ -1,6 +1,5 @@
-import { StringSelectMenuBuilder } from '@/discord/base/CustomIntetaction.js'
-import { Component } from '@/discord/base/index.js'
-import { ActionRowBuilder, EmbedBuilder, SelectMenuComponentOptionData } from 'discord.js'
+import { StringSelectMenuBuilder, Component } from 'discord'
+import { ActionRowBuilder, EmbedBuilder, type SelectMenuComponentOptionData } from 'discord.js'
 
 new Component({
   customId: 'Panel',

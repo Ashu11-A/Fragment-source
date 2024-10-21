@@ -1,8 +1,7 @@
 import { TicketBuilder } from '@/class/TicketBuilder.js'
-import { ModalBuilder } from '@/discord/base/CustomIntetaction.js'
-import { Component } from '@/discord/base/index.js'
-import { ActionDrawer } from '@/functions/actionDrawer.js'
+import { ModalBuilder, Component } from 'discord'
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, TextInputBuilder, TextInputStyle } from 'discord.js'
+import { ActionDrawer } from 'utils'
 
 new Component({
   customId: 'Close',
@@ -50,7 +49,6 @@ new Component({
           }).setColor('Red')]
         })
         await new Promise<void>((resolve) => setTimeout(() => resolve(), 5000))
-      
         await (await ticketBuilder.setTicket(channelId).loader()).delete()
       }
     })
@@ -81,6 +79,7 @@ new Component({
         placeholder: 'O player abriu ticket para informar que...'
       })
     ], 1)
+
     modal.setComponents(components)
     await interaction.showModal(modal)
   },

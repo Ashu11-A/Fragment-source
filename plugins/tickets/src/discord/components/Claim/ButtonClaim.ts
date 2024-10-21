@@ -4,7 +4,6 @@ import { Component, Error } from 'discord'
 import { EmbedBuilder } from 'discord.js'
 import { buttonRedirect } from 'utils'
 
-
 new Component({
   customId: 'Claim',
   type: 'Button',
@@ -14,7 +13,9 @@ new Component({
 
     const { message, user, guildId, guild, channel } = interaction
     const claimData = await claimDB.findOne({ where: { messageId: message.id }, relations: { ticket: true } })
+
     if (claimData === undefined || claimData?.ticket === undefined) return await new Error({ element: 'Claim', interaction }).notFound({ type: 'Database' }).reply()
+
     const userTicket = await guild.client.users.fetch(claimData.ticket.ownerId).catch(() => undefined)
 
     if (userTicket === undefined) {

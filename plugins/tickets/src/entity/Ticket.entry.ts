@@ -1,4 +1,4 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, type Relation, UpdateDateColumn } from 'typeorm'
 import Guild from './Guild.entry.js'
 import Claim from './Claim.entry.js'
 import Template from './Template.entry.js'
@@ -95,7 +95,7 @@ export default class Ticket extends BaseEntity {
 
   @OneToOne(() => Claim, (claim) => claim.ticket)
   @JoinColumn()
-    claim!: Claim
+    claim!: Relation<Claim>
   
   @Column({
     type: 'simple-json',

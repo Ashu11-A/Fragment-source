@@ -1,9 +1,8 @@
 import { TemplateButtonBuilder } from '@/class/TemplateButtonBuilder.js'
-import { Database } from '@/controller/database.js'
-import { Component } from '@/discord/base/index.js'
-import { ModalBuilder } from '@/discord/base/CustomIntetaction.js'
+import { Database } from 'socket-client'
+import { Component, ModalBuilder } from 'discord'
 import TemplateTable from '@/entity/Template.entry.js'
-import { ActionRowBuilder, APITextInputComponent, ComponentType, EmbedBuilder, TextInputBuilder } from 'discord.js'
+import { ActionRowBuilder, type APITextInputComponent, ComponentType, EmbedBuilder, TextInputBuilder } from 'discord.js'
 
 const templateDb = new Database<TemplateTable>({ table: 'Template' })
 const notFound = new EmbedBuilder({
@@ -107,7 +106,7 @@ new Component({
           .setProperties(templateData.properties)
           .setSelects(templateData.selects)
           .setType(templateData.type)
-          .setSystem(templateData.systems)
+          .setSystem(templateData.systems ?? [])
           .render()
 
         await interaction.message?.edit({ components })

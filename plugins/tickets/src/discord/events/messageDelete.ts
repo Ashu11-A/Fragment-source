@@ -2,12 +2,12 @@ import { ClaimBuilder } from '@/class/ClaimBuilder.js'
 import { TemplateBuilder } from '@/class/TemplateBuilder.js'
 import { TemplateButtonBuilder } from '@/class/TemplateButtonBuilder.js'
 import { TicketBuilder } from '@/class/TicketBuilder.js'
-import { Database } from '@/controller/database.js'
+import { Database } from 'socket-client'
 import Claim from '@/entity/Claim.entry.js'
 import Ticket from '@/entity/Ticket.entry.js'
-import { templateDB } from '@/functions/database.js'
+import { templateDB } from '@/utils/database.js'
 import { AuditLogEvent, EmbedBuilder, Message, MessageFlagsBitField } from 'discord.js'
-import { Event } from '../base/Event.js'
+import { Event } from 'discord'
 
 const ticket = new Database<Ticket>({ table: 'Ticket' })
 const claim = new Database<Claim>({ table: 'Claim' })

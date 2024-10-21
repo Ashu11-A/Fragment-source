@@ -52,7 +52,7 @@ export class Auth {
       throw new Error(i18('error.no_reply'))
     }
 
-    await crypt.write(JSON.stringify(response))
+    await crypt.write(response)
     return response
   }
 

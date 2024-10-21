@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node .",
     "build": "tsc && tsc-alias",
-    "dev": "tsx src/app.ts",
+    "dev": "bun --inspect src/app.ts",
     "lint": "eslint -c eslint.config.js --fix"
   },
   "author": {

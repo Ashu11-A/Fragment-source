@@ -1,0 +1,81 @@
+{
+  "discord": {
+    "start": "📌 Iniciando Discord",
+    "create": "💡 Criando o client do Discord",
+    "close": "💥 Destruindo conexão com o Discord",
+    "connected": "📡 Connected with {{botName}}",
+    "isConnected": "⛔ Desculpe, mas já estou conectado ao Discord!",
+    "commands": "📝 {{length}} Comandos definidos com sucesso!",
+    "token_send": "⚠️ Token{{isEncrypted}} sendo enviado para: {{pluginId}}",
+    "token_not_found": "❌ Token do Discord está vazio!"
+  },
+  "plugins": {
+    "new": "✨ Novo plugin adicionado!",
+    "starting": "✅ Iniciando Plugin {{name}}",
+    "disconnect": "🔌 Plugin Desconectado: {{name}}",
+    "commands": "🤖 Commands: {{length}}",
+    "components": "🧩 Components: {{length}}",
+    "events": "🎉 Events: {{length}}",
+    "configs": "⚙️  Configs: {{length}}",
+    "crons": "🕑 Crons: {{length}}",
+    "entry_load": "⏳ Carregando entry: {{name}}",
+    "hasLoaded": "⚠️ Atenção: Plugin adicionado após o primeiro registro, talvez seja necessário expulsar o bot, e adicioná-lo novamente ao servidor!",
+    "devlop": "🚨 Modo de desenvolvimento",
+    "last_plugin": "🚩 Último plugin carregado ({{current}}/{{total}})",
+    "invalid": "❌ Plugin Valido!",
+    "duplicate": "❌ Plugin {{name}} está duplicado!",
+    "invalid_file": "❌ Arquivo invalido: {{fileName}}",
+    "invalid_signature": "❌ Falha na verificação da assinatura: {{fileName}}",
+    "reject": "❌ O Plugin {{filePath}} saiu com código de erro {{code}} e sinal {{signal}}"
+  },
+  "crypt": {
+    "question": "Como deseja proteger suas informações locais?",
+    "generate_title": "Gerar senha aleatória",
+    "generate_description": "Será usada para criptografar suas informações",
+    "define_title": "Definir senha",
+    "define_description": "Será usada para criptografar suas informações",
+    "your_password": "🔐 Sua Senha:",
+    "weak_password": "Senha muito fraca! (1 Letra maiúscula, 1 Letra Minuscula, 1 Numero, 1 Carácter especial)",
+    "file_change": "⚠️ Foi detectado uma mudança em um arquivo protegido!",
+    "delete_file": "🗑️ Deletando arquivos encriptados!",
+    "sensitive_information": "⚠️ Informações sensíveis sendo lidas"
+  },
+  "license": {
+    "accept": "❓ Você concorda com os termos apresentados acima?"
+  },
+  "authenticate": {
+    "registered": "📝 Cadastrado em:",
+    "hello": "👋 Olá {{name}}",
+    "change_token": "🔄 Mudar Token",
+    "try_again": "🔁 Tentar Novamente",
+    "logout": "↪️ Deslogar"
+  },
+  "websocket": {
+    "initialized": "🚀 Servidor inicializado na porta {{port}}"
+  },
+  "database": {
+    "starting": "🗂️ Iniciando Banco de dados",
+    "initialized": "✨ Banco de dados inicializado com {{length}} entries",
+    "invalid_entity": "⛔ {{tableName}} Entidade invalida, Entidades carregadas:"
+  },
+  "error": {
+    "unstable": "🔴 {{element}} instável",
+    "no_found": "🚫 Nenhum {{name}} encontrado",
+    "not_exist": "❌ {{name}} não existe!",
+    "not_select": "❌ Nenhuma opção selecionada!",
+    "no_possible": "❌ Não é possivel continuar!",
+    "undefined": "❌ {{element}} indefinido!",
+    "invalid": "❌ {{element}} invalido!",
+    "no_reply": "❌ Formulário não respondido!",
+    "expired": "❌ {{element}} expired!",
+    "disabled": "❌ {{element}} disabled!",
+    "an_error_occurred": "❌ Ocorreu um erro:",
+    "timeout": "⏳ Timeout de {{time}} segundos... tentando após o timeout"
+  },
+  "commands": {
+    "lang": {
+      "sucess": "✅ Linguagem alterado com sucesso!",
+      "error": "❌ Não foi possivel alterar a linguagem do bot!"
+    }
+  }
+}

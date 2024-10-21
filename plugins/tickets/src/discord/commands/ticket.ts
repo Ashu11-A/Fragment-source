@@ -1,6 +1,8 @@
+import { Template } from '@/class/Template'
+import { TemplateBuilder } from '@/class/TemplateBuilder'
 import TemplateTable from '@/entity/Template.entry.js'
 import { templateDB } from '@/utils/database'
-import { Command } from 'discord'
+import { Command, Error } from 'discord'
 import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js'
 import { Database } from 'socket-client'
 
@@ -15,7 +17,24 @@ new Command({
   options: [
     {
       name: 'template',
-      description: 'Editar Template',
+      description: 'Criar template',
+      type: ApplicationCommandOptionType.Subcommand,
+      options: [
+        {
+          name: 'title_create',
+          description: 'Título do template',
+          type: ApplicationCommandOptionType.String,
+        },
+        {
+          name: 'description_create',
+          description: 'Descrição do template',
+          type: ApplicationCommandOptionType.String,
+        },
+      ]
+    },
+    {
+      name: 'change',
+      description: '🔄 Editar Template',
       type: ApplicationCommandOptionType.Subcommand,
       options: [
         {
@@ -211,7 +230,7 @@ new Command({
   },
   async run(interaction) {
     await interaction.deferReply({ ephemeral: true })
-    const { options } = interaction
+    const { options, channelId } = interaction
     
     if (options.getSubcommandGroup() !== null) {
       switch (options.getSubcommandGroup()) {
@@ -239,9 +258,9 @@ new Command({
         case 'rem': {
           const title = options.getString('category', true)
           const templateId = options.getString('message_id', true)
-
           const templateData = await templateDB.findOne({ where: { messageId: templateId } })
           if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
+
           templateData.categories = templateData?.categories.filter((category) => category.title !== title)
 
           await new TemplateBuilder({ interaction }).setData(templateData).edit({ messageId: templateId }).then(async () => {
@@ -260,8 +279,24 @@ new Command({
     } else {
       switch (options.getSubcommand()) {
       case 'template': {
-        const builder = new TemplateBuilder({ interaction })
+        if (!interaction.inCachedGuild()) throw await new Error({ element: 'a ação não foi realizada dentro de um servidor', interaction }).notPossible().reply()
+        const sendChannel = await interaction.guild.channels.fetch(channelId)
+        if (!sendChannel?.isTextBased()) throw await new Error({ element: 'concluir a ação, pois o channel não é um TextBased', interaction }).notPossible().reply()
 
+        const template = new Template({ interaction })
+        const title = options.getString('title_create')
+        const description = options.getString('description_create')
+
+        if (sendChannel !== undefined) template.create({
+          title: title ?? 'Pedir suporte',
+          description: description ?? 'Se você estiver precisando de ajuda clique no botão abaixo',
+          channelId: sendChannel.id,
+          guildId: interaction.guildId
+        }).then(async () => await interaction.deleteReply())
+        break
+      }
+      case 'change': {
+        const builder = new TemplateBuilder({ interaction })
         const templateId = options.getString('message_id', true)
         const switchMode = options.getString('mode')
         const title = options.getString('title')

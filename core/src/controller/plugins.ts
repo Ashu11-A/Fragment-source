@@ -8,15 +8,13 @@ import { existsSync, watch } from 'fs'
 import { mkdir, readFile, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import { isBinaryFile } from 'isbinaryfile'
-import { basename, dirname, join } from 'path'
+import { basename, join } from 'path'
 import { cwd } from 'process'
 import { Socket } from 'socket.io'
 import { BaseEntity } from 'typeorm'
-import { fileURLToPath } from 'url'
 import { Config, ConfigOptions } from './config.js'
 import { Database, EntityImport } from './database.js'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
 const cacheWatcher = new Map<string, boolean>()
 interface Metadata {
   name: string
@@ -130,7 +128,7 @@ export class Plugins {
 
   async validate (filePath: string): Promise<boolean> {
     const binary = await readFile(filePath)
-    const publicKey = await readFile(join(__dirname, '../../public_key.pem'), 'utf8')
+    const publicKey = await readFile(join(process.cwd(), 'publicKey.pem'), 'utf8')
 
     const data = binary.subarray(0, binary.length - 512)
     const signature = binary.subarray(binary.length - 512)
@@ -306,6 +304,7 @@ export class Plugins {
 
       await writeFile(`${path}/${fileName}`, code, { encoding: 'utf-8' })
       const pluginIndex = Plugins.running.findIndex((plugin) => plugin.id === socket.id)
+
       if (pluginIndex !== -1) {
         Plugins.running[pluginIndex].entries.push(`${path}/${fileName}`)
       } else {

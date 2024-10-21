@@ -1,6 +1,6 @@
 import { Ticket } from '@/class/Ticket.js'
 import { TicketPanel } from '@/class/TicketPanel.js'
-import { Component } from '@/discord/base/index.js'
+import { Component } from 'discord'
 
 new Component({
   customId: 'PanelSelect',

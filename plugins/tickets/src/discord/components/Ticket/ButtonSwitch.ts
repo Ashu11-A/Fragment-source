@@ -1,9 +1,8 @@
 import { ClaimBuilder } from '@/class/ClaimBuilder.js'
 import { TicketBuilder } from '@/class/TicketBuilder.js'
-import { Error } from '@/discord/base/CustomResponse.js'
-import { Component } from '@/discord/base/index.js'
+import { Error, Component } from 'discord'
 import Ticket from '@/entity/Ticket.entry.js'
-import { claimDB, ticketDB } from '@/functions/database.js'
+import { claimDB, ticketDB } from '@/utils/database.js'
 import { EmbedBuilder } from 'discord.js'
 
 new Component({

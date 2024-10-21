@@ -23,7 +23,8 @@ new Component({
 
     const templateData = await templateDB.findOne({ where: { messageId: message.id } })
     if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
-    const moreDetails = templateData.systems.find((system) => system.name === 'MoreDetails')?.isEnabled
+
+    const moreDetails = (templateData.systems ?? []).find((system) => system.name === 'MoreDetails')?.isEnabled
     
     if ((templateData.categories ?? []).length > 0) {
       await interaction.deferReply({ ephemeral: true })
@@ -200,7 +201,7 @@ new Component({
     const typeTicket = templateData?.selects[Number(select)]
     if (typeTicket === undefined) throw await new Error({ element: 'select', interaction }).notFound({ type: 'Database' }).reply()
 
-    const moreDetails = templateData.systems.find((system) => system.name === 'MoreDetails')?.isEnabled
+    const moreDetails = (templateData.systems ?? []).find((system) => system.name === 'MoreDetails')?.isEnabled
     if (moreDetails) {
       const modal = new ModalBuilder({ customId: 'MoreDetails', title: 'Conte-nos mais sobre o seu problema' })
       const row = ActionDrawer<TextInputBuilder>([

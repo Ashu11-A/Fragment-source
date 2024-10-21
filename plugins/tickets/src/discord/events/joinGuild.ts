@@ -1,6 +1,6 @@
-import { Event } from '@/discord/base/index.js'
+import { Event } from 'discord'
 import Guild from '@/entity/Guild.entry.js'
-import { configDB, guildDB } from '@/functions/database.js'
+import { configDB, guildDB } from '@/utils/database'
 
 /**
  * Crie o registro no banco de dados caso ele seja associado a um guild novo

@@ -1,5 +1,5 @@
 import { TemplateBuilder } from '@/class/TemplateBuilder.js'
-import { Component } from '@/discord/base/index.js'
+import { Component } from 'discord'
 
 new Component({
   customId: 'Save',

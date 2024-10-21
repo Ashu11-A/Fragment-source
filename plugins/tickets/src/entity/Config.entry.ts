@@ -1,4 +1,4 @@
-import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn, Relation } from 'typeorm'
+import { BaseEntity, Column, Entity, OneToOne, PrimaryGeneratedColumn, type Relation } from 'typeorm'
 import Guild from './Guild.entry.js'
 
 export interface Roles {

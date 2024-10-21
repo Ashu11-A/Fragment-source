@@ -1,6 +1,6 @@
 import { TemplateButtonBuilder } from '@/class/TemplateButtonBuilder.js'
-import { Database } from '@/controller/database.js'
-import { Component } from '@/discord/base/index.js'
+import { Database } from 'socket-client'
+import { Component } from 'discord'
 import TemplateTable, { TypeTemplate } from '@/entity/Template.entry.js'
 import { EmbedBuilder } from 'discord.js'
 
@@ -36,7 +36,7 @@ for (const [action, type] of Object.entries(actions)) {
               .setMode('debug')
               .setProperties(templateData.properties)
               .setSelects(templateData.selects)
-              .setSystem(templateData.systems)
+              .setSystem(templateData.systems ?? [])
               .setType(type)
               .render()
 

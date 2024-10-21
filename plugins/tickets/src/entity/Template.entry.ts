@@ -1,5 +1,5 @@
-import { APIEmbed } from 'discord.js'
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from 'typeorm'
+import { type APIEmbed } from 'discord.js'
+import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, type Relation, UpdateDateColumn } from 'typeorm'
 import Guild from './Guild.entry.js'
 import Ticket from './Ticket.entry.js'
 
@@ -112,7 +112,7 @@ export default class Template extends BaseEntity {
       to(value: string): string { return JSON.stringify(value) },
     }
   })
-    systems!: System[]
+    systems!: System[] | null
 
   @CreateDateColumn()
     createAt!: Date

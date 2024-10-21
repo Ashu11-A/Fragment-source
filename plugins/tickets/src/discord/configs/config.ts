@@ -1,4 +1,3 @@
-import { Template } from '@/class/Template.js'
 import { configDB } from '@/utils/database'
 import { Config } from 'discord'
 import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ChannelType, EmbedBuilder } from 'discord.js'
@@ -8,13 +7,6 @@ new Config({
   description: '[ 🎫 Ticket ] Configurar o sistema de Tickets',
   type: ApplicationCommandOptionType.Subcommand,
   options: [
-    {
-      name: 'panel-embed',
-      description: '[ 🎫 Ticket ] Envia a embed de configuração.',
-      required: false,
-      type: ApplicationCommandOptionType.Channel,
-      channelTypes: [ChannelType.GuildText]
-    },
     {
       name: 'limit',
       description: '[ 🎫 Ticket ] Limita a quantidade tickets por 24h.',
@@ -87,14 +79,12 @@ new Config({
     const { options, guildId, guild } = interaction
     if (guildId === null || guild == null) return
     await interaction.deferReply({ ephemeral: true })
-    const channel = options.getChannel('panel-embed')
     const limit = options.getNumber('limit')
     const claimChannel = options.getChannel('claim-channel')
     const claimLimit = options.getNumber('claim-limit')
     const logs = options.getChannel('logs-channel')
     const addRole = options.getRole('add-role-team')
     const remRole = options.getString('rem-role-team')
-    const template = new Template({ interaction })
 
     const dataDB = await configDB.findOne({ where: { guild: { guildId } }})
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -132,26 +122,6 @@ new Config({
       text.push(`Cargo ${remRole} removido dos tickets`)
     }
 
-    if (channel !== null) {
-      const sendChannel = await guild.channels.fetch(channel.id)
-      if (typeof sendChannel?.id !== 'string' || sendChannel?.isTextBased() !== true) {
-        await interaction.editReply({
-          embeds: [
-            new EmbedBuilder({
-              title: 'O channel definido em panel-embed não é valido!'
-            }).setColor ('Red')
-          ]
-        })
-        return
-      }
-
-      if (sendChannel !== undefined) template.create({
-        title: 'Pedir suporte',
-        description: 'Se você estiver precisando de ajuda clique no botão abaixo',
-        channelId: sendChannel.id,
-        guildId
-      })
-    }
     if (limit !== null) {
       data = Object.assign(data, { limit })
       text.push(`Limite de tickets por pessoa agora é de ${limit}!`)

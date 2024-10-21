@@ -1,6 +1,6 @@
-import { guildDB } from '@/functions/database.js'
+import { guildDB } from '@/utils/database'
 import { TextChannel } from 'discord.js'
-import { Event } from '../base/Event.js'
+import { Event } from 'discord'
 
 /**
  * Caso a última pessoa se desconecte do channel voice do ticket: apague-o

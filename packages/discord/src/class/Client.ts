@@ -17,15 +17,18 @@ export class Discord {
   constructor () {}
 
   public static async register () {
-    const dir = join(__plugin_dirname, 'src')
+    const dir = join(__plugin_dirname, 'src/discord')
     const paths = await glob([
       'commands/**/*.{ts,js}',
       'events/**/*.{ts,js}',
       'components/**/*.{ts,js}',
       'configs/**/*.{ts,js}'
     ], { cwd: dir })
+
+    console.log(__plugin_dirname)
   
     for (const path of paths) {
+      console.log(path)
       await import (join(dir, path))
     }
   }

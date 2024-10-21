@@ -78,7 +78,7 @@ export class YouSure {
     this.title = title
   }
 
-  async question () {
+  async question (): Promise<boolean> {
     const embed = new EmbedBuilder({ title: this.title ?? 'Tem certeza que deseja fazer isso?' }).setColor('Orange')
     const buttons = ActionDrawer([
       new Button({ customId: 'confirm-button', label: 'Confirmar', style: ButtonStyle.Success }),
@@ -89,25 +89,28 @@ export class YouSure {
       : await this.interaction.reply({ embeds: [embed], components: buttons })
 
     const collector = message.createMessageComponentCollector({ componentType: ComponentType.Button, maxUsers: 1 })
-    collector.once('collect', async (subInteraction) => {
-      switch (subInteraction.customId) {
-      case 'confirm-button': {
-        return true
-      }
-      case 'cancel-button': {
-        if (subInteraction.isRepliable()) {
-          const embed = new EmbedBuilder({
-            title: 'Ação cancelada!'
-          }).setColor('Red')
-          await subInteraction.update({ embeds: [embed], components: [] }).catch(async () => {
-            if (subInteraction.deferred) { await this.interaction.editReply({ embeds: [embed], components: [] }); return }
-            await this.interaction.reply({ ephemeral: true, embeds: [embed], components: [] })
-          })
-          setTimeout(async () => await subInteraction.deleteReply().catch(() => undefined), 5000)
+    return new Promise<boolean>((resolve) => {
+      collector.once('collect', async (subInteraction) => {
+        switch (subInteraction.customId) {
+        case 'confirm-button': {
+          resolve(true)
+          break
         }
-        return false
-      }
-      }
+        case 'cancel-button': {
+          if (subInteraction.isRepliable()) {
+            const embed = new EmbedBuilder({
+              title: 'Ação cancelada!'
+            }).setColor('Red')
+            await subInteraction.update({ embeds: [embed], components: [] }).catch(async () => {
+              if (subInteraction.deferred) { await this.interaction.editReply({ embeds: [embed], components: [] }); return }
+              await this.interaction.reply({ ephemeral: true, embeds: [embed], components: [] })
+            })
+            setTimeout(async () => await subInteraction.deleteReply().catch(() => undefined), 5000)
+          }
+          resolve(false)
+        }
+        }
+      })
     })
   }
 }

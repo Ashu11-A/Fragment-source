@@ -1,8 +1,6 @@
 import { TicketBuilder } from '@/class/TicketBuilder.js'
-import { Component } from '@/discord/base/Components.js'
-import { YouSure } from '@/discord/base/CustomIntetaction.js'
-import { Error } from '@/discord/base/CustomResponse.js'
-import { claimDB } from '@/functions/database.js'
+import { Component, YouSure, Error } from 'discord'
+import { claimDB } from '@/utils/database'
 
 new Component({
   customId: 'Delete',

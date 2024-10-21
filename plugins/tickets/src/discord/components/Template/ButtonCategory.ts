@@ -1,4 +1,4 @@
-import { Component } from '@/discord/base/Components.js'
+import { Component } from 'discord'
 import { EmbedBuilder } from 'discord.js'
 
 new Component({
