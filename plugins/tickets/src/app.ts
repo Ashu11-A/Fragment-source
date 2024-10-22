@@ -1,9 +1,8 @@
-import * as pkg from '../package.json'
-import { Package } from 'utils/src/class/package'
-Package.setData(pkg)
-import { argv } from 'process'
+import './index'
 import 'reflect-metadata'
-import { Crons, Discord } from 'discord'
+
+import { Crons } from 'discord'
+import { argv } from 'process'
 import { SocketClient } from 'socket-client'
 import { metadata } from 'utils'
 
@@ -20,7 +19,6 @@ const argsList: Args[] = [
 
 async function app () {
   await Crons.register()
-  await Discord.register()
 
   if (args.length === 0) new SocketClient({ port: 3000, path: root })
   for (let argNum = 0; argNum < args.length; argNum++) {

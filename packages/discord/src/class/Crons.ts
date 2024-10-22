@@ -1,9 +1,6 @@
 import cronParser, { type CronExpression } from 'cron-parser'
 import { randomUUID } from 'crypto'
 import { EventEmitter } from 'events'
-import { glob } from 'glob'
-import { join } from 'path'
-import { __plugin_dirname } from 'utils'
 
 /**
  * Configuration object for defining recurring cron jobs.
@@ -157,8 +154,6 @@ export class Crons<Metadata> {
    * @param data - Configuration for the cron job.
    */
   constructor (public data: CronsConfigurations<Metadata>) {
-    console.log(`Schedules - ${data.name} | configured successfully.`)
-
     const cron = {
       ...data,
       uuid: randomUUID().replaceAll('-', '')
@@ -168,29 +163,6 @@ export class Crons<Metadata> {
   }
 
   public static async register() {
-    const path = join(__plugin_dirname, 'src')
-    const paths = await glob(['crons/**/*.{ts,js}'], { cwd: path })
-  
-    /**
-     * Organize Crons filter
-     */
-    const customSort = (a: string, b: string): number => {
-      const partsA = a.split('/')
-      const partsB = b.split('/')
-      for (let i = 0; i < Math.min(partsA.length, partsB.length); i++) {
-        if (partsA[i] !== partsB[i]) {
-          return partsA[i].localeCompare(partsB[i])
-        }
-      }
-      return partsA.length - partsB.length
-    }
-  
-    const sortedPaths = paths.sort(customSort)
-  
-    for (const pather of sortedPaths) {
-      await import(`${join(__dirname, '..', pather)}`)
-    }
-  
     for (const isolated of Crons.all) {
       Crons.set.on(isolated.uuid, isolated.exec)// create Cron Event
       Crons.start(isolated) // Run Cron events

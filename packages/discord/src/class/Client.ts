@@ -1,8 +1,6 @@
 import { ApplicationCommandType, Client, IntentsBitField, Partials, type AutocompleteInteraction, type BitFieldResolvable, type CacheType, type ChatInputCommandInteraction, type CommandInteraction, type GatewayIntentsString, type MessageContextMenuCommandInteraction, type UserContextMenuCommandInteraction } from 'discord.js'
-import { glob } from 'glob'
-import { join } from 'path'
 import { Database, SocketClient } from 'socket-client'
-import { __plugin_dirname, Package } from 'utils'
+import { Package } from 'utils'
 import type { ConfigEntry } from '../schemas/config.js'
 import type Guild from '../schemas/guild.js'
 import { Command } from './Commands.js'
@@ -15,23 +13,6 @@ export class Discord {
   private username!: string
   private customId!: string
   constructor () {}
-
-  public static async register () {
-    const dir = join(__plugin_dirname, 'src/discord')
-    const paths = await glob([
-      'commands/**/*.{ts,js}',
-      'events/**/*.{ts,js}',
-      'components/**/*.{ts,js}',
-      'configs/**/*.{ts,js}'
-    ], { cwd: dir })
-
-    console.log(__plugin_dirname)
-  
-    for (const path of paths) {
-      console.log(path)
-      await import (join(dir, path))
-    }
-  }
 
   async create () {
     Discord.client = new Client({
@@ -94,7 +75,6 @@ export class Discord {
         if (interaction.isAutocomplete()) onAutoComplete(interaction)
 
         if (!interaction.isModalSubmit() && !interaction.isMessageComponent()) return
-
         if (interaction.customId.split('_')[0] !== Package.getData().name) return
 
         this.customId = interaction.customId

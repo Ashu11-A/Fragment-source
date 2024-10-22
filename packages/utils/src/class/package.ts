@@ -8,6 +8,6 @@ export class Package {
   }
 
   static getData () {
-    return this.data.default
+    return (this.data ?? {})
   }
 }

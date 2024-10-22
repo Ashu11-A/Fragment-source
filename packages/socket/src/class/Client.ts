@@ -1,11 +1,9 @@
-import { io, Socket } from 'socket.io-client'
-import type { SocketOptions } from '../type/socket'
 import { Command, Component, Config, Crons, Discord, Event } from 'discord'
-import { glob } from 'glob'
-import { basename, join } from 'path'
-import { readFile } from 'fs/promises'
-import { __plugin_dirname, formatBytes, metadata, PKG_MODE } from 'utils'
+import { io, Socket } from 'socket.io-client'
+import { metadata, PKG_MODE } from 'utils'
+import type { SocketOptions } from '../type/socket'
 import { Crypt } from './Crypt'
+import { Plugins } from './Plugins'
 
 export class SocketClient {
   public readonly port: number
@@ -31,29 +29,17 @@ export class SocketClient {
     }))
     socket.on('connect', async () => {
       process.stdout.write('📡 Connected to socket')
+      const files = Object.entries(Plugins.getPlugins())
+      const info = metadata()
 
       SocketClient.client = socket
-      const files = await glob([`${join(__plugin_dirname, 'src', 'entity')}/**/*.{ts,js}`])
-    
-      for (const entry of files) {
-        const FileRun = await import(entry)
-    
-        if (FileRun?.default === undefined) {
-          throw new Error(`Entry ${basename(entry)} not valid! use export default!`)
-        }
-      }
-    
-      const info = metadata()
     
       if (files.length > 0) {
-        for (const file of files) {
-          const fileName = basename(file)
-          const code = await readFile(file)
-    
-          socket.emit('entries', { fileName, dirName: info.name, code: code.toString('utf-8') })
+        for (const [fileName, code] of files) {
+          socket.emit('entries', { fileName, dirName: info.name, code: code })
           await new Promise((resolve) => {
             socket.once(`${fileName}_OK`, async () => {
-              console.log(`Enviado: ${fileName} (${formatBytes(code.byteLength)})`)
+              console.log(`Enviado: ${fileName}`)
               resolve(null)
             })
           })
