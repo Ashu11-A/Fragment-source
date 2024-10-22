@@ -1,4 +1,4 @@
-import { packageData } from 'utils'
+import { Package } from 'utils'
 import { type ButtonInteraction, type ChannelSelectMenuInteraction, type MentionableSelectMenuInteraction, type ModalSubmitInteraction, type RoleSelectMenuInteraction, type StringSelectMenuInteraction, type UserSelectMenuInteraction, type CacheType } from 'discord.js'
 
 type ComponentProps<Cached extends CacheType = CacheType> = {
@@ -40,7 +40,7 @@ export class Component {
   constructor (data: ComponentData) {
     Component.all.push({
       ...data,
-      customId: `${packageData.name}_${data.customId}`
+      customId: `${Package.getData().name}_${data.customId}`
     })
   }
 }

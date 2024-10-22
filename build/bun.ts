@@ -16,7 +16,7 @@ async function build (plugin: string) {
   const pkg = JSON.parse(await readFile(join(plugin, 'package.json'), { encoding: 'utf-8' }))
   const appName = `${pkg.name}-${process.platform}-${process.arch}`
   
-  execSync(`cd ${plugin} && bun build ./src/app.ts --target=bun --minify --compile --outfile=${appName}`, { stdio: 'inherit' })
+  execSync(`cd ${plugin} && bun build ./src/app.ts --target=bun --compile --outfile=${appName}`, { stdio: 'inherit' })
   execSync(`cd ${plugin} && 7z a -m0=lzma2 -mx9 -sfx ${appName}-installer ${appName}`, { stdio: 'inherit' })
   execSync(`rm ${plugin}/${appName} && mv ${plugin}/${appName}-installer release/`)
 }

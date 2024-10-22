@@ -2,7 +2,7 @@ import { ApplicationCommandType, Client, IntentsBitField, Partials, type Autocom
 import { glob } from 'glob'
 import { join } from 'path'
 import { Database, SocketClient } from 'socket-client'
-import { __plugin_dirname, packageData } from 'utils'
+import { __plugin_dirname, Package } from 'utils'
 import type { ConfigEntry } from '../schemas/config.js'
 import type Guild from '../schemas/guild.js'
 import { Command } from './Commands.js'
@@ -95,7 +95,7 @@ export class Discord {
 
         if (!interaction.isModalSubmit() && !interaction.isMessageComponent()) return
 
-        if (interaction.customId.split('_')[0] !== packageData.name) return
+        if (interaction.customId.split('_')[0] !== Package.getData().name) return
 
         this.customId = interaction.customId
         this.username = interaction.user.username

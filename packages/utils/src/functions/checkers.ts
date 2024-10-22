@@ -1,3 +1,6 @@
+import { Discord } from 'discord'
+import { EmbedBuilder, PartialGroupDMChannel, type CacheType, type CommandInteraction } from 'discord.js'
+
 export function checkHexCor (cor: string | null): [boolean, string] | [boolean] {
   if (cor === null) {
     return [false, '😒 | Você não pode definir a Cor como VAZIO, oque você esperava que ocorresse?']
@@ -20,4 +23,18 @@ export function checkURL (url: string | null): [boolean, string] {
   } catch {
     return [false, 'O link é invalido!']
   }
+}
+
+export async function checkChannel(channelId: string, interaction: CommandInteraction<CacheType>) {
+  const channel = await Discord.client.channels.fetch(channelId)
+  const embed = new EmbedBuilder({ title: 'Channel fornecido é inválido!'}).setColor('Red')
+
+  if (channel === null || !channel.isTextBased() && !channel.isDMBased()) {
+    interaction[interaction.deferred ? 'editReply' : 'reply']({ embeds: [embed] })
+    
+    return false
+  }
+
+  if (channel instanceof PartialGroupDMChannel) return false
+  return channel
 }

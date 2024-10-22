@@ -4,7 +4,7 @@ import { SocketClient } from './Client.js'
 import type { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity.js'
 import type { UpsertOptions } from 'typeorm/repository/UpsertOptions.js'
 import { nanoid } from 'nanoid'
-import { packageData } from 'utils'
+import { Package } from 'utils'
 
 interface DatabaseOptions {
   table: string
@@ -17,7 +17,7 @@ export class Database<T extends BaseEntity> {
 
   constructor ({ table }: DatabaseOptions) {
     this.eventName = `database_${nanoid().replace('_', '')}`
-    this.pluginName = packageData.name
+    this.pluginName = Package.getData().name
     this.table = table
   }
 

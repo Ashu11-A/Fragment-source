@@ -1,8 +1,12 @@
+import * as pkg from '../package.json'
+import { Package } from 'utils/src/class/package'
+Package.setData(pkg)
 import { argv } from 'process'
 import 'reflect-metadata'
 import { Crons, Discord } from 'discord'
 import { SocketClient } from 'socket-client'
 import { metadata } from 'utils'
+
 
 interface Args {
   command: string

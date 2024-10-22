@@ -1,4 +1,4 @@
-import { packageData, ActionDrawer } from 'utils'
+import { Package, ActionDrawer } from 'utils'
 import { ButtonBuilder as Button, ButtonStyle, ComponentType, EmbedBuilder, ModalBuilder as Modal, StringSelectMenuBuilder as StringSelect, type ActionRowBuilder, type ButtonInteraction, type CacheType, type CommandInteraction, type ComponentEmojiResolvable, type ModalSubmitInteraction, type SelectMenuComponentOptionData, type StringSelectMenuInteraction, type TextInputBuilder } from 'discord.js'
 
 export interface BaseButtonComponentData {
@@ -17,7 +17,7 @@ export class ButtonBuilder extends Button {
     this.customId = customId
     this.setStyle(style)
     this.setDisabled(disabled ?? false)
-    if (url === undefined) this.setCustomId(`${packageData.name}_${customId}`)
+    if (url === undefined) this.setCustomId(`${Package.getData().name}_${customId}`)
     else if (url !== undefined) this.setURL(url)
     if (label) this.setLabel(label)
     if (emoji) this.setEmoji(emoji)
@@ -44,7 +44,7 @@ export class ModalBuilder extends Modal {
     super()
     this.setTitle(title)
     if (components) this.setComponents(components)
-    this.setCustomId(`${packageData.name}_${customId}`)
+    this.setCustomId(`${Package.getData().name}_${customId}`)
   }
 }
 
@@ -61,7 +61,7 @@ export class StringSelectMenuBuilder extends StringSelect {
   constructor({ customId, options, disabled, maxValues, minValues, placeholder }: StringSelectMenuComponentData) {
     super()
     this.setOptions(options)
-    this.setCustomId(`${packageData.name}_${customId}`)
+    this.setCustomId(`${Package.getData().name}_${customId}`)
     if (disabled) this.setDisabled(disabled)
     if (maxValues) this.setMaxValues(maxValues)
     if (minValues) this.setMinValues(minValues)
