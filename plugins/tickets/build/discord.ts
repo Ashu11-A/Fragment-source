@@ -14,7 +14,7 @@ if (!PKG_MODE) {
   ], { cwd: dir })).map((path) => join('discord', path))
   const registerPath = join(dir, '../register.ts')
     
-  let content = await readFile(registerPath, { encoding: 'utf-8' })
+  let content = await readFile(registerPath, { encoding: 'utf-8' }) ?? ''
   content += '\n// Discord\n'
 
   for (const filePath of paths) {
@@ -23,5 +23,3 @@ if (!PKG_MODE) {
     
   await writeFile(registerPath, content, { encoding: 'utf-8' })
 }
-
-import '../src/register'

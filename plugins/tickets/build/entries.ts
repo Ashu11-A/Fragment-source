@@ -7,8 +7,9 @@ import { PKG_MODE } from 'utils'
 if (!PKG_MODE) {
   const plugins = []
   const content: Record<string, string> = {}
-
+  
   const path = join(dirname(fileURLToPath(import.meta.url)), '../src')
+  const registerPath = join(path, 'register.ts')
   const format = (plugin: string) => join(path, plugin)
 
   plugins.push(
@@ -24,10 +25,15 @@ if (!PKG_MODE) {
   }
 
   await writeFile('entries.json', JSON.stringify(content, null, 2))
-}
+
+  let registers = await readFile(registerPath, { encoding: 'utf-8' }) ?? ''
+  registers += `// Entries
 
 import { Plugins } from 'socket-client'
-import '../build/entries'
 import * as entries from '../entries.json'
 
 Plugins.setPlugins(entries)
+`
+
+  await writeFile(registerPath, registers, { encoding: 'utf-8' })
+}

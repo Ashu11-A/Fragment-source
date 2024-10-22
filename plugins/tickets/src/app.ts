@@ -1,4 +1,5 @@
 import './index'
+import './register'
 import 'reflect-metadata'
 
 import { Crons } from 'discord'

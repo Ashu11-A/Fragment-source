@@ -11,7 +11,7 @@ if (!PKG_MODE) {
   const crons = await glob(['crons/**/*.{ts,js}'], { cwd: path })
   const sortedCrons = crons.sort(customSort)
 
-  let content =  await readFile(registerPath, { encoding: 'utf-8' })
+  let content =  await readFile(registerPath, { encoding: 'utf-8' }) ?? ''
   content += '\n// Crons\n'
 
   for (const pather of sortedCrons) {
