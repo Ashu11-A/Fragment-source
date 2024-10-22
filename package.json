@@ -5,6 +5,11 @@
   "type": "module",
   "workspaces": ["plugins/*", "packages/*"],
   "scripts": {
+    "build": "bun build/bun.ts",
+    "global-install": "bun i && concurrently \"bun install:packages\" \"bun install:plugins\" \"bun install:core\"",
+    "install:core": "cd core && bun install",
+    "install:packages": "concurrently -n 'package:discord,package:socket,package:utils' -c '#007755,#2f6da3,#550077' 'cd packages/discord && bun install' 'cd packages/socket && bun install' 'cd packages/utils && bun install'",
+    "install:plugins": "concurrently -n 'plugins:discord,plugins:socket' -c '#007755,#2f6da3' 'cd plugins/base && bun install' 'cd plugins/tickets && bun install'",
     "lint": "concurrently \"bun lint:packages\" \"bun lint:plugins\" \"bun lint:core\"",
     "lint:core": "cd core && bun run lint",
     "lint:packages": "concurrently -n 'package:discord,package:socket,package:utils' -c '#007755,#2f6da3,#550077' 'cd packages/discord && bun lint' 'cd packages/socket && bun lint' 'cd packages/utils && bun lint'",
