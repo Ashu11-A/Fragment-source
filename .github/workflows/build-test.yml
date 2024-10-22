@@ -62,4 +62,5 @@ jobs:
     - run: |
         cd ${{ matrix.path }} &&
         bun i &&
+        bun run build || true &&
         bun build ./src/app.ts --target=bun --minify --outfile=build.js
