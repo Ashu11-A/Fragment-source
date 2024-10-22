@@ -4,6 +4,7 @@ import { Socket } from 'socket.io'
 import { DataSource, FindOptionsWhere, ObjectId, type BaseEntity, type DataSourceOptions } from 'typeorm'
 import { RootPATH } from '@/index.js'
 import { i18 } from '@/controller/lang.js'
+import { performance } from 'perf_hooks'
 
 export interface EntityImport<T extends typeof BaseEntity> { default: T }
 
@@ -41,8 +42,9 @@ export class Database {
     }
 
     const [, { default: Entity }] = entry
-    console.log(`🛎️ [${plugin}]: Database -> ${type}`)
     try {
+      const start = performance.now()
+
       switch (type) {
       case 'find': socket.emit(eventName, await Entity.find(args.options)); break
       case 'save': socket.emit(eventName, await Entity.save(args.entities, args.options)); break
@@ -54,6 +56,9 @@ export class Database {
       case 'create': socket.emit(eventName, await Entity.create(args.entity)); break
       case 'findOne': socket.emit(eventName, await Entity.findOne(args.options)); break
       }
+
+      const end = performance.now()
+      console.log(`🛎️  [${plugin}]: Database -> ${type} [${(end - start).toFixed(2)} ms]`)
     } catch (err) {
       console.log(err)
       socket.emit(`${eventName}_error`, err)
