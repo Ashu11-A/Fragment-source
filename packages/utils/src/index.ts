@@ -2,16 +2,16 @@ import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { Package } from './class/package'
 
+export * from './class/package'
 export * from './functions/actionDrawer'
 export * from './functions/buttonRedirect'
 export * from './functions/checkers'
 export * from './functions/format'
-export * from './class/package'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 export const __plugin_dirname = process.cwd()
 
-export const PKG_MODE = `${process.cwd()}/src` === __dirname
+export const PKG_MODE = __dirname === '/$bunfs/root'
 
 interface Metadata {
     name: string

@@ -7,7 +7,6 @@ import { Crons, Discord } from 'discord'
 import { SocketClient } from 'socket-client'
 import { metadata } from 'utils'
 
-
 interface Args {
   command: string
   alias: string[]
