@@ -7,8 +7,7 @@
   "private": true,
   "scripts": {
     "start": "node .",
-    "build": "tsc && tsc-alias",
-    "dev": "bun --inspect src/app.ts",
+    "dev": "bun src/app.ts",
     "lint": "eslint -c eslint.config.js --fix"
   },
   "author": {
@@ -42,14 +41,11 @@
     "eslint-plugin-n": "^16.6.2",
     "eslint-plugin-promise": "^6.2.0",
     "globals": "^15.11.0",
-    "tsc-alias": "^1.8.10",
     "tsx": "^4.15.1",
     "typescript": "^5.4.5",
     "typescript-eslint": "^8.9.0"
   },
   "dependencies": {
-    "@parcel/watcher": "^2.4.1",
-    "@parcel/watcher-wasm": "^2.4.2-alpha.0",
     "argon2": "^0.40.3",
     "check-password-strength": "^2.0.10",
     "chokidar": "^4.0.1",

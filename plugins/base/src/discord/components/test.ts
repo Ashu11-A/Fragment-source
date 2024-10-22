@@ -1,4 +1,4 @@
-import { Component } from "../base/index.js"
+import { Component } from '../base/index.js'
 
 new Component({
   customId: 'test',
