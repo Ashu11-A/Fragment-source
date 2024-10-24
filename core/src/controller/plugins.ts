@@ -141,7 +141,7 @@ export class Plugins {
     const isValid = verifier.verify(publicKey, new Uint8Array(signature))
 
     if (isValid) {
-      console.log(i18('plugins.invalid'))
+      console.log(i18('plugins.valid'))
     } else {
       console.log(i18('plugins.invalid_signature', { fileName: basename(filePath) }))
     }
