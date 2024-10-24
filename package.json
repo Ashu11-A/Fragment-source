@@ -16,15 +16,15 @@
     "lint:plugins": "concurrently -n 'plugins:discord,plugins:socket' -c '#007755,#2f6da3' 'cd plugins/base && bun lint' 'cd plugins/tickets && bun lint'"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.6.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.12.0",
-    "@types/bun": "^1.1.11",
+    "@eslint/js": "^9.13.0",
+    "@types/bun": "^1.1.12",
     "concurrently": "^9.0.1",
-    "eslint": "^9.12.0",
+    "eslint": "^9.13.0",
     "glob": "^11.0.0",
     "globals": "^15.11.0",
-    "typescript-eslint": "^8.9.0"
+    "typescript-eslint": "^8.11.0"
   }
 }

@@ -9,16 +9,16 @@
     "lint": "eslint -c eslint.config.js --fix"
   },
   "devDependencies": {
-    "@eslint/js": "^9.12.0",
+    "@eslint/js": "^9.13.0",
     "@types/bun": "latest",
-    "eslint": "^9.12.0",
+    "eslint": "^9.13.0",
     "globals": "^15.11.0",
     "socket-client": "workspace:../socket",
-    "typescript-eslint": "^8.9.0",
+    "typescript-eslint": "^8.11.0",
     "utils": "workspace:../utils"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.6.3"
   },
   "dependencies": {
     "cron-parser": "^4.9.0",
