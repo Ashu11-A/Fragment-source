@@ -8,7 +8,7 @@ import { existsSync, watch } from 'fs'
 import { mkdir, readFile, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import { isBinaryFile } from 'isbinaryfile'
-import { basename, join } from 'path'
+import { basename, dirname, extname, join } from 'path'
 import { cwd } from 'process'
 import { Socket } from 'socket.io'
 import { BaseEntity } from 'typeorm'
@@ -64,10 +64,12 @@ export class Plugins {
     const plugins = await glob(`${this.path}/*`)
     const valid = []
     for (const filePath of plugins) {
+      if (filePath.includes('.sig')) continue // Iginorar os arquivos de assinatura
       if (!(await isBinaryFile(filePath))) continue
       if (!(await this.validate(filePath))) continue
       valid.push(filePath)
     }
+
     Plugins.plugins = valid.length
     return valid
   }
@@ -128,14 +130,15 @@ export class Plugins {
 
   async validate (filePath: string): Promise<boolean> {
     const binary = await readFile(filePath)
-    const publicKey = await readFile(join(process.cwd(), 'publicKey.pem'), 'utf8')
+    const pluginName = basename(filePath, extname(filePath))
+    const pluginPath = dirname(filePath)
 
-    const data = binary.subarray(0, binary.length - 512)
-    const signature = binary.subarray(binary.length - 512)
+    const publicKey = await readFile(join(process.cwd(), 'publicKey.pem'), 'utf8')
+    const signature = await readFile(join(pluginPath, `${pluginName}.sig`))
 
 
     const verifier = createVerify('sha512')
-    verifier.update(new Uint8Array(data))
+    verifier.update(new Uint8Array(binary))
     verifier.end()
 
     const isValid = verifier.verify(publicKey, new Uint8Array(signature))
