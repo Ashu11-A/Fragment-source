@@ -38,10 +38,8 @@ export class Lang {
       const content = languages[lang]
       const externalPath = join(RootPATH, 'locales', dirname(lang.split('/')[0]), lang)
     
-      if (!(await exists(externalPath))) {
-        await mkdir(externalPath, { recursive: true }).catch(() => undefined)
-        await writeFile(join(externalPath, '/translation.json'), JSON.stringify(content, null, 2), { encoding: 'utf8' })
-      }
+      await mkdir(externalPath, { recursive: true }).catch(() => undefined)
+      await writeFile(join(externalPath, '/translation.json'), JSON.stringify(content, null, 2), { encoding: 'utf8' })
     }
   }
 
