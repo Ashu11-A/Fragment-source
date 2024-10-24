@@ -22,13 +22,14 @@
     "hasLoaded": "⚠️ Attention: Plugin added after the first registration, it may be necessary to remove the bot and add it again to the server!",
     "devlop": "🚨 Development mode",
     "last_plugin": "🚩 Last plugin loaded ({{current}}/{{total}})",
-    "invalid": "❌ Valid Plugin!",
+    "valid": "✅ Valid Plugin!",
     "duplicate": "❌ Plugin {{name}} is duplicated!",
     "invalid_file": "❌ Invalid file: {{fileName}}",
     "invalid_signature": "❌ Signature verification failed: {{fileName}}",
     "reject": "❌ The Plugin {{filePath}} exited with error code {{code}} and signal {{signal}}"
   },
   "crypt": {
+    "encrypted": "encrypted",
     "question": "How would you like to protect your local information?",
     "generate_title": "Generate random password",
     "generate_description": "It will be used to encrypt your information",

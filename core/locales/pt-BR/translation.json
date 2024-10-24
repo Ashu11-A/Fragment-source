@@ -22,13 +22,14 @@
     "hasLoaded": "⚠️ Atenção: Plugin adicionado após o primeiro registro, talvez seja necessário expulsar o bot, e adicioná-lo novamente ao servidor!",
     "devlop": "🚨 Modo de desenvolvimento",
     "last_plugin": "🚩 Último plugin carregado ({{current}}/{{total}})",
-    "invalid": "❌ Plugin Valido!",
+    "valid": "✅ Plugin Valido!",
     "duplicate": "❌ Plugin {{name}} está duplicado!",
     "invalid_file": "❌ Arquivo invalido: {{fileName}}",
     "invalid_signature": "❌ Falha na verificação da assinatura: {{fileName}}",
     "reject": "❌ O Plugin {{filePath}} saiu com código de erro {{code}} e sinal {{signal}}"
   },
   "crypt": {
+    "encrypted": "criptografado",
     "question": "Como deseja proteger suas informações locais?",
     "generate_title": "Gerar senha aleatória",
     "generate_description": "Será usada para criptografar suas informações",

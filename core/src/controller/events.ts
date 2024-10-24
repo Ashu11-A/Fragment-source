@@ -40,7 +40,7 @@ export class Event {
       
       if (token === undefined || typeof token !== 'string') throw new Error(i18('discord.token_not_found'))
 
-      console.log(i18('discord.token_send', { isEncrypted: PKG_MODE ? ' criptografado' : '', pluginId: this.client.id }))
+      console.log(i18('discord.token_send', { isEncrypted: PKG_MODE ? ' ' + i18('crypt.encrypted') : '', pluginId: this.client.id }))
       this.client.emit('discord', PKG_MODE ? (await new Crypt().encript(token)) : token)
     })
   }
