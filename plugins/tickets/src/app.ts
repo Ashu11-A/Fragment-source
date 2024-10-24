@@ -32,6 +32,7 @@ async function app () {
       const info = JSON.stringify(metadata())
       console.clear()
       console.log(info)
+      process.exit()
       break
     }
     case 'port': {
