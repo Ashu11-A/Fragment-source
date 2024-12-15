@@ -1,9 +1,7 @@
-import { Lang } from '@/controller/lang.js'
 import { RootPATH } from '@/index.js'
-import { ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder } from 'discord.js'
+import { Command } from 'discord'
+import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder } from 'discord.js'
 import { glob } from 'glob'
-import { Command } from '../base/Commands.js'
-import { i18 } from '@/controller/lang.js'
 
 new Command({
   name: 'language',
@@ -39,9 +37,9 @@ new Command({
   async run(interaction) {
     await interaction.deferReply({ ephemeral: true })
     const { options } = interaction
-    const lang = options.getString('name', true)
+    const language = options.getString('name', true)
 
-    await new Lang().setLanguage(lang, true)
+    await lang.setLanguage(language, true)
       .then(async () => {
         await interaction.editReply({
           embeds: [new EmbedBuilder({

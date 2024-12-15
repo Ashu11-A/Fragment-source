@@ -1,6 +1,35 @@
-import 'src/discord/commands/lang.js'
+import { Crypt } from 'crypt'
+import { Lyrics } from 'lang'
+import { Lang } from 'lang'
 
-import * as ptBR from 'locales/pt-BR/translation.json' assert { type: 'json' }
-import * as en from 'locales/en/translation.json' assert { type: 'json' }
+import * as ptBR from '../locales/pt-BR/core.json' assert { type: 'json' }
+import * as en from '../locales/en/core.json' assert { type: 'json' }
 
-export const languages: Record<string, typeof ptBR.default> = { 'pt-BR': ptBR.default, en: en.default } 
+export const languages = [
+  {
+    language: 'pt-BR',
+    name: 'core',
+    data: (ptBR as unknown as { default: typeof ptBR }).default
+  },
+  {
+    language: 'en',
+    name: 'core',
+    data: (en as unknown as { default: typeof en }).default
+  }
+] as const
+
+export const { i18, lang } = await (async () => {
+  const lang = new Lang({ languages, language: 'en' })
+  const lyrics = new Lyrics(languages[0].data, lang)
+  await lang.register()
+  const i18 = lyrics.get.bind(lyrics)
+
+  return { lang, i18 }
+})()
+
+global.i18 = i18
+
+const crypt = await new Crypt().read(true)
+if (crypt?.language === undefined) {
+  await lang.selectLanguage()
+}

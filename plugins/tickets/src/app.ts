@@ -1,47 +1,42 @@
-import './index'
-import './register'
 import 'reflect-metadata'
+import './index.js'
+import './register.js'
 
 import { Crons } from 'discord'
-import { argv } from 'process'
 import { SocketClient } from 'socket-client'
 import { metadata } from 'utils'
+import { Cli } from 'cli'
 
-interface Args {
-  command: string
-  alias: string[]
+declare let self: Worker
+const postMessage = (message: unknown) => {
+  message = typeof message === 'object'
+    ? JSON.stringify(message)
+    : JSON.stringify({ message })
+  self.postMessage(message)
 }
-const root = process.cwd()
-const args = argv.splice(2).map((arg) => arg.replaceAll('-', ''))
-const argsList: Args[] = [
-  { command: 'info', alias: ['i'] },
-  { command: 'port', alias: ['p'] }
-]
 
-async function app () {
+const rootDirectory = process.cwd()
+
+self.onmessage = async (event: MessageEvent) => {
+  const receivedArgs: Record<string, boolean | number>[] = Array.from(event.data)
+
   await Crons.register()
 
-  if (args.length === 0) new SocketClient({ port: 3000, path: root })
-  for (let argNum = 0; argNum < args.length; argNum++) {
-    for (const { alias, command } of argsList) {
-      if (alias.includes(args[argNum])) args[argNum] = command
-    }
-
-    switch (args[argNum]) {
-    case 'info': {
-      const info = JSON.stringify(metadata())
-      console.clear()
-      console.log(info)
-      process.exit()
-      break
-    }
-    case 'port': {
-      argNum++
-      new SocketClient({ port: Number(args[argNum]), path: root })
-      break
-    }
-    }
+  if (receivedArgs.length === 0) {
+    new SocketClient({ port: 3000, path: rootDirectory })
+    postMessage('SocketClient started on port 3000')
+    return
   }
-}
 
-void app()
+  new Cli({
+    functions: {
+      info: () => {
+        postMessage({ metadata: metadata() })
+      },
+      port: (port) => {
+        new SocketClient({ port: parseFloat(String(port)), path: rootDirectory })
+        postMessage(`SocketClient started on port ${parseFloat(String(port))}`)
+      }
+    }
+  })
+}

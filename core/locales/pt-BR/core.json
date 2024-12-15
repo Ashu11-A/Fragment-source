@@ -29,17 +29,7 @@
     "reject": "❌ O Plugin {{filePath}} saiu com código de erro {{code}} e sinal {{signal}}"
   },
   "crypt": {
-    "encrypted": "criptografado",
-    "question": "Como deseja proteger suas informações locais?",
-    "generate_title": "Gerar senha aleatória",
-    "generate_description": "Será usada para criptografar suas informações",
-    "define_title": "Definir senha",
-    "define_description": "Será usada para criptografar suas informações",
-    "your_password": "🔐 Sua Senha:",
-    "weak_password": "Senha muito fraca! (1 Letra maiúscula, 1 Letra Minuscula, 1 Numero, 1 Carácter especial)",
-    "file_change": "⚠️ Foi detectado uma mudança em um arquivo protegido!",
-    "delete_file": "🗑️ Deletando arquivos encriptados!",
-    "sensitive_information": "⚠️ Informações sensíveis sendo lidas"
+    "your_password": "🔐 Sua Senha:"
   },
   "license": {
     "accept": "❓ Você concorda com os termos apresentados acima?"
@@ -72,11 +62,5 @@
     "disabled": "❌ {{element}} disabled!",
     "an_error_occurred": "❌ Ocorreu um erro:",
     "timeout": "⏳ Timeout de {{time}} segundos... tentando após o timeout"
-  },
-  "commands": {
-    "lang": {
-      "sucess": "✅ Linguagem alterado com sucesso!",
-      "error": "❌ Não foi possivel alterar a linguagem do bot!"
-    }
   }
 }

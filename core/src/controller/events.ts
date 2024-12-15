@@ -1,11 +1,10 @@
-import { Command } from '@/discord/base/Commands.js'
 import { PKG_MODE } from '@/index.js'
 import { type Socket } from 'socket.io'
 import { Config } from './config.js'
-import { credentials, Crypt } from './crypt.js'
+import { credentials, Crypt } from 'crypt'
 import { Database } from './database.js'
 import { Plugins } from './plugins.js'
-import { i18 } from '@/controller/lang.js'
+import { Command } from 'discord'
 
 interface EventOptions {
   client: Socket
@@ -41,7 +40,7 @@ export class Event {
       if (token === undefined || typeof token !== 'string') throw new Error(i18('discord.token_not_found'))
 
       console.log(i18('discord.token_send', { isEncrypted: PKG_MODE ? ' ' + i18('crypt.encrypted') : '', pluginId: this.client.id }))
-      this.client.emit('discord', PKG_MODE ? (await new Crypt().encript(token)) : token)
+      this.client.emit('discord', PKG_MODE ? (await new Crypt().encrypt(token)) : token)
     })
   }
 

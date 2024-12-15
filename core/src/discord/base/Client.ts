@@ -1,8 +1,7 @@
 import { Config } from '@/controller/config.js'
-import { credentials } from '@/controller/crypt.js'
-import { i18 } from '@/controller/lang.js'
+import { credentials } from 'crypt'
+import { Command } from 'discord'
 import { ApplicationCommandType, AutocompleteInteraction, type BitFieldResolvable, ChatInputCommandInteraction, Client, CommandInteraction, type GatewayIntentsString, IntentsBitField, MessageContextMenuCommandInteraction, Partials, PermissionsBitField, UserContextMenuCommandInteraction } from 'discord.js'
-import { Command } from './Commands.js'
 
 export class Discord {
   public static client?: Client<boolean>

@@ -24,8 +24,9 @@ type CommandProps<DmPermission extends boolean> =
   run: (interaction: C<DmPermission, MessageContextMenuCommandInteraction>) => void
 }
 
-type CommandData<DmPermission extends boolean> = CommandProps<DmPermission> & ApplicationCommandData & {
+export type CommandData<DmPermission extends boolean> = CommandProps<DmPermission> & ApplicationCommandData & {
   dmPermission: DmPermission
+  pluginId: string
 }
 
 export class Command<DmPermission extends boolean = boolean> {

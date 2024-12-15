@@ -2,9 +2,10 @@ import { basename, dirname, join } from 'path'
 import { fileURLToPath } from 'bun'
 import { readFile } from 'fs/promises'
 import { writeFile } from 'fs/promises'
-import { PKG_MODE } from 'utils'
+import { isPKG } from 'utils'
+const path = dirname(fileURLToPath(import.meta.url))
 
-if (!PKG_MODE) {
+if (!isPKG(path)) {
   const plugins = []
   const content: Record<string, string> = {}
   

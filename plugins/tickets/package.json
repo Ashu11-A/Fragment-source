@@ -1,5 +1,11 @@
 {
   "name": "plugin-ticket",
+  "version": "1.0.0",
+  "license": "Ashu11-A",
+  "author": {
+    "name": "Ashu11-a",
+    "email": "matheusn.biolowons@gmail.com"
+ },
   "module": "src/app.ts",
   "type": "module",
   "scripts": {
@@ -10,7 +16,8 @@
   "dependencies": {
     "discord": "workspace:../../packages/discord",
     "discord.js": "^14.16.3",
-    "socket-client": "workspace:../../packages/socket"
+    "socket-client": "workspace:../../packages/socket",
+    "cli": "workspace:../../packages/cli"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",

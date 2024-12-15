@@ -1,4 +1,4 @@
-export interface DataCrypted {
+export type DataCrypted = {
     email: string
     password: string
     uuid: string

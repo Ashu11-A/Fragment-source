@@ -1,9 +1,13 @@
 import { Command, Component, Config, Crons, Discord, Event } from 'discord'
 import { io, Socket } from 'socket.io-client'
-import { metadata, PKG_MODE } from 'utils'
+import { isPKG, metadata } from 'utils'
 import type { SocketOptions } from '../type/socket'
 import { Crypt } from './Crypt'
 import { Plugins } from './Plugins'
+import { fileURLToPath } from 'bun'
+import { dirname } from 'path'
+
+const path = dirname(fileURLToPath(import.meta.url))
 
 export class SocketClient {
   public readonly port: number
@@ -58,7 +62,7 @@ export class SocketClient {
     socket.on('kill', () => process.kill(process.pid))
     socket.on('discord', async (token: string) => {
       const client = new Discord()
-      const processedKey = PKG_MODE
+      const processedKey = isPKG(path)
         ? await new Crypt().decrypt(token)
         : token
       SocketClient.key = processedKey

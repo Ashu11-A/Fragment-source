@@ -1,8 +1,5 @@
-import { i18 } from '@/controller/lang.js'
-import { Discord } from '@/discord/base/Client.js'
-import { Command, CommandData } from '@/discord/base/Commands.js'
 import { PKG_MODE, RootPATH } from '@/index.js'
-import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
+import { type ChildProcessWithoutNullStreams, spawn } from 'child_process'
 import { createVerify } from 'crypto'
 import { existsSync, watch } from 'fs'
 import { mkdir, readFile, writeFile } from 'fs/promises'
@@ -12,17 +9,13 @@ import { basename, dirname, extname, join } from 'path'
 import { cwd } from 'process'
 import { Socket } from 'socket.io'
 import { BaseEntity } from 'typeorm'
-import { Config, ConfigOptions } from './config.js'
-import { Database, EntityImport } from './database.js'
+import { Config, type ConfigOptions } from './config.js'
+import { Database, type EntityImport } from './database.js'
+import type { Metadata } from 'utils'
+import { Command, type CommandData } from 'discord'
+import { Discord } from '@/discord/base/Client.js'
 
 const cacheWatcher = new Map<string, boolean>()
-interface Metadata {
-  name: string
-  version: string
-  author: string
-  description: string
-  license: string
-}
 
 interface Plugin {
   metadata?: Metadata,
@@ -262,8 +255,8 @@ export class Plugins {
           type: 'mysql',
           host: 'node.seventyhost.net',
           port: 3306,
-          username: 'u1692_A71YtsRYy2',
-          password: 't2y9gseoHzo+mm!VX=bva9Gt',
+          username: 'u1692_LdgWCEOTrx',
+          password: 'Ie=nbT!9U9zAMHFC8+4Y+CbQ',
           database: 's1692_SeventyHost'
         })
         await database.start()

@@ -1,10 +1,12 @@
-import { __plugin_dirname, PKG_MODE } from 'utils'
-import { join } from 'path'
+import { readFile, writeFile } from 'fs/promises'
 import { glob } from 'glob'
-import { writeFile } from 'fs/promises'
-import { readFile } from 'fs/promises'
+import { dirname, join } from 'path'
+import { fileURLToPath } from 'url'
+import { __plugin_dirname, isPKG } from 'utils'
 
-if (!PKG_MODE) {
+const path = dirname(fileURLToPath(import.meta.url))
+
+if (!isPKG(path)) {
   const dir = join(__plugin_dirname, 'src/discord')
   const paths = (await glob([
     'commands/**/*.{ts,js}',

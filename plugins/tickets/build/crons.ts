@@ -1,10 +1,12 @@
+import { fileURLToPath } from 'bun'
+import { readFile, writeFile } from 'fs/promises'
 import { glob } from 'glob'
-import { __plugin_dirname, PKG_MODE } from 'utils'
-import { join } from 'path'
-import { readFile } from 'fs/promises'
-import { writeFile } from 'fs/promises'
+import { dirname, join } from 'path'
+import { __plugin_dirname, isPKG } from 'utils'
 
-if (!PKG_MODE) {
+const path = dirname(fileURLToPath(import.meta.url))
+
+if (!isPKG(path)) {
   const path = join(__plugin_dirname, 'src/discord')
   const registerPath = join(path, '../register.ts')
 

@@ -1,4 +1,3 @@
-import { i18 } from '@/controller/lang.js'
 import { RootPATH } from '@/index.js'
 import { existsSync } from 'fs'
 import { watch } from 'fs'

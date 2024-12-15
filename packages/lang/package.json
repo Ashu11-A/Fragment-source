@@ -1,0 +1,13 @@
+{
+  "name": "lang",
+  "version": "1.0.0",
+  "module": "src/app.ts",
+  "types": "src/app.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

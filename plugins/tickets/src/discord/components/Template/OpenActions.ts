@@ -54,17 +54,33 @@ new Component({
       case TypeTemplate.Button: {
         if (moreDetails) {
           const modal = new ModalBuilder({ customId: 'MoreDetails', title: 'Conte-nos mais sobre o seu problema' })
-          const row = ActionDrawer<TextInputBuilder>([
+          const rows = ActionDrawer<TextInputBuilder>([
+            new TextInputBuilder({
+              customId: 'nickname',
+              label: 'Qual seu Nick?',
+              required: true,
+              maxLength: 20,
+              style: TextInputStyle.Short,
+              placeholder: 'Coloque aqui seu nick',
+            }),
+            new TextInputBuilder({
+              customId: 'platform',
+              label: 'Qual plataforma você joga?',
+              required: true,
+              maxLength: 7,
+              style: TextInputStyle.Short,
+              placeholder: 'Java ou Bedrock',
+            }),
             new TextInputBuilder({
               customId: 'description',
               label: 'Qual a descrição?',
               required: true,
               maxLength: 255,
               style: TextInputStyle.Paragraph,
-              placeholder: 'Queria saber mais informações sobre...'
+              placeholder: 'Queria saber mais informações sobre...',
             })
           ], 1)
-          await interaction.showModal(modal.setComponents(row))
+          await interaction.showModal(modal.setComponents(rows))
           return
         }
 
@@ -75,12 +91,20 @@ new Component({
         const modal = new ModalBuilder({ customId: 'ModalOpen', title: 'Abrir novo ticket' })
         const rows = ActionDrawer<TextInputBuilder>([
           new TextInputBuilder({
-            custom_id: 'title',
-            label: 'Qual é o motivo do ticket?',
+            customId: 'nickname',
+            label: 'Qual seu Nick?',
             required: true,
-            max_length: 150,
+            maxLength: 50,
             style: TextInputStyle.Short,
-            placeholder: 'Dúvida... Denúncia... Pedido...'
+            placeholder: 'Coloque aqui seu nick',
+          }),
+          new TextInputBuilder({
+            customId: 'platform',
+            label: 'Qual plataforma você joga?',
+            required: true,
+            maxLength: 20,
+            style: TextInputStyle.Short,
+            placeholder: 'Java ou Bedrock',
           }),
           new TextInputBuilder({
             customId: 'description',
@@ -88,10 +112,10 @@ new Component({
             required: true,
             maxLength: 255,
             style: TextInputStyle.Paragraph,
-            placeholder: 'Queria saber mais informações sobre...'
+            placeholder: 'Queria saber mais informações sobre...',
           })
         ], 1)
-  
+
         modal.setComponents(rows)
         await interaction.showModal(modal)
         break
@@ -131,12 +155,28 @@ new Component({
       const modal = new ModalBuilder({ customId: 'ModalOpen', title: 'Abrir novo ticket' })
       const rows = ActionDrawer<TextInputBuilder>([
         new TextInputBuilder({
+          customId: 'nickname',
+          label: 'Qual seu Nick?',
+          required: true,
+          maxLength: 50,
+          style: TextInputStyle.Short,
+          placeholder: 'Coloque aqui seu nick',
+        }),
+        new TextInputBuilder({
+          customId: 'platform',
+          label: 'Qual plataforma você joga?',
+          required: true,
+          maxLength: 20,
+          style: TextInputStyle.Short,
+          placeholder: 'Java ou Bedrock',
+        }),
+        new TextInputBuilder({
           customId: 'description',
           label: 'Qual a descrição?',
           required: true,
           maxLength: 255,
           style: TextInputStyle.Paragraph,
-          placeholder: 'Queria saber mais informações sobre...'
+          placeholder: 'Queria saber mais informações sobre...',
         })
       ], 1)
       userSelect.set(user.id, { category, templateId: templateData.id })
@@ -157,17 +197,24 @@ new Component({
   async run(interaction) {
     if (!interaction.inCachedGuild()) return
     const { fields, user } = interaction
-    const title = fields.fields.find((field) => field.customId === 'title')?.value as string | undefined
-    const description = fields.fields.find((field) => field.customId === 'description')?.value as string
-  
+    const nickname = fields.getTextInputValue('nickname')
+    const platform = fields.getTextInputValue('platform')
+    const description = fields.getTextInputValue('description')
+
     const cache = userSelect.get(user.id)
     userSelect.delete(user.id)
-  
+
     const builder = new TicketBuilder({ interaction })
-    if (title !== undefined) builder.setTitle(title)
-    if (cache !== undefined) { builder.setCategory(cache.category); builder.setTemplateId(cache.templateId) }
-    builder.setOwner(user.id)
-    builder.setDescription(description)
+      .setOwner(user.id)
+      .setDescription(description)
+
+    if (cache !== undefined) {
+      builder.setCategory(cache.category)
+      builder.setTemplateId(cache.templateId)
+    }
+
+    console.log(`Nick: ${nickname}, Plataforma: ${platform}, Descrição: ${description}`)
+
     await builder.create()
   },
 })
@@ -219,7 +266,7 @@ new Component({
       return
     }
     await interaction.deferReply({ ephemeral: true })
-
+  
     await new TicketBuilder({ interaction })
       .setOwner(user.id)
       .setTitle(typeTicket.title)
@@ -228,7 +275,7 @@ new Component({
       .create()
   }
 })
-
+  
 new Component({
   customId: 'MoreDetails',
   type: 'Modal',
@@ -238,13 +285,13 @@ new Component({
     const description = fields.getTextInputValue('description')
     const cache = cacheSelectMenu.get(user.id)
     if (cache !== undefined) cacheSelectMenu.delete(user.id)
-
+  
     const builder = new TicketBuilder({ interaction })
       .setOwner(user.id)
       .setDescription(description)
-
+  
     if (cache !== undefined) builder.setTitle(cache.title).setCategory(cache)
-
+  
     await builder.create()
   },
 })
