@@ -68,11 +68,11 @@ class PluginBuilder {
     const privateKey = await readFile(privateKeyPath, { encoding: 'utf8' })
     
     const signer = createSign(`sha${this.signatureLength}`)
-    signer.update(binary)
+    signer.update(new Uint8Array(binary.buffer))
     signer.end()
     
     const signature = signer.sign(privateKey)
-    await writeFile(join(this.outputDirectory, `/${this.name}.sig`), signature)
+    await writeFile(join(this.outputDirectory, `/${this.name}.sig`), new Uint8Array(signature.buffer))
   }
 
   async singCheck (publicKeyPath: string): Promise<void> {
@@ -83,10 +83,10 @@ class PluginBuilder {
 
 
     const verify = createVerify(`sha${this.signatureLength}`)
-    verify.update(binary)
+    verify.update(new Uint8Array(binary.buffer))
     verify.end()
 
-    const isValid = verify.verify(publicKey, signature)
+    const isValid = verify.verify(publicKey, new Uint8Array(signature.buffer))
 
     if (isValid) {
       console.log('✅ Assinatura verificada com sucesso!')
