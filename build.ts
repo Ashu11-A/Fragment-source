@@ -1,9 +1,10 @@
 import { exec as execChild } from 'child_process'
 import { existsSync } from 'fs'
 import { mkdir } from 'fs/promises'
+import { glob } from 'glob'
 import { createSign, createVerify } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import { readFile, writeFile } from 'node:fs/promises'
+import { readFile, rm, writeFile } from 'node:fs/promises'
 import { join } from 'path'
 
 type PluginBuilderOptions = {
@@ -47,13 +48,19 @@ class PluginBuilder {
     this.signatureLength = options?.signatureLength ?? this.signatureLength
   }
   
-  async build () {
+  async build (): Promise<'file' | 'directory'> {
     await this.exec('bun install')
 
     if (this.hasBuildScript) await this.exec('bun run build')
     if (!existsSync(this.outputDirectory)) await mkdir(this.outputDirectory, { recursive: true })
 
-    await this.exec(`bun build ${this.buildArgs.join(' ')} --outfile=${this.outputFilePath}`)
+    try {
+      await this.exec(`bun build ${this.buildArgs.join(' ')} --outfile=${this.outputFilePath}`)
+      return 'file'
+    } catch {
+      await this.exec(`bun build ${this.buildArgs.join(' ')} --outdir=${this.outputFilePath}`)
+      return 'directory'
+    }
   }
 
   async sign (privateKeyPath: string): Promise<void> {  
@@ -106,18 +113,20 @@ class PluginBuilder {
   }
 }
 
-// 'plugins/base'
-await Promise.all(
-  ['plugins/tickets'].map(async (path) => {
-    const builder = new PluginBuilder({
-      directory: join(process.cwd(), path),
-      entryFile: 'src/app.ts',
-      signatureLength: 256,
-      outputDirectory: join(process.cwd(), 'release'),
-    })
+const projects = await glob(['plugins/*', 'packages/*', 'core'], { cwd: process.cwd() })
 
-    await builder.build()
+await rm('releases', { recursive: true })
+for (const project of projects) {
+  const builder = new PluginBuilder({
+    directory: join(process.cwd(), project),
+    entryFile: 'src/app.ts',
+    signatureLength: 256,
+    outputDirectory: join(process.cwd(), 'release'),
+  })
+  
+  const buildType = await builder.build()
+  if (buildType === 'file') {
     await builder.sign(join(process.cwd(), 'privateKey.pem'))
     await builder.singCheck(join(process.cwd(), 'publicKey.pem'))
-  })
-)
+  }
+}

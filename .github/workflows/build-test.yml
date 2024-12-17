@@ -2,16 +2,14 @@
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
 name: Build
-
 on:
   push:
     branches: [ "workspace" ]
   pull_request:
     branches: [ "workspace" ]
-
 jobs:
   prepare:
-    name: Find paths
+    name: Building Packages
     runs-on: ubuntu-latest
     outputs:
         paths: ${{ steps.paths.outputs.paths }}
@@ -19,53 +17,11 @@ jobs:
       
       - name: Clone repo
         uses: actions/checkout@v4
-
-      - uses: actions/github-script@v7
-        name: List paths
-        id: paths
+      - uses: oven-sh/setup-bun@v2
         with:
-          script: |
-            const fs = require('fs')
-            const path = require('path')
-            const process = require('process')
-            const paths = []
-
-            paths.push(...getProjects('plugins'))
-            paths.push(...getProjects('packages'))
-
-            paths.push('core')
-            console.log(paths)
-
-            core.setOutput('paths', paths)
-
-            function getProjects(dirname) {
-              const pathName = path.join(process.cwd(), dirname)
-              const files = fs.readdirSync(pathName)
-              const directories = files.filter((file) => fs.statSync(path.join(pathName, file)).isDirectory()).map((dir) => `${dirname}/${dir}`)
-
-              return directories
-            }
-  build:
-    name: Build ${{ matrix.path }}
-    runs-on: ubuntu-latest
-    needs: prepare
-    strategy:
-      matrix:
-        node-version: [20.11.1]
-        path: ${{ fromJson(needs.prepare.outputs.paths) }}
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-    steps:
-    - uses: actions/checkout@v4
-    - uses: oven-sh/setup-bun@v2
-      with:
-        bun-version: latest
-    - run: |
-        cd ${{ matrix.path }} &&
-        bun i &&
-        # Verifica se o script "build" existe antes de rodar
-        if bun run | grep -q "build"; then
-          bun run build
-        else
-          echo "Script 'build' não encontrado. Continuando..."
-        fi &&
-        bun build ./src/app.ts --bundle --platform=node --target=bun --outfile=build.js
+          bun-version: latest
+      - run: |
+          bun i &&
+          openssl genpkey -algorithm RSA -out privateKey.pem -pkeyopt rsa_keygen_bits:4096 &&
+          openssl rsa -pubout -in privateKey.pem -out publicKey.pem &&
+          bun run build.ts

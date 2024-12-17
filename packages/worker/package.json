@@ -1,5 +1,6 @@
 {
   "name": "worker",
+  "version": "1.0.0",
   "types": "src/app.ts",
   "module": "src/app.ts",
   "type": "module",
