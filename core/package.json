@@ -47,8 +47,6 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "glob": "^11.0.0",
-    "i18next": "^24.1.0",
-    "i18next-fs-backend": "^2.6.0",
     "isbinaryfile": "^5.0.4",
     "marked": "^15.0.4",
     "marked-terminal": "^7.2.1",

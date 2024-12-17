@@ -6,6 +6,7 @@
   "workspaces": ["plugins/*", "packages/*", "core"],
   "scripts": {
     "build": "bun build.ts",
+    "update": "bun update.ts",
     "global": "bun i && concurrently \"bun install:packages\" \"bun install:plugins\" \"bun install:core\"",
     "install:core": "cd core && bun install",
     "install:packages": "concurrently -n 'package:discord,package:socket,package:utils' -c '#007755,#2f6da3,#550077' 'cd packages/discord && bun install' 'cd packages/socket && bun install' 'cd packages/utils && bun install'",
@@ -16,16 +17,20 @@
     "lint:plugins": "concurrently -n 'plugins:discord,plugins:socket' -c '#007755,#2f6da3' 'cd plugins/base && bun lint' 'cd plugins/tickets && bun lint'"
   },
   "peerDependencies": {
-    "typescript": "^5.6.3"
+    "typescript": "^5.7.2"
   },
   "devDependencies": {
-    "@eslint/js": "^9.16.0",
+    "@eslint/js": "^9.17.0",
     "@types/bun": "^1.1.14",
+    "@types/chalk": "^2.2.4",
+    "@types/cli-progress": "^3.11.6",
+    "chalk": "^5.3.0",
+    "cli-progress": "^3.12.0",
     "concurrently": "^9.1.0",
-    "eslint": "^9.16.0",
+    "eslint": "^9.17.0",
     "glob": "^11.0.0",
     "globals": "^15.13.0",
-    "typescript-eslint": "^8.17.0"
+    "typescript-eslint": "^8.18.1"
   },
   "dependencies": {
     "@types/glob": "^8.1.0",
