@@ -1,5 +1,4 @@
 import flags from 'country-code-to-flag-emoji'
-import { Crypt } from 'crypt'
 import { existsSync, watch } from 'fs'
 import { mkdir, readFile, writeFile } from 'fs/promises'
 import { glob } from 'glob'
@@ -54,22 +53,20 @@ export class Lang<Languages extends readonly LangLyrics<string, Record<string, u
   }
 
   
-  async setLanguage (lang: string, change?: boolean) {
+  async set (lang: string) {
     const path = join(this.sourcePath, 'locales', lang)
-    const crypt = new Crypt()
     
     if (!(await exists(path))) {
       console.log(`⛔ The selected language (${lang}) does not exist, using English by default`)
-      if (change) await crypt.write({ language: 'en' })
       this.language = 'en'
-      return
+      return this.language
     }
 
     this.language = lang
-    if (change) await crypt.write({ language: lang })
+    return this.language
   }
   
-  async selectLanguage () {
+  async select (): Promise<string> {
     const path = join(this.sourcePath, 'locales')
     const allLangs = (await glob('**/*.json', { cwd: path })).map((lang) => lang.split('/')[0])
     const langs = []
@@ -85,7 +82,8 @@ export class Lang<Languages extends readonly LangLyrics<string, Record<string, u
       initial: 1
     })
     if (response.Language === undefined) throw new Error('Please select a language')
-      
-    this.setLanguage(response.Language, true)
+    
+    await this.set(response.Language)
+    return response.Language
   }
 }

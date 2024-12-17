@@ -29,7 +29,10 @@ export const { i18, lang } = await (async () => {
 
 global.i18 = i18
 
-const crypt = await new Crypt().read(true)
-if (crypt?.language === undefined) {
-  await lang.selectLanguage()
+const crypt = new Crypt()
+const data = await crypt.read()
+
+if (data?.language === undefined) {
+  const language = await lang.select()
+  await crypt.write({ language })
 }

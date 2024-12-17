@@ -21,12 +21,6 @@ const PRIVATE_KEY_PATH = resolve(ROOT_PATH, '../privateKey.pem')
 const PUBLIC_KEY_PATH = resolve(ROOT_PATH, '../publicKey.pem')
 
 export class Crypt {
-  private readonly pathKey: string
-
-  constructor() {
-    this.pathKey = resolve(ROOT_PATH, '../')
-  }
-
   async checker() {
     // Verificação de arquivos chave
     if (!(await exists(KEY_PATH)) && process.env?.Token === undefined) await this.create()
@@ -150,7 +144,7 @@ export class Crypt {
       ).toString(CryptoJS.enc.Utf8)
 
       const outputData = JSON.parse(decrypted) as DataCrypted
-      if (outputData.language) lang.setLanguage(outputData.language)
+      if (outputData.language) lang.set(outputData.language)
 
       for (const [key, value] of Object.entries(outputData)) {
         credentials.set(key, value)

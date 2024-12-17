@@ -1,4 +1,6 @@
 import { RootPATH } from '@/index.js'
+import { lang } from '@/register'
+import { Crypt } from 'crypt'
 import { Command } from 'discord'
 import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder } from 'discord.js'
 import { glob } from 'glob'
@@ -39,21 +41,22 @@ new Command({
     const { options } = interaction
     const language = options.getString('name', true)
 
-    await lang.setLanguage(language, true)
-      .then(async () => {
-        await interaction.editReply({
-          embeds: [new EmbedBuilder({
-            title: i18('commands.lang.sucess')
-          }).setColor('Green')]
-        })
+    const languageChange = await lang.set(language)
+    const crypt = new Crypt()
+    await crypt.write({ language: 'en' })
+    
+    if (languageChange ===  language)
+      await interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: i18('commands.lang.sucess')
+        }).setColor('Green')]
       })
-      .catch(async (err) => {
-        console.log(err)
-        await interaction.editReply({
-          embeds: [new EmbedBuilder({
-            title: i18('commands.lang.error')
-          }).setColor('Red')]
-        })
+    else {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder({
+          title: i18('commands.lang.error')
+        }).setColor('Red')]
       })
+    }
   },
 })
