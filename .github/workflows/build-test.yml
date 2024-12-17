@@ -62,5 +62,10 @@ jobs:
     - run: |
         cd ${{ matrix.path }} &&
         bun i &&
-        bun run build || true &&
-        bun build ./src/app.ts --target=bun --minify --outfile=build.js
+        # Verifica se o script "build" existe antes de rodar
+        if bun run | grep -q "build"; then
+          bun run build
+        else
+          echo "Script 'build' não encontrado. Continuando..."
+        fi &&
+        bun build ./src/app.ts --bundle --platform=node --target=bun --outfile=build.js
