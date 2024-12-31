@@ -3,8 +3,7 @@ import Config, { type Roles } from '@/entity/Config.entry.js'
 import Ticket from '@/entity/Ticket.entry.js'
 import { claimDB, configDB, ticketDB } from '@/utils/database.js'
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction } from 'discord.js'
-import { ActionDrawer } from 'utils'
-import { Error } from 'discord'
+import { ActionDrawer, Error } from 'discord'
 
 interface ClaimOptions {
     ticketId: number

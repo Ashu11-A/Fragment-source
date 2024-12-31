@@ -1,9 +1,8 @@
 import { TemplateButtonBuilder } from '@/class/TemplateButtonBuilder.js'
 import TemplateTable from '@/entity/Template.entry.js'
-import { Component, ModalBuilder } from 'discord'
+import { checkHexCor, checkURL, Component, ModalBuilder } from 'discord'
 import { ActionRowBuilder, type APIEmbed, type APITextInputComponent, ComponentType, EmbedBuilder, type HexColorString, TextInputBuilder } from 'discord.js'
 import { Database } from 'socket-client'
-import { checkHexCor, checkURL } from 'utils'
 
 const template = new Database<TemplateTable>({ table: 'Template' })
 const notFound = new EmbedBuilder({

@@ -1,10 +1,9 @@
 import Template from '@/entity/Template.entry.js'
 import Ticket, { type Event, type History, type TicketCategories, type Message as TicketMessage, type TicketType, type User as UserTicket, type Voice } from '@/entity/Ticket.entry.js'
 import { guildDB } from '@/utils/database.js'
-import { ButtonBuilder, Error } from 'discord'
+import { ActionDrawer, ButtonBuilder, buttonRedirect, Error } from 'discord'
 import { ActionRowBuilder, ButtonInteraction, ButtonStyle, ChannelType, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, type OverwriteResolvable, PartialGroupDMChannel, PermissionsBitField, StringSelectMenuInteraction, TextChannel, User, codeBlock } from 'discord.js'
 import { Database } from 'socket-client'
-import { ActionDrawer, buttonRedirect } from 'utils'
 import { ClaimBuilder } from './ClaimBuilder.js'
 import { Ticket as TicketFunctions } from './Ticket.js'
 

@@ -1,9 +1,7 @@
 import { RootPATH } from '@/index.js'
-import { existsSync } from 'fs'
-import { watch } from 'fs'
+import { existsSync, watch } from 'fs'
 import { readFile, writeFile } from 'fs/promises'
 import { marked, Renderer } from 'marked'
-import TerminalRenderer from 'marked-terminal'
 import { join } from 'path'
 import prompt from 'prompts'
 
@@ -52,7 +50,7 @@ export class License {
 
   async ask () {
     marked.setOptions({
-      renderer: new TerminalRenderer() as Renderer
+      renderer: new Renderer()
     })
     console.log(marked(license))
 

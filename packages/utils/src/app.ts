@@ -1,19 +1,11 @@
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
-import { Package } from './class/package'
+import { Package } from './controllers/package'
 
-export * from './class/package'
-export * from './functions/actionDrawer'
-export * from './functions/buttonRedirect'
-export * from './functions/checkers'
-export * from './functions/delay'
-export * from './functions/format'
-export * from './functions/fs-extra'
-export * from './functions/port'
-export * from './functions/validate'
+export * from './controllers/package'
+export * from './utils/index'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-
 export const __plugin_dirname = process.cwd()
 export const isPKG = (path: string) =>  {
   return __dirname === path

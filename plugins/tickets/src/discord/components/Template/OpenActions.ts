@@ -2,10 +2,8 @@ import { TemplateBuilder } from '@/class/TemplateBuilder.js'
 import { TicketBuilder } from '@/class/TicketBuilder.js'
 import { TypeTemplate, type Category, type Select } from '@/entity/Template.entry.js'
 import { templateDB } from '@/utils/database'
-import { Component, Error, ModalBuilder, StringSelectMenuBuilder } from 'discord'
+import { ActionDrawer, Component, Error, ModalBuilder, StringSelectMenuBuilder } from 'discord'
 import { PermissionsBitField, TextInputBuilder, TextInputStyle, type SelectMenuComponentOptionData } from 'discord.js'
-import { ActionDrawer } from 'utils'
-
 export const userSelect = new Map<string, { category: Category, templateId: number }>()
 
 /**

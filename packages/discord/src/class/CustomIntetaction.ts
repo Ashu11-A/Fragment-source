@@ -1,5 +1,6 @@
-import { Package, ActionDrawer } from 'utils'
+import { Package } from 'utils'
 import { ButtonBuilder as Button, ButtonStyle, ComponentType, EmbedBuilder, ModalBuilder as Modal, StringSelectMenuBuilder as StringSelect, type ActionRowBuilder, type ButtonInteraction, type CacheType, type CommandInteraction, type ComponentEmojiResolvable, type ModalSubmitInteraction, type SelectMenuComponentOptionData, type StringSelectMenuInteraction, type TextInputBuilder } from 'discord.js'
+import { ActionDrawer } from '../utils'
 
 export interface BaseButtonComponentData {
   customId?: string

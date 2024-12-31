@@ -1,9 +1,9 @@
 import { glob } from 'glob'
 import { join } from 'path'
-import { Socket } from 'socket.io'
 import { DataSource, type FindOptionsWhere, ObjectId, type BaseEntity, type DataSourceOptions } from 'typeorm'
 import { RootPATH } from '@/index.js'
 import { performance } from 'perf_hooks'
+import type { Socket } from 'socket.io'
 
 export interface EntityImport<T extends typeof BaseEntity> { default: T }
 

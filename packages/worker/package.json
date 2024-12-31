@@ -11,13 +11,19 @@
     "@eslint/js": "^9.17.0",
     "@types/bun": "latest",
     "eslint": "^9.17.0",
-    "globals": "^15.13.0",
+    "globals": "^15.14.0",
     "typescript-eslint": "^8.18.1"
   },
   "peerDependencies": {
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "semver": "^7.6.3"
+    "@types/chokidar": "^2.1.7",
+    "chokidar": "^4.0.3",
+    "discord.js": "^14.16.3",
+    "express": "^4.21.2",
+    "semver": "^7.6.3",
+    "socket.io": "^4.8.1",
+    "utils": "workspace:../utils"
   }
 }

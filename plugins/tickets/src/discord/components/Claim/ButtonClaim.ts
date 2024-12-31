@@ -1,8 +1,7 @@
 import { TicketBuilder } from '@/class/TicketBuilder.js'
 import { claimDB } from '@/utils/database'
-import { Component, Error } from 'discord'
+import { buttonRedirect, Component, Error } from 'discord'
 import { EmbedBuilder } from 'discord.js'
-import { buttonRedirect } from 'utils'
 
 new Component({
   customId: 'Claim',

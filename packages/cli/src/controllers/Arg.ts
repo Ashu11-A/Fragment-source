@@ -1,11 +1,11 @@
 import type { ArgTyped } from '../types/arg'
 
 export class Arg<HasString extends boolean = false> {
-  public readonly hasString: HasString
-  public readonly description: ArgTyped<HasString>['description']
   public readonly command: ArgTyped<HasString>['command']
+  public readonly description: ArgTyped<HasString>['description']
   public readonly alias: ArgTyped<HasString>['alias']
   public readonly rank: ArgTyped<HasString>['rank']
+  public readonly hasString: HasString
   public readonly exec: ArgTyped<HasString>['exec']
 
   constructor(options: { hasString: HasString } & ArgTyped<HasString>) {

@@ -3,8 +3,7 @@ import { Colors, EmbedBuilder, Message, MessageComponentInteraction, type APIEmb
 import { TemplateButtonBuilder } from './TemplateButtonBuilder.js'
 import Template from '@/entity/Template.entry.js'
 import { Database } from 'socket-client'
-import { checkURL } from 'utils'
-import { Error } from 'discord'
+import { checkURL, Error } from 'discord'
 
 const database = new Database<TemplateTable>({ table: 'Template' })
 

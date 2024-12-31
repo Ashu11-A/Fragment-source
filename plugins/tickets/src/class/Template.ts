@@ -2,9 +2,8 @@ import TemplateTable, { TypeTemplate } from '@/entity/Template.entry.js'
 import { ButtonInteraction, type CacheType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, StringSelectMenuInteraction } from 'discord.js'
 import { TemplateButtonBuilder } from './TemplateButtonBuilder.js'
 import { Database } from 'socket-client'
-import { checkChannel } from 'utils'
 import { guildDB } from '@/utils/database.js'
-import { Error } from 'discord'
+import { checkChannel, Error } from 'discord'
 
 const template = new Database<TemplateTable>({ table: 'Template' })
 interface TicketOptions {

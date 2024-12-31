@@ -1,0 +1,21 @@
+{
+  "plugins": {
+    "new": "✨ Novo plugin adicionado!",
+    "starting": "✅ Iniciando Plugin {{name}}",
+    "disconnect": "🔌 Plugin Desconectado: {{name}}",
+    "commands": "🤖 Commands: {{length}}",
+    "components": "🧩 Components: {{length}}",
+    "events": "🎉 Events: {{length}}",
+    "configs": "⚙️  Configs: {{length}}",
+    "crons": "🕑 Crons: {{length}}",
+    "entry_load": "⏳ Carregando entry: {{name}}",
+    "hasLoaded": "⚠️ Atenção: Plugin adicionado após o primeiro registro, talvez seja necessário expulsar o bot, e adicioná-lo novamente ao servidor!",
+    "devlop": "🚨 Modo de desenvolvimento",
+    "last_plugin": "🚩 Último plugin carregado ({{current}}/{{total}})",
+    "valid": "✅ Plugin Valido!",
+    "duplicate": "❌ Plugin {{name}} está duplicado!",
+    "invalid_file": "❌ Arquivo invalido: {{fileName}}",
+    "invalid_signature": "❌ Falha na verificação da assinatura: {{fileName}}",
+    "reject": "❌ O Plugin {{filePath}} saiu com código de erro {{code}} e sinal {{signal}}"
+  }
+}

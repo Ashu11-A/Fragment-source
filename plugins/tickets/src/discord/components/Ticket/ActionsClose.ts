@@ -1,7 +1,6 @@
 import { TicketBuilder } from '@/class/TicketBuilder.js'
-import { ModalBuilder, Component } from 'discord'
+import { ModalBuilder, Component, ActionDrawer } from 'discord'
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, TextInputBuilder, TextInputStyle } from 'discord.js'
-import { ActionDrawer } from 'utils'
 
 new Component({
   customId: 'Close',

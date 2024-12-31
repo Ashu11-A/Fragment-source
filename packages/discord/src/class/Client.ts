@@ -1,5 +1,5 @@
 import { ApplicationCommandType, Client, IntentsBitField, Partials, type AutocompleteInteraction, type BitFieldResolvable, type CacheType, type ChatInputCommandInteraction, type CommandInteraction, type GatewayIntentsString, type MessageContextMenuCommandInteraction, type UserContextMenuCommandInteraction } from 'discord.js'
-import { Database, SocketClient } from 'socket-client'
+import { Database } from 'socket-client'
 import { Package } from 'utils'
 import type { ConfigEntry } from '../schemas/config.js'
 import type Guild from '../schemas/guild.js'
@@ -9,6 +9,7 @@ import { Config } from './Config.js'
 
 export class Discord {
   public static client: Client<boolean>
+  static token: string
   private timestamp!: number
   private username!: string
   private customId!: string
@@ -20,12 +21,6 @@ export class Discord {
       partials: [Partials.Channel, Partials.GuildMember, Partials.Message, Partials.User, Partials.ThreadMember],
       failIfNotExists: false
     })
-  }
-
-  end () {
-    const endTime = Date.now()
-    const timeSpent = (endTime - this.timestamp) / 1000 + 's'
-    console.info(`${this?.customId} | ${timeSpent} | ${this.username}`)
   }
 
   controller () {
@@ -118,7 +113,11 @@ export class Discord {
         }
         }
 
-        if (this.customId) this.end()
+        if (this.customId) {
+          const endTime = Date.now()
+          const timeSpent = (endTime - this.timestamp) / 1000 + 's'
+          console.info(`${this?.customId} | ${timeSpent} | ${this.username}`)
+        }
       } catch (err) {
         console.error(err)
       }
@@ -126,7 +125,7 @@ export class Discord {
   }
 
   async start () {
-    await Discord.client.login(SocketClient.key)
+    await Discord.client.login(Discord.token)
     Discord.client.once('ready', async client => {
       this.controller()
       console.info(`➝ Connected with ${client.user.username}`)

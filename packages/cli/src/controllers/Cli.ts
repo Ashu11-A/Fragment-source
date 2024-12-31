@@ -50,10 +50,11 @@ export class Cli {
     
     const args = commands.map((arg, index) => new Arg({
       ...arg,
-      exec: commands[index].exec ?? (this.functions as CallbackFn)[arg.command] ?? (() => {})
+      exec: (this.functions as CallbackFn)[arg.command] ?? commands[index].exec ?? (() => {})
     }))
+    const argv = (options?.argv ?? []).length > 0 ? options.argv as string[] : process.argv.splice(2)
 
     manager.addArgs(args)
-    manager.run(process.argv.splice(2), this.showHelp)
+    manager.run(argv, this.showHelp)
   }
 }

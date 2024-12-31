@@ -6,14 +6,14 @@ import { isPKG } from 'utils'
 const path = dirname(fileURLToPath(import.meta.url))
 
 if (!isPKG(path)) {
-  const plugins = []
+  const entries = []
   const content: Record<string, string> = {}
   
   const path = join(dirname(fileURLToPath(import.meta.url)), '../src')
   const registerPath = join(path, 'register.ts')
-  const format = (plugin: string) => join(path, plugin)
+  const format = (entry: string) => join(path, entry)
 
-  plugins.push(
+  entries.push(
     format('entity/Claim.entry.ts'),
     format('entity/Config.entry.ts'),
     format('entity/Guild.entry.ts'),
@@ -21,8 +21,8 @@ if (!isPKG(path)) {
     format('entity/Ticket.entry.ts')
   )
 
-  for (const plugin of plugins) {
-    content[basename(plugin)] = await readFile(plugin, { encoding: 'utf-8' })
+  for (const entry of entries) {
+    content[basename(entry)] = await readFile(entry, { encoding: 'utf-8' })
   }
 
   await writeFile('entries.json', JSON.stringify(content, null, 2))
@@ -30,10 +30,10 @@ if (!isPKG(path)) {
   let registers = await readFile(registerPath, { encoding: 'utf-8' }) ?? ''
   registers += `// Entries
 
-import { Plugins } from 'socket-client'
+import { Entry } from 'socket-client'
 import * as entries from '../entries.json'
 
-Plugins.setPlugins(entries)
+Entry.setEntries(entries)
 `
 
   await writeFile(registerPath, registers, { encoding: 'utf-8' })

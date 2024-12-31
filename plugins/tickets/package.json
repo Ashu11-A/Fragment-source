@@ -1,6 +1,7 @@
 {
   "name": "plugin-ticket",
   "version": "1.0.0",
+  "description": "High level ticket management plugin",
   "license": "Ashu11-A",
   "author": {
     "name": "Ashu11-a",
@@ -23,7 +24,7 @@
     "@eslint/js": "^9.17.0",
     "@types/bun": "latest",
     "eslint": "^9.17.0",
-    "globals": "^15.13.0",
+    "globals": "^15.14.0",
     "typescript-eslint": "^8.18.1"
   },
   "peerDependencies": {

@@ -1,9 +1,9 @@
 // Entries
 
-import { Plugins } from 'socket-client'
+import { Entry } from 'socket-client'
 import * as entries from '../entries.json'
 
-Plugins.setPlugins(entries)
+Entry.setEntries(entries)
 
 // Crons
 import './discord/crons/test.ts'

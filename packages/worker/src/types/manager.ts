@@ -1,4 +1,4 @@
-export type PluginMetadata = {
+export type Metadata = {
     name: string
     version: string
     description: string
@@ -8,9 +8,11 @@ export type PluginMetadata = {
     }
     license: string
 }
+export type MetadataKeys = keyof Metadata
   
 export type ManagerOptions = {
     fileURL: string
+    port: number
     cachePath?: string
 }
 

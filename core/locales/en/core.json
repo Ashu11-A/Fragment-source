@@ -13,6 +13,7 @@
     }
   },
   "crypt": {
+    "encrypted": "encrypted",
     "your_password": "🔐 Your Password:"
   },
   "database": {
@@ -65,8 +66,5 @@
     "invalid_file": "❌ Invalid file: {{fileName}}",
     "invalid_signature": "❌ Signature verification failed: {{fileName}}",
     "reject": "❌ The Plugin {{filePath}} exited with error code {{code}} and signal {{signal}}"
-  },
-  "websocket": {
-    "initialized": "🚀 Server initialized on port {{port}}"
   }
 }

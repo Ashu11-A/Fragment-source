@@ -1,26 +1,24 @@
+import 'dotenv/config'
 import 'reflect-metadata'
-
 import './register.js'
-import { cache, PKG_MODE } from './index.js'
 
+import { Auth } from '@/controller/auth.js'
 import { Cli } from 'cli'
-import { exists } from 'utils'
-
 import { Crypt } from 'crypt'
-import { config } from 'dotenv'
 import { rm } from 'fs/promises'
 import { join } from 'path'
 import { cwd } from 'process'
 import prompts from 'prompts'
+import { exists } from 'utils'
+import { Plugin, WebSocket, socketPort } from 'worker'
 import yargs from 'yargs'
+import { Event } from './controller/events.js'
 import { License } from './controller/license.js'
-import { Plugins } from './controller/plugins.js'
-import { SocketController } from './controller/socket.js'
-import { Auth } from '@/controller/auth.js'
+import { PKG_MODE } from './index.js'
 
-const socket = new SocketController()
+const socket = new WebSocket()
+WebSocket.io.on('registered', async (client) => new Event(client).controller())
 
-config()
 prompts.override(yargs().argv)
 
 await new License().checker()
@@ -28,12 +26,8 @@ await new Crypt().checker()
 await new Auth().checker()
 
 if (await exists(join(cwd(), 'entries'))) await rm(join(cwd(), 'entries'), { recursive: true })
-
-const plugins = new Plugins({ port: String(cache.get('port')) })
-
-await plugins.load()
-plugins.wather()
-socket.ready()
+const plugin = new Plugin(socketPort)
+plugin.watcher()
 
 new Cli({
   functions: {
@@ -48,7 +42,7 @@ new Cli({
 ].forEach(function (sig) {
   process.on(sig, async function () {
     if (PKG_MODE) {
-      for await (const plugin of await SocketController.io.fetchSockets()) {
+      for await (const plugin of await WebSocket.io.fetchSockets()) {
         if (plugin) plugin.emit('kill')
       }
     }

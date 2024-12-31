@@ -39,7 +39,7 @@ class PluginBuilder {
   
     this.buildArgs.push(
       this.entryFile,
-      '--bundle --platform=node --target=bun',
+      '--bundle --target=bun',
       '--minify --minify-syntax --minify-whitespace --minify-identifiers',
       '--no-sourcemap',
       ...options?.buildArgs ?? []

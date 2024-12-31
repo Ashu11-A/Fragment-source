@@ -6,8 +6,21 @@ export class CommandManager<Args extends Arg<boolean>[] = []>{
     this.args = args
   }
 
-  addArg(arg: Arg<boolean>) { this.args.push(arg) }
-  addArgs(args: Arg<boolean>[]) { this.args.push(...args) }
+  /**
+   * Adiciona um único argumento à lista de argumentos.
+   * @param arg O argumento a ser adicionado.
+   */
+  addArg(arg: Arg<boolean>) {
+    this.args.push(arg)
+  }
+
+  /**
+   * Adiciona múltiplos argumentos à lista de argumentos.
+   * @param args Os argumentos a serem adicionados.
+   */
+  addArgs(args: Arg<boolean>[]) {
+    this.args.push(...args)
+  }
 
   validate(input: string[]) {
     for (const arg of input.filter((arg) => arg.includes('-'))) {
@@ -18,6 +31,7 @@ export class CommandManager<Args extends Arg<boolean>[] = []>{
   }
 
   formatAliasToCommand(input: string[]): Arg<boolean>[] {
+    return input.reduce<Arg<boolean>[]>()
     const newArgs: Arg<boolean>[] = []
 
     for (let index = 0; index < input.length; index++) {
@@ -33,9 +47,9 @@ export class CommandManager<Args extends Arg<boolean>[] = []>{
               ...arg,
               exec: () => arg.exec(arg.validate(input[index])),
             }))
-          } else {
-            newArgs.push(arg)
+            continue
           }
+          newArgs.push(arg)
         }
       }
     }

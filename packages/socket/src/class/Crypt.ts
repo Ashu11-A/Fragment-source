@@ -4,7 +4,6 @@ import forge from 'node-forge'
 import { __plugin_dirname } from 'utils'
 
 export class Crypt {
-  constructor () {}
   async privateKey () {
     if (!existsSync(`${__plugin_dirname}/privateKey.pem`)) throw new Error('PrivateKey não existe!')
     return forge.pki.privateKeyFromPem(await readFile(`${__plugin_dirname}/privateKey.pem`, { encoding: 'utf8' }))

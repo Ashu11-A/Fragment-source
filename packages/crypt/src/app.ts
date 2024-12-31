@@ -1,8 +1,8 @@
 export * from './controllers/Crypt'
 export * from './types/crypt.d'
+import { Lang, Lyrics } from 'lang'
 import * as ptBR from '../locales/pt-BR/crypt.json' assert { type: 'json' }
 import * as en from '../locales/en/crypt.json' assert { type: 'json' }
-import { Lang, Lyrics } from 'lang'
 
 const languages = [
   {
