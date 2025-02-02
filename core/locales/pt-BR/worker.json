@@ -17,5 +17,8 @@
     "invalid_file": "❌ Arquivo invalido: {{fileName}}",
     "invalid_signature": "❌ Falha na verificação da assinatura: {{fileName}}",
     "reject": "❌ O Plugin {{filePath}} saiu com código de erro {{code}} e sinal {{signal}}"
+  },
+  "websocket": {
+    "initialized": "🚀 Servidor inicializado na porta {{port}}"
   }
 }

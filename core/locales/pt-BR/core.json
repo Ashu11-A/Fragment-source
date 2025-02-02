@@ -60,5 +60,11 @@
     "disabled": "❌ {{element}} disabled!",
     "an_error_occurred": "❌ Ocorreu um erro:",
     "timeout": "⏳ Timeout de {{time}} segundos... tentando após o timeout"
+  },
+  "commands": {
+    "lang": {
+      "sucess": "✅ Idioma alterado com sucesso!",
+      "error": "❌ Não é possível alterar o idioma do bot!"
+    }
   }
 }

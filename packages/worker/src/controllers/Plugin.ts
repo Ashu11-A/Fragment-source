@@ -52,7 +52,18 @@ export class Plugin {
         })
       })
       
-      Plugin.plugins.set(filePath, { manager, websocket: { id: client.id }, discord: {  } })
+      Plugin.plugins.set(filePath, {
+        manager,
+        websocket: { id: client.id },
+        discord: {
+          commands: [],
+          events: [],
+          components: [],
+          configs: [],
+          crons: [],
+          entries: []
+        }
+      })
       console.log(`✅ Plugin successfully enabled: ${filePath}`)
       client.send('registered')
     } catch (error) {

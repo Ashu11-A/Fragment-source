@@ -31,7 +31,6 @@ export class CommandManager<Args extends Arg<boolean>[] = []>{
   }
 
   formatAliasToCommand(input: string[]): Arg<boolean>[] {
-    return input.reduce<Arg<boolean>[]>()
     const newArgs: Arg<boolean>[] = []
 
     for (let index = 0; index < input.length; index++) {
