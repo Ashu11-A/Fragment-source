@@ -113,7 +113,7 @@ class PluginBuilder {
   }
 }
 
-const projects = await glob(['plugins/*', 'packages/*', 'core'], { cwd: process.cwd() })
+const projects = await glob(['plugins/*', 'packages/*', 'core', 'server'], { cwd: process.cwd() })
 
 await rm('releases', { recursive: true })
 for (const project of projects) {

@@ -24,7 +24,7 @@ const bar = new SingleBar({
   format: `Progresso de atualização | ${chalk.cyan('{bar}')} | {percentage}% || {value}/{total} Pacotes`,
 }, Presets.shades_classic)
 
-const packages = await glob(['./', 'plugins/*', 'packages/*', 'core'], { cwd: process.cwd() })
+const packages = await glob(['./', 'plugins/*', 'packages/*', 'core', 'server'], { cwd: process.cwd() })
 
 bar.start(packages.length, 0)
 

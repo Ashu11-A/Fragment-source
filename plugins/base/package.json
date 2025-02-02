@@ -14,24 +14,24 @@
    },
    "license": "LSC",
    "devDependencies": {
-      "@eslint/js": "^9.17.0",
-      "@types/node": "^16.18.122",
+      "@eslint/js": "^9.19.0",
+      "@types/node": "^16.18.125",
       "@types/node-fetch": "^2.6.12",
       "@types/node-forge": "^1.3.11",
       "@types/socket.io": "^3.0.2",
       "@typescript-eslint/eslint-plugin": "^6.21.0",
       "@typescript-eslint/parser": "^6.21.0",
-      "eslint": "^9.17.0",
+      "eslint": "^9.19.0",
       "eslint-plugin-import": "^2.31.0",
       "eslint-plugin-n": "^16.6.2",
       "eslint-plugin-promise": "^6.6.0",
       "globals": "^15.14.0",
-      "typescript": "^5.7.2",
-      "typescript-eslint": "^8.18.1"
+      "typescript": "^5.7.3",
+      "typescript-eslint": "^8.22.0"
    },
    "dependencies": {
       "cron-parser": "^4.9.0",
-      "discord.js": "^14.16.3",
+      "discord.js": "^14.17.3",
       "glob": "^10.4.5",
       "nanoid": "^3.3.8",
       "node-forge": "^1.3.1",
@@ -43,7 +43,7 @@
       "discord": "workspace:../../packages/discord"
    },
    "optionalDependencies": {
-      "bufferutil": "^4.0.8",
+      "bufferutil": "^4.0.9",
       "utf-8-validate": "^5.0.10"
    }
 }
