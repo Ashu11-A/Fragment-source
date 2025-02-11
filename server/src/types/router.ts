@@ -1,3 +1,4 @@
+import { Role, User } from '@/database/entity/User.js'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import type { z, ZodError, ZodObject, ZodRawShape } from 'zod'
 
@@ -96,6 +97,10 @@ export type ReplyType<
   send(payload?: Result): ReplyType<Code, Result>,
 }
 
+interface CustomInstanceFastify extends FastifyRequest {
+  user: User
+}
+
 /**
  * Type definition for a route handler.
  *
@@ -104,14 +109,21 @@ export type ReplyType<
  * @template Code - the HTTP status code for which this handler returns a response.
  */
 export type RouteHandler<
+  Authenticate extends boolean | User['role'] | User['role'][],
   Schema extends ZodRawShape,
   Code extends keyof TReply<TData> = keyof TReply<unknown>,
   TData = unknown,
-> = (
-  request: FastifyRequest,
+> = ({
+  request,
+  reply,
+  schema,
+}: {
+  request: Authenticate extends true | Role | Role[]
+    ? CustomInstanceFastify
+    : Omit<CustomInstanceFastify, 'user'>,
   reply: ReplyType<Code, ResolveReplyType<TData, Code>>,
   schema: ZodInferredData<Schema>
-) =>
+}) =>
     | ReplyType<Code, ResolveReplyType<TData, Code>>
     | Promise<ReplyType<Code, ResolveReplyType<TData, Code>>>
 
@@ -125,12 +137,13 @@ export type RouteHandler<
  * The data type for the route handlers is automatically inferred from TSchema.
  */
 export type RouterOptions<
+  Authenticate extends boolean | User['role'] | User['role'][],
   Schema extends ZodRawShape,
-  Methods extends Partial<Record<MethodType, RouteHandler<Schema>>>
+  Methods extends Partial<Record<MethodType, RouteHandler<Authenticate, Schema>>>,
 > = {
   name: string
   path?: string
-  authenticate?: boolean
+  authenticate?: Authenticate
   schema?: ZodObject<Schema, 'strip'>
   description: string
 } & Methods

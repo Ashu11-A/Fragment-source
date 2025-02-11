@@ -113,15 +113,15 @@ class PluginBuilder {
   }
 }
 
-const projects = await glob(['plugins/*', 'packages/*', 'core', 'server'], { cwd: process.cwd() })
+const projects = await glob(['server'], { cwd: process.cwd() })
 
-await rm('releases', { recursive: true })
+if (existsSync('releases')) await rm('releases', { recursive: true })
 for (const project of projects) {
   const builder = new PluginBuilder({
     directory: join(process.cwd(), project),
     entryFile: 'src/app.ts',
     signatureLength: 256,
-    outputDirectory: join(process.cwd(), 'release'),
+    outputDirectory: join(process.cwd(), 'releases'),
   })
   
   const buildType = await builder.build()

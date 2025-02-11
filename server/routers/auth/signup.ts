@@ -1,19 +1,18 @@
 import { Router } from '@/controllers/router.js'
-import { User } from '@/database/entity/User.js'
-import { hash } from 'bcrypt'
+import { Role, User } from '@/database/entity/User.js'
 import z from 'zod'
 
 export default new Router({
   schema: z.object({
-    name: z.string().min(4).max(100),
-    username: z.string().min(4),
+    name: z.string().min(4).max(64),
+    username: z.string().min(4).max(64),
     email: z.string().email(),
     language: z.string(),
     password: z.string().min(8).max(30)
   }),
   name: 'UserRegistration',
   description: 'Handles new user registration, including validation and secure password storage',
-  async post(_request, reply, schema) {
+  async post({ reply, schema }) {
     const existUser = await User.findOneBy({ email: schema.email })
     if (existUser) {
       return reply.status(422).send({
@@ -21,11 +20,12 @@ export default new Router({
       })
     }
 
-    const password = await hash(schema.password, 10)
-    const user = await User.create({
+    const user = await (await User.create({
       ...schema,
-      password
-    }).save()
+      role: Role.User
+    })
+      .setPassword(schema.password))
+      .save()
 
     return reply.code(201).send({
       message: 'User registered successfully!',

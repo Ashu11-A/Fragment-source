@@ -1,20 +1,26 @@
 import { User } from '@/database/entity/User.js'
-import { Strategy } from '@fastify/passport'
 import { FastifyRequest } from 'fastify'
 import jwt from 'jsonwebtoken'
+import { Strategy } from './Base.js'
+import { Auth } from '@/database/entity/Auth.js'
 
-export class BearerStrategy extends Strategy {
+export class BearerStrategy extends Strategy<User> {
   constructor() {
     super('bearer')
   }
 
-  async authenticate(request: FastifyRequest) {
+  async validation(request: FastifyRequest) {
     try {
       const secret = process.env.JWT_TOKEN
       if (!secret) throw new Error('JWT_TOKEN não definido!')
       
-      const token = request.headers['authorization']
-      if (!token) return this.fail('Token ausente', 401)
+      const token = request.headers['authorization']?.replace('Bearer', '').trim()
+      request.headers['authorization'] = token
+      if (!token) return this.fail('Token de autenticação necessário', 401)
+
+      const auth = await Auth.findOneBy({ accessToken: token })
+      if (!auth) return this.fail('Token not found, it has been revoked', 404)
+      if (!auth.valid) return this.fail('Token is invalid! weigh another one', 408)
 
       const userData = jwt.verify(token, secret, { algorithms: ['HS512'] })
       if (typeof userData !== 'object' || !userData) return this.fail('Token inválido', 403)
@@ -23,22 +29,14 @@ export class BearerStrategy extends Strategy {
       const { id, uuid } = userData
       const user = await User.findOneBy({ id })
       if (!user || user.uuid !== uuid) return this.fail('Usuário não encontrado', 401)
-  
 
-      this.success(user)
+      return this.success(user)
     } catch (err) {
-      if (err instanceof jwt.JsonWebTokenError) {
-        console.log('Token JWT inválido ou expirado')
-        return this.fail(null, 401)
-      } else if (err instanceof jwt.TokenExpiredError) {
-        console.log('Token JWT expirado')
-        return this.fail(null, 401)
-      } else if (err instanceof jwt.NotBeforeError) {
-        console.log('Token JWT não é válido ainda')
-        return this.fail(null, 401)
-      } else {
-        console.error('Erro durante a autenticação:', err)
-        return this.error(new Error('Erro interno no servidor'))
+      switch (true) {
+      case (err instanceof jwt.JsonWebTokenError): return this.fail('Token JWT inválido ou expirado', 401)
+      case (err instanceof jwt.TokenExpiredError): return this.fail('Token JWT expirado', 401)
+      case (err instanceof jwt.NotBeforeError): return this.fail('Token JWT não é válido ainda', 401)
+      default: return this.fail('Erro interno no servidor', 500)
       }
     }
   }

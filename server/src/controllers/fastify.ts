@@ -1,15 +1,13 @@
 import { fastifyCookie } from '@fastify/cookie'
 import { fastifyMultipart } from '@fastify/multipart'
 import { Authenticator } from '@fastify/passport'
-import { fastifySession } from '@fastify/session'
 import { fastifyStatic } from '@fastify/static'
 import { fastifyWebsocket } from '@fastify/websocket'
 import fastify, { FastifyInstance } from 'fastify'
 
-import { strategies } from '@/strategies/index.js'
-
-import { User } from '@/database/entity/User.js'
 import { storagePath } from '@/index.js'
+import { BearerStrategy } from '@/strategies/BearerStrategy.js'
+import { CookiesStrategy } from '@/strategies/CookiesStrategy.js'
 
 
 export const fastifyPassport = new Authenticator()
@@ -39,9 +37,7 @@ export class Fastify {
     })
     
     const cookieToken = process.env['COOKIE_TOKEN']
-    const sessionToken = process.env['SESSION_TOKEN']
-
-    if (cookieToken === undefined || sessionToken === undefined) throw new Error('Session token or cookie token are undefined')
+    if (cookieToken === undefined) throw new Error('Cookie token are undefined')
 
     server
       .register(fastifyMultipart, {
@@ -54,31 +50,14 @@ export class Fastify {
       })
       .register(fastifyWebsocket)
       .register(fastifyCookie, {
-        secret: cookieToken
+        secret: cookieToken,
       })
-      .register(fastifySession, {
-        secret: sessionToken,
-        logLevel: 'debug',
-        cookie: {
-          path: '/',
-          maxAge: 60 * 60 * 24 * 7 // 7 dias
-        }
+      .decorate('auth', {
+        strategies: [
+          BearerStrategy,
+          CookiesStrategy
+        ]
       })
-      .register(fastifyPassport.initialize())
-    
-    fastifyPassport.registerUserSerializer<User, string>(async (user) => {
-      console.log('registerUserSerializer', user)
-      return user.uuid
-    })
-    fastifyPassport.registerUserDeserializer<string, User | null>(async (uuid) => {
-      console.log('registerUserDeserializer', uuid)
-      return await User.findOneBy({ uuid })
-    })
-
-    for (const strategy of strategies) {
-      fastifyPassport.use(strategy.name, strategy)
-      fastifyPassport.use(strategy.name, strategy)
-    }
 
     Fastify.server = server
     return this

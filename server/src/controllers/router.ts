@@ -1,12 +1,13 @@
  
-import { strategies } from '@/strategies/index.js'
+import { Role } from '@/database/entity/User.js'
 import chalk from 'chalk'
-import { FastifyReply, FastifyRequest } from 'fastify'
+import { FastifyReply, FastifyRequest, RouteShorthandOptions } from 'fastify'
 import { glob } from 'glob'
-import { basename, dirname, extname, join } from 'path'
+import { join } from 'path'
 import { ZodObject, ZodRawShape } from 'zod'
 import { MethodType, ReplyKeysToCodes, ReplyType, ResolveReplyType, RouteHandler, type RouterOptions } from '../types/router.js'
-import { Fastify, fastifyPassport } from './fastify.js'
+import { authenticator } from './auth.js'
+import { Fastify } from './fastify.js'
 
 /**
  * Our Router class.  
@@ -15,24 +16,25 @@ import { Fastify, fastifyPassport } from './fastify.js'
  */
 export class Router<
   Schema extends ZodRawShape,
-  Methods extends Partial<Record<MethodType, RouteHandler<Schema>>>
+  Authenticate extends boolean | Role | Role[],
+  Methods extends Partial<Record<MethodType, RouteHandler<Authenticate, Schema>>>,
 > {
-  static all: Router<ZodRawShape, Partial<Record<MethodType, RouteHandler<ZodRawShape>>>>[] = []
+  static all: Router<ZodRawShape, boolean, Partial<Record<MethodType, RouteHandler<boolean, ZodRawShape>>>>[] = []
 
   public name: string
   public path?: string
   public schema?: ZodObject<Schema>
   public description: string
-  public authenticate
+  public authenticate: Authenticate
   public methods: Methods
 
-  constructor(options: RouterOptions<Schema, Methods>) {
+  constructor(options: RouterOptions<Authenticate, Schema, Methods>) {
     const { name, path, schema, description, authenticate, delete: deleteHandle, get, post, put, websocket } = options
     this.name = name
     this.path = path
     this.schema = schema
     this.description = description
-    this.authenticate = authenticate
+    this.authenticate = (authenticate ?? false) as Authenticate
     this.methods = {
       delete: deleteHandle,
       get,
@@ -41,7 +43,7 @@ export class Router<
       websocket
     };
 
-    (Router.all as unknown as Router<Schema, Methods>[]).push(this)
+    (Router.all as unknown as Router<Schema, Authenticate, Methods>[]).push(this)
   }
 
   static async register () {
@@ -50,7 +52,7 @@ export class Router<
 
     for (const file of routers) {
       const filePath = join(pathRouter, file)
-      const { default: router } = await import(filePath) as { default: Router<ZodRawShape, object> }
+      const { default: router } = await import(filePath) as { default: Router<ZodRawShape, boolean, object> }
       if (router === undefined) {
         console.log(chalk.red(`Put export default in the route: ${filePath}`))
         continue
@@ -62,35 +64,25 @@ export class Router<
     for (const [index, router] of Object.entries(Router.all)) {
       let path = router.path as string
 
-      // <-- Formata o PATH
-      const regexBrackets = /\(([^)]+)\)/g
-
-      // Remove o nome do arquivo da rota
-      if (['.ts', '.js'].includes(extname(path))) {
-        path = join(dirname(path), basename(path, extname(path)))
-      }
+      path = path
+        .replace(/\.(ts|js)$/i, '') // Remove extensões ".ts" ou ".js"
+        .replace('index', '')       // Remove "/index" para deixar "/"
+        .replace(/\([^)]*\)/g, '')  // Remove parênteses e seu conteúdo
+        .replace(/[/\\]+$/, '')    // Remove barras finais "/" ou "\"
+        .replace(/\\/g, '/')        // Converte "\" para "/"
       
-      // Caso a rota seja do tipo index, deixe ele com o nome da rota da pasta
-      if (path.includes('index')) {
-        path = path.replace(basename(path), '')
-      }
-
-      // Caso a rota tenha algum diretório entre () parênteses, eles serão removidos do path
-      if (regexBrackets.test(path)) {
-        path = path.replace(regexBrackets, '')
-      }
-      // Remove caracter com final com '/' ou '\'
-      path = path.replace(/[/\\]$/, '')
-      // Adiciona / no começo do path caso necessario
-      path = join('/', path)
-      // Substitui '\'' para '/'
-      path = path.replace(/\\/g, '/')
+      // Garante que o path comece com '/'
+      if (!path.startsWith('/')) path = '/' + path
 
       Router.all[Number(index)].path = path
       
       for (const [type, method] of Object.entries(router.methods)) {
         if (!Object.keys(MethodType).includes(type) || typeof method !== 'function') continue
-        const auth = router.authenticate ? { preValidation: fastifyPassport.authenticate(strategies.map((strategy) => strategy.name)) } : {}
+        const auth = router.authenticate
+          ? {
+            preValidation: (request, reply) => authenticator(request, reply, router.authenticate)
+          } satisfies RouteShorthandOptions
+          : {}
         const response = (request: FastifyRequest, reply: FastifyReply) => {
           const parsed = router.schema?.safeParse(request.body)
 
@@ -99,11 +91,11 @@ export class Router<
             error: parsed.error
           })
 
-          return method(
+          return method({
             request,
-            (reply as ReplyType<ReplyKeysToCodes<unknown>, ResolveReplyType<unknown, ReplyKeysToCodes<unknown>>>),
-            parsed?.data ?? {}
-          )
+            reply: (reply as ReplyType<ReplyKeysToCodes<unknown>, ResolveReplyType<unknown, ReplyKeysToCodes<unknown>>>),
+            schema: parsed?.data ?? {}
+          })
         }
 
         switch(type) {
@@ -133,7 +125,7 @@ export class Router<
 📡 The route ${chalk.blueBright(path)} has been successfully registered!
     🏷️  Route Name: ${chalk.cyan(router.name)}
     📃 Description: ${chalk.yellow(router.description)}
-    📋 Methods: ${chalk.magenta(Object.keys(router).filter((type) => Object.keys(MethodType).includes(type)).join(', '))}
+    📋 Methods: ${chalk.magenta(Object.keys(router.methods).filter((method) => (router.methods)[(method as MethodType)] !== undefined).join(', '))}
       `))
       
     }

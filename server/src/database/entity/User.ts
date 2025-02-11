@@ -1,6 +1,9 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, Generated, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
+import { compare, hash } from 'bcrypt'
+import { BaseEntity, Column, CreateDateColumn, Entity, Generated, OneToMany, PrimaryGeneratedColumn, type Relation, UpdateDateColumn } from 'typeorm'
+import { Auth } from './Auth.js'
+import { Bot } from './Bot.js'
 
-enum Role {
+export enum Role {
   Administrator = 'administrator',
   User = 'user'
 }
@@ -13,24 +16,35 @@ export class User extends BaseEntity {
   @Generated('uuid')
     uuid!: string
 
-  @Column({ type: 'varchar', default: Role.User, nullable: true })
-    role!: Role
-
-  @Column({ type: 'text' })
+  @Column({ type: 'text', length: 64 })
     name!: string
-  @Column({ type: 'text' })
+  @Column({ type: 'text', length: 64 })
     username!: string
   @Column({ type: 'varchar' })
     email!: string
-
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', length: 16 })
     language!: string
-
   @Column({ type: 'text' })
     password!: string
+  @Column({ type: 'varchar', default: Role.User, nullable: true })
+    role!: Role
+
+  @OneToMany(() => Bot, (bot) => bot.user)
+    bots!: Relation<Bot[]>
+  @OneToMany(() => Auth, (auth) => auth.user)
+    auths!: Relation<Auth[]>
 
   @UpdateDateColumn()
     updatedAt!: Date
   @CreateDateColumn()
     createdAt!: Date
+
+  async setPassword(password: string): Promise<User> {
+    this.password = await hash(password, 10)
+    return this
+  }
+  
+  async validatePassword(password: string): Promise<boolean> {
+    return compare(password, this.password)
+  }
 }
