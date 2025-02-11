@@ -1,5 +1,6 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, Generated, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn, type Relation } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, Entity, Generated, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn, type Relation } from 'typeorm'
 import { Bot } from './Bot.js'
+import { Metadata } from './Metadata.js'
 
 @Entity({ name: 'plugins' })
 export class Plugin extends BaseEntity {
@@ -14,6 +15,9 @@ export class Plugin extends BaseEntity {
     price!: number
   @Column({ type: 'boolean' })
     enabled!: boolean
+
+  @OneToMany(() => Metadata, (metadata) => metadata.plugin)
+    metadatas!: Relation<Metadata[]>
 
   @ManyToMany(() => Bot, (bot) => bot.plugins)
     bots!: Relation<Bot[]>

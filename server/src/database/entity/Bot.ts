@@ -1,6 +1,6 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, ManyToMany, ManyToOne, PrimaryGeneratedColumn, type Relation, UpdateDateColumn } from 'typeorm'
 import { User } from './User.js'
-import { Plugin } from './Plugins.js'
+import { Plugin } from './Plugin.js'
 
 @Entity({ name: 'bots' })
 export class Bot extends BaseEntity {
