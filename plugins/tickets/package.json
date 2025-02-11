@@ -16,16 +16,16 @@
   },
   "dependencies": {
     "discord": "workspace:../../packages/discord",
-    "discord.js": "^14.17.3",
+    "discord.js": "^14.18.0",
     "socket-client": "workspace:../../packages/socket",
     "cli": "workspace:../../packages/cli"
   },
   "devDependencies": {
-    "@eslint/js": "^9.19.0",
+    "@eslint/js": "^9.20.0",
     "@types/bun": "latest",
-    "eslint": "^9.19.0",
+    "eslint": "^9.20.0",
     "globals": "^15.14.0",
-    "typescript-eslint": "^8.22.0"
+    "typescript-eslint": "^8.24.0"
   },
   "peerDependencies": {
     "typescript": "^5.7.3"

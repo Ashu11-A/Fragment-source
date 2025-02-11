@@ -22,7 +22,7 @@
     ]
   },
   "devDependencies": {
-    "@eslint/js": "^9.19.0",
+    "@eslint/js": "^9.20.0",
     "@types/cron": "^2.4.3",
     "@types/express": "^5.0.0",
     "@types/marked-terminal": "^6.1.1",
@@ -31,10 +31,10 @@
     "@types/signale": "^1.4.7",
     "@types/socket.io": "^3.0.2",
     "@types/yargs": "^17.0.33",
-    "eslint": "^9.19.0",
+    "eslint": "^9.20.0",
     "globals": "^15.14.0",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.22.0"
+    "typescript-eslint": "^8.24.0"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",
@@ -45,12 +45,12 @@
     "cli": "workspace:../packages/cli",
     "cron": "^3.5.0",
     "crypt": "workspace:../packages/crypt",
-    "discord.js": "^14.17.3",
+    "discord.js": "^14.18.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "glob": "^11.0.1",
     "lang": "workspace:../packages/lang",
-    "marked": "^15.0.6",
+    "marked": "^15.0.7",
     "marked-terminal": "^7.3.0",
     "mysql2": "^3.12.0",
     "prompts": "^2.4.2",
