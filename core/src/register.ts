@@ -1,9 +1,8 @@
-import { Crypt } from 'crypt'
-import { Lyrics } from 'lang'
-import { Lang } from 'lang'
+import { Lang, Lyrics } from 'lang'
 
-import * as ptBR from '../locales/pt-BR/core.json' assert { type: 'json' }
+import { storage } from '.'
 import * as en from '../locales/en/core.json' assert { type: 'json' }
+import * as ptBR from '../locales/pt-BR/core.json' assert { type: 'json' }
 
 export const languages = [
   {
@@ -29,10 +28,9 @@ export const { i18, lang } = await (async () => {
 
 global.i18 = i18
 
-const crypt = new Crypt()
-const data = await crypt.read()
+const data = await storage.read()
 
 if (data?.language === undefined) {
   const language = await lang.select()
-  await crypt.write({ language })
+  await storage.write({ language })
 }

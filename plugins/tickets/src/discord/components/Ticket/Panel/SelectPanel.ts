@@ -1,13 +1,14 @@
 import { Ticket } from '@/class/Ticket.js'
 import { TicketPanel } from '@/class/TicketPanel.js'
 import { Component } from 'discord'
+import { MessageFlags } from 'discord.js'
 
 new Component({
   customId: 'PanelSelect',
   type: 'StringSelect',
   async run(interaction) {
     if (!interaction.inCachedGuild()) return
-    await interaction.deferReply({ ephemeral: true })
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral })
     const { values, channelId } = interaction
     const builder = new TicketPanel({ interaction })
     const ticket = new Ticket({ interaction })

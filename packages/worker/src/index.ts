@@ -20,11 +20,10 @@ const languages = [
   }
 ] as const
 
-export const { i18, lang } = await (async () => {
-  const lang = new Lang({ languages, language: 'en' })
-  const lyrics = new Lyrics(languages[0].data, lang)
-  await lang.register()
-  const i18 = lyrics.get.bind(lyrics)
+
+const lang = new Lang({ languages, language: 'en' })
+const lyrics = new Lyrics(languages[0].data, lang)
+await lang.register()
+const i18 = lyrics.get.bind(lyrics)
   
-  return { lang, i18 }
-})()
+export { lang, i18 }

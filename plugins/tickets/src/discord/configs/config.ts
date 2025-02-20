@@ -1,6 +1,6 @@
 import { configDB } from '@/utils/database'
 import { Config } from 'discord'
-import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ChannelType, EmbedBuilder } from 'discord.js'
+import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ChannelType, EmbedBuilder, MessageFlags } from 'discord.js'
 
 new Config({
   name: 'ticket',
@@ -78,7 +78,7 @@ new Config({
   async run(interaction) {
     const { options, guildId, guild } = interaction
     if (guildId === null || guild == null) return
-    await interaction.deferReply({ ephemeral: true })
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral })
     const limit = options.getNumber('limit')
     const claimChannel = options.getChannel('claim-channel')
     const claimLimit = options.getNumber('claim-limit')

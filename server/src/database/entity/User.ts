@@ -2,6 +2,8 @@ import { compare, hash } from 'bcrypt'
 import { BaseEntity, Column, CreateDateColumn, Entity, Generated, OneToMany, PrimaryGeneratedColumn, type Relation, UpdateDateColumn } from 'typeorm'
 import { Auth } from './Auth.js'
 import { Bot } from './Bot.js'
+import { Subscription } from './Subscription.js'
+import { Hidden } from '../hooks/hidden.js'
 
 export enum Role {
   Administrator = 'administrator',
@@ -24,7 +26,7 @@ export class User extends BaseEntity {
     email!: string
   @Column({ type: 'varchar', length: 16 })
     language!: string
-  @Column({ type: 'text' })
+  @Hidden({ type: 'text' })
     password!: string
   @Column({ type: 'varchar', default: Role.User, nullable: true })
     role!: Role
@@ -33,6 +35,8 @@ export class User extends BaseEntity {
     bots!: Relation<Bot[]>
   @OneToMany(() => Auth, (auth) => auth.user)
     auths!: Relation<Auth[]>
+  @OneToMany(() => Subscription, (subscription) => subscription.user)
+    subscriptions!: Subscription[]
 
   @UpdateDateColumn()
     updatedAt!: Date

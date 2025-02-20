@@ -1,13 +1,13 @@
 import { TemplateBuilder } from '@/class/TemplateBuilder.js'
 import { Component } from 'discord'
-import { EmbedBuilder } from 'discord.js'
+import { EmbedBuilder, MessageFlags } from 'discord.js'
 
 new Component({
   customId: 'MoreDetails',
   type: 'Button',
   async run(interaction) {
     if (!interaction.inCachedGuild()) return
-    await interaction.deferReply({ ephemeral: true })
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
     await new TemplateBuilder({ interaction })
       .switchData('MoreDetails')

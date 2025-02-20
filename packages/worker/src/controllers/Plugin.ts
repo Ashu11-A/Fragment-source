@@ -1,12 +1,10 @@
-import type { Socket } from 'socket.io'
 import { i18 } from '..'
-import { Manager, WebSocket } from '../app'
+import { Manager } from '../app'
 import type { DiscordMetadata } from '../types/discord'
-import type { WebSocketMetadata } from '../types/websocket'
 import { Watcher } from './Watcher'
 
 export class Plugin {
-  static readonly plugins = new Map<string, { manager: Manager, discord: DiscordMetadata, websocket: WebSocketMetadata }>()
+  static readonly all = new Map<string, { manager: Manager, discord: DiscordMetadata, entries: [] }>()
 
   constructor (public port: number) {}
 
@@ -15,13 +13,12 @@ export class Plugin {
    */
   public watcher () {
     const onChange = async (filePath: string) => { 
-      console.log('🔄 Plugin change detected:', filePath)
       console.log(i18('plugins.new'))
 
       this.register(filePath)
     }
 
-    console.log('👀 Starting plugin watcher...')
+    console.log(i18('watcher.starting'))
     new Watcher({ onChange })
   }
 
@@ -30,44 +27,33 @@ export class Plugin {
    * @param filePath Caminho do arquivo do plugin.
    */
   async register(filePath: string) {
-    const plugin = Plugin.plugins.get(filePath)
+    const plugin = Plugin.all.get(filePath)
     if (plugin) {
-      console.log(`🔁 Plugin has already been registered, unplugged and restarted: ${filePath}`)
+      console.log(i18('plugins.hasLoaded', { filePath }))
       plugin.manager.worker.terminate()
     }
 
-    console.log(`✨ Enabling plugin: ${filePath}`)
+    console.log(i18('plugins.enabling', { filePath }), '\n')
     const manager = new Manager({ fileURL: filePath, port: this.port })
 
     try {
       await manager.start()
-      const client = await new Promise<Socket>((resolve, rejects) => {
-        setTimeout(() => rejects(new Error('⌛ Time limit for registering the socket has expired')), 10000)
-
-        WebSocket.io.on('connection', (client) => {
-          client.send('whoIs')
-          client.on('I\'m', (pluginPath) => {
-            if (filePath === pluginPath) resolve(client)
-          })
-        })
-      })
       
-      Plugin.plugins.set(filePath, {
+      Plugin.all.set(manager.socket.id, {
         manager,
-        websocket: { id: client.id },
         discord: {
           commands: [],
           events: [],
           components: [],
           configs: [],
           crons: [],
-          entries: []
-        }
+        },
+        entries: []
       })
-      console.log(`✅ Plugin successfully enabled: ${filePath}`)
-      client.send('registered')
+      console.log(i18('plugins.enabled', { filePath }))
+      manager.socket.emit('register')
     } catch (error) {
-      console.error(`❌ Error enabling plugin: ${filePath}`, error)
+      console.error(i18('plugins.notEnabled'), '\n', error)
     }
   }
 }

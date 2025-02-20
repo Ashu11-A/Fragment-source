@@ -14,6 +14,7 @@ type PluginBuilderOptions = {
   name?: string
   buildArgs?: string[];
   signatureLength?: 256 | 512
+  compile?: boolean
 }
 
 class PluginBuilder {
@@ -25,11 +26,13 @@ class PluginBuilder {
   private readonly outputDirectory: string
   private readonly hasBuildScript: boolean
   private readonly outputFilePath: string
+  private readonly compile: boolean
 
   constructor (options: PluginBuilderOptions) {
     this.directory = options.directory
     this.entryFile = options.entryFile
     this.outputDirectory = options.outputDirectory
+    this.compile = options.compile ?? false
 
     const packageJson = JSON.parse(readFileSync(join(this.directory, 'package.json'), { encoding: 'utf-8' }))
     
@@ -40,19 +43,24 @@ class PluginBuilder {
     this.buildArgs.push(
       this.entryFile,
       '--bundle --target=bun',
-      '--minify --minify-syntax --minify-whitespace --minify-identifiers',
+      // '--minify --minify-syntax --minify-whitespace --minify-identifiers',
       '--no-sourcemap',
-      ...options?.buildArgs ?? []
+      ...options?.buildArgs ?? [],
     )
 
     this.signatureLength = options?.signatureLength ?? this.signatureLength
   }
   
-  async build (): Promise<'file' | 'directory'> {
+  async build (): Promise<'file' | 'directory' | 'binary'> {
     await this.exec('bun install')
 
     if (this.hasBuildScript) await this.exec('bun run build')
     if (!existsSync(this.outputDirectory)) await mkdir(this.outputDirectory, { recursive: true })
+
+    if (this.compile) {
+      await this.exec(`bun build ${this.buildArgs.join(' ')} --compile --outfile=${join(this.outputDirectory, this.name)}`)
+      return 'binary'
+    }
 
     try {
       await this.exec(`bun build ${this.buildArgs.join(' ')} --outfile=${this.outputFilePath}`)
@@ -113,7 +121,7 @@ class PluginBuilder {
   }
 }
 
-const projects = await glob(['server'], { cwd: process.cwd() })
+const projects = await glob(['plugins/*', 'packages/*', 'core'], { cwd: process.cwd() })
 
 if (existsSync('releases')) await rm('releases', { recursive: true })
 for (const project of projects) {
@@ -122,6 +130,7 @@ for (const project of projects) {
     entryFile: 'src/app.ts',
     signatureLength: 256,
     outputDirectory: join(process.cwd(), 'releases'),
+    // compile: true
   })
   
   const buildType = await builder.build()

@@ -21,7 +21,6 @@
     "@types/chokidar": "^2.1.7",
     "chokidar": "^4.0.3",
     "discord.js": "^14.18.0",
-    "express": "^4.21.2",
     "semver": "^7.7.1",
     "socket.io": "^4.8.1",
     "utils": "workspace:../utils"

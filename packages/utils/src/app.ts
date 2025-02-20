@@ -20,6 +20,6 @@ export type Metadata = {
   api?: string
 }  
 export const metadata = (): Metadata => {
-  const infos = ['name', 'version', 'description', 'author', 'license', 'api'].reverse()
+  const infos = ['name', 'version', 'description', 'author', 'license'].reverse()
   return Object.entries(Package.getData()).reverse().filter(([key]) => infos.includes(key)).reduce((object, [key, value]) => ({ [key]: value, ...object }), {}) as Metadata
 }

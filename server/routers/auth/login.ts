@@ -1,9 +1,9 @@
-import jwt from 'jsonwebtoken'
-import { z } from 'zod'
 import { Router } from '@/controllers/router.js'
 import { Auth } from '@/database/entity/Auth.js'
-import { User } from '@/database/entity/User.js'
+import { userRepository } from '@/database/index.js'
 import { timer } from '@/utils/timer.js'
+import jwt from 'jsonwebtoken'
+import { z } from 'zod'
 
 /**
  * Retorna as opções para configuração dos cookies
@@ -26,10 +26,14 @@ export default new Router({
     password: z.string().min(8)
   }),
   async post({ reply, schema }) {
-    const user = await User.findOne({ where: { email: schema.email } })
+    const user = await userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email: schema.email })
+      .getOne()
     if (!user) return reply.code(403).send({ message: 'Invalid email or password' })
 
-    const valid = user.validatePassword(schema.password)
+    const valid = await user.validatePassword(schema.password)
     if (!valid) return reply.code(403).send({ message: 'Invalid email or password' })
 
     const expiresTokenInSeconds = timer.number(process.env.JWT_EXPIRE ?? '7d') as number
@@ -45,31 +49,39 @@ export default new Router({
       email: user.email
     }
 
-    const token = jwt.sign(data, process.env.JWT_TOKEN as string, {
+    const accessToken = jwt.sign(data, process.env.JWT_TOKEN as string, {
       expiresIn: expiresTokenInSeconds,
       algorithm: 'HS512'
     })
 
-    const refresh = jwt.sign(data, process.env.REFRESH_TOKEN as string, {
+    const refreshToken = jwt.sign(data, process.env.REFRESH_TOKEN as string, {
       expiresIn: expiresRefreshInSeconds,
       algorithm: 'HS512'
     })
 
     await Auth.create({
-      accessToken: token,
-      refreshToken: refresh,
+      accessToken,
+      refreshToken,
       user,
       expireAt: expirationRefreshDate.toISOString()
     }).save()
 
-    reply.setCookie('Bearer', token, getCookieOptions(expirationTokenDate))
-    reply.setCookie('Refresh', refresh, getCookieOptions(expirationRefreshDate))
+    reply.setCookie('Bearer', accessToken, getCookieOptions(expirationTokenDate))
+    reply.setCookie('Refresh', refreshToken, getCookieOptions(expirationRefreshDate))
 
     return reply.code(200).send({
       message: 'Login successful',
       data: {
-        token,
-        refresh
+        accessToken: {
+          token: accessToken,
+          expireDate: expirationTokenDate,
+          expireSeconds: expiresTokenInSeconds
+        },
+        refreshToken: {
+          token: refreshToken,
+          expireDate: expirationRefreshDate,
+          expireSeconds: expiresRefreshInSeconds
+        },
       }
     })
   }

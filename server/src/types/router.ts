@@ -1,6 +1,6 @@
 import { Role, User } from '@/database/entity/User.js'
 import type { FastifyReply, FastifyRequest } from 'fastify'
-import type { z, ZodError, ZodObject, ZodRawShape } from 'zod'
+import type { z, ZodDefault, ZodError, ZodObject, ZodOptional, ZodRawShape } from 'zod'
 
 /**
  * Enum for HTTP method types.
@@ -44,7 +44,7 @@ export type ListResponse<T> = {
  * Error reply types mapped by HTTP status code.
  */
 export type TReplyError = {
-  [Status in 401 | 403 | 404 | 422 | 500]: TErrorResponse
+  [Status in 401 | 403 | 404 | 409 | 422 | 500]: TErrorResponse
 }
 
 // Tipo genérico de resposta com status diferentes
@@ -144,6 +144,6 @@ export type RouterOptions<
   name: string
   path?: string
   authenticate?: Authenticate
-  schema?: ZodObject<Schema, 'strip'>
+  schema?: ZodObject<Schema, 'strip'> | ZodDefault<ZodObject<Schema, 'strip'>> | ZodOptional<ZodObject<Schema, 'strip'>>
   description: string
 } & Methods

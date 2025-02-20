@@ -13,7 +13,5 @@ await Database.initialize()
 
 fastify.init()
 await Router.register()
+await import('../routers/ws/bot.js')
 fastify.listen()
-
-// await Database.dropDatabase()
-// await BetQueue.removeAllRepeatable()

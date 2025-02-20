@@ -1,5 +1,5 @@
 import { ApplicationCommandType, Client, IntentsBitField, Partials, type AutocompleteInteraction, type BitFieldResolvable, type CacheType, type ChatInputCommandInteraction, type CommandInteraction, type GatewayIntentsString, type MessageContextMenuCommandInteraction, type UserContextMenuCommandInteraction } from 'discord.js'
-import { Database } from 'socket-client'
+import { Database  } from 'socket-client'
 import { Package } from 'utils'
 import type { ConfigEntry } from '../schemas/config.js'
 import type Guild from '../schemas/guild.js'
@@ -9,19 +9,9 @@ import { Config } from './Config.js'
 
 export class Discord {
   public static client: Client<boolean>
-  static token: string
   private timestamp!: number
   private username!: string
   private customId!: string
-  constructor () {}
-
-  async create () {
-    Discord.client = new Client({
-      intents: Object.keys(IntentsBitField.Flags) as BitFieldResolvable<GatewayIntentsString, number>,
-      partials: [Partials.Channel, Partials.GuildMember, Partials.Message, Partials.User, Partials.ThreadMember],
-      failIfNotExists: false
-    })
-  }
 
   controller () {
     Discord.client.on('interactionCreate', async (interaction) => {
@@ -124,15 +114,22 @@ export class Discord {
     })
   }
 
-  async start () {
-    await Discord.client.login(Discord.token)
-    Discord.client.once('ready', async client => {
+  async start (token: string) {
+    const client = new Client({
+      intents: Object.keys(IntentsBitField.Flags) as BitFieldResolvable<GatewayIntentsString, number>,
+      partials: [Partials.Channel, Partials.GuildMember, Partials.Message, Partials.User, Partials.ThreadMember],
+      failIfNotExists: false
+    })
+    Discord.client = client
+  
+    client.once('ready', async client => {
       this.controller()
       console.info(`➝ Connected with ${client.user.username}`)
+      
       const guildClass = new Database<Guild>({ table: 'Guild' })
       const config = new Database<ConfigEntry>({ table: 'Config' })
+      
       for (const [guildId, guild] of client.guilds.cache) {
-
         if (await guildClass.findOne({ where: { guildId: guildId } }) !== null) {
           console.log(`Servidor ${guild.name} está registrado no banco de dados!`)
           continue
@@ -142,5 +139,7 @@ export class Discord {
         await config.save(await config.create({ guild: { id: result.id } }))
       }
     })
+    
+    await client.login(token)
   }
 }

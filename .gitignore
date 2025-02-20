@@ -7,3 +7,7 @@ release
 *.hash
 *.license
 *.pem
+/releases
+/storage
+
+.early.coverage

@@ -1,13 +1,14 @@
 import { TicketBuilder } from '@/class/TicketBuilder.js'
 import { Component, YouSure, Error } from 'discord'
 import { claimDB } from '@/utils/database'
+import { MessageFlags } from 'discord.js'
 
 new Component({
   customId: 'Delete',
   type: 'Button',
   async run(interaction) {
     if (!interaction.inCachedGuild()) return
-    await interaction.deferReply({ ephemeral: true })
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral })
     const { message } = interaction
     const claimData = await claimDB.findOne({ where: { messageId: message.id }, relations: { ticket: true } })
     if (claimData === null) throw await new Error({ element: 'este claim', interaction }).notFound({ type: 'Database' }).reply()

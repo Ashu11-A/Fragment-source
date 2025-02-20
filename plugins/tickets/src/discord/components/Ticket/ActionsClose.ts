@@ -1,6 +1,6 @@
 import { TicketBuilder } from '@/class/TicketBuilder.js'
 import { ModalBuilder, Component, ActionDrawer } from 'discord'
-import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, TextInputBuilder, TextInputStyle } from 'discord.js'
+import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder, MessageFlags, TextInputBuilder, TextInputStyle } from 'discord.js'
 
 new Component({
   customId: 'Close',
@@ -8,7 +8,7 @@ new Component({
   async run(interaction) {
     if (!interaction.inCachedGuild()) return
     const { user, channelId } = interaction
-    await interaction.deferReply({ ephemeral: true })
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
     const messagePrimary = await interaction.editReply({
       embeds: [new EmbedBuilder({
@@ -94,7 +94,7 @@ new Component({
     const reason = fields.getTextInputValue('reason')
     const builder = new TicketBuilder({ interaction })
 
-    await interaction.deferReply({ ephemeral: true })
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral })
     await (await builder.setTicket(channelId).loader()).delete({ observation, reason })
   }
 })

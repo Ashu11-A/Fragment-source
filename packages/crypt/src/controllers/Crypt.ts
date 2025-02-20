@@ -1,6 +1,5 @@
-import * as argon2 from '@node-rs/argon2'
 import { passwordStrength } from 'check-password-strength'
-import { randomBytes } from 'crypto'
+import { createHash, randomBytes } from 'crypto'
 import CryptoJS from 'crypto-js'
 import { watch } from 'fs'
 import { readFile, rm, writeFile } from 'fs/promises'
@@ -10,19 +9,17 @@ import prompts from 'prompts'
 import { exists, isJson } from 'utils'
 import { credentials, i18, lang } from '../app.js'
 import { type DataCrypted } from '../types/crypt.js'
-import {  } from 'lang'
 
 // Caminho base do projeto
 const ROOT_PATH = process.cwd()
 const KEY_PATH = resolve(ROOT_PATH, '.key')
 const HASH_PATH = resolve(ROOT_PATH, '.hash')
 const ENV_PATH = resolve(ROOT_PATH, '.env')
-const PRIVATE_KEY_PATH = resolve(ROOT_PATH, '../privateKey.pem')
-const PUBLIC_KEY_PATH = resolve(ROOT_PATH, '../publicKey.pem')
+const PRIVATE_KEY_PATH = resolve(ROOT_PATH, 'privateKey.pem')
+const PUBLIC_KEY_PATH = resolve(ROOT_PATH, 'publicKey.pem')
 
 export class Crypt {
   async checker() {
-    // Verificação de arquivos chave
     if (!(await exists(KEY_PATH)) && process.env?.Token === undefined) await this.create()
     if (!(await exists(PRIVATE_KEY_PATH)) || !(await exists(PUBLIC_KEY_PATH))) await this.genKeys()
 
@@ -77,7 +74,6 @@ export class Crypt {
     case 'random': {
       const password = randomBytes(256).toString('hex')
       await writeFile(ENV_PATH, `Token=${password}`)
-      credentials.set('Token', password)
       await this.write({})
       break
     }
@@ -91,7 +87,6 @@ export class Crypt {
 
       if (!key.value) throw new Error(i18('error.undefined', { element: 'Password' }))
       await writeFile(ENV_PATH, `Token=${key.value}`)
-      credentials.set('Token', key.value)
       await this.write({})
       break
     }
@@ -100,8 +95,9 @@ export class Crypt {
     }
   }
 
-  getToken() {
-    const token = process.env.Token ?? (credentials.get('Token') as string)
+  async getToken() {
+    await import('dotenv/config')
+    const token = process.env.Token || (await readFile(ENV_PATH, { encoding: 'utf-8' })).replaceAll('Token=', '')
     if (!token) throw new Error(i18('error.undefined', { element: 'Token' }))
     return token
   }
@@ -115,8 +111,8 @@ export class Crypt {
       throw new Error(i18('error.invalid', { element: 'Hash' }))
     }
 
-    const isValid = await argon2.verify(dataHash, data).catch(invalid)
-    if (!isValid) await invalid()
+    const computedHash = createHash('sha256').update(data).digest('hex')
+    if (computedHash !== dataHash) await invalid()
   }
 
   async delete() {
@@ -126,7 +122,8 @@ export class Crypt {
   }
 
   async read(ephemeral?: boolean): Promise<DataCrypted | undefined> {
-    const token = this.getToken()
+    if (!(await exists(ENV_PATH))) await this.checker()
+    const token = await this.getToken()
     if (!(await exists(KEY_PATH))) return undefined
 
     await this.validate()
@@ -147,21 +144,22 @@ export class Crypt {
       if (outputData.language) lang.set(outputData.language)
 
       for (const [key, value] of Object.entries(outputData)) {
-        credentials.set(key, value)
+        credentials.set(key as keyof DataCrypted, value)
       }
 
       return outputData
-    } catch {
+    } catch (err) {
+      console.log(err)
       await this.delete()
       throw new Error(i18('error.invalid', { element: 'Token' }))
     }
   }
 
-  async write(value: Record<string, string> | string) {
+  async write(value: Partial<Record<keyof DataCrypted, DataCrypted[keyof DataCrypted]>>) {
     if (!isJson(value)) throw new Error(i18('error.invalid', { element: '.key' }))
 
-    const token = this.getToken()
-    const data = { ...((await this.read()) ?? {}), ...value as Record<string, string> }
+    const token = await this.getToken()
+    const data = { ...((await this.read(true)) ?? {}), ...value as Record<string, string> }
 
     const encrypted = CryptoJS.TripleDES.encrypt(
       CryptoJS.Blowfish.encrypt(
@@ -171,7 +169,7 @@ export class Crypt {
       token
     ).toString()
 
-    const hash = await argon2.hash(encrypted)
+    const hash = createHash('sha256').update(encrypted).digest('hex')
 
     await writeFile(KEY_PATH, encrypted)
     await writeFile(HASH_PATH, hash)
