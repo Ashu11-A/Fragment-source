@@ -3,7 +3,7 @@ import { TicketBuilder } from '@/class/TicketBuilder.js'
 import { Error, Component } from 'discord'
 import Ticket from '@/entity/Ticket.entry.js'
 import { claimDB, ticketDB } from '@/utils/database.js'
-import { EmbedBuilder } from 'discord.js'
+import { EmbedBuilder, MessageFlags } from 'discord.js'
 
 new Component({
   customId: 'Switch',
@@ -11,7 +11,7 @@ new Component({
   async run(interaction) {
     const { guild, channelId, user, message } = interaction
     if (!interaction.inCachedGuild()) return
-    interaction.deferReply({ ephemeral: true })
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral })
     if (guild === null) return await new Error({ element: 'executar essa ação pois você teve estar em uma Guilda!', interaction }).notPossible().reply()
 
     let ticketData: Ticket | null

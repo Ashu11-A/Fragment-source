@@ -1,21 +1,10 @@
 import { Config } from '@/controller/config.js'
-import { credentials } from 'crypt'
 import { Command } from 'discord'
 import { ApplicationCommandType, AutocompleteInteraction, type BitFieldResolvable, ChatInputCommandInteraction, Client, CommandInteraction, type GatewayIntentsString, IntentsBitField, MessageContextMenuCommandInteraction, Partials, PermissionsBitField, UserContextMenuCommandInteraction } from 'discord.js'
 
 export class Discord {
   public static client?: Client<boolean>
   public static isInitialized = false
-  constructor () {}
-
-  async create () {
-    console.log(i18('discord.create'))
-    Discord.client = new Client({
-      intents: Object.keys(IntentsBitField.Flags) as BitFieldResolvable<GatewayIntentsString, number>,
-      partials: [Partials.Channel, Partials.GuildMember, Partials.Message, Partials.User, Partials.ThreadMember],
-      failIfNotExists: false
-    })
-  }
 
   async controller () {
     Discord.client?.on('interactionCreate', (interaction) => {
@@ -29,6 +18,7 @@ export class Discord {
         }
         const onCommand = (commandInteraction: CommandInteraction): void => {
           const command = Command.all.get(commandInteraction.commandName)
+          if (command?.run === undefined) return
 
           switch (command?.type) {
           case ApplicationCommandType.ChatInput:{
@@ -56,7 +46,6 @@ export class Discord {
   }
 
   public async register () {
-    if (Discord.client === undefined) await this.create()
     if (Config.all.length > 0) {
       new Command({
         name: 'config',
@@ -76,25 +65,31 @@ export class Discord {
       .catch((err) => { console.error(err) })
   }
 
-  async stop () {
-    if (Discord.client === undefined) await this.create()
+  stop () {
+    if (Discord.client === undefined) return
     console.log(i18('discord.close'))
     void (Discord.client as Client<boolean>).destroy()
   }
 
-  async start () {
+  async start (token: string) {
+    console.log(i18('discord.create'))
+    Discord.client = new Client({
+      intents: Object.keys(IntentsBitField.Flags) as BitFieldResolvable<GatewayIntentsString, number>,
+      partials: [Partials.Channel, Partials.GuildMember, Partials.Message, Partials.User, Partials.ThreadMember],
+      failIfNotExists: false
+    })
+  
     if (Discord.client?.isReady()) {
       console.log(i18('discord.isConnected'))
       return
     }
 
-    if (Discord.client === undefined) await this.create()
-
     console.log(i18('discord.start'))
 
-    await (Discord.client as Client<boolean>).login(credentials.get('token') as string);
+    await (Discord.client as Client<boolean>).login(token);
     (Discord.client as Client<boolean>).once('ready', async (client) => {
-      await new Discord().register()
+      await this.register()
+  
       if (!Discord.isInitialized) {
         await this.controller()
         Discord.isInitialized = !Discord.isInitialized

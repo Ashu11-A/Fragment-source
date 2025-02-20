@@ -1,16 +1,10 @@
 import { fastifyCookie } from '@fastify/cookie'
 import { fastifyMultipart } from '@fastify/multipart'
-import { Authenticator } from '@fastify/passport'
-import { fastifyStatic } from '@fastify/static'
 import { fastifyWebsocket } from '@fastify/websocket'
 import fastify, { FastifyInstance } from 'fastify'
 
-import { storagePath } from '@/index.js'
 import { BearerStrategy } from '@/strategies/BearerStrategy.js'
 import { CookiesStrategy } from '@/strategies/CookiesStrategy.js'
-
-
-export const fastifyPassport = new Authenticator()
 
 interface Options {
   host: string
@@ -42,11 +36,8 @@ export class Fastify {
     server
       .register(fastifyMultipart, {
         limits: {
-          fileSize: 1024 * 1024 * 10 // 10 Mb
+          fileSize: 1024 * 1024 * 50 // 50 Mb
         }
-      })
-      .register(fastifyStatic, {
-        root: storagePath,
       })
       .register(fastifyWebsocket)
       .register(fastifyCookie, {

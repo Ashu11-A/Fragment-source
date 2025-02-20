@@ -28,7 +28,7 @@
     "connected": "📡 Connected with {{botName}}",
     "isConnected": "⛔ Sorry, but I'm already connected to Discord!",
     "commands": "📝 {{length}} Commands successfully defined!",
-    "token_send": "⚠️ Token{{isEncrypted}} being sent to: {{pluginId}}",
+    "token_send": "⚠️ Token{{isEncrypted}} being sent to: {{plugin}}",
     "token_not_found": "❌ Discord token is empty!"
   },
   "error": {

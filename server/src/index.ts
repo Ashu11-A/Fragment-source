@@ -1,10 +1,13 @@
-import { existsSync } from 'fs'
-import { mkdir } from 'fs/promises'
-import { dirname, join } from 'path'
-import { fileURLToPath } from 'url'
+import { join } from 'path'
+import { LocalStorage, MemoryStorage } from './storage/index.js'
+import { BotConnection } from './types/websocket.js'
 
-export const storagePath = join(dirname(fileURLToPath(import.meta.url)), '../storage')
-export const storageImagePath = join(storagePath, '/avatars')
+const cwd = import.meta.filename.endsWith('.ts') ? join(process.cwd(), '../') : process.cwd()
 
-if (!existsSync(storagePath)) await mkdir(storagePath)
-if (!existsSync(storageImagePath)) await mkdir(storageImagePath)
+export const storage = process.env.STORAGE_TYPE === 'memory'
+  ? new MemoryStorage()
+  : new LocalStorage({
+    storagePath: process.env.LOCAL_STORAGE_PATH ?? join(cwd, 'storage')
+  })
+
+export const bots = new Map<string, BotConnection>()

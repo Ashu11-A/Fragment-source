@@ -41,20 +41,25 @@ export const commands = [
 type CallbackFn = { [Command in typeof commands[number]['command']]?: (content: string | number | undefined) => Promise<void> | void }
 
 export class Cli {
-  public functions?: CallbackFn
+  public functions: CallbackFn
+  public argv: string[] = []
   public showHelp: boolean =  false
   
   constructor(options: CliOptions<CallbackFn>) {
     this.functions = options.functions
+  
+    if (options.argv) this.argv = options.argv
     if (options.showHelp) this.showHelp = options.showHelp
-    
+  }
+  
+  async exec () {
     const args = commands.map((arg, index) => new Arg({
       ...arg,
       exec: (this.functions as CallbackFn)[arg.command] ?? commands[index].exec ?? (() => {})
     }))
-    const argv = (options?.argv ?? []).length > 0 ? options.argv as string[] : process.argv.splice(2)
-
+    const argv = (this.argv ?? []).length > 0 ? this.argv : process.argv.splice(2)
+  
     manager.addArgs(args)
-    manager.run(argv, this.showHelp)
+    await manager.run(argv, this.showHelp)
   }
 }

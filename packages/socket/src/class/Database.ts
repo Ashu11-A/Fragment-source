@@ -52,7 +52,7 @@ export class Database<T extends BaseEntity> {
 
   async save (entities: DeepPartial<T>[] | DeepPartial<T>, options?: SaveOptions): Promise<T[] | T> {
     return await new Promise((resolve, reject) => {
-      if (!SocketClient.client?.connected) return reject('Socket is Disconnected')
+      if (!SocketClient.client?.connected) return reject('Socket is Disconnected: save')
       SocketClient.client.emit(this.eventName, { table: this.table, plugin: this.pluginName, type: 'save', entities, options })
       SocketClient.client.on(this.eventName, (data: T[] | T) => { resolve(data) })
       SocketClient.client.on(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
@@ -61,7 +61,7 @@ export class Database<T extends BaseEntity> {
 
   async find (options: FindManyOptions<T> | undefined): Promise<T[]> {
     return await new Promise((resolve, reject) => {
-      if (!SocketClient.client?.connected) return reject('Socket is Disconnected')
+      if (!SocketClient.client?.connected) return reject('Socket is Disconnected: find')
       SocketClient.client.emit(this.eventName, { table: this.table, plugin: this.pluginName, type: 'find', options })
       SocketClient.client.on(this.eventName, (data: T[]) => { resolve(data) })
       SocketClient.client.on(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
@@ -70,7 +70,7 @@ export class Database<T extends BaseEntity> {
 
   async findBy (where: FindOptionsWhere<T>): Promise<T[]> {
     return await new Promise((resolve, reject) => {
-      if (!SocketClient.client?.connected) return reject('Socket is Disconnected')
+      if (!SocketClient.client?.connected) return reject('Socket is Disconnected: findBy')
       SocketClient.client.emit(this.eventName, { table: this.table, plugin: this.pluginName, type: 'findBy', where })
       SocketClient.client.on(this.eventName, (data: T[]) => { resolve(data) })
       SocketClient.client.on(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
@@ -79,7 +79,7 @@ export class Database<T extends BaseEntity> {
 
   async findOne (options: FindOneOptions<T>): Promise<T | null> {
     return await new Promise((resolve, reject) => {
-      if (!SocketClient.client?.connected) return reject('Socket is Disconnected')
+      if (!SocketClient.client?.connected) return reject('Socket is Disconnected: findOne')
       SocketClient.client.emit(this.eventName, { table: this.table, plugin: this.pluginName, type: 'findOne', options })
       SocketClient.client.on(this.eventName, (data: T | null) => { resolve(data) })
       SocketClient.client.on(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
@@ -88,7 +88,7 @@ export class Database<T extends BaseEntity> {
 
   async upsert (entityOrEntities: QueryDeepPartialEntity<T> | QueryDeepPartialEntity<T>[], conflictPathsOrOptions: string[] | UpsertOptions<T>): Promise<InsertResult> {
     return await new Promise((resolve, reject) => {
-      if (!SocketClient.client?.connected) return reject('Socket is Disconnected')
+      if (!SocketClient.client?.connected) return reject('Socket is Disconnected: upsert')
       SocketClient.client.emit(this.eventName, { table: this.table, plugin: this.pluginName, type: 'upsert', entityOrEntities, conflictPathsOrOptions })
       SocketClient.client.on(this.eventName, (data: InsertResult) => { resolve(data) })
       SocketClient.client.on(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
@@ -97,7 +97,7 @@ export class Database<T extends BaseEntity> {
 
   async create (entity: DeepPartial<T>): Promise<T> {
     return await new Promise((resolve, reject) => {
-      if (!SocketClient.client?.connected) return reject('Socket is Disconnected')
+      if (!SocketClient.client?.connected) return reject('Socket is Disconnected: create')
       SocketClient.client.emit(this.eventName, { table: this.table, plugin: this.pluginName, type: 'create', entity })
       SocketClient.client.on(this.eventName, (data: T) => { resolve(data) })
       SocketClient.client.on(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
@@ -106,7 +106,7 @@ export class Database<T extends BaseEntity> {
 
   async update (criteria: string | string[] | number | number[] | Date | Date[] | ObjectId | ObjectId[] | FindOptionsWhere<T>, partialEntity: QueryDeepPartialEntity<T>) {
     return await new Promise((resolve, reject) => {
-      if (!SocketClient.client?.connected) return reject('Socket is Disconnected')
+      if (!SocketClient.client?.connected) return reject('Socket is Disconnected: update')
       SocketClient.client.emit(this.eventName, { table: this.table, plugin: this.pluginName, type: 'update', criteria , partialEntity })
       SocketClient.client.on(this.eventName, (data: DeleteResult) => { resolve(data) })
       SocketClient.client.on(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
@@ -115,7 +115,7 @@ export class Database<T extends BaseEntity> {
 
   async delete (criteria: string | string[] | number | number[] | Date | Date[] | ObjectId | ObjectId[] | FindOptionsWhere<T>): Promise<DeleteResult> {
     return await new Promise((resolve, reject) => {
-      if (!SocketClient.client?.connected) return reject('Socket is Disconnected')
+      if (!SocketClient.client?.connected) return reject('Socket is Disconnected: delete')
       SocketClient.client.emit(this.eventName, { table: this.table, plugin: this.pluginName, type: 'delete', criteria })
       SocketClient.client.on(this.eventName, (data: DeleteResult) => { resolve(data) })
       SocketClient.client.on(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })
@@ -124,7 +124,7 @@ export class Database<T extends BaseEntity> {
 
   async count (options?: FindManyOptions<T>): Promise<number> {
     return await new Promise((resolve, reject) => {
-      if (!SocketClient.client?.connected) return reject('Socket is Disconnected')
+      if (!SocketClient.client?.connected) return reject('Socket is Disconnected: count')
       SocketClient.client.emit(this.eventName, { table: this.table, plugin: this.pluginName, type: 'count', options })
       SocketClient.client.on(this.eventName, (data: number) => { resolve(data) })
       SocketClient.client.on(`${this.eventName}_error`, (data: any) => { reject(typeof data === 'object' ? JSON.stringify(data, null, 2) : data) })

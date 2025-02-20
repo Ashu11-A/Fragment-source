@@ -3,7 +3,7 @@ import { TicketBuilder } from '@/class/TicketBuilder.js'
 import { TypeTemplate, type Category, type Select } from '@/entity/Template.entry.js'
 import { templateDB } from '@/utils/database'
 import { ActionDrawer, Component, Error, ModalBuilder, StringSelectMenuBuilder } from 'discord'
-import { PermissionsBitField, TextInputBuilder, TextInputStyle, type SelectMenuComponentOptionData } from 'discord.js'
+import { MessageFlags, PermissionsBitField, TextInputBuilder, TextInputStyle, type SelectMenuComponentOptionData } from 'discord.js'
 export const userSelect = new Map<string, { category: Category, templateId: number }>()
 
 /**
@@ -25,7 +25,7 @@ new Component({
     const moreDetails = (templateData.systems ?? []).find((system) => system.name === 'MoreDetails')?.isEnabled
     
     if ((templateData.categories ?? []).length > 0) {
-      await interaction.deferReply({ ephemeral: true })
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
       switch (templateData.type) {
       case TypeTemplate.Button:
@@ -46,7 +46,7 @@ new Component({
       }
       }
     } else {
-      if (templateData.type === TypeTemplate.Button && !moreDetails) await interaction.deferReply({ ephemeral: true })
+      if (templateData.type === TypeTemplate.Button && !moreDetails) await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
       switch (templateData.type) {
       case TypeTemplate.Button: {
@@ -231,7 +231,7 @@ new Component({
     const select = values[0]
     
     if (select === 'config') {
-      await interaction.deferReply({ ephemeral: true })
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral })
       if (!(interaction.memberPermissions.has(PermissionsBitField.Flags.Administrator ?? false))){
         throw await new Error({ element: 'você', interaction }).forbidden().reply()
       }
@@ -263,7 +263,7 @@ new Component({
       cacheSelectMenu.set(user.id, typeTicket)
       return
     }
-    await interaction.deferReply({ ephemeral: true })
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral })
   
     await new TicketBuilder({ interaction })
       .setOwner(user.id)

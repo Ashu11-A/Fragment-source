@@ -1,11 +1,11 @@
 import { StringSelectMenuBuilder, Component } from 'discord'
-import { ActionRowBuilder, EmbedBuilder, type SelectMenuComponentOptionData } from 'discord.js'
+import { ActionRowBuilder, EmbedBuilder, MessageFlags, type SelectMenuComponentOptionData } from 'discord.js'
 
 new Component({
   customId: 'Panel',
   type: 'Button',
   async run(interaction) {
-    await interaction.deferReply({ ephemeral: true })
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral })
     const embed = new EmbedBuilder({
       description: '👇 | Escolha uma das opções abaixo:',
       footer: { text: 'Todas essas opções existem em slashcommands!' }

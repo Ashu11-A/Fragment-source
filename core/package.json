@@ -14,7 +14,6 @@
     "name": "Ashu11-a",
     "email": "matheusn.biolowons@gmail.com"
   },
-  "api": "http://node.seventyhost.net:24398",
   "license": "LSC",
   "imports": {
     "@/*": [
@@ -37,11 +36,7 @@
     "typescript-eslint": "^8.24.0"
   },
   "dependencies": {
-    "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.55.3",
-    "@opentelemetry/sdk-metrics": "^1.30.1",
-    "@opentelemetry/sdk-node": "^0.57.1",
-    "@opentelemetry/sdk-trace-node": "^1.30.1",
+    "axios": "^1.7.9",
     "cli": "workspace:../packages/cli",
     "cron": "^3.5.0",
     "crypt": "workspace:../packages/crypt",

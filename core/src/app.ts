@@ -9,15 +9,16 @@ import { rm } from 'fs/promises'
 import { join } from 'path'
 import { cwd } from 'process'
 import prompts from 'prompts'
-import { exists } from 'utils'
-import { Plugin, WebSocket, socketPort } from 'worker'
+import { exists, generatePort } from 'utils'
+import { Plugin, WebSocket } from 'worker'
 import yargs from 'yargs'
 import { Event } from './controller/events.js'
 import { License } from './controller/license.js'
 import { PKG_MODE } from './index.js'
 
-const socket = new WebSocket()
-WebSocket.io.on('registered', async (client) => new Event(client).controller())
+const port = PKG_MODE ? await generatePort() : 3000
+const socket = new WebSocket(port)
+WebSocket.io.on('connect', async (socket) => new Event(socket).controller())
 
 prompts.override(yargs().argv)
 
@@ -26,7 +27,8 @@ await new Crypt().checker()
 await new Auth().checker()
 
 if (await exists(join(cwd(), 'entries'))) await rm(join(cwd(), 'entries'), { recursive: true })
-const plugin = new Plugin(socketPort)
+console.log(`Esperando conexões na porta: ${socket.port}`)
+const plugin = new Plugin(socket.port)
 plugin.watcher()
 
 new Cli({

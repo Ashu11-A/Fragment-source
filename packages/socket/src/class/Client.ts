@@ -1,44 +1,47 @@
 import { io, Socket } from 'socket.io-client'
-import { Package } from 'utils'
 import type { SocketOptions } from '../type/socket'
+import { metadata } from 'utils'
 
 export class SocketClient {
   public readonly port: number
   public readonly path: string
 
-  public client: Socket
   static client: Socket
 
   constructor({ path, port }: SocketOptions) {
     this.path = path
     this.port = port
-    this.client = this.create()
+
+    this.connect()
     this.registerEventHandlers()
-    SocketClient.client = this.client
   }
 
   /**
    * Cria uma instância do cliente Socket.IO e conecta ao servidor.
    * @returns Uma instância de Socket.
    */
-  private create (): Socket {
+  private connect () {
     console.log(`📡 Aguardando conexão na porta ${this.port}...`)
-    return io(`ws://localhost:${this.port}/`)
+    SocketClient.client = io(`ws://localhost:${this.port}`)
   }
 
   /**
    * Registra os manipuladores de eventos para o socket.
    */
   private registerEventHandlers(): void {
-    this.client.on('connect', async () => {
-      process.stdout.write('📡 Connected to socket')
+    SocketClient.client.on('connect', () => {
+      console.log(`📡 Connected to socket: ${metadata()?.name ?? SocketClient.client.id}`)
+    })
+    
+    SocketClient.client.on('disconnect', () => {
+      console.log(`📡 Disconnected from socket server: ${metadata()?.name ?? SocketClient.client.id}`)
     })
 
-    this.client.on('whoIs', () => {
-      const packageName = Package.getData()['name']
-      this.client.emit('I\'m', packageName)
+    SocketClient.client.on('connect_error', (err) => {
+      console.error('🔌 SocketClient connection error:', err.message)
     })
-    this.client.on('kill', () => {
+
+    SocketClient.client.on('kill', () => {
       process.stdout.write('📡 Recebido sinal de desligamento. Encerrando o processo...')
       process.kill(process.pid)
     })
@@ -48,6 +51,6 @@ export class SocketClient {
    * Encerra a conexão do cliente com o servidor.
    */
   destroy () {
-    this.client.disconnect()
+    SocketClient.client.disconnect()
   }
 }

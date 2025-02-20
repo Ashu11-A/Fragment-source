@@ -1,13 +1,12 @@
-import { RootPATH } from '@/index.js'
-import type { AccessToken, AuthData, BotInfo, User } from '@/types/auth.js'
+import { api, RootPATH, storage } from '@/index.js'
+import { AxiosError } from 'axios'
 import { CronJob } from 'cron'
+import { credentials, type DataCrypted } from 'crypt'
 import { rm } from 'fs/promises'
 import prompts, { type Choice, type PromptObject } from 'prompts'
-import { credentials, Crypt, type DataCrypted } from 'crypt'
-import { metadata } from 'utils'
+import type { Bot, User } from './api'
 
 const emailRegex = /^[\w-\\.]+@([\w-]+\.)+[\w-]{2,4}$/g
-const crypt = new Crypt()
 let attempts = 0
 let lastTry: Date | undefined
 
@@ -16,32 +15,26 @@ const questions: PromptObject<string>[] = [
     name: 'email',
     message: 'Email',
     type: 'text',
-    initial: `${i18('authenticate.registered')} https://fragmentbot.com`,
+    initial: `${i18('authenticate.registered')} https://fragmentbot.com\n`,
     validate: (value: string) => !emailRegex.test(value) ? i18('error.invalid', { element: 'Email' }) : true
   },
   {
     name: 'password',
-    message: `${i18('crypt.your_password')} - ${i18('authenticate.registered')} https://fragmentbot.com`,
+    message: `${i18('crypt.your_password')} - ${i18('authenticate.registered')} https://fragmentbot.com\n`,
     type: 'password',
-    validate: (value: string) => value.length < 0 ? 'Senha muito pequena!' : true },
-  {
-    name: 'uuid',
-    message: 'UUID', 
-    type: 'text',
-    initial: `${i18('authenticate.registered')} https://fragmentbot.com`,
-    validate: (value: string) => value.split('-').length < 5 ? 'UUID invalido!' : true },
+    validate: (value: string) => value.length < 0 ? 'Senha muito pequena!' : true
+  },
   {
     name: 'token',
-    message: 'Token Discord (https://discord.com/developers/applications)',
+    message: 'Token Discord (https://discord.com/developers/applications)\n',
     type: 'password'
   }
 ]
 export class Auth {
   public static user?: User
-  public static bot?: BotInfo
+  public static bot?: Bot
   private email?: string
   private password?: string
-  private accessToken?: AccessToken
     
   async askCredentials (question?: (keyof DataCrypted)[]): Promise<DataCrypted> {
     const filteredQuestions = questions.filter((propmt) => question === undefined || question?.includes(propmt.name as keyof DataCrypted))
@@ -51,7 +44,7 @@ export class Auth {
       throw new Error(i18('error.no_reply'))
     }
 
-    await crypt.write(response)
+    await storage.write(response)
     return response
   }
 
@@ -64,7 +57,7 @@ export class Auth {
   }
 
   async checker (): Promise<void> {
-    await new Crypt().read()
+    await storage.read()
     this.email = credentials.get('email') as string | undefined
     this.password = credentials.get('password') as string | undefined
 
@@ -77,20 +70,29 @@ export class Auth {
 
   async login(): Promise<User> {
     await this.timeout()
-    const { api } = metadata()
-
-    const response = await fetch(`${api}/auth/login`, {
-      method: 'POST',
-      body: JSON.stringify({ email: this.email, password: this.password }),
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    }).catch((err) => {
-      console.log(i18('error.unstable', { element: 'API' }))
-      return err
-    })
     
-    if (!response.ok) {
+    try {
+      await api.login({
+        email: this.email as string,
+        password: this.password as string
+      })
+    
+      const profile = await api.profile()
+      if (profile instanceof Error) throw profile
+
+      Auth.user = profile.data
+
+      console.log()
+      console.log(i18('authenticate.hello', { name: profile.data.name }))
+      console.log()
+  
+      lastTry = undefined
+      await this.validator()
+      return profile.data
+    } catch (err) {
+      console.log(err)
+      console.log(i18('error.unstable', { element: 'API' }))
+
       const choices: Choice[] = [
         { title: i18('authenticate.logout'), value: 'logout' },
         { title: i18('authenticate.try_again'), value: 'try_again' }
@@ -99,7 +101,7 @@ export class Auth {
       const conclusion = await prompts({
         type: 'select',
         name: 'Error',
-        message: `Erro ${response?.statusText} ao tentar logar!`,
+        message: `Erro ${err instanceof AxiosError ? err.response?.data.message : ''} ao tentar logar!`,
         choices,
         initial: 1
       })
@@ -116,42 +118,62 @@ export class Auth {
       default: throw new Error(i18('error.no_reply'))
       }
     }
-    const data = await response.json() as AuthData
-
-    Auth.user = data.user
-    this.accessToken = data.accessToken
-    console.log()
-    console.log(i18('authenticate.hello', { name: data.user.name }))
-    console.log()
-    return data.user
   }
 
   async logout () {
     await rm(`${RootPATH}/.key`)
+    await this.askCredentials()
+    await this.login()
+    await this.validator()
+  }
+
+  async defineBot () {
+    try {
+      const bots = await api.bots()
+
+      const result = await prompts({
+        type: 'select',
+        name: 'bot',
+        message: 'Selecione seu Bot',
+        choices: bots.data.map((bot) => ({
+          title: bot.name,
+          value: bot.uuid
+        }))
+      })
+
+      await storage.write({ botId: result.bot as string })
+      lastTry = undefined
+      return await this.validator()
+    } catch (err) {
+      console.log('Ocorreu um erro ao tentar pegar a lista de bots!', err)
+      await this.login()
+      return await this.validator()
+    }
   }
 
   async validator() {
     await this.timeout()
-    const { api } = metadata()
-    if (
-      this.accessToken === undefined ||
-      Auth.user === undefined
-    ) {
+    if (Auth.user === undefined) {
       await this.login()
       return
     }
-    const uuid = credentials.get('uuid')
-        
-    const response: Response = await fetch(`${api}/bots/${uuid}`, {
-      headers: {
-        Authorization: `Bearer ${(this.accessToken as AccessToken).token}`
-      }
-    }).catch((err) => {
-      console.log(i18('error.unstable', { element: 'API' }))
-      return err
-    })
 
-    if (!response.ok && attempts >= 4 || response.status === 404) {
+    const uuid = credentials.get('botId')
+    if (!uuid) {
+      await this.defineBot()
+      return
+    }
+    
+    try {
+      const response = await api.bot(uuid)
+
+      attempts = attempts + 1
+
+      if (!response.data.enabled) console.log(i18('error.disabled', { element: 'Bot' }))
+      if (Auth.bot === undefined) this.cron()
+
+      Auth.bot = response.data
+    } catch (err) {
       console.log(`☝️ Então ${(Auth.user as User).name}, não achei o registro do seu bot!`)
       const choices: Choice[] = [
         { title: i18('authenticate.change_token'), value: 'change' },
@@ -163,15 +185,12 @@ export class Auth {
         name: 'Error',
         type: 'select',
         choices,
-        message: i18('error.an_error_occurred', { element: response.statusText }),
-        initial: 1
+        message: i18('error.an_error_occurred', { element: err instanceof AxiosError ? err.cause : '' }),
       })
 
       switch (conclusion.Error) {
       case 'change': {
-        await this.askCredentials(['uuid'])
-        await this.login()
-        await this.validator()
+        await this.defineBot()
         break
       }
       case 'try_again': {
@@ -180,28 +199,11 @@ export class Auth {
       }
       case 'logout': {
         await this.logout()
-        await this.askCredentials()
-        await this.login()
-        await this.validator()
         break
       }
       default: throw new Error(i18('error.no_reply'))
       }
-
       return
-    } else {
-      attempts = attempts + 1
-
-      const data = await response.json() as BotInfo
-
-      if (data.expired) {
-        console.log(i18('error.expired', { element: 'Bot' }))
-      } else if (!data.enabled) {
-        console.log(i18('error.disabled', { element: 'Bot' }))
-      }
-
-      if (Auth.bot === undefined) this.cron()
-      Auth.bot = data
     }
   }
 

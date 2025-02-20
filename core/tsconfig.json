@@ -35,6 +35,6 @@
       "@/*": ["src/*"]
     },
   },
-  "include": ["src", "../tailwind.config.ts", "entries", "build.ts", "locales"],
+  "include": ["src", "../tailwind.config.ts", "entries", "build.ts", "locales", "plugins/plugin-ticket-1.0.0.js"],
   "exclude": ["node_modules"]
 }

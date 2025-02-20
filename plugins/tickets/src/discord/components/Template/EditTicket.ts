@@ -1,7 +1,7 @@
 import { TemplateButtonBuilder } from '@/class/TemplateButtonBuilder.js'
 import TemplateTable from '@/entity/Template.entry.js'
 import { checkHexCor, checkURL, Component, ModalBuilder } from 'discord'
-import { ActionRowBuilder, type APIEmbed, type APITextInputComponent, ComponentType, EmbedBuilder, type HexColorString, TextInputBuilder } from 'discord.js'
+import { ActionRowBuilder, type APIEmbed, type APITextInputComponent, ComponentType, EmbedBuilder, type HexColorString, MessageFlags, TextInputBuilder } from 'discord.js'
 import { Database } from 'socket-client'
 
 const template = new Database<TemplateTable>({ table: 'Template' })
@@ -96,7 +96,7 @@ for (const [action, data] of Object.entries(modalData)) {
     customId: action,
     type: 'Modal',
     async run(interaction) {
-      await interaction.deferReply({ ephemeral: true })
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral })
       const templateData = await template.findOne({ where: { messageId: interaction.message?.id } })
       
       if (templateData === null) {

@@ -2,7 +2,7 @@ import { RootPATH } from '@/index.js'
 import { lang } from '@/register'
 import { Crypt } from 'crypt'
 import { Command } from 'discord'
-import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder } from 'discord.js'
+import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, MessageFlags } from 'discord.js'
 import { glob } from 'glob'
 
 new Command({
@@ -37,7 +37,7 @@ new Command({
     await interaction.respond(response)
   },
   async run(interaction) {
-    await interaction.deferReply({ ephemeral: true })
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral })
     const { options } = interaction
     const language = options.getString('name', true)
 

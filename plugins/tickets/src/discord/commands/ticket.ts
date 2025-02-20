@@ -3,7 +3,7 @@ import { TemplateBuilder } from '@/class/TemplateBuilder'
 import TemplateTable from '@/entity/Template.entry.js'
 import { templateDB } from '@/utils/database'
 import { Command, Error } from 'discord'
-import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, Colors, EmbedBuilder, PermissionFlagsBits } from 'discord.js'
+import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, Colors, EmbedBuilder, MessageFlags, PermissionFlagsBits } from 'discord.js'
 import { Database } from 'socket-client'
 
 const templateDb = new Database<TemplateTable>({ table: 'Template' })
@@ -229,7 +229,7 @@ new Command({
     await interaction.respond(respond)
   },
   async run(interaction) {
-    await interaction.deferReply({ ephemeral: true })
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral })
     const { options, channelId } = interaction
     
     if (options.getSubcommandGroup() !== null) {

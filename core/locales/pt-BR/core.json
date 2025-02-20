@@ -6,7 +6,7 @@
     "connected": "📡 Connected with {{botName}}",
     "isConnected": "⛔ Desculpe, mas já estou conectado ao Discord!",
     "commands": "📝 {{length}} Comandos definidos com sucesso!",
-    "token_send": "⚠️ Token{{isEncrypted}} sendo enviado para: {{pluginId}}",
+    "token_send": "⚠️ Token{{isEncrypted}} sendo enviado para: {{plugin}}",
     "token_not_found": "❌ Token do Discord está vazio!"
   },
   "plugins": {

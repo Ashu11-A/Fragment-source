@@ -1,14 +1,14 @@
 import { TicketBuilder } from '@/class/TicketBuilder.js'
 import { claimDB } from '@/utils/database'
 import { buttonRedirect, Component, Error } from 'discord'
-import { EmbedBuilder } from 'discord.js'
+import { EmbedBuilder, MessageFlags } from 'discord.js'
 
 new Component({
   customId: 'Claim',
   type: 'Button',
   async run(interaction) {
     if (!interaction.inCachedGuild()) return
-    await interaction.deferReply({ ephemeral: true })
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
     const { message, user, guildId, guild, channel } = interaction
     const claimData = await claimDB.findOne({ where: { messageId: message.id }, relations: { ticket: true } })

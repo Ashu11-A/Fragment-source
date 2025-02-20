@@ -26,7 +26,7 @@ type CommandProps<DmPermission extends boolean> =
 
 export type CommandData<DmPermission extends boolean> = CommandProps<DmPermission> & ApplicationCommandData & {
   dmPermission: DmPermission
-  pluginId: string
+  pluginId?: string
 }
 
 export class Command<DmPermission extends boolean = boolean> {

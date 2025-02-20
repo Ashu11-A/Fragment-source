@@ -1,4 +1,4 @@
 export type SocketOptions = {
-    port: number,
-    path: string
+  port: number,
+  path: string
 }

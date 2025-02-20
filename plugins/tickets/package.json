@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "discord": "workspace:../../packages/discord",
+    "crypt": "workspace:../../packages/crypt",
     "discord.js": "^14.18.0",
     "socket-client": "workspace:../../packages/socket",
     "cli": "workspace:../../packages/cli"

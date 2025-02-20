@@ -11,23 +11,17 @@ export class Database {
   public static entries: Record<string, EntityImport<typeof BaseEntity>> = {}
   public static client?: DataSource
 
-  constructor () {}
-
-  async create (options: DataSourceOptions) {
+  async start (options: DataSourceOptions) {
     Database.client = new DataSource({
       ...options,
       synchronize: true,
-      logging: false,
+      logging: true,
       entities: await glob(`${join(RootPATH, 'entries')}/**/*.{ts,js}`),
       migrations: [],
       subscribers: []
     })
-  }
-
-  async start () {
-    await Database.client?.initialize()
+    await Database.client.initialize()
     console.log(i18('database.initialized', { length: Object.keys(Database.entries).length }))
-    console.log()
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

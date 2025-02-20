@@ -97,8 +97,16 @@ export default new Router({
     return reply.status(200).send({
       message: 'Token refreshed successfully',
       data: {
-        token: newAccessToken,
-        refresh: newRefreshToken
+        accessToken: {
+          token: newAccessToken,
+          expireDate: expirationTokenDate,
+          expireSeconds: expiresTokenInSeconds
+        },
+        refreshToken: {
+          token: newRefreshToken,
+          expireDate: expirationRefreshDate,
+          expireSeconds: expiresRefreshInSeconds
+        },
       }
     })
   }
