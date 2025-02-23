@@ -10,11 +10,11 @@ import './discord/crons/test.ts'
 
 // Discord
 import './discord/commands/ticket.ts'
-import './discord/configs/config.ts'
 import './discord/events/joinGuild.ts'
 import './discord/events/messageCreate.ts'
 import './discord/events/messageDelete.ts'
 import './discord/events/leaveVoiceChannel.ts'
+import './discord/configs/config.ts'
 import './discord/components/Claim/ButtonDel.ts'
 import './discord/components/Claim/ButtonClaim.ts'
 import './discord/components/Claim/ButtonTranscript.ts'

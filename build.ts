@@ -62,11 +62,24 @@ class PluginBuilder {
     this.metadata = options
     const packageJson = JSON.parse(readFileSync(join(this.metadata.path, 'package.json'), { encoding: 'utf-8' }))
     
-    this.name = [packageJson.name, packageJson.version, this.metadata.type === BuildType.Binary && process.arch]
-      .filter(Boolean)
-      .join('-')
+    this.name = [
+      packageJson.name,
+      packageJson.version,
+      this.metadata.type === BuildType.Binary 
+        ? process.platform === 'win32' ? 'windows' : process.platform
+        : undefined,
+      this.metadata.type === BuildType.Binary
+        ? process.arch
+        : undefined,
+      this.metadata.type === BuildType.Binary
+        ? process.platform === 'win32' ? '.exe' : undefined
+        : undefined,
+      this.metadata.type === BuildType.File
+        ? '.js'
+        : undefined
+    ].filter(Boolean).join('-').replace('-.', '.')  
     this.version = packageJson.version
-    this.outputFilePath = join(this.options.outputDirectory, `/${this.name}${this.metadata.type === BuildType.File ? '.js': ''}`)
+    this.outputFilePath = join(this.options.outputDirectory, this.name)
     this.hasBuildScript = Boolean(packageJson.scripts?.build)
   
     this.buildArgs.push(
