@@ -4,7 +4,7 @@ import { mkdir } from 'fs/promises'
 import { glob } from 'glob'
 import { createHash, createSign, createVerify } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import { readFile, rm, writeFile } from 'node:fs/promises'
+import { appendFile, readFile, rm, writeFile } from 'node:fs/promises'
 import { join } from 'path'
 
 type BuildOptions = {
@@ -25,6 +25,7 @@ type BuildMetadata = {
   path: string
   type: BuildType
   release?: boolean
+  prebuild?: boolean
   options: BuildOptions
 }
 
@@ -61,7 +62,9 @@ class PluginBuilder {
     this.metadata = options
     const packageJson = JSON.parse(readFileSync(join(this.metadata.path, 'package.json'), { encoding: 'utf-8' }))
     
-    this.name = `${packageJson.name}-${packageJson.version}`
+    this.name = [packageJson.name, packageJson.version, this.metadata.type === BuildType.Binary && process.arch]
+      .filter(Boolean)
+      .join('-')
     this.version = packageJson.version
     this.outputFilePath = join(this.options.outputDirectory, `/${this.name}${this.metadata.type === BuildType.File ? '.js': ''}`)
     this.hasBuildScript = Boolean(packageJson.scripts?.build)
@@ -172,6 +175,7 @@ const projects: BuildMetadata[] = [
     path: 'plugins/*',
     type: BuildType.File,
     release: true,
+    prebuild: true,
     options
   },
   {
@@ -189,9 +193,14 @@ const projects: BuildMetadata[] = [
 
 const releases: BuildRelease[] = []
 
-if (existsSync('releases')) await rm('releases', { recursive: true })
+if (existsSync('releases') && !(process.env.BINARY || process.env.PREBUILD)) {
+  await rm('releases', { recursive: true })
+}
+
 for (const project of projects) {
-  if (process.env['RELEASE'] && !project.release) continue
+  if (
+    (process.env['BINARY'] && !(project.type === BuildType.Binary))
+    || (process.env['PREBUILD'] && !project.prebuild)) continue
 
   for (const path of await glob([project.path], { cwd: process.cwd() })) {
     project.path = path
@@ -207,4 +216,4 @@ for (const project of projects) {
   }
 }
 
-await writeFile(join(outputDirectory, 'metadata.json'), JSON.stringify(releases, null, 2))
+await appendFile(join(outputDirectory, 'metadata.json'), JSON.stringify(releases, null, 2), { encoding: 'utf-8' })

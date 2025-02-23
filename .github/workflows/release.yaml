@@ -4,39 +4,30 @@ on:
   push:
     tags:
       - "v*"
+
 jobs:
   prepare:
     name: Prepare job
     runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        node-version: [20.11.1]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set output
-        id: vars
-        run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
-
-      - name: Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          check-latest: true
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install
 
       - name: Pre-build
-        run: npm run build -- --pre-build
+        run: PREBUILD=true bun run build
 
       - uses: actions/upload-artifact@v4
-        name: Upload artifact
+        name: Upload pre-build artifact
         with:
           name: pre-build
-          path: ./build
+          path: ./releases
 
   build_multi_linux:
     name: Build Linux ${{ matrix.arch }}
@@ -44,19 +35,31 @@ jobs:
     runs-on: ${{ matrix.distro }}
     strategy:
       matrix:
-        distro: [ubuntu-22.04]
-        arch: [aarch64, x64] 
-        node-version: [20.11.1]
+        include:
+          - distro: ubuntu-22.04
+            arch: aarch64
+          - distro: ubuntu-22.04
+            arch: x64
+      max-parallel: 1
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v4
+      - name: Download pre-build artifact (aarch64 only)
+        if: matrix.arch == 'aarch64'
+        uses: actions/download-artifact@v4
         with:
           github-token: ${{ github.token }}
           name: pre-build
-          path: ./build
-        
+          path: ./releases
+
+      - name: Download aarch64 artifact (x64 only)
+        if: matrix.arch == 'x64'
+        uses: actions/download-artifact@v4
+        with:
+          name: build-ubuntu-latest-aarch64
+          path: ./releases
+
       - uses: uraimo/run-on-arch-action@v2
         name: Build artifact ${{ matrix.arch }}
         if: matrix.arch == 'aarch64'
@@ -67,40 +70,37 @@ jobs:
           githubToken: ${{ github.token }}
           install: |
             apt update && apt upgrade -y && apt install -y curl unzip ca-certificates curl gnupg
-            curl -sL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh
-            bash nodesource_setup.sh
-            apt update && apt install -y nodejs
+            curl -fsSL https://bun.sh/install | bash
           run: |
-            npm i
-            npm run build -- --install --compress --obfuscate --pkg --clean --sing
+            export BUN_INSTALL="$HOME/.bun"
+            export PATH="$BUN_INSTALL/bin:$PATH"
+            bun install
+            BINARY=true bun run build
 
-      - name: Node.js ${{ matrix.node-version }}
+      - uses: oven-sh/setup-bun@v2
         if: matrix.arch == 'x64'
-        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          check-latest: true
+          bun-version: latest
 
-      - name: Rebuild Modules
+      - name: Rebuild Modules (x64 only)
         if: matrix.arch == 'x64'
-        run: rm -rf node_modules && npm ci
+        run: rm -rf node_modules && bun install
 
       - name: Build Release
         if: matrix.arch == 'x64'
-        run: npm run build -- --install --compress --obfuscate --pkg --clean
+        run: BINARY=true bun run build
 
       - uses: actions/upload-artifact@v4
-        name: Upload artifact
+        name: Upload build artifact
         with:
           name: build-ubuntu-latest-${{ matrix.arch }}
-          path: ./build
+          path: ./releases
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: release/*
+          file: releases/*
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
