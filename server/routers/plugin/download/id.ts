@@ -9,6 +9,7 @@ const schema = z.object({
 
 export default new Router({
   name: 'Dowload Plugin Release',
+  path: '/plugin/download/:id',
   description: 'Downlaod Release',
   authenticate: true,
   async get({ reply, request }) {

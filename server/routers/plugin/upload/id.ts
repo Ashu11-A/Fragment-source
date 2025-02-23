@@ -16,6 +16,7 @@ const schema = z.object({
 
 export default new Router({
   name: 'UploadPluginRelease',
+  path: '/plugin/upload/:id',
   description: 'Upload Releases',
   authenticate: [Role.Administrator],
   async post({ reply, request }) {

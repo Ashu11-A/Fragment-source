@@ -3,6 +3,7 @@ import { Bot } from '@/database/entity/Bot.js'
 
 export default new Router({
   name: 'GetDetails',
+  path: '/bot/:uuid',
   description: 'Get Details about one bot',
   async get({ reply, request }) {
     const uuid = (request.params as { uuid?: string }).uuid
