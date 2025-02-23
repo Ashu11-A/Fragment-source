@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "lang": "workspace:../lang",
-    "@node-rs/argon2": "^2.0.2",
     "@types/crypto-js": "^4.2.2",
     "check-password-strength": "^2.0.10",
     "crypto-js": "^4.2.0",
