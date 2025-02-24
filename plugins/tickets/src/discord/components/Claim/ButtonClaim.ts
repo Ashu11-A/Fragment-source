@@ -1,5 +1,5 @@
 import { TicketBuilder } from '@/class/TicketBuilder.js'
-import { claimDB } from '@/utils/database'
+import { database } from '@/utils/database'
 import { buttonRedirect, Component, Error } from 'discord'
 import { EmbedBuilder, MessageFlags } from 'discord.js'
 
@@ -11,7 +11,7 @@ new Component({
     await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
     const { message, user, guildId, guild, channel } = interaction
-    const claimData = await claimDB.findOne({ where: { messageId: message.id }, relations: { ticket: true } })
+    const claimData = await database.claim.findOne({ where: { messageId: message.id }, relations: { ticket: true } })
 
     if (claimData === undefined || claimData?.ticket === undefined) return await new Error({ element: 'Claim', interaction }).notFound({ type: 'Database' }).reply()
 

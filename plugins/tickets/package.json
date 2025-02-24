@@ -19,6 +19,7 @@
     "crypt": "workspace:../../packages/crypt",
     "discord.js": "^14.18.0",
     "socket-client": "workspace:../../packages/socket",
-    "cli": "workspace:../../packages/cli"
+    "cli": "workspace:../../packages/cli",
+    "build": "workspace:../../packages/build"
   }
 }

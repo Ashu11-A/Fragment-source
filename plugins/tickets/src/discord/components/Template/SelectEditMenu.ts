@@ -1,5 +1,5 @@
 import { TemplateBuilder } from '@/class/TemplateBuilder.js'
-import { templateDB } from '@/utils/database'
+import { database } from '@/utils/database'
 import { Component, Error } from 'discord'
 import { PermissionsBitField } from 'discord.js'
 
@@ -14,7 +14,7 @@ new Component({
     const { message, values } = interaction
     const position = Number(values[0])
 
-    const templateData = await templateDB.findOne({ where: { messageId: message.id } })
+    const templateData = await database.template.findOne({ where: { messageId: message.id } })
     if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
 
     templateData.selects.splice(position, 1)

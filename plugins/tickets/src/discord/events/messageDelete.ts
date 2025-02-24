@@ -5,7 +5,7 @@ import { TicketBuilder } from '@/class/TicketBuilder.js'
 import { Database } from 'socket-client'
 import Claim from '@/entity/Claim.entry.js'
 import Ticket from '@/entity/Ticket.entry.js'
-import { templateDB } from '@/utils/database.js'
+import { database } from '@/utils/database.js'
 import { AuditLogEvent, EmbedBuilder, Message, MessageFlagsBitField } from 'discord.js'
 import { Event } from 'discord'
 
@@ -44,7 +44,7 @@ new Event({
   name: 'messageDelete',
   async run(message) {
     if (!message.author?.bot || !(message instanceof Message) || !message.inGuild()) return
-    const template = await templateDB.findOne({ where: { messageId: message.id } })
+    const template = await database.template.findOne({ where: { messageId: message.id } })
     if (template === null) return
 
     const embed = new TemplateBuilder({ interaction: message })
@@ -57,7 +57,7 @@ new Event({
 
     const newMessage = await message.channel.send({ embeds: [embed], components: buttons })
 
-    await templateDB.update({ id: template.id }, { messageId: newMessage.id })
+    await database.template.update({ id: template.id }, { messageId: newMessage.id })
   },
 })
 

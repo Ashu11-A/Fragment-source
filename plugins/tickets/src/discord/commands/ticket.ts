@@ -1,12 +1,9 @@
 import { Template } from '@/class/Template'
 import { TemplateBuilder } from '@/class/TemplateBuilder'
-import TemplateTable from '@/entity/Template.entry.js'
-import { templateDB } from '@/utils/database'
+import { database } from '@/utils/database'
 import { Command, Error } from 'discord'
 import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, Colors, EmbedBuilder, MessageFlags, PermissionFlagsBits } from 'discord.js'
-import { Database } from 'socket-client'
 
-const templateDb = new Database<TemplateTable>({ table: 'Template' })
 
 new Command({
   name: 'ticket',
@@ -191,14 +188,14 @@ new Command({
       case 'category': {
         switch (options.getFocused(true).name) {
         case 'message_id': {
-          const templateData = await templateDb.find({ where: { guild: { guildId: guildId } } })
+          const templateData = await database.template.find({ where: { guild: { guildId: guildId } } })
           respond.push(...templateData.map((template) => ({ name: `${template?.embed?.title ?? template.messageId} | ${template.updateAt}`, value: template.messageId })))
           break 
         }
         case 'category': {
           const messageId = options.data[0].options?.[0].options?.find((option) => option.name === 'message_id')?.value as string | undefined
           console.log(messageId)
-          const categories = (await templateDB.findOne({ where: { messageId } }))?.categories ?? []
+          const categories = (await database.template.findOne({ where: { messageId } }))?.categories ?? []
           respond.push(...categories.map((category) => ({ name: `${category.emoji} ${category.title}`, value: category.title })))
           break
         }
@@ -209,7 +206,7 @@ new Command({
     } else {
       switch (options.getFocused(true).name) {
       case 'message_id': {
-        const templateData = await templateDb.find({ where: { guild: { guildId: guildId } } })
+        const templateData = await database.template.find({ where: { guild: { guildId: guildId } } })
         respond.push(...templateData.map((template) => ({ name: `${template?.embed?.title ?? template.messageId} | ${template.updateAt}`, value: template.messageId })))
         break 
       }
@@ -241,7 +238,7 @@ new Command({
           const title = options.getString('title', true)
           const templateId = options.getString('message_id', true)
 
-          const templateData = await templateDB.findOne({ where: { messageId: templateId } })
+          const templateData = await database.template.findOne({ where: { messageId: templateId } })
           if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
           templateData.categories = [ ...(templateData.categories ?? []), { emoji, title }]
 
@@ -258,7 +255,7 @@ new Command({
         case 'rem': {
           const title = options.getString('category', true)
           const templateId = options.getString('message_id', true)
-          const templateData = await templateDB.findOne({ where: { messageId: templateId } })
+          const templateData = await database.template.findOne({ where: { messageId: templateId } })
           if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
 
           templateData.categories = templateData?.categories.filter((category) => category.title !== title)

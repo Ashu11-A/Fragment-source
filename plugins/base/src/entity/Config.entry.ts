@@ -3,9 +3,9 @@ import Guild from './Guild.entry.js'
 
 @Entity({ name: 'base_config' })
 export default class Config extends BaseEntity {
-    @PrimaryGeneratedColumn()
-      id!: number
+  @PrimaryGeneratedColumn()
+    id!: number
 
-    @OneToOne(() => Guild, (guild) => guild.config)
-      guild!: Guild
+  @OneToOne(() => Guild, (guild) => guild.config)
+    guild!: Guild
 }

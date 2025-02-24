@@ -1,5 +1,5 @@
 import TicketInterface from '@/entity/Ticket.entry.js'
-import { claimDB, configDB, ticketDB } from '@/utils/database.js'
+import { database } from '@/utils/database.js'
 import { ActionDrawer, Error } from 'discord'
 import { AttachmentBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, ComponentType, EmbedBuilder, ModalSubmitInteraction, PermissionsBitField, StringSelectMenuInteraction } from 'discord.js'
 import { TicketBuilder } from './TicketBuilder.js'
@@ -64,15 +64,15 @@ export class Ticket {
     let ticket: TicketInterface | undefined
 
     if (messageId !== undefined) {
-      const claimData = await claimDB.findOne({ where: { messageId }, relations: { ticket: true } })
+      const claimData = await database.claim.findOne({ where: { messageId }, relations: { ticket: true } })
       ticket = claimData?.ticket as TicketInterface
     } else if (channelId !== undefined) {
-      const ticketData = await ticketDB.findOne({ where: { channelId } })
+      const ticketData = await database.ticket.findOne({ where: { channelId } })
       ticket  = ticketData as TicketInterface
     }
     if (ticket === undefined) return await new Error({ element: 'Claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
     const user = await (await this.interaction.client.guilds.fetch(guildId)).members.fetch(ticket.ownerId).catch(() => undefined)
-    const config = await configDB.findOne({ where: { guild: { guildId } }, relations: { guild: true } })
+    const config = await database.config.findOne({ where: { guild: { guildId } }, relations: { guild: true } })
 
 
     const createChannel = async () => {
@@ -86,7 +86,7 @@ export class Ticket {
       ? (await guild.channels.fetch()).find((channel) => channel?.id === config?.logsId && channel?.type === ChannelType.GuildText) ?? await createChannel()
       : await createChannel()
     
-    if (config?.logsId === null) await configDB.save(Object.assign(config ?? {}, { logsId: channel.id }))
+    if (config?.logsId === null) await database.config.save(Object.assign(config ?? {}, { logsId: channel.id }))
 
     const embed = new EmbedBuilder({
       title: '📄 Historico do ticket',

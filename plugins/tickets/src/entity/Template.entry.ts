@@ -2,32 +2,7 @@ import { type APIEmbed } from 'discord.js'
 import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, type Relation, UpdateDateColumn } from 'typeorm'
 import Guild from './Guild.entry.js'
 import Ticket from './Ticket.entry.js'
-
-export interface Properties {
-    [key: string]: boolean | string
-}
-
-export enum TypeTemplate {
-  Button = 'button',
-  Select = 'select',
-  Modal = 'modal'
-}
-
-export interface Select {
-  title: string
-  description: string
-  emoji: string
-}
-
-export interface Category {
-  title: string
-  emoji: string
-}
-
-export interface System {
-  name: string
-  isEnabled: boolean
-}
+import { TypeTemplate, type Category, type Properties, type Select, type System } from '@/types/Database.js'
 
 @Entity({ name: 'tickets_templates' })
 export default class Template extends BaseEntity {

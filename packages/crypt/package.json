@@ -7,9 +7,11 @@
   "scripts": {
     "lint": "eslint -c eslint.config.js --fix"
   },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.2"
+  },
   "dependencies": {
     "lang": "workspace:../lang",
-    "@types/crypto-js": "^4.2.2",
     "check-password-strength": "^2.0.10",
     "crypto-js": "^4.2.0",
     "node-forge": "^1.3.1",

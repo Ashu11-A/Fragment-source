@@ -1,8 +1,6 @@
-import { Database } from '@/controller/database.js'
-import type User from '@/entity/User.entry.js'
+import { database } from '@/utils/database'
+import { Command } from 'discord'
 import { ApplicationCommandType } from 'discord.js'
-import { Command } from '../base/index.js'
-import { console } from '@/controller/console.js'
 
 new Command({
   name: 'test',
@@ -10,8 +8,7 @@ new Command({
   dmPermission: false,
   type: ApplicationCommandType.ChatInput,
   async run (interaction) {
-    const database = new Database<User>({ table: 'User' })
-    const user = await database.create({
+    const user = await database.user.create({
       age: 1,
       firstName: 'a',
       lastName: 'a'
@@ -19,15 +16,15 @@ new Command({
 
     console.log(`Criando: ${JSON.stringify(user, null, 2)}`)
 
-    const userSave = await database.save(user)
+    const userSave = await database.user.save(user)
 
     console.log(`Salvando: ${JSON.stringify(userSave, null, 2)}`)
 
-    const userFind = await database.find({ where: { firstName: 'a' }})
+    const userFind = await database.user.find({ where: { firstName: 'a' }})
     
     console.log(`Achei isso aqui: ${JSON.stringify(userFind, null, 2)}`)
 
-    const userDelete = await database.delete({ firstName: user.firstName })
+    const userDelete = await database.user.delete({ firstName: user.firstName })
 
     console.log(`Deletando isso: ${JSON.stringify(userDelete, null, 2)}`)
 

@@ -1,5 +1,5 @@
-import { Database } from '@/controller/database.js'
-import { Event } from '../base/index.js'
+import { Database } from 'socket-client'
+import { Event } from 'discord'
 import Guild from '@/entity/Guild.entry.js'
 
 const guildClass = new Database<Guild>({ table: 'Guild' })

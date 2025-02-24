@@ -1,13 +1,12 @@
 import { exec as execChild } from 'child_process'
 import { existsSync } from 'fs'
 import { mkdir } from 'fs/promises'
-import { glob } from 'glob'
 import { createHash, createSign, createVerify } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import { appendFile, readFile, rm, writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'path'
 
-type BuildOptions = {
+export type BuildOptions = {
   entryFile: string
   outputDirectory: string
   name?: string
@@ -15,13 +14,13 @@ type BuildOptions = {
   signatureLength?: 256 | 512
 }
 
-enum BuildType {
+export enum BuildType {
   Binary = 0,
   File = 1,
   Directory = 2
 }
 
-type BuildMetadata = {
+export type BuildMetadata = {
   path: string
   type: BuildType
   release?: boolean
@@ -29,7 +28,7 @@ type BuildMetadata = {
   options: BuildOptions
 }
 
-type BuildRelease = {
+export type BuildRelease = {
   name: string
   version: string
   size: number
@@ -48,7 +47,7 @@ function formatBytes(bytes: number, decimals: number = 2): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(decimals))} ${sizes[i]}`
 }
 
-class PluginBuilder {
+export class PluginBuilder {
   readonly name: string
   readonly version: string
   readonly buildArgs: string[] = []
@@ -175,58 +174,3 @@ class PluginBuilder {
     })
   }
 }
-
-const outputDirectory = join(process.cwd(), 'releases')
-const options: BuildOptions = {
-  entryFile: 'src/app.ts',
-  // signatureLength: 256,
-  outputDirectory,
-}
-
-const projects: BuildMetadata[] = [
-  {
-    path: 'plugins/*',
-    type: BuildType.File,
-    release: true,
-    prebuild: true,
-    options
-  },
-  {
-    path: 'packages/*',
-    type: BuildType.File,
-    options
-  },
-  {
-    path: 'core',
-    type: BuildType.Binary,
-    release: true,
-    options
-  }
-]
-
-const releases: BuildRelease[] = []
-
-if (existsSync('releases') && !(process.env.BINARY || process.env.PREBUILD)) {
-  await rm('releases', { recursive: true })
-}
-
-for (const project of projects) {
-  if (
-    (process.env['BINARY'] && !(project.type === BuildType.Binary))
-    || (process.env['PREBUILD'] && !project.prebuild)) continue
-
-  for (const path of await glob([project.path], { cwd: process.cwd() })) {
-    project.path = path
-    const builder = new PluginBuilder(project)
-
-    await builder.build()
-    if (project.options?.signatureLength) {
-      await builder.sign(join(process.cwd(), 'core/privateKey.pem'))
-      await builder.singCheck(join(process.cwd(), 'core/publicKey.pem'))
-    }
-
-    releases.push(await builder.release())
-  }
-}
-
-await appendFile(join(outputDirectory, 'metadata.json'), JSON.stringify(releases, null, 2), { encoding: 'utf-8' })

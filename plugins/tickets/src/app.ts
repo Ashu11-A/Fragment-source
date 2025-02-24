@@ -2,12 +2,12 @@ import 'reflect-metadata'
 import './index.js'
 import './register.js'
 
-import { Cli } from 'cli'
 import { Crypt } from 'crypt'
 import { Command, Component, Config, Crons, Discord, Event } from 'discord'
 import { join } from 'path'
 import { Entry, SocketClient } from 'socket-client'
 import { metadata } from 'utils'
+import { Cli } from 'cli'
 
 // eslint-disable-next-line no-var
 declare var self: Worker

@@ -1,6 +1,6 @@
 import { TicketBuilder } from '@/class/TicketBuilder.js'
 import { Component, YouSure, Error } from 'discord'
-import { claimDB } from '@/utils/database'
+import { database } from '@/utils/database'
 import { MessageFlags } from 'discord.js'
 
 new Component({
@@ -10,7 +10,7 @@ new Component({
     if (!interaction.inCachedGuild()) return
     await interaction.deferReply({ flags: MessageFlags.Ephemeral })
     const { message } = interaction
-    const claimData = await claimDB.findOne({ where: { messageId: message.id }, relations: { ticket: true } })
+    const claimData = await database.claim.findOne({ where: { messageId: message.id }, relations: { ticket: true } })
     if (claimData === null) throw await new Error({ element: 'este claim', interaction }).notFound({ type: 'Database' }).reply()
 
     const builder = new TicketBuilder({ interaction })

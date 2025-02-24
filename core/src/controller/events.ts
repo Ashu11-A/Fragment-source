@@ -22,6 +22,8 @@ export class Event {
     this.client.onAny(async (eventName: string, args) => {
       if (eventName.split('_').includes('database')) { await database.events(this.client, eventName, args); return }
 
+      console.log('evento: ', eventName)
+
       switch (eventName) {
       case 'entries': {
         const entries = args as { [key: string]: string }

@@ -1,6 +1,6 @@
 import Template from '@/entity/Template.entry.js'
 import Ticket, { type Event, type History, type TicketCategories, type Message as TicketMessage, type TicketType, type User as UserTicket, type Voice } from '@/entity/Ticket.entry.js'
-import { guildDB } from '@/utils/database.js'
+import { database } from '@/utils/database.js'
 import { ActionDrawer, ButtonBuilder, buttonRedirect, Error } from 'discord'
 import { ActionRowBuilder, ButtonInteraction, ButtonStyle, ChannelType, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, type OverwriteResolvable, PartialGroupDMChannel, PermissionsBitField, StringSelectMenuInteraction, TextChannel, User, codeBlock } from 'discord.js'
 import { Database } from 'socket-client'
@@ -168,7 +168,7 @@ export class TicketBuilder {
     if (this.embed === undefined || this.buttons === undefined) this.render()
     const messageMain = await channel.send({ embeds: [this.embed as EmbedBuilder], components: this.buttons })
 
-    const guildRelaction = await guildDB.findOne({ where: { guildId: guild.id } })
+    const guildRelaction = await database.guild.findOne({ where: { guildId: guild.id } })
     if (guildRelaction === null) return await new Error({ element: 'Guild', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
 
     const templateRelaction = await template.findOne({ where: { id: this.templateId } })

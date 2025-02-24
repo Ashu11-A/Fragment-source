@@ -1,10 +1,8 @@
 import { TemplateButtonBuilder } from '@/class/TemplateButtonBuilder.js'
-import { Database } from 'socket-client'
+import { database } from '@/utils/database'
 import { Component, ModalBuilder } from 'discord'
-import TemplateTable from '@/entity/Template.entry.js'
 import { ActionRowBuilder, type APITextInputComponent, ComponentType, EmbedBuilder, TextInputBuilder } from 'discord.js'
 
-const templateDb = new Database<TemplateTable>({ table: 'Template' })
 const notFound = new EmbedBuilder({
   title: '❌ Não encontrei o template no database!'
 }).setColor('Red')
@@ -61,7 +59,7 @@ new Component({
     const title = interaction.fields.getTextInputValue('title')
     const emoji = interaction.fields.getTextInputValue('emoji')
     const description = interaction.fields.getTextInputValue('description')
-    const templateData = await templateDb.findOne({ where: { messageId: interaction.message?.id } })
+    const templateData = await database.template.findOne({ where: { messageId: interaction.message?.id } })
     const buttonBuilder = new TemplateButtonBuilder()
 
     if (templateData === null) {
@@ -90,7 +88,7 @@ new Component({
       }
     ]
 
-    await templateDb.save(templateData)
+    await database.template.save(templateData)
       .then(async () => {
         await interaction.reply({
           ephemeral: true,

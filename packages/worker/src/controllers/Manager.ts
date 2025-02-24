@@ -95,7 +95,7 @@ export class Manager {
       setTimeout(() => {
         if (!this.metadata || !this.websocketId || !this.socket) {
           this.worker.terminate()
-          throw new Error(i18('manager.workerTimeout', { fileURL: this.options.fileURL }))
+          reject(i18('manager.workerTimeout', { fileURL: this.options.fileURL }))
         }
         
         console.log(i18('manager.pluginInitialized'))

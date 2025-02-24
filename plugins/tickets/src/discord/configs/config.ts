@@ -1,4 +1,4 @@
-import { configDB } from '@/utils/database'
+import { database } from '@/utils/database'
 import { Config } from 'discord'
 import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ChannelType, EmbedBuilder, MessageFlags } from 'discord.js'
 
@@ -61,7 +61,7 @@ new Config({
       switch (options.getFocused(true).name) {
       case 'rem-role-team': {
         haveInteraction = true
-        const roles = (await configDB.findOne({ where: { guild: { guildId } }}))?.roles ?? []
+        const roles = (await database.config.findOne({ where: { guild: { guildId } }}))?.roles ?? []
         if (roles.length > 0) {
           for (const role of roles) {
             respond.push({ name: `${role.name} | ${role.id}`, value: role.id })
@@ -86,7 +86,7 @@ new Config({
     const addRole = options.getRole('add-role-team')
     const remRole = options.getString('rem-role-team')
 
-    const dataDB = await configDB.findOne({ where: { guild: { guildId } }})
+    const dataDB = await database.config.findOne({ where: { guild: { guildId } }})
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let data = dataDB ?? {} as Record<string, any>
     const text = []
@@ -136,9 +136,9 @@ new Config({
     }
     try {
       if (dataDB !== null) {
-        await configDB.update({ id: dataDB.id }, data)
+        await database.config.update({ id: dataDB.id }, data)
       } else {
-        await configDB.save(await configDB.create(Object.assign(data, { guild: { guildId } })))
+        await database.config.save(await database.config.create(Object.assign(data, { guild: { guildId } })))
       }
 
       await interaction.editReply({

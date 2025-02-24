@@ -8,7 +8,7 @@ export default class Guild extends BaseEntity {
 
   @Column({ type: 'text' })
     guildId!: string
-  
+
   @OneToOne(() => Config, (config) => config.guild)
   @JoinColumn()
     config!: Config

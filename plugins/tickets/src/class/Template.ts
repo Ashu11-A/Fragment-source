@@ -1,9 +1,10 @@
-import TemplateTable, { TypeTemplate } from '@/entity/Template.entry.js'
+import TemplateTable from '@/entity/Template.entry.js'
 import { ButtonInteraction, type CacheType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, StringSelectMenuInteraction } from 'discord.js'
 import { TemplateButtonBuilder } from './TemplateButtonBuilder.js'
 import { Database } from 'socket-client'
-import { guildDB } from '@/utils/database.js'
+import { database } from '@/utils/database.js'
 import { checkChannel, Error } from 'discord'
+import { TypeTemplate } from '@/types/Database.js'
 
 const template = new Database<TemplateTable>({ table: 'Template' })
 interface TicketOptions {
@@ -49,7 +50,7 @@ export class Template {
       .render()
 
     await channel.send({ embeds: [embed], components }).then(async (message) => {
-      const guild = await guildDB.findOne({ where: { guildId } })
+      const guild = await database.guild.findOne({ where: { guildId } })
       if (guild === null) return await new Error({ element: 'Guild', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
       const create = await template.create({
         guild,

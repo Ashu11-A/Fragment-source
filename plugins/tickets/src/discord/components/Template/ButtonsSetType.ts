@@ -1,8 +1,9 @@
 import { TemplateButtonBuilder } from '@/class/TemplateButtonBuilder.js'
 import { Database } from 'socket-client'
 import { Component } from 'discord'
-import TemplateTable, { TypeTemplate } from '@/entity/Template.entry.js'
+import TemplateTable from '@/entity/Template.entry.js'
 import { EmbedBuilder, MessageFlags } from 'discord.js'
+import { TypeTemplate } from '@/types/Database'
 
 const template = new Database<TemplateTable>({ table: 'Template' })
 const actions = {

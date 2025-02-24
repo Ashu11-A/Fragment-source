@@ -1,4 +1,4 @@
-import { guildDB } from '@/utils/database'
+import { database } from '@/utils/database'
 import { TextChannel } from 'discord.js'
 import { Event } from 'discord'
 
@@ -9,7 +9,7 @@ new Event({
   name: 'voiceStateUpdate',
   async run (oldState, newState) {
     if (oldState.channel?.members.size === 0) {
-      const guildData = await guildDB.find({ where: { guildId: newState.guild.id }, relations: { tickets: true } })
+      const guildData = await database.guild.find({ where: { guildId: newState.guild.id }, relations: { tickets: true } })
       const ticket = guildData[0].tickets.find((ticket) => ticket.voice?.id === oldState?.channelId)
 
       if (ticket === undefined) return

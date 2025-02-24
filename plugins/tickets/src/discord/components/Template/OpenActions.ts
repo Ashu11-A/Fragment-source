@@ -1,7 +1,7 @@
 import { TemplateBuilder } from '@/class/TemplateBuilder.js'
 import { TicketBuilder } from '@/class/TicketBuilder.js'
-import { TypeTemplate, type Category, type Select } from '@/entity/Template.entry.js'
-import { templateDB } from '@/utils/database'
+import { TypeTemplate, type Category, type Select } from '@/types/Database'
+import { database } from '@/utils/database'
 import { ActionDrawer, Component, Error, ModalBuilder, StringSelectMenuBuilder } from 'discord'
 import { MessageFlags, PermissionsBitField, TextInputBuilder, TextInputStyle, type SelectMenuComponentOptionData } from 'discord.js'
 export const userSelect = new Map<string, { category: Category, templateId: number }>()
@@ -19,7 +19,7 @@ new Component({
     const { user, message } = interaction
     const ticket = new TicketBuilder({ interaction })
 
-    const templateData = await templateDB.findOne({ where: { messageId: message.id } })
+    const templateData = await database.template.findOne({ where: { messageId: message.id } })
     if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
 
     const moreDetails = (templateData.systems ?? []).find((system) => system.name === 'MoreDetails')?.isEnabled
@@ -134,7 +134,7 @@ new Component({
     const { values, user } = interaction
     const [messageId, index] = values[0].split('_') as [string, string]
   
-    const templateData = await templateDB.findOne({ where: { messageId } })
+    const templateData = await database.template.findOne({ where: { messageId } })
     if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
       
     const category = templateData.categories[Number(index)]
@@ -240,7 +240,7 @@ new Component({
       return
     }
 
-    const templateData = await templateDB.findOne({ where: { messageId: message.id } })
+    const templateData = await database.template.findOne({ where: { messageId: message.id } })
     if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
 
     const typeTicket = templateData?.selects[Number(select)]

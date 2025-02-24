@@ -1,20 +1,37 @@
-// Entries
-
 import { Entry } from 'socket-client'
-import * as entries from '../entries.json'
+import { Package } from 'utils'
+import pkg from '../package.json'
+Package.setData(pkg)
+import * as Claim from './entity/Claim.entry.ts' with { type: 'text' }
+import * as Config from './entity/Config.entry.ts' with { type: 'text' }
+import * as Ticket from './entity/Ticket.entry.ts' with { type: 'text' }
+import * as Template from './entity/Template.entry.ts' with { type: 'text' }
+import * as Guild from './entity/Guild.entry.ts' with { type: 'text' }
 
-Entry.setEntries(entries)
+Entry.setEntries({
+  'Claim.entry.ts': Claim as unknown as string,
+  'Config.entry.ts': Config as unknown as string,
+  'Ticket.entry.ts': Ticket as unknown as string,
+  'Template.entry.ts': Template as unknown as string,
+  'Guild.entry.ts': Guild as unknown as string,
+})
 
-// Crons
-import './discord/crons/test.ts'
-
-// Discord
+// Commands
 import './discord/commands/ticket.ts'
+
+// Events
 import './discord/events/joinGuild.ts'
 import './discord/events/messageCreate.ts'
 import './discord/events/messageDelete.ts'
 import './discord/events/leaveVoiceChannel.ts'
+
+// Configs
 import './discord/configs/config.ts'
+
+// Crons
+import './discord/crons/test.ts'
+
+// Components
 import './discord/components/Claim/ButtonDel.ts'
 import './discord/components/Claim/ButtonClaim.ts'
 import './discord/components/Claim/ButtonTranscript.ts'

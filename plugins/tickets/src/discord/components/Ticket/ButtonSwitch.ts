@@ -2,7 +2,7 @@ import { ClaimBuilder } from '@/class/ClaimBuilder.js'
 import { TicketBuilder } from '@/class/TicketBuilder.js'
 import { Error, Component } from 'discord'
 import Ticket from '@/entity/Ticket.entry.js'
-import { claimDB, ticketDB } from '@/utils/database.js'
+import { database } from '@/utils/database.js'
 import { EmbedBuilder, MessageFlags } from 'discord.js'
 
 new Component({
@@ -19,10 +19,10 @@ new Component({
     let ephemeral = false
 
     // Caso a interação venha do embed de claim, deve ocorrer este tipo de consulta
-    ticketData = await ticketDB.findOne({ where: { channelId }, relations: { claim: true } })
+    ticketData = await database.ticket.findOne({ where: { channelId }, relations: { claim: true } })
     if (ticketData === null) {
       ephemeral = true
-      const claimData = await claimDB.findOne({ where: { messageId: message.id }, relations: { ticket: true } })
+      const claimData = await database.claim.findOne({ where: { messageId: message.id }, relations: { ticket: true } })
       ticketData = claimData?.ticket ?? null
       claimId = claimData?.messageId
     } else {
