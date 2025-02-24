@@ -7,13 +7,6 @@
   "scripts": {
     "lint": "eslint -c eslint.config.js --fix"
   },
-  "devDependencies": {
-    "@eslint/js": "^9.21.0",
-    "@types/bun": "latest",
-    "eslint": "^9.21.0",
-    "globals": "^15.15.0",
-    "typescript-eslint": "^8.24.1"
-  },
   "dependencies": {
     "utils": "workspace:../utils"
   },
