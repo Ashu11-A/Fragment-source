@@ -68,7 +68,7 @@ export class Lang<Languages extends readonly LangLyrics<string, Record<string, u
   
   async select (): Promise<string> {
     const path = join(this.sourcePath, 'locales')
-    const allLangs = (await glob('**/*.json', { cwd: path })).map((lang) => lang.split('/')[0])
+    const allLangs = (await glob('*', { cwd: path })).map((lang) => lang.split('/')[0])
     const langs = []
     for (const lang of allLangs) {
       if (langs.filter((langExist) => langExist === lang).length == 0) langs.push(lang)

@@ -29,12 +29,10 @@ if (!isPKG(path)) {
 
   let registers = await readFile(registerPath, { encoding: 'utf-8' }) ?? ''
   registers += `// Entries
-
 import { Entry } from 'socket-client'
 import * as entries from '../entries.json'
 
-Entry.setEntries(entries)
-`
+Entry.setEntries(entries)`
 
   await writeFile(registerPath, registers, { encoding: 'utf-8' })
 }

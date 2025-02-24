@@ -33,8 +33,8 @@ let watched = false
 
 export class License {
   async checker () {
-    if (existsSync(`${RootPATH}/.license`)) {
-      const data = await readFile(`${RootPATH}/.license`, { encoding: 'utf-8' })
+    if (existsSync(join(RootPATH, '.license'))) {
+      const data = await readFile(join(RootPATH, '.license'), { encoding: 'utf-8' })
       const accept = /true/i.test(data)
       if (!accept) return await this.ask()
     } else {
@@ -64,11 +64,11 @@ export class License {
 
     switch (response.accept) {
     case true: {
-      await writeFile(`${RootPATH}/.license`, 'ACCEPT=true')
+      await writeFile(join(RootPATH, '.license'), 'ACCEPT=true')
       break
     }
     default: {
-      await writeFile(`${RootPATH}/.license`, 'ACCEPT=false')
+      await writeFile(join(RootPATH, '.license'), 'ACCEPT=false')
       throw new Error(i18('error.no_possible'))
     }
     }
