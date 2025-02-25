@@ -1,7 +1,7 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, type Relation, UpdateDateColumn } from 'typeorm'
-import Guild from './Guild.entry.js'
-import Claim from './Claim.entry.js'
-import Template from './Template.entry.js'
+import { BaseEntity, type Relation, ManyToOne, UpdateDateColumn, Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
+import Claim from './Claim.entry'
+import Template from './Template.entry'
+import Guild from './Guild.entry'
 
 export interface User {
   name: string

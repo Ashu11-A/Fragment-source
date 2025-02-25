@@ -59,6 +59,7 @@ export class PluginBuilder {
   constructor (options: BuildMetadata) {
     this.options = options.options
     this.metadata = options
+    console.log(this.metadata.path)
     const packageJson = JSON.parse(readFileSync(join(this.metadata.path, 'package.json'), { encoding: 'utf-8' }))
     
     this.name = [

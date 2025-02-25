@@ -1,11 +1,16 @@
+type Entries = {
+  typescript: Record<string, string>
+  javascript: Record<string, string>
+}
+
 export class Entry {
-  private static entries: Record<string, string>
+  private static entries: Entries
   
-  static setEntries(data: Record<string, string>) {
+  static setEntries(data: Entries) {
     this.entries = data
   }
 
   static getEntries() {
-    return Entry.entries.default
+    return Entry.entries
   }
 }

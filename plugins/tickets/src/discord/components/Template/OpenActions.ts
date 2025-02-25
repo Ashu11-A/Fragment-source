@@ -1,6 +1,7 @@
 import { TemplateBuilder } from '@/class/TemplateBuilder.js'
 import { TicketBuilder } from '@/class/TicketBuilder.js'
-import { TypeTemplate, type Category, type Select } from '@/types/Database'
+import { type Category, type Select, TypeTemplate } from '@/types/entries'
+
 import { database } from '@/utils/database'
 import { ActionDrawer, Component, Error, ModalBuilder, StringSelectMenuBuilder } from 'discord'
 import { MessageFlags, PermissionsBitField, TextInputBuilder, TextInputStyle, type SelectMenuComponentOptionData } from 'discord.js'

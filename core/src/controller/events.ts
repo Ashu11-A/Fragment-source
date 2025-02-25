@@ -12,6 +12,8 @@ import { Plugin } from 'worker'
 import type { DiscordMetadata } from 'worker/src/types/discord.js'
 import { Config } from './config.js'
 import { Database, type EntityImport } from './database.js'
+import { isPKG } from 'utils'
+import { fileURLToPath } from 'url'
 
 export class Event {
   constructor (private readonly client: Socket) {}
@@ -26,7 +28,8 @@ export class Event {
 
       switch (eventName) {
       case 'entries': {
-        const entries = args as { [key: string]: string }
+        const data = args as { typescript: Record<string, string>, javascript: Record<string, string> }
+        const entries = isPKG(dirname(fileURLToPath(import.meta.url))) ? data.javascript : data.typescript
         const plugin = Plugin.all.get(this.client.id)
         if (!plugin) {
           console.log('Plugin é undefined: entries')
@@ -35,37 +38,26 @@ export class Event {
   
         for (const [fileName, code] of Object.entries(entries)) {
           const path = join(cwd(), 'entries')
-          const filePath = join(path, fileName)
-          const regex = PKG_MODE ? /require\((['"])(?!\.\/)([^'"]+)\1\)/g : /from ['"](?!\.\/)([^'"]+)['"]/g
-  
-          let result: string = ''
-          let match
-          while ((match = regex.exec(code)) !== null) {
-            const content = match[1]
-            if (content) {
-              const replacedPath = `"${join(__dirname, '../../')}node_modules/${content}"`
-              const genRegex = new RegExp(`"${content}"`, 'g')
-              result = code.replace(genRegex, replacedPath)
-            }
-          }
+          const entryName = join(plugin.manager.metadata.name, fileName)
+          const filePath = join(path, entryName)
   
           if (!existsSync(path)) await mkdir(path, { recursive: true })
           await mkdir(dirname(filePath), { recursive: true })
-          await writeFile(join(path, fileName), result, { encoding: 'utf-8' })
+          await writeFile(filePath, code, { encoding: 'utf-8' })
         }
   
         for (const fileName of Object.keys(entries)) {
           const path = join(cwd(), 'entries')
-          const filePath = join(path, fileName)
+          const entryName = join(plugin.manager.metadata.name, fileName)
+          const filePath = join(path, entryName)
           const entry = await import(filePath) as EntityImport<typeof BaseEntity>
-          
-          Database.entries = Object.assign(Database.entries, ({ [fileName]: entry }))
-          console.log(i18('plugins.entry_load', { name: fileName.split('.')[0] }))
+
+          Database.entries = Object.assign(Database.entries, ({ [entryName]: entry }))
         }
+        console.log(Database.entries)
           
         Plugin.all.set(this.client.id, { ...plugin, entries: args })
-  
-        const database = new Database()
+
         console.log(i18('database.starting'))
     
         if (Database.client) await Database.client.destroy()

@@ -1,10 +1,8 @@
 import { TemplateButtonBuilder } from '@/class/TemplateButtonBuilder.js'
-import TemplateTable from '@/entity/Template.entry.js'
+import { database } from '@/utils/database'
 import { checkHexCor, checkURL, Component, ModalBuilder } from 'discord'
 import { ActionRowBuilder, type APIEmbed, type APITextInputComponent, ComponentType, EmbedBuilder, type HexColorString, MessageFlags, TextInputBuilder } from 'discord.js'
-import { Database } from 'socket-client'
 
-const template = new Database<TemplateTable>({ table: 'Template' })
 const notFound = new EmbedBuilder({
   title: '❌ Não encontrei esse template no meu banco de dados!'
 }).setColor('Red')
@@ -71,7 +69,7 @@ for (const [action, data] of Object.entries(modalData)) {
     customId: action,
     type: 'Button',
     async run(interaction) {
-      const templateData = await template.findOne({ where: { messageId: interaction.message.id } })
+      const templateData = await database.template.findOne({ where: { messageId: interaction.message.id } })
       const value = templateData?.embed?.[data.database as keyof APIEmbed]
 
       if (templateData === null) {
@@ -97,7 +95,7 @@ for (const [action, data] of Object.entries(modalData)) {
     type: 'Modal',
     async run(interaction) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral })
-      const templateData = await template.findOne({ where: { messageId: interaction.message?.id } })
+      const templateData = await database.template.findOne({ where: { messageId: interaction.message?.id } })
       
       if (templateData === null) {
         await interaction.editReply({ embeds: [notFound] })
@@ -156,7 +154,7 @@ for (const [action, data] of Object.entries(modalData)) {
       templateData.embed = embed.toJSON()
       templateData.properties = Object.assign((templateData.properties ?? {}), { [action]: true })
 
-      await template.save(templateData)
+      await database.template.save(templateData)
         .then(async () => {
           const buttonBuilder = new TemplateButtonBuilder()
           const components = buttonBuilder

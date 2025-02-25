@@ -1,7 +1,10 @@
-import { writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import { basename, join } from 'path'
 import { __plugin_dirname, isPKG } from 'utils'
+import esbuild from 'esbuild'
+import { writeFile } from 'fs/promises'
+import { bundle } from './utils/bundle'
+import { readFile } from 'fs/promises'
 
 const sourcePath = join(__plugin_dirname, 'src')
 const DIRECTORIES = ['Commands', 'Events', 'Components', 'Configs', 'Crons'] as const
@@ -16,19 +19,37 @@ function getPlatformPath (path: string): string {
   return isWindows ? path.replaceAll(/\\/g, '\\\\') : path
 }
 
-async function generateEntityImports(): Promise<[string[], Record<string, string>]> {
-  const entries = (await glob('entity/*', { cwd: sourcePath }))
+async function generateEntityImports() {
+  const entries = await glob('entity/*', { cwd: sourcePath })
   const imports: string[] = []
-  const entryMap: Record<string, string> = {}
+  const entryProd: Record<string, string> = {}
+  const entryDev: Record<string, string> = {}
 
   for (const entry of entries) {
     const entryName = basename(entry).split('.')[0]
+    const outputBundle = bundle({ path: join(sourcePath, entry) })
+    const output = await esbuild.transform(outputBundle, {
+      // bundle: true,
+      loader: 'ts',
+      platform: 'node',
+      target: 'ESNext',
+      format: 'esm',
+      tsconfigRaw: await readFile(join(__plugin_dirname, 'tsconfig.json'), { encoding: 'utf-8' }),
+      minify: true,
+      minifyIdentifiers: true,
+      minifySyntax: true,
+      minifyWhitespace: true
+    })
+
+    console.log(output)
 
     imports.push(`import * as ${entryName} from '${getPlatformPath(entry)}' with { type: 'text' }`)
-    entryMap[basename(entry)] = entryName
+
+    entryDev[basename(entry)] = outputBundle
+    entryProd[basename(entry).replace('.ts', '.js')] = `// ${join('src', entry)}\n${output.code}`
   }
 
-  return [imports, entryMap]
+  return { imports, entryProd, entryDev }
 }
 
 async function generateDirectoryImports (directory: string): Promise<string[]> {
@@ -53,15 +74,25 @@ export async function  build (filePath: string) {
     'import { Package } from \'utils\'',
     'import pkg from \'../package.json\''
   ]
-  content.push('Package.setData(pkg)')
+  content.push('\nPackage.setData(pkg)')
 
-  const [entityImports, entryMap] = await generateEntityImports()
-  content.push(...entityImports)
+  const { entryDev, entryProd } = await generateEntityImports()
+
+  const formattedEntryDev = JSON.stringify(entryDev, null, 4)
+    .replace(/'/g, '\\\'')
+    .replace(/"/g, '\'')
+    .replace(/\n\s*}$/, '\n  }')
+
+  const formattedEntryProd = JSON.stringify(entryProd, null, 4)
+    .replace(/'/g, '\\\'')
+    .replace(/"/g, '\'')
+    .replace(/\n\s*}$/, '\n  }')
+
+  // content.push(...imports)
   content.push(`
 Entry.setEntries({
-${Object.entries(entryMap)
-    .map(([entry, variable]) => `  '${entry}': ${variable} as unknown as string,`)
-    .join('\n')}
+  typescript: ${formattedEntryDev},
+  javascript: ${formattedEntryProd}
 })`)
     
   await Promise.all(DIRECTORIES.map(async (dirname) => {

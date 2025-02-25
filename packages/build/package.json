@@ -9,12 +9,15 @@
     "lint": "eslint -c eslint.config.js --fix"
   },
   "dependencies": {
+    "glob": "^11.0.1",
     "utils": "workspace:../utils"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "esbuild": "^0.25.0",
+    "ts-morph": "^25.0.1"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^5.7.3"
   }
 }

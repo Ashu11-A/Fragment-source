@@ -1,13 +1,11 @@
 import 'reflect-metadata'
-import './index.js'
 import './register.js'
 
+import { Cli } from 'cli'
 import { Crypt } from 'crypt'
 import { Command, Component, Config, Crons, Discord, Event } from 'discord'
-import { join } from 'path'
 import { Entry, SocketClient } from 'socket-client'
 import { metadata } from 'utils'
-import { Cli } from 'cli'
 
 // eslint-disable-next-line no-var
 declare var self: Worker
@@ -20,12 +18,13 @@ const postMessage = (message: unknown) => {
 }
 
 self.onmessage = async (event: MessageEvent) => {
+  console.log(event)
   const receivedArgs = Array.isArray(event.data) ? event.data : []
   if (receivedArgs.length === 0) throw new Error('🛠️ No arguments received.')
-
+  console.log('🛠️ Initializing CLI with received arguments...', receivedArgs)
+    
   await Crons.register()
 
-  console.log('🛠️ Initializing CLI with received arguments...')
 
   await new Cli({
     functions: {
@@ -44,16 +43,8 @@ self.onmessage = async (event: MessageEvent) => {
 
         SocketClient.client.once('register', async () => {
           await new Promise<void>((resolve) => {
-            const entries = Object.entries(Entry.getEntries())
-            if (entries.length > 0) {
-              const name = metadata().name
-              const mergedObject = entries.reduce((acc, [fileName, code]) => {
-                acc[join(name, fileName)] = code
-                return acc
-              }, {} as { [key: string]: string })
-  
-              SocketClient.client.emit('entries', mergedObject)
-            }
+            const entries = Entry.getEntries()
+            SocketClient.client.emit('entries', entries)
 
             SocketClient.client.once('entries_ok', () => resolve())
           })

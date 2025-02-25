@@ -5,10 +5,16 @@ import Template from '@/entity/Template.entry.js'
 import Ticket from '@/entity/Ticket.entry.js'
 import { Database } from 'socket-client'
 
+const guild = new Database<Guild>({ table: 'Guild' })
+const config = new Database<Config>({ table: 'Config' })
+const ticket = new Database<Ticket>({ table: 'Ticket' })
+const claim = new Database<Claim>({ table: 'Claim' })
+const template = new Database<Template>({ table: 'Template' })
+
 export const database = {
-  guild: new Database<Guild>({ table: 'Guild' }),
-  config: new Database<Config>({ table: 'Config' }),
-  ticket: new Database<Ticket>({ table: 'Ticket' }),
-  claim: new Database<Claim>({ table: 'Claim' }),
-  template: new Database<Template>({ table: 'Template' })
+  guild,
+  config,
+  ticket,
+  claim,
+  template
 }

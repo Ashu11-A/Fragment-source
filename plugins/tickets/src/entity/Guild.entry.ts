@@ -1,7 +1,7 @@
-import { BaseEntity, Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, type Relation } from 'typeorm'
-import Config from './Config.entry.js'
-import Template from './Template.entry.js'
-import Ticket from './Ticket.entry.js'
+import { Entity, BaseEntity, PrimaryGeneratedColumn, Column, OneToMany, type Relation, OneToOne, JoinColumn } from 'typeorm'
+import Template from './Template.entry'
+import Ticket from './Ticket.entry'
+import Config from './Config.entry'
 
 @Entity({ name: 'guild_tickets' })
 export default class Guild extends BaseEntity {

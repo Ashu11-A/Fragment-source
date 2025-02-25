@@ -1,11 +1,9 @@
-import Ticket from '@/entity/Ticket.entry.js'
+import { database } from '@/utils/database.js'
 import { Error, ModalBuilder, StringSelectMenuBuilder } from 'discord'
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, type SelectMenuComponentOptionData, StringSelectMenuInteraction, TextInputBuilder, TextInputStyle } from 'discord.js'
-import { Database } from 'socket-client'
 import { TicketBuilder } from './TicketBuilder.js'
 
 type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | StringSelectMenuInteraction<'cached'>
-const ticket = new Database<Ticket>({ table: 'Ticket' })
 
 export class TicketPanel {
   private readonly interaction
@@ -15,7 +13,7 @@ export class TicketPanel {
 
   async validator (): Promise<boolean> {
     const { channelId } = this.interaction
-    const ticketData = channelId !== null ? await ticket.findOne({ where: { channelId } }) : null
+    const ticketData = channelId !== null ? await database.ticket.findOne({ where: { channelId } }) : null
     if (ticketData === null) {
       await this.interaction.editReply({
         embeds: [new EmbedBuilder({
@@ -84,7 +82,7 @@ export class TicketPanel {
     if (!this.interaction.inCachedGuild()) return
     if (await this.validator() || channelId === null) return
 
-    const ticketData = await ticket.findOne({ where: { channelId } })
+    const ticketData = await database.ticket.findOne({ where: { channelId } })
     if (ticketData === null) return await new Error({ element: 'ticket', interaction: this.interaction }).reply()
     const { ownerId, category: { title }, voice } = ticketData
     const existCall = await this.interaction.guild.channels.fetch(voice?.id).catch(() => undefined)
@@ -163,7 +161,7 @@ export class TicketPanel {
   async RemoveUser (): Promise<void> {
     const { channelId } = this.interaction
     if (channelId === null) return
-    const ticketData = await ticket.findOne({ where: { channelId } })
+    const ticketData = await database.ticket.findOne({ where: { channelId } })
     if (ticketData === null) return await new Error({ element: 'ticket', interaction: this.interaction }).reply()
 
     if ((ticketData?.users ?? [])?.length === 0) {

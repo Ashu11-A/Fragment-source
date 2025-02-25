@@ -19,9 +19,9 @@
     "lint": "eslint -c eslint.config.js --fix"
   },
   "dependencies": {
-    "utils": "workspace:../utils",
     "nanoid": "^5.1.2",
-    "socket.io-client": "^4.8.1"
+    "socket.io-client": "^4.8.1",
+    "utils": "workspace:../utils"
   },
   "devDependencies": {
     "glob": "^11.0.1",

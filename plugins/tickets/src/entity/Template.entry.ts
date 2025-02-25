@@ -1,8 +1,8 @@
+import { TypeTemplate, type Category, type Properties, type Select, type System } from '@/types/entries.js'
 import { type APIEmbed } from 'discord.js'
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, type Relation, UpdateDateColumn } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn, type Relation } from 'typeorm'
 import Guild from './Guild.entry.js'
 import Ticket from './Ticket.entry.js'
-import { TypeTemplate, type Category, type Properties, type Select, type System } from '@/types/Database.js'
 
 @Entity({ name: 'tickets_templates' })
 export default class Template extends BaseEntity {
@@ -85,9 +85,10 @@ export default class Template extends BaseEntity {
     transformer: {
       from(value: string): System[] { return JSON.parse(value) },
       to(value: string): string { return JSON.stringify(value) },
-    }
+    },
+    default: '[]'
   })
-    systems!: System[] | null
+    systems!: System[]
 
   @CreateDateColumn()
     createAt!: Date

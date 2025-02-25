@@ -10,7 +10,7 @@
   "module": "src/app.ts",
   "type": "module",
   "scripts": {
-    "build": "bun src/index.ts",
+    "build": "bun src/build.ts",
     "dev": "bun src/app.ts",
     "lint": "eslint -c eslint.config.js --fix"
   },

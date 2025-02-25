@@ -1,11 +1,8 @@
-import TemplateTable from '@/entity/Template.entry.js'
+import Template from '@/entity/Template.entry.js'
+import { database } from '@/utils/database.js'
+import { checkURL, Error } from 'discord'
 import { Colors, EmbedBuilder, Message, MessageComponentInteraction, type APIEmbed as APIEmbedDiscord, type ButtonInteraction, type CacheType, type CommandInteraction, type ModalSubmitInteraction, type StringSelectMenuInteraction } from 'discord.js'
 import { TemplateButtonBuilder } from './TemplateButtonBuilder.js'
-import Template from '@/entity/Template.entry.js'
-import { Database } from 'socket-client'
-import { checkURL, Error } from 'discord'
-
-const database = new Database<TemplateTable>({ table: 'Template' })
 
 type Interaction = CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction<CacheType> | Message<true>
 interface TemplateBuilderOptions {
@@ -72,7 +69,7 @@ export class TemplateBuilder {
 
   async edit ({ messageId }: { messageId: string }) {
     const buttonBuilder = new TemplateButtonBuilder()
-    const templateData = this.data !== undefined ? this.data : await database.findOne({ where: { messageId } })
+    const templateData = this.data !== undefined ? this.data : await database.template.findOne({ where: { messageId } })
     if (templateData === null) { throw await new Error({ element: 'o template', interaction: this.interaction }).notFound({ type: 'Database' }).reply(); return }
 
     const channel = await this.interaction.guild?.channels.fetch(templateData.channelId)
@@ -93,7 +90,10 @@ export class TemplateBuilder {
       if (!Array.isArray(this.switch)) this.switch = [this.switch]
       for (const name of this.switch) {
         const index = (templateData.systems ?? []).findIndex((system) => system.name === name)
-        if (index !== -1) { templateData.systems[index].isEnabled = !templateData.systems[index].isEnabled; continue }
+        if (index !== -1) {
+          templateData.systems[index].isEnabled = !templateData.systems[index].isEnabled
+          continue
+        }
         templateData.systems = [ ...(templateData.systems ?? []), { name, isEnabled: true }]
       }
     }
@@ -118,7 +118,7 @@ export class TemplateBuilder {
       .render()
 
     templateData.embed = embed.toJSON()
-    await database.save(templateData)
+    await database.template.save(templateData)
     if (this.mode !== undefined) { await message.edit({ embeds: [embed], components }); return }
     await message.edit({ embeds: [embed] })
   }
@@ -126,7 +126,7 @@ export class TemplateBuilder {
   async delete ({ messageId }: { messageId: string }) {
     const interaction = this.interaction
     if (interaction instanceof Message) return
-    const templateData = await database.findOne({ where: { messageId } })
+    const templateData = await database.template.findOne({ where: { messageId } })
     if (templateData === null) { await new Error({ element: 'o template', interaction }).notFound({ type: 'Database' }).reply(); return }
 
     const channel = await interaction.guild?.channels.fetch(templateData.channelId)
@@ -135,7 +135,7 @@ export class TemplateBuilder {
     const message = await channel.messages.fetch(templateData.messageId)
     if (!channel?.isTextBased()) { await new Error({ element: templateData.messageId, interaction }).notFound({ type: 'Message' }).reply(); return }
 
-    await database.delete({ messageId }).then(async (result) => {
+    await database.template.delete({ messageId }).then(async (result) => {
       const isCollector = interaction instanceof MessageComponentInteraction
       const deferred = interaction.deferred
       if ((result?.affected ?? 0) > 0) {

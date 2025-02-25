@@ -1,11 +1,9 @@
 import { TemplateButtonBuilder } from '@/class/TemplateButtonBuilder.js'
-import { Database } from 'socket-client'
+import { TypeTemplate } from '@/types/entries'
+import { database } from '@/utils/database'
 import { Component } from 'discord'
-import TemplateTable from '@/entity/Template.entry.js'
 import { EmbedBuilder, MessageFlags } from 'discord.js'
-import { TypeTemplate } from '@/types/Database'
 
-const template = new Database<TemplateTable>({ table: 'Template' })
 const actions = {
   SetSelect: TypeTemplate.Select,
   SetButton: TypeTemplate.Button,
@@ -18,11 +16,11 @@ for (const [action, type] of Object.entries(actions)) {
     type: 'Button',
     async run(interaction) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral })
-      const templateData = await template.findOne({ where: { messageId: interaction.message.id } })
+      const templateData = await database.template.findOne({ where: { messageId: interaction.message.id } })
 
       if (templateData !== null) {
         templateData.type = type
-        await template.save(templateData)
+        await database.template.save(templateData)
           .then(async () => {
             await interaction.editReply({
               embeds: [new EmbedBuilder({

@@ -10,16 +10,15 @@
   "module": "src/app.ts",
   "type": "module",
   "scripts": {
-    "build": "bun src/index.ts",
+    "build": "bun src/build.ts",
     "dev": "bun run src/app.ts",
     "lint": "eslint -c eslint.config.js --fix"
   },
   "dependencies": {
-    "discord": "workspace:../../packages/discord",
-    "crypt": "workspace:../../packages/crypt",
-    "discord.js": "^14.18.0",
-    "socket-client": "workspace:../../packages/socket",
+    "build": "workspace:../../packages/build",
     "cli": "workspace:../../packages/cli",
-    "build": "workspace:../../packages/build"
+    "crypt": "workspace:../../packages/crypt",
+    "discord": "workspace:../../packages/discord",
+    "socket-client": "workspace:../../packages/socket"
   }
 }

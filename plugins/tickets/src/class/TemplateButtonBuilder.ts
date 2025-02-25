@@ -1,4 +1,4 @@
-import { type Properties, type Select, type System, TypeTemplate } from '@/types/Database'
+import { type Properties, type Select, type System, TypeTemplate } from '@/types/entries'
 import { ActionDrawer, ButtonBuilder, StringSelectMenuBuilder } from 'discord'
 import { ActionRowBuilder, ButtonStyle } from 'discord.js'
 

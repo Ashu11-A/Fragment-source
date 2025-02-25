@@ -2,16 +2,9 @@ import { ClaimBuilder } from '@/class/ClaimBuilder.js'
 import { TemplateBuilder } from '@/class/TemplateBuilder.js'
 import { TemplateButtonBuilder } from '@/class/TemplateButtonBuilder.js'
 import { TicketBuilder } from '@/class/TicketBuilder.js'
-import { Database } from 'socket-client'
-import Claim from '@/entity/Claim.entry.js'
-import Ticket from '@/entity/Ticket.entry.js'
 import { database } from '@/utils/database.js'
-import { AuditLogEvent, EmbedBuilder, Message, MessageFlagsBitField } from 'discord.js'
 import { Event } from 'discord'
-
-const ticket = new Database<Ticket>({ table: 'Ticket' })
-const claim = new Database<Claim>({ table: 'Claim' })
-
+import { AuditLogEvent, EmbedBuilder, Message, MessageFlagsBitField } from 'discord.js'
 /**
  * Quando uma mensagem for apagada dentro de um ticket.
  */
@@ -20,7 +13,7 @@ new Event({
   async run(message) {
     if (!(message instanceof Message) || !message.inGuild() || message.author?.bot || message.flags.has(MessageFlagsBitField.Flags.Ephemeral)) return
     const { channelId, id } = message
-    const ticketData = await ticket.findOne({ where: { channelId } })
+    const ticketData = await database.ticket.findOne({ where: { channelId } })
     if (ticketData === null) return
   
     const messageIndex = (ticketData?.history ?? []).findIndex((content) => content.message.id === id)
@@ -69,7 +62,7 @@ new Event({
   async run(message) {
     if (!message.author?.bot || message.flags.has(MessageFlagsBitField.Flags.Ephemeral) || !message.inGuild() || await message.fetch().catch(() => null) !== null) return
     const { id } = message
-    const ticketData = await ticket.findOne({ where: { messageId: id } })
+    const ticketData = await database.ticket.findOne({ where: { messageId: id } })
     if (ticketData === null) return
   
     const owner = await message.client.users.fetch(ticketData.ownerId).catch(() => null)
@@ -81,7 +74,7 @@ new Event({
       components: builder.buttons
     })
   
-    ticket.save(Object.assign(ticketData, { messageId: nemMessage.id }))
+    database.ticket.save(Object.assign(ticketData, { messageId: nemMessage.id }))
   
     const auditLog = (await message.guild.fetchAuditLogs({ type: AuditLogEvent.MessageDelete })).entries.first()
     await message.channel.send({
@@ -102,7 +95,7 @@ new Event({
   async run(message) {
     if (!message.author?.bot || message.flags.has(MessageFlagsBitField.Flags.Ephemeral) || !message.inGuild()) return
     const { id } = message
-    const claimData = await claim.findOne({ where: { messageId: id }, relations: { ticket: true } })
+    const claimData = await database.claim.findOne({ where: { messageId: id }, relations: { ticket: true } })
     if (claimData === null || claimData?.ticket?.id === undefined) return
 
     const builder = await new ClaimBuilder({ interaction: message }).setTicketId(claimData.ticket.id).render()
@@ -113,7 +106,7 @@ new Event({
       components: builder.buttons
     })
 
-    await claim.save(Object.assign(claimData, { messageId: nemMessage.id }))
+    await database.claim.save(Object.assign(claimData, { messageId: nemMessage.id }))
 
     const auditLog = (await message.guild.fetchAuditLogs({ type: AuditLogEvent.MessageDelete })).entries.first()
     await message.channel.send({

@@ -29,6 +29,8 @@ export class Database {
     const { type, table, plugin } = args as { type: string, table: string, plugin: string }
     const entry = Object.entries(Database.entries).find(([key]) => key.split('.')[0] === `${plugin}/${table}`)
 
+    console.log(args)
+
     if (entry === undefined) {
       console.log(i18('database.invalid_entity', { tableName: table }), JSON.stringify(Database.entries, null, 2))
       return

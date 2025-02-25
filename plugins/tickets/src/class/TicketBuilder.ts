@@ -1,16 +1,11 @@
-import Template from '@/entity/Template.entry.js'
 import Ticket, { type Event, type History, type TicketCategories, type Message as TicketMessage, type TicketType, type User as UserTicket, type Voice } from '@/entity/Ticket.entry.js'
 import { database } from '@/utils/database.js'
 import { ActionDrawer, ButtonBuilder, buttonRedirect, Error } from 'discord'
-import { ActionRowBuilder, ButtonInteraction, ButtonStyle, ChannelType, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, type OverwriteResolvable, PartialGroupDMChannel, PermissionsBitField, StringSelectMenuInteraction, TextChannel, User, codeBlock } from 'discord.js'
-import { Database } from 'socket-client'
+import { ActionRowBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, type OverwriteResolvable, PartialGroupDMChannel, PermissionsBitField, StringSelectMenuInteraction, TextChannel, User } from 'discord.js'
 import { ClaimBuilder } from './ClaimBuilder.js'
 import { Ticket as TicketFunctions } from './Ticket.js'
 
 type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | StringSelectMenuInteraction<'cached'> | Message<true>
-
-const ticket = new Database<Ticket>({ table: 'Ticket' })
-const template = new Database<Template>({ table: 'Template' })
 
 export class TicketBuilder {
   public options!: TicketType
@@ -147,7 +142,7 @@ export class TicketBuilder {
     if (guild === null || this.interaction instanceof Message || this.interaction instanceof CommandInteraction) return
     if (!this.interaction.deferred) await this.interaction.deferReply({ ephemeral: true })
     const request = this?.templateId !== undefined ? { id: this.templateId } : { messageId: this.interaction.message?.id }
-    const templateData = await template.findOne({ where: request })
+    const templateData = await database.template.findOne({ where: request })
     if (templateData === null) return await new Error({ element: 'esse template', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
 
     const category = (await guild.channels.fetch()).find((channel) => channel?.type === ChannelType.GuildCategory && channel.name === categoryData.title)
@@ -171,7 +166,7 @@ export class TicketBuilder {
     const guildRelaction = await database.guild.findOne({ where: { guildId: guild.id } })
     if (guildRelaction === null) return await new Error({ element: 'Guild', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
 
-    const templateRelaction = await template.findOne({ where: { id: this.templateId } })
+    const templateRelaction = await database.template.findOne({ where: { id: this.templateId } })
     if (templateRelaction === null) return await new Error({ element: 'Template', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
 
     this.options = Object.assign(this.options, {
@@ -181,8 +176,8 @@ export class TicketBuilder {
       template: templateRelaction
     })
 
-    const ticketData = await ticket.create(this.options)
-    const result = await ticket.save(ticketData) as Ticket
+    const ticketData = await database.ticket.create(this.options)
+    const result = await database.ticket.save(ticketData) as Ticket
 
     if (result === null || result === undefined) {
       await channel.delete('Error')
@@ -214,7 +209,7 @@ export class TicketBuilder {
   async loader() {
     if (this.channelId === undefined) throw new Error({ element: 'executar essa ação, pois setTicket não foi configurado!', interaction: this.interaction }).notPossible().reply()
 
-    const ticketData = await ticket.findOne({ where: { channelId: this.channelId } })
+    const ticketData = await database.ticket.findOne({ where: { channelId: this.channelId } })
     
     if (ticketData !== null) this.options = ticketData
     return this
@@ -223,7 +218,7 @@ export class TicketBuilder {
   async delete (options?: { reason?: string, observation?: string }) {
     if (this.interaction instanceof Message) return
     const claimBuilder = new ClaimBuilder({ interaction: this.interaction })
-    const ticketData = await ticket.findOne({ where: { channelId: this.channelId }, relations: { claim: true } })
+    const ticketData = await database.ticket.findOne({ where: { channelId: this.channelId }, relations: { claim: true } })
     if (ticketData === null) { await new Error({ element: 'as informações do ticket', interaction: this.interaction }).notFound({ type: 'Database' }).reply(); return }
     
     const channel = await this.interaction.client.channels.fetch(ticketData.channelId).catch(() => null)
@@ -240,21 +235,21 @@ export class TicketBuilder {
       if (message.deletable) await message.delete()
     }
     await new TicketFunctions({ interaction: this.interaction }).transcript({ messageId: ticketData.claim.messageId, observation: options?.observation, reason: options?.reason })
-    await ticket.delete({ id: ticketData.id })
+    await database.ticket.delete({ id: ticketData.id })
     await claimBuilder.delete(ticketData.claim.id)
   }
 
   async edit () { 
     if (this.ticketId === undefined) throw new Error({ element: 'executar essa ação, pois o Id do ticket não foi setado!', interaction: this.interaction }).notPossible().reply()
 
-    await ticket.update({ id: this.ticketId }, this.options)
+    await database.ticket.update({ id: this.ticketId }, this.options)
     return this
   }
 
   async send (embeds: EmbedBuilder[]) {
     if (this.ticketId === undefined) throw new Error({ element: 'executar essa ação, pois o Id do ticket não foi setado!', interaction: this.interaction }).notPossible().reply()
 
-    const ticketData = await ticket.findOne({ where: { id: this.ticketId } })
+    const ticketData = await database.ticket.findOne({ where: { id: this.ticketId } })
     if (ticketData === null) { await new Error({ element: 'as informações do ticket', interaction: this.interaction }).notFound({ type: 'Database' }).reply(); return }
       
     const channel = await this.interaction.client.channels.fetch(ticketData.channelId).catch(() => null)
@@ -267,7 +262,7 @@ export class TicketBuilder {
   async update () {
     if (this.ticketId === undefined) throw new Error({ element: 'executar essa ação, pois o Id do ticket não foi setado!', interaction: this.interaction }).notPossible().reply()
 
-    const ticketData = await ticket.findOne({ where: { id: this.ticketId } })
+    const ticketData = await database.ticket.findOne({ where: { id: this.ticketId } })
     if (ticketData === null) { await new Error({ element: 'as informações do ticket', interaction: this.interaction }).notFound({ type: 'Database' }).reply(); return }
     
     const channel = await this.interaction.client.channels.fetch(ticketData.channelId).catch(() => null)

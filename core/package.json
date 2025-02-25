@@ -21,7 +21,6 @@
     ]
   },
   "devDependencies": {
-    "@eslint/js": "^9.21.0",
     "@types/cron": "^2.4.3",
     "@types/express": "^5.0.0",
     "@types/marked-terminal": "^6.1.1",
@@ -29,9 +28,8 @@
     "@types/signale": "^1.4.7",
     "@types/socket.io": "^3.0.2",
     "@types/yargs": "^17.0.33",
-    "eslint": "^9.21.0",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.24.1"
+    "typescript-eslint": "^8.25.0"
   },
   "dependencies": {
     "axios": "^1.7.9",
@@ -52,9 +50,5 @@
     "utils": "workspace:../packages/utils",
     "worker": "workspace:../packages/worker",
     "yargs": "^17.7.2"
-  },
-  "optionalDependencies": {
-    "bufferutil": "^4.0.9",
-    "utf-8-validate": "^6.0.5"
   }
 }

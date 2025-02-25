@@ -1,4 +1,4 @@
-// Template Types
+// Template
 export interface Properties {
   [key: string]: boolean | string
 }

@@ -55,9 +55,6 @@ export class Manager {
     this.worker = new Worker(blobUrl)
     console.log(i18('manager.workerCreated'))
 
-    this.worker.postMessage([{ info: true }, { port: this.options.port }])
-    console.log(i18('manager.sentInitialMessage'), '\n')
-
     const processed = new Promise<void>((resolve, reject) => {
       this.worker.onmessage = async (event) => {
         const data = JSON.parse(event.data)
@@ -102,6 +99,12 @@ export class Manager {
         resolve()
       }, 5_000)
     })
+
+    this.worker.onmessageerror = (event) => console.log(event)
+    this.worker.onerror = (event) => console.log(event)
+
+    this.worker.postMessage([{ info: true }, { port: this.options.port }])
+    console.log(i18('manager.sentInitialMessage'), '\n')
 
     await Promise.race([
       processed,
