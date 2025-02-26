@@ -12,7 +12,7 @@ const DIRECTORIES = ['Commands', 'Events', 'Components', 'Configs', 'Crons'] as 
 export function getPlatformPath(path: string): string {
   const isWindows = process.platform === 'win32'
   // Verifica se o caminho é relativo (não começa com "../" nem com "C:" ou similar)
-  if (!path.startsWith('../') && !/^[a-zA-Z]:/.test(path)) {
+  if (!path.startsWith('../') && !/^[a-zA-Z]:/.test(path) && !path.startsWith('/')) {
     path = isWindows ? `.\\${path}` : `./${path}`
   }
   return isWindows
@@ -21,14 +21,17 @@ export function getPlatformPath(path: string): string {
 }
 
 async function generateEntityImports() {
-  const entries = await glob('entity/*', { cwd: sourcePath })
+  const pattern = join(sourcePath, 'entity', '*.{ts,js}').replace(/\\/g, '/')
+  const entries = await glob(pattern)
   const imports: string[] = []
   const entryProd: Record<string, string> = {}
   const entryDev: Record<string, string> = {}
 
+  console.log(entries)
+
   for (const entry of entries) {
     const entryName = basename(entry).split('.')[0]
-    const outputBundle = bundle({ path: getPlatformPath(join(sourcePath, entry)) })
+    const outputBundle = bundle({ path: entry })
 
     const output = await esbuild.transform(outputBundle, {
       loader: 'ts',

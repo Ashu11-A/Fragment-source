@@ -101,6 +101,7 @@ jobs:
         with:
           name: build-latest-metadata
           path: ./releases/metadata.json
+          overwrite: true
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
