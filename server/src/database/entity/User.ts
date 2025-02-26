@@ -1,4 +1,4 @@
-import { compare, hash } from 'bcrypt'
+import { compare, hash } from 'bcryptjs'
 import { BaseEntity, Column, CreateDateColumn, Entity, Generated, OneToMany, PrimaryGeneratedColumn, type Relation, UpdateDateColumn } from 'typeorm'
 import { Auth } from './Auth.js'
 import { Bot } from './Bot.js'

@@ -9,14 +9,15 @@ import { readFile } from 'fs/promises'
 const sourcePath = join(__plugin_dirname, 'src')
 const DIRECTORIES = ['Commands', 'Events', 'Components', 'Configs', 'Crons'] as const
 
-function getPlatformPath (path: string): string {
+export function getPlatformPath(path: string): string {
   const isWindows = process.platform === 'win32'
-  
-  if (!path.startsWith('../')) {
-    return isWindows ? `.\\${path}` : `./${path}`
+  // Verifica se o caminho é relativo (não começa com "../" nem com "C:" ou similar)
+  if (!path.startsWith('../') && !/^[a-zA-Z]:/.test(path)) {
+    path = isWindows ? `.\\${path}` : `./${path}`
   }
-  
-  return isWindows ? path.replaceAll(/\\/g, '\\\\') : path
+  return isWindows
+    ? path.replaceAll('/', '\\').replace(/\\/g, '\\\\')
+    : path
 }
 
 async function generateEntityImports() {
@@ -27,9 +28,9 @@ async function generateEntityImports() {
 
   for (const entry of entries) {
     const entryName = basename(entry).split('.')[0]
-    const outputBundle = bundle({ path: join(sourcePath, entry) })
+    const outputBundle = bundle({ path: getPlatformPath(join(sourcePath, entry)) })
+
     const output = await esbuild.transform(outputBundle, {
-      // bundle: true,
       loader: 'ts',
       platform: 'node',
       target: 'ESNext',
@@ -40,8 +41,6 @@ async function generateEntityImports() {
       minifySyntax: true,
       minifyWhitespace: true
     })
-
-    console.log(output)
 
     imports.push(`import * as ${entryName} from '${getPlatformPath(entry)}' with { type: 'text' }`)
 
