@@ -101,7 +101,12 @@ export class Auth {
       const conclusion = await prompts({
         type: 'select',
         name: 'Error',
-        message: `Erro ${err instanceof AxiosError ? err.response?.data.message : ''} ao tentar logar!`,
+        message: i18('error.login', {
+          error: err instanceof AxiosError
+            ? err.message
+            : err instanceof Error
+              ? err.message
+              : '' }),
         choices,
         initial: 1
       })

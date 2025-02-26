@@ -43,7 +43,8 @@
     "expired": "❌ {{element}} expired!",
     "disabled": "❌ {{element}} disabled!",
     "an_error_occurred": "❌ An error occurred:",
-    "timeout": "⏳ Timeout of {{time}} seconds... trying after the timeout"
+    "timeout": "⏳ Timeout of {{time}} seconds... trying after the timeout",
+    "login": "❌ Error \"{{error}}\" when trying to log in"
   },
   "license": {
     "accept": "❓ Do you agree with the terms presented above?"
