@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { LangLyrics } from '../types/lang'
-import type { Paths, ValueOfLang } from '../types/lyrics'
+import type { ExtractVariables, Paths, ValueOfLang } from '../types/lyrics'
 import type { Lang } from './Lang'
 
 // IDLEGLANCE
@@ -12,15 +12,22 @@ export class Lyrics<Music, Languages extends readonly LangLyrics<string, Record<
     this.languages = languages
   }
   
-  get<P extends Paths<Music>>(path: P, metadata?: Record<string, unknown>): ValueOfLang<Music, P> | string {
+  get<P extends Paths<Music>>(
+    path: P,
+    ...args: ValueOfLang<Music, P> extends string
+      ? ExtractVariables<ValueOfLang<Music, P>> extends never
+        ? [metadata?: undefined]
+        : [metadata: Record<ExtractVariables<ValueOfLang<Music, P>>, unknown>]
+      : []
+  ): ValueOfLang<Music, P> {
     const keys = path.split('.')
     const index = this.lang.languages.findIndex((lang) => lang.language === this.lang.language)
     const language = this.lang.languages[index].data
-    let result: string | Record<string, string> | object | undefined = undefined
+    let result: unknown = undefined
 
     for (const key of keys) {
       if (result === undefined) {
-        result = language[key as keyof typeof language] as Record<string, unknown>
+        result = language[key as keyof typeof language]
         continue
       }
       if (typeof result === 'object') {
@@ -28,14 +35,15 @@ export class Lyrics<Music, Languages extends readonly LangLyrics<string, Record<
       }
     }
 
-    if (metadata !== undefined) {
-      for (const [key, data] of Object.entries(metadata)) {
-        if (typeof result === 'string') result = result.replaceAll(`{{${key}}}`, String(data))
+    const metadata = args[0] ?? {}
+    let finalString = String(result ?? path)
+
+    if (metadata) {
+      for (const [key, value] of Object.entries(metadata)) {
+        finalString = finalString.replaceAll(`{{${key}}}`, String(value))
       }
     }
 
-    if (result === undefined) console.log(path)
-
-    return result as string
+    return finalString as ValueOfLang<Music, P>
   }
 }

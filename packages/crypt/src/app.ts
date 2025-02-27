@@ -1,30 +1,28 @@
 export * from './controllers/Crypt'
 export * from './types/crypt.d'
 import { Lang, Lyrics } from 'lang'
-import * as ptBR from '../locales/pt-BR/crypt.json' assert { type: 'json' }
-import * as en from '../locales/en/crypt.json' assert { type: 'json' }
+import ptBR from '../locales/pt-BR/crypt'
+import en from '../locales/en/crypt'
 import type { DataCrypted } from './app'
 
 const languages = [
   {
     language: 'pt-BR',
     name: 'crypt',
-    data: (ptBR as unknown as { default: typeof ptBR }).default
+    data: ptBR
   },
   {
     language: 'en',
     name: 'crypt',
-    data: (en as unknown as { default: typeof en }).default
+    data: en
   }
 ] as const
 
-export const { i18, lang } = await (async () => {
-  const lang = new Lang({ languages, language: 'en' })
-  const lyrics = new Lyrics(languages[0].data, lang)
-  await lang.register()
-  const i18 = lyrics.get.bind(lyrics)
+const lang = new Lang({ languages, language: 'en' })
+const lyrics = new Lyrics(languages[0].data, lang)
 
-  return { lang, i18 }
-})()
+await lang.register()
+const i18 = lyrics.get.bind(lyrics)
 
+export { lang, i18 }
 export const credentials = new Map<keyof DataCrypted, DataCrypted[keyof DataCrypted]>()

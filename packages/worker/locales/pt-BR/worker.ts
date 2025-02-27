@@ -1,0 +1,62 @@
+export default {
+  'manager': {
+    'cachePathNotExist': '📂 O caminho do cache não existe. Criando...',
+    'filePathDetected': '📄 Caminho do arquivo detectado: {{fileURL}}',
+    'usingCachedFile': '✅ Usando arquivo em cache: {{cachedFilePath}}',
+    'downloadingFile': '🌐 Baixando arquivo: {{fileURL}}',
+    'blobUrlCreated': '🔗 URL do Blob criada: {{blobUrl}}',
+    'workerCreated': '🛠️  Worker criado.',
+    'sentInitialMessage': '📤 Mensagem inicial enviada ao worker.',
+    'receivedMessage': '📩 Mensagem recebida do worker: {{data}}',
+    'metadataMissingKeys': '❌ Metadados estão faltando chaves necessárias: {{missingKeys}}',
+    'socketNotFound': '❌ Socket do plugin não encontrado: {{nameOrId}}',
+    'pluginInitialized': '✨ Plugin inicializado com sucesso!',
+    'resolvedCachePath': '📂 Caminho do arquivo de cache resolvido: {{cachePath}}',
+    'fetchingUrl': '🌐 Buscando URL: {{url}}',
+    'fetchFailed': '❌ Falha ao buscar URL: {{statusText}}',
+    'fetchedBlob': '📦 Resposta buscada e convertida para Blob.',
+    'savingToCache': '💾 Salvando arquivo buscado no cache: {{cachePath}}',
+    'readFileBlob': '📦 Arquivo lido e convertido para Blob.',
+    'workerTimeout': '⏱️ Worker expirado: {{fileURL}}. Encerrando...',
+    'invalidURL': '❌ URL inválida: {{url}}'
+  },
+  'plugins': {
+    'new': '✨ Novo plugin adicionado!',
+    'enabling': '✨ Ativando plugin: {{filePath}}',
+    'enabled': '✅ Plugin ativado com sucesso: {{filePath}}',
+    'notEnabled': '❌ Erro ao ativar plugin: {{filePath}}',
+    'starting': '✅ Iniciando Plugin {{name}}',
+    'disconnect': '🔌 Plugin Desconectado: {{name}}',
+    'commands': '🤖 Comandos: {{length}}',
+    'components': '🧩 Componentes: {{length}}',
+    'events': '🎉 Eventos: {{length}}',
+    'configs': '⚙️ Configurações: {{length}}',
+    'crons': '🕑 Crons: {{length}}',
+    'entry_load': '⏳ Carregando entrada: {{name}}',
+    'hasLoaded': '⚠️ Atenção: Plugin adicionado após registro inicial, pode ser necessário remover e readicionar o bot!',
+    'devlop': '🚨 Modo de desenvolvimento',
+    'last_plugin': '🚩 Último plugin carregado ({{current}}/{{total}})',
+    'valid': '✅ Plugin válido!',
+    'duplicate': '❌ Plugin {{name}} está duplicado!',
+    'invalid_file': '❌ Arquivo inválido: {{fileName}}',
+    'invalid_signature': '❌ Falha na verificação de assinatura: {{fileName}}',
+    'reject': '❌ O Plugin {{filePath}} saiu com código de erro {{code}} e sinal {{signal}}',
+    'hasAlready': '🔁 Plugin já registrado, reiniciado: {{filePath}}'
+  },
+  'websocket': {
+    'initialized': '🚀 Servidor inicializado na porta {{port}}'
+  },
+  'watcher': {
+    'ready': '🚀 Watcher pronto e monitorando alterações.',
+    'fileAdded': '📥 Arquivo adicionado: {{file}}',
+    'fileChanged': '📝 Arquivo modificado: {{file}}',
+    'directoryAdded': '📁 Diretório adicionado: {{directory}}',
+    'fileRemoved': '🗑️ Arquivo removido: {{file}}',
+    'directoryRemoved': '🗑️ Diretório removido: {{directory}}',
+    'raw': '🔍 Informações do evento: {{arg}}, {{arg2}}',
+    'error': '❌ Ocorreu um erro: {{error}}',
+    'unhandled': '❓ Evento não tratado: {{event}}',
+    'change': '🔄 Mudança no plugin detectada: {{filePath}}',
+    'starting': '👀 Iniciando watcher de plugins...'
+  }
+} as const

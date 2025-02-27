@@ -27,13 +27,11 @@ export class Lang<Languages extends readonly LangLyrics<string, Record<string, u
     const cache = new Map<string, boolean>()
     
     if (!existsSync(langPath)) await mkdir(langPath)
-      
     for (const lang of this.languages) {
-      const content = lang.data
       const externalPath = join(this.sourcePath, 'locales', dirname(lang.language.split('/')[0]), lang.language)
       
       await mkdir(externalPath, { recursive: true })
-      await writeFile(join(externalPath, `/${lang.name}.json`), JSON.stringify(content, null, 2), { encoding: 'utf8' })
+      await writeFile(join(externalPath, `/${lang.name}.json`), JSON.stringify(lang.data, null, 2), { encoding: 'utf8' })
     }
 
     const watcher = watch(langPath, { recursive: true })
@@ -70,9 +68,11 @@ export class Lang<Languages extends readonly LangLyrics<string, Record<string, u
     const path = join(this.sourcePath, 'locales')
     const allLangs = (await glob('*', { cwd: path })).map((lang) => lang.split('/')[0])
     const langs = []
+  
     for (const lang of allLangs) {
       if (langs.filter((langExist) => langExist === lang).length == 0) langs.push(lang)
     }
+
     const choices: Choice[] = langs.map((lang) => ({ title: `${flags(lang)} - ${lang}`, value: lang } satisfies Choice))
     const response = await prompts({
       name: 'Language',
@@ -81,6 +81,7 @@ export class Lang<Languages extends readonly LangLyrics<string, Record<string, u
       message: 'Which language should I continue with?',
       initial: 1
     })
+
     if (response.Language === undefined) throw new Error('Please select a language')
     
     await this.set(response.Language)
