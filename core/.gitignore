@@ -8,3 +8,5 @@ entries
 privateKey.pem
 publicKey.pem
 public_key.pem
+
+locales/**/*.json
