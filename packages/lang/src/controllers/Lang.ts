@@ -7,8 +7,8 @@ import prompts, { type Choice } from 'prompts'
 import { exists } from 'utils'
 import type { LangLyrics, LangOptions } from '../types/lang'
 
-export class Lang<Languages extends readonly LangLyrics<string, Record<string, unknown>>[]>{
-  public language: Languages[number]['language']
+export class Lang<Languages extends Record<string, LangLyrics<Record<string, unknown>>>>{
+  public language: keyof Languages
   public languages: Languages
   public paths: Record<string, string> = {}
   public sourcePath: string
@@ -27,11 +27,11 @@ export class Lang<Languages extends readonly LangLyrics<string, Record<string, u
     const cache = new Map<string, boolean>()
     
     if (!existsSync(langPath)) await mkdir(langPath)
-    for (const lang of this.languages) {
-      const externalPath = join(this.sourcePath, 'locales', dirname(lang.language.split('/')[0]), lang.language)
+    for (const [language, metadata] of Object.entries(this.languages)) {
+      const externalPath = join(this.sourcePath, 'locales', dirname(language.split('/')[0]), language)
       
       await mkdir(externalPath, { recursive: true })
-      await writeFile(join(externalPath, `/${lang.name}.json`), JSON.stringify(lang.data, null, 2), { encoding: 'utf8' })
+      await writeFile(join(externalPath, `/${metadata.name}.json`), JSON.stringify(metadata.data, null, 2), { encoding: 'utf8' })
     }
 
     const watcher = watch(langPath, { recursive: true })

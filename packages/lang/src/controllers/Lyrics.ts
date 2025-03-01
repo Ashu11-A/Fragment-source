@@ -4,7 +4,7 @@ import type { ExtractVariables, Paths, ValueOfLang } from '../types/lyrics'
 import type { Lang } from './Lang'
 
 // IDLEGLANCE
-export class Lyrics<Music, Languages extends readonly LangLyrics<string, Record<string, unknown>>[]>{
+export class Lyrics<Music, Languages extends Record<string, LangLyrics<Record<string, unknown>>>>{
   public languages: Music
   public lang: Lang<Languages>
   constructor(languages: Music, lang: Lang<Languages>) {
@@ -21,8 +21,7 @@ export class Lyrics<Music, Languages extends readonly LangLyrics<string, Record<
       : []
   ): ValueOfLang<Music, P> {
     const keys = path.split('.')
-    const index = this.lang.languages.findIndex((lang) => lang.language === this.lang.language)
-    const language = this.lang.languages[index].data
+    const language = this.lang.languages[this.lang.language].data
     let result: unknown = undefined
 
     for (const key of keys) {
@@ -36,14 +35,14 @@ export class Lyrics<Music, Languages extends readonly LangLyrics<string, Record<
     }
 
     const metadata = args[0] ?? {}
-    let finalString = String(result ?? path)
+    let content = String(result ?? path)
 
     if (metadata) {
       for (const [key, value] of Object.entries(metadata)) {
-        finalString = finalString.replaceAll(`{{${key}}}`, String(value))
+        content = content.replaceAll(`{{${key}}}`, String(value))
       }
     }
 
-    return finalString as ValueOfLang<Music, P>
+    return content as ValueOfLang<Music, P>
   }
 }

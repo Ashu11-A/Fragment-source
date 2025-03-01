@@ -7,21 +7,19 @@ import ptBR from '../locales/pt-BR/worker'
 export const __dirname = dirname(fileURLToPath(import.meta.url))
 export const PKG_MODE = __dirname.includes('B:\\~BUN\\') || __dirname.includes('/$bunfs/root')
 
-const languages = [
-  {
-    language: 'pt-BR',
+const languages = {
+  'pt-BR': {
     name: 'worker',
     data: ptBR
   },
-  {
-    language: 'en',
+  'en': {
     name: 'worker',
     data: en
   }
-] as const
+} as const
 
 const lang = new Lang({ languages, language: 'en' })
-const lyrics = new Lyrics(languages[0].data, lang)
+const lyrics = new Lyrics(languages[lang.language].data, lang)
 await lang.register()
 const i18 = lyrics.get.bind(lyrics)
   
