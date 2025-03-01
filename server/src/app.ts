@@ -1,3 +1,4 @@
+import 'env/loader'
 import 'dotenv/config'
 import 'reflect-metadata'
 

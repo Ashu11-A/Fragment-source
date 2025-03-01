@@ -1,3 +1,5 @@
+import 'env/loader'
+
 import { Router } from '@/controllers/router.js'
 import { Bot } from '@/database/entity/Bot.js'
 import { z } from 'zod'
