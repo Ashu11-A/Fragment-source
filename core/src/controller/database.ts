@@ -16,9 +16,8 @@ export class Database {
       ...options,
       synchronize: true,
       logging: true,
-      entities: await glob(`${join(RootPATH, 'entries')}/**/*.{ts,js}`),
+      entities: await glob(join(RootPATH, 'entries/**/*.{ts,js}')),
       migrations: [],
-      subscribers: []
     })
     await Database.client.initialize()
     console.log(i18('database.initialized', { length: Object.keys(Database.entries).length }))
@@ -28,8 +27,6 @@ export class Database {
   async events (socket: Socket, eventName: string, args: any) {
     const { type, table, plugin } = args as { type: string, table: string, plugin: string }
     const entry = Object.entries(Database.entries).find(([key]) => key.split('.')[0] === `${plugin}/${table}`)
-
-    console.log(args)
 
     if (entry === undefined) {
       console.log(i18('database.invalid_entity', { tableName: table }), JSON.stringify(Database.entries, null, 2))
