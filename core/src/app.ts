@@ -37,17 +37,4 @@ new Cli({
       if (typeof content === 'number') socket.listen(content)
     }
   }
-});
-
-['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT',
-  'SIGBUS', 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'
-].forEach(function (sig) {
-  process.on(sig, async function () {
-    if (PKG_MODE) {
-      for await (const plugin of await WebSocket.io.fetchSockets()) {
-        if (plugin) plugin.emit('kill')
-      }
-    }
-    process.exit()
-  })
 })

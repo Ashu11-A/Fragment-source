@@ -40,11 +40,6 @@ export class SocketClient {
     SocketClient.client.on('connect_error', (err) => {
       console.error('🔌 SocketClient connection error:', err.message)
     })
-
-    SocketClient.client.on('kill', () => {
-      process.stdout.write('📡 Recebido sinal de desligamento. Encerrando o processo...')
-      process.kill(process.pid)
-    })
   }
 
   /**
