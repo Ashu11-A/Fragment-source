@@ -1,21 +1,52 @@
+**LICENÇA DE USO DE SOFTWARE**  
+**Programa de Computador e Derivados**  
 
-```
-Copyright © Ashu11-A. <Matheusn.biolowons@gmail.com> and contributors
-```
+**Copyright © 2025 [Ashu11-A](https://github.com/Ashu11-A)**  
+**Autores e Contribuidores:** Matheus Nilton Biolowons <Matheusn.biolowons@gmail.com> e colaboradores listados no histórico de commits.
 
 
-Este software, um bot para a plataforma Discord, é fornecido por [Ashu11-A](https://github.com/Ashu11-A) (Desenvolvedor) e seus mantenedores no estado em que se encontra, sem garantias de qualquer tipo, expressas ou implícitas. O Desenvolvedor não se responsabiliza por quaisquer danos ou problemas decorrentes do uso deste bot.
+**1. DISPOSIÇÕES GERAIS**  
+1.1. Este Software é fornecido "**COMO ESTÁ**", sem garantias de qualquer natureza, expressas ou implícitas, incluindo, mas não limitado a, garantias de comercialização, adequação a um propósito específico e não violação.  
+1.2. O Desenvolvedor e contribuidores não se responsabilizam por (i) danos diretos, indiretos, incidentais ou consequenciais decorrentes do uso do Software; (ii) conformidade com leis locais ou políticas de plataformas terceiras.
 
-Você, ao usar este bot, concorda com os seguintes termos:
+**2. CONDIÇÕES DE USO**  
+Ao utilizar o Software, você concorda integralmente com:  
+2.1. **Uso Autorizado:**  
+- Exclusivamente em plataformas para as quais foi originalmente projetado (Discord, serviços web), em conformidade com:  
+  - [Termos de Serviço do Discord](https://discord.com/terms)  
+  - [Diretrizes da Comunidade](https://discord.com/guidelines)  
+  - Legislação aplicável em sua jurisdição.   
 
-1. O bot é destinado apenas ao uso na plataforma Discord e em conformidade com os [Termos de Serviço do Discord](https://discord.com/terms).
-2. Você reconhece que o Desenvolvedor detém todos os direitos autorais do bot e não tem permissão para remover ou modificar quaisquer avisos de direitos autorais presentes no bot.
-3. O Desenvolvedor se reserva o direito de, por meio de meios legais, solicitar a retirada deste bot de qualquer servidor Discord ou plataforma online, caso considere que seu uso está em desacordo com os Termos de Serviço do Discord ou que sua integridade está sendo comprometida.
+2.2. **Propriedade Intelectual:**  
+- Todos os direitos autorais, marcas registradas e propriedade intelectual pertencem ao Desenvolvedor e contribuidores.  
+- É vedado:  
+  - Remover, ocultar ou modificar avisos de direitos autorais, atribuições ou metadados.  
+  - Reivindicar autoria total ou parcial do Software.
 
-Esta licença não concede a você direitos adicionais para redistribuir ou sublicenciar este bot. Qualquer uso deste bot está sujeito a esta licença e aos Termos de Serviço do Discord.
+2.3. **Controle do Desenvolvedor:**  
+- Reserva-se o direito de, a qualquer momento e sem notificação prévia:  
+  - Solicitar a remoção do Software de plataformas que violem esta licença.  
+  - Atualizar, descontinuar ou restringir funcionalidades.  
 
-O aviso de direitos autorais acima e este aviso de permissão serão incluídos em todas as cópias ou partes substanciais do Software.
+**3. REDISTRIBUIÇÃO E DERIVADOS**  
+3.1. É expressamente proibido:  
+- Distribuir, sublicenciar, vender ou alojar cópias do Software sem autorização por escrito.  
+- Criar obras derivadas baseadas no código-fonte, exceto para uso pessoal não comercial.  
 
-- Esta licença está sujeita às leis da ``República Federativa do Brasil``, sendo a legislação do ``Distrito Federal`` responsável pela regulamentação e interpretação de quaisquer disputas ou controvérsias decorrentes deste software, que serão resolvidas de acordo com as normas vigentes nessa jurisdição.
+**4. RESCISÃO**  
+4.1. Esta licença é automaticamente rescindida se você violar quaisquer termos aqui estabelecidos.  
 
-© [Ashu11-A](https://github.com/Ashu11-A)
+**5. JURISDIÇÃO**  
+5.1. Esta licença é regida pelas leis da **República Federativa do Brasil**.  
+5.2. Qualquer disputa será dirimida no **Distrito Federal**, com exclusão de qualquer outro.
+
+**6. DISPOSIÇÕES FINAIS**  
+6.1. Cláusulas inválidas não afetam a validade das demais.  
+6.2. Alterações nesta licença serão comunicadas via [Repositório Oficial](https://github.com/Ashu11-A).  
+
+---
+
+**© 2025 [Ashu11-A](https://github.com/Ashu11-A)**. Todos os direitos reservados.  
+**Última atualização:** 01/03/2025 - 20:41
+
+---
