@@ -1,47 +1,29 @@
 import { RootPATH } from '@/index.js'
-import { existsSync, watch } from 'fs'
-import { readFile, writeFile } from 'fs/promises'
-import { marked, Renderer } from 'marked'
-import { join } from 'path'
+import { watch } from 'fs'
+import { access, constants, readFile, writeFile } from 'fs/promises'
+import { marked, type MarkedExtension } from 'marked'
+import { markedTerminal } from 'marked-terminal'
+import { join, } from 'path'
 import prompt from 'prompts'
+import license from '../../../LICENSE.md' with { type: 'text' }
 
-const license = `
-\`\`\`
-Copyright © Ashu11-A. <Matheusn.biolowons@gmail.com> and contributors
-\`\`\`
-
-
-Este software, um bot para a plataforma Discord, é fornecido por [Ashu11-A](https://github.com/Ashu11-A) (Desenvolvedor) e seus mantenedores no estado em que se encontra, sem garantias de qualquer tipo, expressas ou implícitas. O Desenvolvedor não se responsabiliza por quaisquer danos ou problemas decorrentes do uso deste bot.
-
-Você, ao usar este bot, concorda com os seguintes termos:
-
-1. O bot é destinado apenas ao uso na plataforma Discord e em conformidade com os [Termos de Serviço do Discord](https://discord.com/terms).
-2. Você reconhece que o Desenvolvedor detém todos os direitos autorais do bot e não tem permissão para remover ou modificar quaisquer avisos de direitos autorais presentes no bot.
-3. O Desenvolvedor se reserva o direito de, por meio de meios legais, solicitar a retirada deste bot de qualquer servidor Discord ou plataforma online, caso considere que seu uso está em desacordo com os Termos de Serviço do Discord ou que sua integridade está sendo comprometida.
-
-Esta licença não concede a você direitos adicionais para redistribuir ou sublicenciar este bot. Qualquer uso deste bot está sujeito a esta licença e aos Termos de Serviço do Discord.
-
-O aviso de direitos autorais acima e este aviso de permissão serão incluídos em todas as cópias ou partes substanciais do Software.
-
-- Esta licença está sujeita às leis da \`\`República Federativa do Brasil\`\`, sendo a legislação do \`\`Distrito Federal\`\` responsável pela regulamentação e interpretação de quaisquer disputas ou controvérsias decorrentes deste software, que serão resolvidas de acordo com as normas vigentes nessa jurisdição.
-
-© [Ashu11-A](https://github.com/Ashu11-A)
-
-`
-
-let watched = false
+marked.use(markedTerminal() as MarkedExtension)
 
 export class License {
+  private licensePath = join(RootPATH, '.license')
+  static watcherInitialized = false
+
   async checker () {
-    if (existsSync(join(RootPATH, '.license'))) {
-      const data = await readFile(join(RootPATH, '.license'), { encoding: 'utf-8' })
-      const accept = /true/i.test(data)
-      if (!accept) return await this.ask()
-    } else {
-      await this.ask()
-    }
-    if (!watched) {
-      watched = true
+    const exist = await access(this.licensePath, constants.F_OK).then(() => true).catch(() => false)
+  
+    if (exist) {
+      const data = await readFile(this.licensePath, { encoding: 'utf-8' })
+      const accepted = /true/i.test(data)
+      if (!accepted) await this.ask()
+    } else await this.ask()
+
+    if (!License.watcherInitialized) {
+      License.watcherInitialized = true
       const wather = watch(join(RootPATH, '.license'))
 
       wather.on('change', () => this.checker())
@@ -49,28 +31,20 @@ export class License {
   }
 
   async ask () {
-    marked.setOptions({
-      renderer: new Renderer()
-    })
-    console.log(marked(license))
-
-
-    const response = await prompt({
-      name: 'accept',
-      type: 'toggle',
+    console.log(marked.parse(license))
+    const response = (await prompt({
+      name: 'accepted',
+      type: 'confirm',
       message: i18('license.accept'),
       initial: false
-    })
+    }))
 
-    switch (response.accept) {
-    case true: {
+    if (response.accepted) {
       await writeFile(join(RootPATH, '.license'), 'ACCEPT=true')
-      break
+      return
     }
-    default: {
-      await writeFile(join(RootPATH, '.license'), 'ACCEPT=false')
-      throw new Error(i18('error.no_possible'))
-    }
-    }
+
+    await writeFile(join(RootPATH, '.license'), 'ACCEPT=false')
+    throw new Error(i18('error.no_possible'))
   }
 }
