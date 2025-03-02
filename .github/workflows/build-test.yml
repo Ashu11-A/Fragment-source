@@ -24,4 +24,4 @@ jobs:
           bun i &&
           openssl genpkey -algorithm RSA -out privateKey.pem -pkeyopt rsa_keygen_bits:4096 &&
           openssl rsa -pubout -in privateKey.pem -out publicKey.pem &&
-          bun run build.ts
+          bun run build
