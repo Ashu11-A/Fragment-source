@@ -3,6 +3,7 @@ import { Auth } from '@/database/entity/Auth.js'
 import { userRepository } from '@/database/index.js'
 import { timer } from '@/utils/timer.js'
 import jwt from 'jsonwebtoken'
+import moment from 'moment'
 import { z } from 'zod'
 
 /**
@@ -13,8 +14,8 @@ const getCookieOptions = (expirationDate: Date) => ({
   path: '/',
   expires: expirationDate,
   httpOnly: true,
-  secure: process.env.PRODUCTION === 'true',
-  domain: process.env.PRODUCTION === 'true' ? process.env.FRONT_END_URL : undefined,
+  secure: process.env.PRODUCTION,
+  domain: process.env.PRODUCTION ? process.env.FRONT_END_URL : undefined,
 })
 
 export default new Router({
@@ -63,8 +64,9 @@ export default new Router({
       accessToken,
       refreshToken,
       user,
-      expireAt: expirationRefreshDate.toISOString()
+      expireAt: moment(expirationRefreshDate.toISOString()).format('YYYY-MM-DD HH:mm:ss.SSS')
     }).save()
+
 
     reply.setCookie('Bearer', accessToken, getCookieOptions(expirationTokenDate))
     reply.setCookie('Refresh', refreshToken, getCookieOptions(expirationRefreshDate))

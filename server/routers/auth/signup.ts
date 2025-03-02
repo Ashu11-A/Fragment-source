@@ -1,6 +1,8 @@
 import { Router } from '@/controllers/router.js'
 import { Role, User } from '@/database/entity/User.js'
+import { nanoid } from 'nanoid'
 import z from 'zod'
+import { randomBytes } from 'crypto'
 
 export default new Router({
   schema: z.object({
@@ -22,6 +24,7 @@ export default new Router({
 
     const user = await (await User.create({
       ...schema,
+      uuid: nanoid(),
       role: Role.User
     })
       .setPassword(schema.password))

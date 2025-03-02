@@ -13,7 +13,7 @@ export class FileEntity extends BaseEntity implements FileMetadata {
 
   @Column({ type: 'varchar' })
     name!: string
-  @Column({ type: 'int8' })
+  @Column({ type: 'integer' })
     size!: number
   @Column({ type: 'varchar' })
     type!: FileType

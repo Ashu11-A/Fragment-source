@@ -11,7 +11,7 @@ export class Bot extends BaseEntity {
   @Column({ type: 'uuid' })
     uuid!: string
 
-  @Column({ type: 'varchar', length: 256 })
+  @Column({ type: 'varchar'/*, length: 256*/})
     name!: string
   @Column({ type: 'boolean' })
     enabled!: boolean

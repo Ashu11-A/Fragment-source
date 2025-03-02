@@ -4,6 +4,7 @@ import { authTreeRepository } from '@/database/index.js'
 import { JWTData } from '@/types/jwt.js'
 import { timer } from '@/utils/timer.js'
 import jwt from 'jsonwebtoken'
+import moment from 'moment'
 
 /**
  * Retorna as opções para configuração dos cookies
@@ -13,8 +14,8 @@ const getCookieOptions = (expirationDate: Date) => ({
   path: '/',
   expires: expirationDate,
   httpOnly: true,
-  secure: process.env.PRODUCTION === 'true',
-  domain: process.env.PRODUCTION === 'true' ? process.env.FRONT_END_URL : undefined,
+  secure: process.env.PRODUCTION,
+  domain: process.env.PRODUCTION ? process.env.FRONT_END_URL : undefined,
 })
 
 export default new Router({
@@ -83,7 +84,7 @@ export default new Router({
       parent: auth,
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
-      expireAt: expirationRefreshDate.toISOString(),
+      expireAt: moment(expirationRefreshDate.toISOString()).format('YYYY-MM-DD HH:mm:ss.SSS'),
       user: { id: userData.id }
     }).save()
     

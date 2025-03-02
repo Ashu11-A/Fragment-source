@@ -1,9 +1,9 @@
 import { compare, hash } from 'bcryptjs'
-import { BaseEntity, Column, CreateDateColumn, Entity, Generated, OneToMany, PrimaryGeneratedColumn, type Relation, UpdateDateColumn } from 'typeorm'
+import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, type Relation, UpdateDateColumn } from 'typeorm'
+import { Hidden } from '../hooks/hidden.js'
 import { Auth } from './Auth.js'
 import { Bot } from './Bot.js'
 import { Subscription } from './Subscription.js'
-import { Hidden } from '../hooks/hidden.js'
 
 export enum Role {
   Administrator = 'administrator',
@@ -15,16 +15,15 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
     id!: number
   @Column({ type: 'uuid' })
-  @Generated('uuid')
     uuid!: string
 
-  @Column({ type: 'text', length: 64 })
+  @Column({ type: 'text'/*, length: 64*/ })
     name!: string
-  @Column({ type: 'text', length: 64 })
+  @Column({ type: 'text'/*, length: 64*/ })
     username!: string
   @Column({ type: 'varchar' })
     email!: string
-  @Column({ type: 'varchar', length: 16 })
+  @Column({ type: 'varchar'/*, length: 16*/ })
     language!: string
   @Hidden({ type: 'text' })
     password!: string
