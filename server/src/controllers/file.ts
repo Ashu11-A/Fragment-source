@@ -1,4 +1,4 @@
-import { FastifyRequest } from 'fastify'
+import { type FastifyRequest } from 'fastify'
 
 export class Multipart {
   constructor(private request: FastifyRequest) {}

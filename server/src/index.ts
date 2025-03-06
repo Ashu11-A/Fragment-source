@@ -1,6 +1,6 @@
 import { join } from 'path'
 import { LocalStorage, MemoryStorage } from './storage/index.js'
-import { BotConnection } from './types/websocket.js'
+import { type BotConnection } from './types/websocket.js'
 
 const cwd = import.meta.filename.endsWith('.ts') ? join(process.cwd(), '../') : process.cwd()
 

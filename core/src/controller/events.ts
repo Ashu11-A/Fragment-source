@@ -8,12 +8,12 @@ import { dirname, join } from 'path'
 import { cwd } from 'process'
 import type { Socket } from 'socket.io'
 import type { BaseEntity } from 'typeorm'
+import { fileURLToPath } from 'url'
+import { isPKG } from 'utils'
 import { Plugin } from 'worker'
 import type { DiscordMetadata } from 'worker/src/types/discord.js'
 import { Config } from './config.js'
 import { Database, type EntityImport } from './database.js'
-import { isPKG } from 'utils'
-import { fileURLToPath } from 'url'
 
 export class Event {
   constructor (private readonly client: Socket) {}

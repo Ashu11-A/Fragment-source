@@ -1,4 +1,4 @@
-import QueueBull, { QueueOptions, Queue as QueueType } from 'bull'
+import QueueBull, { type QueueOptions, type Queue as QueueType } from 'bull'
 
 export class Queue<T> extends QueueBull<T> {
   private queues: Record<string, QueueType> = {}

@@ -1,4 +1,4 @@
-import { Column, ColumnOptions } from 'typeorm'
+import { Column, type ColumnOptions } from 'typeorm'
 
 export function Hidden(options: ColumnOptions = {}): PropertyDecorator {
   return Column({

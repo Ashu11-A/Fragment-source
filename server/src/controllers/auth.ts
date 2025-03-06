@@ -1,6 +1,6 @@
 import { Role } from '@/database/entity/User.js'
 import { StrategyError } from '@/strategies/Base.js'
-import { FastifyReply, FastifyRequest } from 'fastify'
+import { type FastifyReply, type FastifyRequest } from 'fastify'
 
 export async function authenticator (request: FastifyRequest, reply: FastifyReply, authenticate: Role | Role[] | boolean) {
   try {

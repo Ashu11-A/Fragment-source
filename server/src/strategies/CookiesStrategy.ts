@@ -1,5 +1,5 @@
 import { User } from '@/database/entity/User.js'
-import { FastifyRequest } from 'fastify'
+import { type FastifyRequest } from 'fastify'
 import jwt from 'jsonwebtoken'
 import { Strategy } from './Base.js'
 import { Auth } from '@/database/entity/Auth.js'
