@@ -2,6 +2,8 @@
   "name": "server",
   "version": "1.0.0",
   "main": "dist/app.js",
+  "module": "src/exports.ts",
+  "types": "src/exports.ts",
   "type": "module",
   "private": "true",
   "scripts": {

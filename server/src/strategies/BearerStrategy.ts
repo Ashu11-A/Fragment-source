@@ -1,15 +1,16 @@
 import { User } from '@/database/entity/User.js'
-import { FastifyRequest } from 'fastify'
+import { type FastifyRequest } from 'fastify'
 import jwt from 'jsonwebtoken'
 import { Strategy } from './Base.js'
 import { Auth } from '@/database/entity/Auth.js'
+import type { IncomingMessage } from 'http'
 
 export class BearerStrategy extends Strategy<User> {
   constructor() {
     super('bearer')
   }
 
-  async validation(request: FastifyRequest) {
+  async validation(request: FastifyRequest | IncomingMessage) {
     try {
       const secret = process.env.JWT_TOKEN
       if (!secret) throw new Error('JWT_TOKEN não definido!')

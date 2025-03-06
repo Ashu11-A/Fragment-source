@@ -1,8 +1,8 @@
 import { Role, User } from '@/database/entity/User.js'
 import type { FastifyReply, FastifyRequest } from 'fastify'
-import type { z, ZodDefault, ZodError, ZodObject, ZodOptional, ZodRawShape } from 'zod'
+import type { z, ZodError, ZodTypeAny } from 'zod'
 
-/**
+/*
  * Enum for HTTP method types.
  */
 export enum MethodType {
@@ -10,44 +10,22 @@ export enum MethodType {
   post = 'post',
   put = 'put',
   delete = 'delete',
-  websocket = 'websocket'
+  socket = 'socket'
 }
 
-/**
- * Error response type.
- */
-export type TErrorResponse = {
-  message: string
-  toast?: string
-}
-
-/**
- * Success response base type.
- */
-export type TReplySuccess<TData> = {
-  message: string
-  data?: TData
-}
-
-/**
- * List response type.
- */
-export type ListResponse<T> = {
-  data: T[]
+export type TErrorResponse = { message: string; toast?: string }
+export type TReplySuccess<TData> = { message: string; data: TData }
+export type ListResponse<TData> = {
+  data: TData[]
   total: number
   currentPage: number
   totalPages: number
   pageSize: number
 }
-
-/**
- * Error reply types mapped by HTTP status code.
- */
 export type TReplyError = {
   [Status in 401 | 403 | 404 | 409 | 422 | 500]: TErrorResponse
 }
 
-// Tipo genérico de resposta com status diferentes
 export type TReply<TData> = {
   200: TReplySuccess<TData>
   201: TReplySuccess<TData>
@@ -60,90 +38,49 @@ export type TReply<TData> = {
   400: TErrorResponse & { error: ZodError }
 } & TReplyError
 
-/**
- * Helper type to extract response type for a given HTTP status code.
- */
-export type InferReplyType<TData, Code extends keyof TReply<TData>> = TReply<TData>[Code]
-
-/**
- * Infers the data type from a Zod schema.
- */
-export type ZodInferredData<Schema extends ZodRawShape> = z.infer<ZodObject<Schema>>
-
-/**
- * Mapeia as chaves da resposta para os códigos HTTP.
- */
-export type ReplyKeysToCodes<TData> = keyof TReply<TData>
-
-/**
- * Resolve o tipo de resposta com base no código HTTP.
- */
-export type ResolveReplyType<TData, Code extends keyof TReply<TData>> =
+export type ZodInferredData<
+  Method extends MethodKeys,
+  Schema extends SchemaDynamic<Method>,
+> = Schema[Method] extends z.ZodTypeAny
+  ? z.infer<Schema[Method]>
+  : unknown
+export type MethodKeys = keyof typeof MethodType
+export type SchemaDynamic<M extends MethodKeys> = { [K in M]?: ZodTypeAny }
+export type ReplyKeys = keyof TReply<unknown>
+export type ResolveReply<TData, Code extends ReplyKeys> =
   Code extends keyof TReply<TData> ? TReply<TData>[Code] : never
 
+export type TypedReply<TData, Code extends ReplyKeys> = 
+  Omit<FastifyReply, 'code'|'status'|'send'> & {
+    code<C extends ReplyKeys>(statusCode: C): TypedReply<TData, C>
+    status<C extends ReplyKeys>(statusCode: C): TypedReply<TData, C>
+    send<D>(payload?: ResolveReply<D, Code>): TypedReply<{ [C in Code]: ResolveReply<D, Code> }, Code>
+  }
 
-/**
- * Tipo de resposta genérico para o FastifyReply, garantindo que `send` e `status` aceitem corretamente o tipo inferido.
- */
-export type ReplyType<
-  Code extends ReplyKeysToCodes<unknown>,
-  Result extends ResolveReplyType<unknown, Code>
-> = Omit<
-  FastifyReply,
-  'code' | 'status' | 'send'
-> & {
-  code<Code extends ReplyKeysToCodes<unknown>>(statusCode: Code): ReplyType<Code, ResolveReplyType<unknown, Code>>
-  status<Code extends ReplyKeysToCodes<unknown>>(statusCode: Code): ReplyType<Code, ResolveReplyType<unknown, Code>>
-  send(payload?: Result): ReplyType<Code, Result>,
-}
-
-interface CustomInstanceFastify extends FastifyRequest {
+export interface CustomInstanceFastify extends FastifyRequest {
   user: User
 }
 
-/**
- * Type definition for a route handler.
- *
- * @template TSchema - the Zod shape used for validating request data.
- * @template TData - the data type inferred from the provided Zod schema.
- * @template Code - the HTTP status code for which this handler returns a response.
- */
 export type RouteHandler<
-  Authenticate extends boolean | User['role'] | User['role'][],
-  Schema extends ZodRawShape,
-  Code extends keyof TReply<TData> = keyof TReply<unknown>,
-  TData = unknown,
-> = ({
-  request,
-  reply,
-  schema,
-}: {
-  request: Authenticate extends true | Role | Role[]
-    ? CustomInstanceFastify
-    : Omit<CustomInstanceFastify, 'user'>,
-  reply: ReplyType<Code, ResolveReplyType<TData, Code>>,
-  schema: ZodInferredData<Schema>
-}) =>
-    | ReplyType<Code, ResolveReplyType<TData, Code>>
-    | Promise<ReplyType<Code, ResolveReplyType<TData, Code>>>
+  Method extends MethodKeys,
+  Authenticate extends boolean | Role | Role[],
+  Schema extends SchemaDynamic<Method>,
+> = <TData> (args: {
+  request: Authenticate extends true | Role | Role[] ? CustomInstanceFastify : Omit<CustomInstanceFastify, 'user'>
+  reply: TypedReply<TData, ReplyKeys>;
+  schema: ZodInferredData<Method, Schema>;
+}) => TypedReply<TData, ReplyKeys> | Promise<TypedReply<TData, ReplyKeys>>
 
-/**
- * The options for defining a router.
- *
- * The generic parameters are:
- * - TSchema: the shape for validation (via Zod) of the request data.
- * - TMethods: a partial record of HTTP methods to their route handlers.
- *
- * The data type for the route handlers is automatically inferred from TSchema.
- */
 export type RouterOptions<
-  Authenticate extends boolean | User['role'] | User['role'][],
-  Schema extends ZodRawShape,
-  Methods extends Partial<Record<MethodType, RouteHandler<Authenticate, Schema>>>,
+  Authenticate extends boolean | Role | Role[],
+  Schema extends SchemaDynamic<Methods>,
+  Routers extends { [Method in Methods]?: RouteHandler<Method, Authenticate, Schema> },
+  Methods extends MethodKeys = MethodKeys,
 > = {
   name: string
   path?: string
   authenticate?: Authenticate
-  schema?: ZodObject<Schema, 'strip'> | ZodDefault<ZodObject<Schema, 'strip'>> | ZodOptional<ZodObject<Schema, 'strip'>>
+  schema?: Schema
   description: string
-} & Methods
+  methods: Routers
+}
