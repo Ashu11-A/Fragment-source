@@ -4,7 +4,6 @@ import './register.js'
 
 import { Auth } from '@/controller/auth.js'
 import { Cli } from 'cli'
-import { Crypt } from 'crypt'
 import { rm } from 'fs/promises'
 import { join } from 'path'
 import prompts from 'prompts'
@@ -22,13 +21,12 @@ WebSocket.io.on('connect', async (socket) => new Event(socket).controller())
 prompts.override(yargs().argv)
 
 await new License().checker()
-await new Crypt().checker()
 await new Auth().checker()
 
 if (await exists(join(RootPATH, 'entries'))) await rm(join(RootPATH, 'entries'), { recursive: true })
 console.log(`Esperando conexões na porta: ${socket.port}`)
-const manager = new Plugin(socket.port)
-manager.watcher()
+
+new Plugin(socket.port).watcher()
 
 new Cli({
   functions: {

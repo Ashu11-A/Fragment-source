@@ -66,7 +66,8 @@ self.onmessage = async (event: MessageEvent) => {
 
           SocketClient.client.on('discord_token', async (token: string) => {
             const client = new Discord()
-            const processedToken = await new Crypt().decrypt(token)
+            const { privateKey, publicKey } = await Crypt.getKeys()
+            const processedToken = await new Crypt({ privateKey, publicKey }).decrypt(token)
   
             await client.start(processedToken)
   

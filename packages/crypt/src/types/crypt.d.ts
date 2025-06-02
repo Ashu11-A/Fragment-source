@@ -1,7 +1,7 @@
 export type DataCrypted = {
   email: string
   password: string
-  botId: string
+  botId: number
   token: string
   language: string
   token: string

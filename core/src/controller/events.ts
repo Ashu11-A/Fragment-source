@@ -1,6 +1,6 @@
 import { Discord } from '@/discord/base/Client.js'
-import { PKG_MODE, storage } from '@/index.js'
-import { credentials } from 'crypt'
+import { PKG_MODE } from '@/index.js'
+import { storage } from '@/storage.js'
 import { Command, type CommandData } from 'discord'
 import { existsSync } from 'fs'
 import { mkdir, writeFile } from 'fs/promises'
@@ -75,8 +75,10 @@ export class Event {
       }
       case 'discord_metadata': {
         const discord = args as DiscordMetadata
-        const token = credentials.get('token')
+        const data = await storage.load('.data', { isJson: true })
+        const token = data?.token
         if (!token) { console.log('Token é undefined'); return }
+
         const plugin = Plugin.all.get(this.client.id)
         if (!plugin) { console.log('Plugin é undefined: discord_metadata'); return }
 
@@ -104,7 +106,8 @@ export class Event {
         break
       }
       case 'send_me_the_Discord_token_please': {
-        const token = credentials.get('token')
+        const data = await storage.load('.data', { isJson: true })
+        const token = data?.token
         const plugin = Plugin.all.get(this.client.id)
         if (!plugin) {
           console.log('Plugin é undefined: send_me_the_Discord_token_please')
@@ -123,7 +126,7 @@ export class Event {
           plugin: plugin?.manager?.metadata?.name ?? this.client.id
         }))
 
-        this.client.emit('discord_token', await storage.encrypt(token))
+        this.client.emit('discord_token', await storage.crypt?.encrypt(token))
         break
       }
       case 'disconnect': {

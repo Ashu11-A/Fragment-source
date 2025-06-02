@@ -3,7 +3,12 @@
   "version": "1.0.0",
   "module": "core/index.ts",
   "type": "module",
-  "workspaces": ["plugins/*", "packages/*", "core", "server"],
+  "workspaces": {
+    "packages": ["server", "core", "packages/*", "plugins/*"],
+    "catalog": {
+      "zod": "^3.24.2"
+    }
+  },
   "scripts": {
     "dev": "bun run devlop.ts",
     "build": "bun release.ts",
@@ -16,7 +21,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
-    "@types/bun": "^1.2.3",
+    "@types/bun": "^1.2.4",
     "@types/chalk": "^2.2.4",
     "@types/cli-progress": "^3.11.6",
     "chalk": "^5.4.1",
@@ -27,7 +32,7 @@
     "glob": "^11.0.1",
     "globals": "^15.15.0",
     "chokidar": "^4.0.3",
-    "typescript-eslint": "^8.25.0"
+    "typescript-eslint": "^8.26.0"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.9",

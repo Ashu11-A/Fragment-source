@@ -1,14 +1,14 @@
 import { Router } from '@/controllers/router.js'
 import { Auth } from '@/database/entity/Auth.js'
-import { userRepository } from '@/database/index.js'
+import { repository } from '@/database/index.js'
 import { timer } from '@/utils/timer.js'
 import jwt from 'jsonwebtoken'
 import moment from 'moment'
 import { z } from 'zod'
 
 /**
- * Retorna as opções para configuração dos cookies
- * @param expirationDate Data de expiração do cookie
+ * Returns cookie configuration options
+ * @param expirationDate Cookie expiration date
  */
 const getCookieOptions = (expirationDate: Date) => ({
   path: '/',
@@ -18,10 +18,9 @@ const getCookieOptions = (expirationDate: Date) => ({
   domain: process.env.PRODUCTION ? process.env.FRONT_END_URL : undefined,
 })
 
-export default new Router({
-  name: 'UserLogin',
-  description:
-    'Handles user authentication by validating credentials and issuing JWT tokens for secure access',
+const router = new Router({
+  name: 'User Authentication',
+  description: 'Authenticate user credentials and issue JWT tokens for secure access',
   schema: {
     post: z.object({
       email: z.string().email(),
@@ -30,7 +29,7 @@ export default new Router({
   },
   methods: {
     async post({ reply, schema }) {
-      const user = await userRepository
+      const user = await repository.user
         .createQueryBuilder('user')
         .addSelect('user.password')
         .where('user.email = :email', { email: schema.email })
@@ -92,3 +91,5 @@ export default new Router({
     },
   }
 })
+
+export default router

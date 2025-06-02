@@ -29,13 +29,12 @@
     "@types/signale": "^1.4.7",
     "@types/socket.io": "^3.0.2",
     "@types/yargs": "^17.0.33",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.25.0"
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.0"
   },
   "dependencies": {
     "cli": "workspace:../packages/cli",
     "cron": "^3.5.0",
-    "crypt": "workspace:../packages/crypt",
     "discord.js": "^14.18.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
@@ -43,15 +42,18 @@
     "lang": "workspace:../packages/lang",
     "marked": "^15.0.7",
     "marked-terminal": "^7.3.0",
-    "mysql2": "^3.12.0",
+    "mysql2": "^3.13.0",
     "prompts": "^2.4.2",
     "reflect-metadata": "^0.2.2",
     "rpc": "workspace:../packages/rpc",
     "server": "workspace:../server",
     "socket.io": "^4.8.1",
-    "typeorm": "^0.3.20",
+    "socket.io-client": "^4.8.1",
+    "typeorm": "^0.3.21",
     "utils": "workspace:../packages/utils",
     "worker": "workspace:../packages/worker",
+    "storage": "workspace:../packages/storage",
+    "crypt": "workspace:../packages/crypt",
     "yargs": "^17.7.2"
   }
 }

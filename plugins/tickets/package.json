@@ -18,6 +18,7 @@
     "build": "workspace:../../packages/build",
     "cli": "workspace:../../packages/cli",
     "crypt": "workspace:../../packages/crypt",
+    "storage": "workspace:../../packages/storage",
     "discord": "workspace:../../packages/discord",
     "socket-client": "workspace:../../packages/socket"
   }

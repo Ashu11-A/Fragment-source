@@ -1,6 +1,6 @@
-import { type FileMetadata, FileType } from '../../storage/index.js'
 import { BaseEntity, Column, Entity, Generated, OneToOne, PrimaryGeneratedColumn, type Relation } from 'typeorm'
 import { Release } from './Release.js'
+import type { FileMetadata, FileType } from 'storage'
 
 
 @Entity({ name: 'files' })

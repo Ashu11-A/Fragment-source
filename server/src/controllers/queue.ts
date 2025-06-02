@@ -12,7 +12,7 @@ export class Queue<T> extends QueueBull<T> {
       redis: {
         host: process.env['REDIS_HOST'],
         port: Number(process.env['REDIS_PORT']),
-        password: process.env['REDIS_PASSWORD']?.length === 0 ? undefined : process.env['REDIS_PASSWORD']
+        password: String(process.env['REDIS_PASSWORD']).length === 0 ? undefined : String(process.env['REDIS_PASSWORD'])
       }
     })
 

@@ -1,10 +1,11 @@
 /* eslint-disable no-var */
-import * as lang from '../register'
+
+import type { i18 as lang } from '@/lang'
 
 declare global {
-  var i18: typeof lang.i18
+  var i18: typeof lang
 
   interface globalThis {
-    i18: typeof lang.i18
+    i18: typeof lang
   }
 }

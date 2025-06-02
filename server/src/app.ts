@@ -1,18 +1,16 @@
-import 'env/loader'
 import 'dotenv/config'
+import 'env/loader'
 import 'reflect-metadata'
 
-import { execSync } from 'child_process'
 import { Fastify } from './controllers/fastify.js'
-import { Router } from './controllers/router.js'
 import Database from './database/dataSource.js'
-
-execSync('bun run migration:run || true', { stdio: 'inherit' })
+import { registerRouter } from './scripts/routers.js'
 
 const fastify = new Fastify({ port: Number(process.env['PORT']) || 3000, host: '0.0.0.0' })
 await Database.initialize()
 
-fastify.init()
-await Router.register()
-await import('../routers/ws/bot.js')
-fastify.listen()
+await import('./scripts/register.js')
+
+fastify.config()
+await registerRouter()
+await fastify.listen()

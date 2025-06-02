@@ -1,5 +1,7 @@
 export default {
   'authenticate': {
+    'select_bot': 'Select your bot',
+    'choose_option': 'How do you want to proceed?',
     'registered': '📝 Registered at:',
     'hello': '👋 Hello {{name}}',
     'change_token': '🔄 Change Token',
@@ -42,9 +44,10 @@ export default {
     'no_reply': '❌ Form not replied!',
     'expired': '❌ {{element}} expired!',
     'disabled': '❌ {{element}} disabled!',
-    'an_error_occurred': '❌ An error occurred:',
+    'an_error_occurred': '❌ An error occurred: {{element}}',
     'timeout': '⏳ Timeout of {{time}} seconds... trying after the timeout',
-    'login': '❌ Error "{{error}}" when trying to log in'
+    'login': '❌ Error "{{error}}" when trying to log in',
+    'incorrect_value': '❌ Value provided is incorrect: {{value}}'
   },
   'license': {
     'accept': '❓ Do you agree with the terms presented above?'

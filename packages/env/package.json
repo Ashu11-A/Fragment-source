@@ -21,8 +21,5 @@
       "import": "./src/loader.ts",
       "require": "./src/loader.ts"
     }
-  },
-  "dependencies": {
-    "utils": "workspace:../utils"
   }
 }

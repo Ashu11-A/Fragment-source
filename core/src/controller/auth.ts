@@ -1,10 +1,12 @@
-import { api, RootPATH, storage } from '@/index.js'
+import { client, RootPATH } from '@/index.js'
+import { storage, type DataCrypted } from '@/storage'
 import { AxiosError } from 'axios'
 import { CronJob } from 'cron'
-import { credentials, type DataCrypted } from 'crypt'
 import { rm } from 'fs/promises'
-import prompts, { type Choice, type PromptObject } from 'prompts'
-import type { Bot, User } from './api'
+import prompts, { type PromptObject } from 'prompts'
+import { isSuccessResponse } from 'rpc'
+import type { Bot } from 'server/src/database/entity/Bot'
+import type { User } from 'server/src/database/entity/User'
 
 const emailRegex = /^[\w-\\.]+@([\w-]+\.)+[\w-]{2,4}$/g
 let attempts = 0
@@ -31,8 +33,8 @@ const questions: PromptObject<string>[] = [
   }
 ]
 export class Auth {
-  public static user?: User
-  public static bot?: Bot
+  public static user: User
+  public static bot: Bot
   private email?: string
   private password?: string
     
@@ -44,7 +46,7 @@ export class Auth {
       throw new Error(i18('error.no_reply'))
     }
 
-    await storage.write(response)
+    await storage.append('.data', response, { isJson: true })
     return response
   }
 
@@ -57,14 +59,15 @@ export class Auth {
   }
 
   async checker (): Promise<void> {
-    await storage.read()
-    this.email = credentials.get('email') as string | undefined
-    this.password = credentials.get('password') as string | undefined
+    const data = await storage.load('.data', { isJson: true })
+    this.email = data?.email
+    this.password = data?.password
 
     if (this.email === undefined || this.password === undefined) {
       await this.askCredentials()
       return await this.checker()
     }
+
     await this.login().then(() => setTimeout(() => this.validator(), 10000))
   }
 
@@ -72,13 +75,20 @@ export class Auth {
     await this.timeout()
     
     try {
-      await api.login({
+      const response = await client.query('/auth/login', 'post', {
         email: this.email as string,
         password: this.password as string
       })
-    
-      const profile = await api.profile()
-      if (profile instanceof Error) throw profile
+      if (!isSuccessResponse(response)) throw response
+
+      client.setAccessToken(response.data.accessToken.token)
+      await storage.append('.data', {
+        accessToken: response.data.accessToken,
+        refreshToken: response.data.refreshToken,
+      }, { isJson: true })
+
+      const profile = await client.query('/users/profile', 'get', undefined)
+      if (!isSuccessResponse(profile)) throw profile
 
       Auth.user = profile.data
 
@@ -93,31 +103,30 @@ export class Auth {
       console.log(err)
       console.log(i18('error.unstable', { element: 'API' }))
 
-      const choices: Choice[] = [
-        { title: i18('authenticate.logout'), value: 'logout' },
-        { title: i18('authenticate.try_again'), value: 'try_again' }
-      ]
+      const options = [
+        `(1) ${i18('authenticate.logout')}`,
+        `(2) ${i18('authenticate.try_again')}`
+      ].join('\n')
 
       const conclusion = await prompts({
-        type: 'select',
-        name: 'Error',
+        type: 'text',
+        name: 'error',
         message: i18('error.login', {
           error: err instanceof AxiosError
             ? err.message
             : err instanceof Error
               ? err.message
-              : '' }),
-        choices,
-        initial: 1
+              : '' }) + `:\n  ${i18('authenticate.choose_option')}:\n${options}\n`,
+        validate: (value: string) => ['1', '2'].includes(value.trim()) ? true : i18('error.incorrect_value', { value })
       })
 
-      switch (conclusion.Error) {
-      case 'logout': {
+      switch (conclusion.error.trim()) {
+      case '1': {
         await this.logout()
         await this.askCredentials()
         return await this.login()
       }
-      case 'try_again': {
+      case '2': {
         return await this.login()
       }
       default: throw new Error(i18('error.no_reply'))
@@ -134,19 +143,25 @@ export class Auth {
 
   async defineBot () {
     try {
-      const bots = await api.bots()
+      const bots = await client.query('/bots?pageSize=999' as '/bots', 'get', undefined)
+      if (!isSuccessResponse(bots)) throw bots
+    
+      const botList = bots.data.map((bot, index) => `${index + 1}. ${bot.name}`).join('\n')
 
       const result = await prompts({
-        type: 'select',
+        type: 'text',
         name: 'bot',
-        message: 'Selecione seu Bot',
-        choices: bots.data.map((bot) => ({
-          title: bot.name,
-          value: bot.uuid
-        }))
+        message: `${i18('authenticate.select_bot')}:\n${botList}\n`,
+        validate: (value: string) => {
+          const index = parseInt(value) - 1
+          return !isNaN(index) && index >= 0 && index < bots.data.length ? true : i18('error.incorrect_value', { value })
+        }
       })
 
-      await storage.write({ botId: result.bot as string })
+      const selectedIndex = parseInt(result.bot) - 1
+      const selectedBot = bots.data[selectedIndex]
+
+      await storage.append('.data', { botId: selectedBot.id }, { isJson: true })
       lastTry = undefined
       return await this.validator()
     } catch (err) {
@@ -163,46 +178,48 @@ export class Auth {
       return
     }
 
-    const uuid = credentials.get('botId')
-    if (!uuid) {
+    const data = await storage.load('.data', { isJson: true })
+    const id = data?.botId
+    if (!id) {
       await this.defineBot()
       return
     }
     
     try {
-      const response = await api.bot(uuid)
+      const bot = await client.query('/bots/:id', 'get', { id: id as number }, undefined)
+      if (!isSuccessResponse(bot)) throw bot
 
       attempts = attempts + 1
 
-      if (!response.data.enabled) console.log(i18('error.disabled', { element: 'Bot' }))
+      if (!bot.data.enabled) console.log(i18('error.disabled', { element: 'Bot' }))
       if (Auth.bot === undefined) this.cron()
 
-      Auth.bot = response.data
+      Auth.bot = bot.data
     } catch (err) {
       console.log(`☝️ Então ${(Auth.user as User).name}, não achei o registro do seu bot!`)
-      const choices: Choice[] = [
-        { title: i18('authenticate.change_token'), value: 'change' },
-        { title: i18('authenticate.try_again'), value: 'try_again' },
-        { title: i18('authenticate.logout'), value: 'logout' }
-      ]
+      const options = [
+        `(1) ${i18('authenticate.change_token')}`,
+        `(2) ${i18('authenticate.try_again')}`,
+        `(3) ${i18('authenticate.logout')}`
+      ].join('\n')
 
       const conclusion = await prompts({
         name: 'Error',
-        type: 'select',
-        choices,
-        message: i18('error.an_error_occurred', { element: err instanceof AxiosError ? err.cause : '' }),
+        type: 'text',
+        message: `${i18('error.an_error_occurred', { element: err instanceof AxiosError ? err.cause : '' })}\n${options}\n`,
+        validate: (value: string) => ['1', '2', '3'].includes(value.trim()) ? true : i18('error.incorrect_value', { value: value })
       })
 
-      switch (conclusion.Error) {
-      case 'change': {
+      switch (conclusion.Error.trim()) {
+      case '1': {
         await this.defineBot()
         break
       }
-      case 'try_again': {
+      case '2': {
         await this.validator()
         break
       }
-      case 'logout': {
+      case '3': {
         await this.logout()
         break
       }

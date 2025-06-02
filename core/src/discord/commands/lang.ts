@@ -1,6 +1,6 @@
 import { RootPATH } from '@/index.js'
-import { lang } from '@/register'
-import { Crypt } from 'crypt'
+import { lang } from '@/lang'
+import { storage } from '@/storage'
 import { Command } from 'discord'
 import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, MessageFlags } from 'discord.js'
 import { glob } from 'glob'
@@ -42,8 +42,7 @@ new Command({
     const language = options.getString('name', true)
 
     const languageChange = await lang.set(language)
-    const crypt = new Crypt()
-    await crypt.write({ language: 'en' })
+    await storage.append('.data', { language: 'en' }, { isJson: true })
     
     if (languageChange ===  language)
       await interaction.editReply({

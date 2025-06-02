@@ -36,6 +36,8 @@ export default {
     'accept': '❓ Você concorda com os termos apresentados acima?'
   },
   'authenticate': {
+    'select_bot': 'Selecione seu bot',
+    'choose_option': 'Como deseja prosseguir?',
     'registered': '📝 Cadastrado em:',
     'hello': '👋 Olá {{name}}',
     'change_token': '🔄 Mudar Token',
@@ -58,9 +60,10 @@ export default {
     'no_reply': '❌ Formulário não respondido!',
     'expired': '❌ {{element}} expired!',
     'disabled': '❌ {{element}} disabled!',
-    'an_error_occurred': '❌ Ocorreu um erro:',
+    'an_error_occurred': '❌ Ocorreu um erro: {{element}}',
     'timeout': '⏳ Timeout de {{time}} segundos... tentando após o timeout',
-    'login': '❌ Erro "{{error}}" ao tentar logar'
+    'login': '❌ Erro "{{error}}" ao tentar logar',
+    'incorrect_value': '❌ O valor fornecido está incorreto: {{value}}'
   },
   'commands': {
     'lang': {

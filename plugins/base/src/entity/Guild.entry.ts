@@ -1,4 +1,4 @@
-import { BaseEntity, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { BaseEntity, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, type Relation } from 'typeorm'
 import Config from './Config.entry.js'
 
 @Entity({ name: 'guild_base' })
@@ -11,5 +11,5 @@ export default class Guild extends BaseEntity {
 
   @OneToOne(() => Config, (config) => config.guild)
   @JoinColumn()
-    config!: Config
+    config!: Relation<Config>
 }
