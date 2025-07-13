@@ -1,4 +1,4 @@
-import { RootPATH } from '@/index.js'
+import { root } from '@/index.js'
 import { watch } from 'fs'
 import { access, constants, readFile, writeFile } from 'fs/promises'
 import { marked, type MarkedExtension } from 'marked'
@@ -10,7 +10,7 @@ import license from '../../../LICENSE.md' with { type: 'text' }
 marked.use(markedTerminal() as MarkedExtension)
 
 export class License {
-  private licensePath = join(RootPATH, '.license')
+  private licensePath = join(root, '.license')
   static watcherInitialized = false
 
   async checker () {
@@ -24,7 +24,7 @@ export class License {
 
     if (!License.watcherInitialized) {
       License.watcherInitialized = true
-      const wather = watch(join(RootPATH, '.license'))
+      const wather = watch(join(root, '.license'))
 
       wather.on('change', () => this.checker())
     }
@@ -40,11 +40,11 @@ export class License {
     }))
 
     if (response.accepted) {
-      await writeFile(join(RootPATH, '.license'), 'ACCEPT=true')
+      await writeFile(join(root, '.license'), 'ACCEPT=true')
       return
     }
 
-    await writeFile(join(RootPATH, '.license'), 'ACCEPT=false')
+    await writeFile(join(root, '.license'), 'ACCEPT=false')
     throw new Error(i18('error.no_possible'))
   }
 }

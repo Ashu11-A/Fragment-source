@@ -3,10 +3,9 @@ import { Database  } from 'socket-client'
 import { Package } from 'utils'
 import type { ConfigEntry } from '../schemas/config.js'
 import type Guild from '../schemas/guild.js'
-import { Command } from './Commands.js'
-import { Component } from './Components.js'
-import { Config } from './Config.js'
-
+import { Config } from '../controllers/Config.js'
+import { Command } from '../controllers/Commands.js'
+import { Component } from '../controllers/Components.js'
 export class Discord {
   public static client: Client<boolean>
   private timestamp!: number
@@ -15,6 +14,7 @@ export class Discord {
 
   controller () {
     Discord.client.on('interactionCreate', async (interaction) => {
+      console.log(interaction)
       try {
         this.timestamp = Date.now()
 
@@ -37,6 +37,7 @@ export class Discord {
             config?.run(interaction)
             return
           }
+
           const command = Command.all.get(commandInteraction.commandName)
 
           switch (command?.type) {

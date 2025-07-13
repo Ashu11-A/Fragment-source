@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "start": "node .",
-    "dev": "bun src/app.ts",
+    "dev": "bun run --inspect-brk=ws://localhost:6499 src/app.ts",
     "lint": "eslint -c eslint.config.js --fix"
   },
   "author": {

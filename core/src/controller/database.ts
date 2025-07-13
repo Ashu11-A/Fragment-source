@@ -1,60 +1,67 @@
-import { RootPATH } from '@/index.js'
-import { glob } from 'glob'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { root } from '@/index.js'
 import { join } from 'path'
-import { performance } from 'perf_hooks'
-import type { Socket } from 'socket.io'
-import { DataSource, ObjectId, type BaseEntity, type DataSourceOptions, type FindOptionsWhere } from 'typeorm'
+import { DataSource, ObjectId, type BaseEntity, type FindOptionsWhere } from 'typeorm'
 
 export interface EntityImport<T extends typeof BaseEntity> { default: T }
 
 export class Database {
-  public static entries: Record<string, EntityImport<typeof BaseEntity>> = {}
-  public static client?: DataSource
+  public entries: Record<string, EntityImport<typeof BaseEntity>> = {}
+  public client: DataSource
 
-  async start (options: DataSourceOptions) {
-    Database.client = new DataSource({
-      ...options,
+  constructor () {
+    this.client = new DataSource({
+      type: 'sqljs' as const,
+      autoSave: true,
+      useLocalForage: true,
       synchronize: true,
       logging: true,
-      entities: await glob(join(RootPATH, 'entries/**/*.{ts,js}')),
+      location: join(root, '/database.wm'),
+      entities: [join(root, 'entries/**/*.{ts,js}')],
       migrations: [],
     })
-    await Database.client.initialize()
-    console.log(i18('database.initialized', { length: Object.keys(Database.entries).length }))
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async events (socket: Socket, eventName: string, args: any) {
-    const { type, table, plugin } = args as { type: string, table: string, plugin: string }
-    const entry = Object.entries(Database.entries).find(([key]) => key.split('.')[0] === `${plugin}/${table}`)
+  async init () {
+    await this.client.initialize()
+    console.log(i18('database.initialized', { length: Object.keys(this.entries).length }))
+  }
+
+   
+  async query (args: {
+    type: string,
+    table: string,
+    plugin: string,
+    options?: any
+    entities?: any
+    criteria?: any
+    partialEntity?: any
+    entityOrEntities?: any
+    conflictPathsOrOptions?: any
+    where?: any
+    entity?: any
+  }) {
+    const { type, table, plugin } = args
+    const entry = Object.entries(this.entries).find(([key]) => key.split('.')[0] === `${plugin}/${table}`)
 
     if (entry === undefined) {
-      console.log(i18('database.invalid_entity', { tableName: table }), JSON.stringify(Database.entries, null, 2))
+      console.log(i18('database.invalid_entity', { tableName: table }), JSON.stringify(this.entries, null, 2))
       return
     }
 
     const [, { default: Entity }] = entry
-    try {
-      const start = performance.now()
-
-      switch (type) {
-      case 'find': socket.emit(eventName, await Entity.find(args.options)); break
-      case 'save': socket.emit(eventName, await Entity.save(args.entities, args.options)); break
-      case 'count': socket.emit(eventName, await Entity.count(args.options)); break
-      case 'update': socket.emit(eventName, await Entity.update(args.criteria, args.partialEntity)); break
-      case 'upsert': socket.emit(eventName, await Entity.upsert(args.entityOrEntities, args.conflictPathsOrOptions)); break
-      case 'findBy': socket.emit(eventName, await Entity.findBy(args.where as FindOptionsWhere<typeof BaseEntity>)); break
-      case 'delete': socket.emit(eventName, await Entity.delete(args.criteria as string | string[] | number | number[] | Date | Date[] | ObjectId | ObjectId[] | FindOptionsWhere<typeof BaseEntity>)); break
-      case 'create': socket.emit(eventName, await Entity.create(args.entity)); break
-      case 'findOne': socket.emit(eventName, await Entity.findOne(args.options)); break
-      }
-
-      const end = performance.now()
-      console.log(`🛎️  [${plugin}]: Database -> ${type} [${(end - start).toFixed(2)} ms]`)
-    } catch (err) {
-      console.log(err)
-      socket.emit(`${eventName}_error`, err)
+    switch (type) {
+    case 'find': return await Entity.find(args.options)
+    case 'save': return await Entity.save(args.entities, args.options)
+    case 'count': return await Entity.count(args.options)
+    case 'update': return await Entity.update(args.criteria, args.partialEntity)
+    case 'upsert': return await Entity.upsert(args.entityOrEntities, args.conflictPathsOrOptions)
+    case 'findBy': return await Entity.findBy(args.where as FindOptionsWhere<typeof BaseEntity>)
+    case 'delete': return await Entity.delete(args.criteria as string | string[] | number | number[] | Date | Date[] | ObjectId | ObjectId[] | FindOptionsWhere<typeof BaseEntity>)
+    case 'create': return await Entity.create(args.entity)
+    case 'findOne': return await Entity.findOne(args.options)
     }
+
     return
   }
 }

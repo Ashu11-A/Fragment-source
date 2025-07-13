@@ -1,4 +1,4 @@
-import { RootPATH } from '@/index.js'
+import { root } from '@/index.js'
 import { lang } from '@/lang'
 import { storage } from '@/storage'
 import { Command } from 'discord'
@@ -26,11 +26,16 @@ new Command({
 
     switch (options.getFocused(true).name) {
     case 'name': {
-      const languages = await glob('locales/**/*.json', { cwd: RootPATH })
-      response.push(...languages.map((lang) => ({
-        name: lang.split('/')[lang.split('/').length - 2], // pt-BR
-        value: lang.split('/')[lang.split('/').length - 2]
-      } satisfies ApplicationCommandOptionChoiceData)))
+      const languages = await glob('locales/*', { cwd: root })
+      console.log(languages)
+      response.push(...languages.map((lang) => {
+        const lastValue = lang.split('/').length - 1
+        
+        return {
+          name: lang.split('/')[lastValue], // pt-BR
+          value: lang.split('/')[lastValue]
+        } satisfies ApplicationCommandOptionChoiceData
+      }))
       break
     }
     }
@@ -42,7 +47,7 @@ new Command({
     const language = options.getString('name', true)
 
     const languageChange = await lang.set(language)
-    await storage.append('.data', { language: 'en' }, { isJson: true })
+    await storage.append('.data', { language: languageChange }, { isJson: true })
     
     if (languageChange ===  language)
       await interaction.editReply({

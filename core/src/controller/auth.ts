@@ -1,4 +1,4 @@
-import { client, RootPATH } from '@/index.js'
+import { client, root } from '@/index.js'
 import { storage, type DataCrypted } from '@/storage'
 import { AxiosError } from 'axios'
 import { CronJob } from 'cron'
@@ -135,7 +135,7 @@ export class Auth {
   }
 
   async logout () {
-    await rm(`${RootPATH}/.key`)
+    await rm(`${root}/.key`)
     await this.askCredentials()
     await this.login()
     await this.validator()

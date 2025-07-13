@@ -1,5 +1,5 @@
 import { Discord } from '@/discord/base/Client.js'
-import { PKG_MODE } from '@/index.js'
+import { isPKG as PKG_MODE } from '@/index.js'
 import { storage } from '@/storage.js'
 import { Command, type CommandData } from 'discord'
 import { existsSync } from 'fs'
@@ -16,13 +16,26 @@ import { Config } from './config.js'
 import { Database, type EntityImport } from './database.js'
 
 export class Event {
+  database = new Database()
   constructor (private readonly client: Socket) {}
 
   async controller () {
-    const database = new Database()
-
     this.client.onAny(async (eventName: string, args) => {
-      if (eventName.split('_').includes('database')) { await database.events(this.client, eventName, args); return }
+      if (eventName.split('_').includes('database')) {
+        try {
+          const start = performance.now()
+          const result = await this.database.query(args)
+        
+          this.client.emit(eventName, result)
+        
+          const end = performance.now()
+          console.log(`🛎️  [${args.plugin}]: Database -> ${args.type} [${(end - start).toFixed(2)} ms]`)
+        } catch (err) {
+          console.log(err)
+          this.client.emit(`${eventName}_error`, err)
+        }
+        return
+      }
 
       console.log('evento: ', eventName)
 
@@ -52,23 +65,18 @@ export class Event {
           const filePath = join(path, entryName)
           const entry = await import(filePath) as EntityImport<typeof BaseEntity>
 
-          Database.entries = Object.assign(Database.entries, ({ [entryName]: entry }))
+          this.database.entries = Object.assign(this.database.entries, ({ [entryName]: entry }))
         }
-        console.log(Database.entries)
+        console.log(this.database.entries)
           
         Plugin.all.set(this.client.id, { ...plugin, entries: args })
 
         console.log(i18('database.starting'))
     
-        if (Database.client) await Database.client.destroy()
-        await database.start({
-          type: 'mysql',
-          host: 'node.seventyhost.net',
-          port: 3306,
-          username: 'u1692_LdgWCEOTrx',
-          password: 'Ie=nbT!9U9zAMHFC8+4Y+CbQ',
-          database: 's1692_SeventyHost'
-        })
+        if (this.database.client.isInitialized) {
+          await this.database.client.destroy()
+        }
+        await this.database.init()
   
         this.client.emit('entries_ok')
         break
@@ -85,6 +93,9 @@ export class Event {
         for (const command of discord.commands as Array<CommandData<boolean>>) {
           Command.all.set(command.name, Object.assign(command, { pluginId: this.client.id }))
         }
+
+        console.log(JSON.stringify(Command.all, null, 2))
+
         for (const config of discord.configs) new Config({ ...config, pluginId: this.client.id })
 
         console.log()

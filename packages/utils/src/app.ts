@@ -1,4 +1,4 @@
-import { dirname } from 'path'
+import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import { Package } from './controllers/package'
 
@@ -9,6 +9,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 export const __plugin_dirname = process.cwd()
 export const isPKG = (path: string) =>  {
   return __dirname === path
+}
+
+export function processPath (path: string) {
+  const isPKG = path.includes('B:\\~BUN\\') || path.includes('/$bunfs/root')
+  const root: string = isPKG ? process.cwd() : join(path, '..')
+
+  return { isPKG, root }
 }
 
 export type Metadata = {

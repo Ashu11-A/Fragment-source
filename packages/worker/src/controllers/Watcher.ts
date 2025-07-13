@@ -1,7 +1,7 @@
 import { watch } from 'chokidar'
 import { existsSync, mkdirSync } from 'fs'
 import { join } from 'path'
-import type { WatcherOptions } from '../types/watcher'
+import type { WatcherOptions } from '../types/watcher.js'
 import { i18 } from '../index.js' // Importa a função de tradução
 
 export class Watcher {

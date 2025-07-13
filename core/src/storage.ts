@@ -1,13 +1,13 @@
+import { Crypt } from 'crypt'
 import { readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
-import { LocalStorage, Storage } from 'storage'
-import { Crypt } from 'crypt'
-import { exists } from 'utils'
-import { RootPATH } from '.'
 import type { Routers } from 'server'
+import { LocalStorage, Storage } from 'storage'
+import { exists } from 'utils'
+import { root } from './index.js'
 
-const PRIVATE_KEY_PATH = join(RootPATH, 'privateKey.pem')
-const PUBLIC_KEY_PATH = join(RootPATH, 'publicKey.pem')
+const PRIVATE_KEY_PATH = join(root, 'privateKey.pem')
+const PUBLIC_KEY_PATH = join(root, 'publicKey.pem')
 
 let privateKey
 let publicKey
@@ -38,7 +38,7 @@ const crypt = new Crypt({
 const { driver } = new Storage<{ '.data': DataCrypted }>({
   // crypt: crypt,
   driver: new LocalStorage({
-    storagePath: join(RootPATH, '/storage')
+    storagePath: join(root, '/storage')
   })
 })
 
