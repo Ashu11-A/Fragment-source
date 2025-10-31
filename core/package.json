@@ -49,7 +49,7 @@
     "server": "workspace:../server",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
-    "typeorm": "^0.3.21",
+    "typeorm": "^0.3.26",
     "utils": "workspace:../packages/utils",
     "worker": "workspace:../packages/worker",
     "storage": "workspace:../packages/storage",

@@ -27,7 +27,7 @@
   "dependencies": {
     "discord.js": "^14.18.0",
     "reflect-metadata": "^0.1.14",
-    "typeorm": "0.3.20",
+    "typeorm": "0.3.26",
     "utils": "workspace:../../packages/utils",
     "build": "workspace:../../packages/build",
     "socket-client": "workspace:../../packages/socket",
