@@ -38,7 +38,7 @@
     "discord.js": "^14.18.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "glob": "^11.0.1",
+    "glob": "^13.0.5",
     "lang": "workspace:../packages/lang",
     "marked": "^15.0.7",
     "marked-terminal": "^7.3.0",
