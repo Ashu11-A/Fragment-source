@@ -24,7 +24,7 @@
     "utils": "workspace:../utils"
   },
   "devDependencies": {
-    "glob": "^11.0.1",
-    "typeorm": "^0.3.21"
+    "glob": "^12.0.0",
+    "typeorm": "^0.3.26"
   }
 }
