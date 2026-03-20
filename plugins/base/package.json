@@ -15,7 +15,7 @@
     "lint": "eslint -c eslint.config.js --fix"
   },
   "devDependencies": {
-    "glob": "^10.4.5",
+    "glob": "^12.0.0",
     "@types/node-fetch": "^2.6.12",
     "@types/socket.io": "^3.0.2",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
