@@ -15,7 +15,7 @@
     "lint": "eslint -c eslint.config.js --fix"
   },
   "devDependencies": {
-    "glob": "^10.5.0",
+    "glob": "^13.0.6",
     "@types/node-fetch": "^2.6.13",
     "@types/socket.io": "^3.0.2",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -27,7 +27,7 @@
   "dependencies": {
     "discord.js": "^14.26.2",
     "reflect-metadata": "^0.1.14",
-    "typeorm": "0.3.20",
+    "typeorm": "0.3.26",
     "utils": "workspace:../../packages/utils",
     "build": "workspace:../../packages/build",
     "socket-client": "workspace:../../packages/socket",
