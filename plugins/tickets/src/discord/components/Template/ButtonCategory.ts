@@ -1,16 +1,18 @@
-import { Component } from 'discord'
+import type { PluginContext } from 'discord'
 import { EmbedBuilder } from 'discord.js'
 
-new Component({
-  customId: 'Category',
-  type: 'Button',
-  async run(interaction) {
-    await interaction.reply({
-      ephemeral: true,
-      embeds: [new EmbedBuilder({
-        title: 'Recurso movido!',
-        description: 'Use os comandos:\n`/ticket category add`\n`/ticket category rem`'
-      }).setColor('Orange')]
-    })
-  },
-})
+export default function register(ctx: PluginContext): void {
+  ctx.component({
+    customId: 'Category',
+    type: 'Button',
+    async run(interaction) {
+      await interaction.reply({
+        ephemeral: true,
+        embeds: [new EmbedBuilder({
+          title: 'Recurso movido!',
+          description: 'Use os comandos:\n`/ticket category add`\n`/ticket category rem`'
+        }).setColor('Orange')]
+      })
+    },
+  })
+}

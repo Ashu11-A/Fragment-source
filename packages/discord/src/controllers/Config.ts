@@ -9,7 +9,7 @@ interface BaseApplicationCommandOptionsData {
   required?: boolean;
 }
 
-interface ConfigOptions extends Omit<BaseApplicationCommandOptionsData, 'required'> {
+export interface ConfigOptions extends Omit<BaseApplicationCommandOptionsData, 'required'> {
   type: ApplicationCommandOptionType.Subcommand;
   options?: readonly Exclude<
     ApplicationCommandOptionData,
@@ -18,6 +18,8 @@ interface ConfigOptions extends Omit<BaseApplicationCommandOptionsData, 'require
   name: string
   run: (interaction: ChatInputCommandInteraction<CacheType>) => void
   autoComplete?: (interaction: C<boolean, AutocompleteInteraction>) => void
+  /** Assigned by core when registered via PluginContext */
+  pluginId?: string
 }
 
 export class Config {

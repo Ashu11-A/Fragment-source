@@ -24,9 +24,11 @@ type ComponentProps<Cached extends CacheType = CacheType> = {
   run: (interaction: ModalSubmitInteraction<Cached>) => Promise<void>
 }
 
-type ComponentData<Cached extends CacheType = CacheType> = ComponentProps<Cached> & {
+export type ComponentData<Cached extends CacheType = CacheType> = ComponentProps<Cached> & {
   cache?: Cached
   customId: string
+  /** Assigned by core when registered via PluginContext */
+  pluginId?: string
 }
 
 export class Component {

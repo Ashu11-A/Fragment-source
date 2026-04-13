@@ -1,63 +1,53 @@
 import { ClaimBuilder } from '@/class/ClaimBuilder.js'
 import { TicketBuilder } from '@/class/TicketBuilder.js'
-import { Error, Component } from 'discord'
-import Ticket from '@/entity/Ticket.entry.js'
-import { database } from '@/utils/database.js'
+import { Error } from 'discord'
+import type { PluginContext } from 'discord'
+import type Ticket from '@/entity/Ticket.entry.js'
+import { createDatabase } from '@/utils/database.js'
 import { EmbedBuilder, MessageFlags } from 'discord.js'
 
-new Component({
-  customId: 'Switch',
-  type: 'Button',
-  async run(interaction) {
-    const { guild, channelId, user, message } = interaction
-    if (!interaction.inCachedGuild()) return
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral })
-    if (guild === null) return await new Error({ element: 'executar essa ação pois você teve estar em uma Guilda!', interaction }).notPossible().reply()
+export default function register(ctx: PluginContext): void {
+  const database = createDatabase(ctx)
 
-    let ticketData: Ticket | null
-    let claimId: string | undefined
-    let ephemeral = false
+  ctx.component({
+    customId: 'Switch',
+    type: 'Button',
+    async run(interaction) {
+      const { guild, channelId, user, message } = interaction
+      if (!interaction.inCachedGuild()) return
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral })
+      if (guild === null) return await new Error({ element: 'executar essa ação pois você teve estar em uma Guilda!', interaction }).notPossible().reply()
 
-    // Caso a interação venha do embed de claim, deve ocorrer este tipo de consulta
-    ticketData = await database.ticket.findOne({ where: { channelId }, relations: { claim: true } })
-    if (ticketData === null) {
-      ephemeral = true
-      const claimData = await database.claim.findOne({ where: { messageId: message.id }, relations: { ticket: true } })
-      ticketData = claimData?.ticket ?? null
-      claimId = claimData?.messageId
-    } else {
-      claimId = ticketData.claim?.messageId
-    }
-    if (ticketData === null) return await new Error({ element: `o ticket ${channelId}`, interaction }).notFound({ type: 'Database' }).reply()
-    if (claimId === undefined) return await new Error({ element: 'claim', interaction }).notFound({ type: 'Database' }).reply()
-    
-    const isClosed = !ticketData.closed
-    const builder = new TicketBuilder({ interaction })
-    const claim = new ClaimBuilder({ interaction })
+      let ticketData: Ticket | null
+      let claimId: string | undefined
+      let ephemeral = false
 
-    const embed = new EmbedBuilder({
-      title: isClosed ? '🔒 Ticket fechado!' : '🔓 Ticket aberto!',
-      footer: { text: `Por: ${user.displayName} | Id: ${user.id}`, iconURL: user?.avatarURL() ?? undefined }
-    }).setColor(isClosed ? 'Red' : 'Green')
+      ticketData = await database.ticket.findOne({ where: { channelId }, relations: { claim: true } })
+      if (ticketData === null) {
+        ephemeral = true
+        const claimData = await database.claim.findOne({ where: { messageId: message.id }, relations: { ticket: true } })
+        ticketData = claimData?.ticket ?? null
+        claimId = claimData?.messageId
+      } else {
+        claimId = ticketData.claim?.messageId
+      }
+      if (ticketData === null) return await new Error({ element: `o ticket ${channelId}`, interaction }).notFound({ type: 'Database' }).reply()
+      if (claimId === undefined) return await new Error({ element: 'claim', interaction }).notFound({ type: 'Database' }).reply()
 
-    const ticket = await (await builder
-      .setData(ticketData)
-      .setClosed(!ticketData.closed)
-      .addEvent({
-        user: { id: user.id, name: user.displayName },
-        message: `Usuário ${user.displayName}(${user.id}), fechou o ticket!`,
-        date: new Date(),
-      })
-      .update())
-      ?.send([embed])
-      
+      const isClosed = !ticketData.closed
+      const builder = new TicketBuilder({ interaction })
+      const claim = new ClaimBuilder({ interaction })
 
-    await claim.setData(ticket?.options as Ticket).edit({ messageId: claimId })
+      const embed = new EmbedBuilder({
+        title: isClosed ? '🔒 Ticket fechado!' : '🔓 Ticket aberto!',
+        footer: { text: `Por: ${user.displayName} | Id: ${user.id}`, iconURL: user?.avatarURL() ?? undefined }
+      }).setColor(isClosed ? 'Red' : 'Green')
 
-    if (ephemeral) {
-      interaction.editReply({ embeds: [embed] })
-      return
-    }
-    await interaction.deleteReply()
-  },
-})
+      const ticket = await (await builder.setData(ticketData).setClosed(!ticketData.closed).addEvent({ user: { id: user.id, name: user.displayName }, message: `Usuário ${user.displayName}(${user.id}), fechou o ticket!`, date: new Date() }).update())?.send([embed])
+      await claim.setData(ticket?.options as Ticket).edit({ messageId: claimId })
+
+      if (ephemeral) { interaction.editReply({ embeds: [embed] }); return }
+      await interaction.deleteReply()
+    },
+  })
+}

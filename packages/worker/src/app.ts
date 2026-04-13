@@ -1,3 +1,4 @@
+export * from './controllers/Context'
 export * from './controllers/Manager'
 export * from './controllers/Plugin'
 export * from './controllers/Version'

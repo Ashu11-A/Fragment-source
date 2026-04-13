@@ -28,9 +28,8 @@
     "emitDecoratorMetadata": true,
 
     "rootDir": "./",
-    "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
   }
 }

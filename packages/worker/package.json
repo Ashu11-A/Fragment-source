@@ -12,8 +12,9 @@
   },
   "dependencies": {
     "chokidar": "^4.0.3",
-    "discord.js": "^14.18.0",
-    "semver": "^7.7.1",
-    "socket.io": "^4.8.1"
+    "discord": "workspace:../packages/discord",
+    "discord.js": "^14.26.2",
+    "semver": "^7.7.4",
+    "socket.io": "^4.8.3"
   }
 }

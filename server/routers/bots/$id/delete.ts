@@ -1,7 +1,6 @@
 import { Router } from '@/controllers/router.js'
 import { Bot } from '@/database/entity/Bot.js'
 import { Role } from '@/database/enums'
-import { z } from 'zod'
 
 export default new Router({
   name: 'DeleteBot',
@@ -9,7 +8,7 @@ export default new Router({
   description: 'Delete Bot',
   authenticate: true,
   methods: {
-    async delete({ reply, schema, request }) {
+    async delete({ reply, request }) {
       const params = request.params as { id: string }
       const id = parseInt(params.id)
       const isAdmin = request.user.role === Role.Administrator

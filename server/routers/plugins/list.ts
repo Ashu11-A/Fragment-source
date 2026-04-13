@@ -1,6 +1,5 @@
 import { Router } from '@/controllers/router.js'
 import { repository } from '@/database'
-import { Plugin } from '@/database/entity/Plugin.js'
 import { paginate, paginateQuery } from '@/database/pagination'
 
 export default new Router({

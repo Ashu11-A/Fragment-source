@@ -22,7 +22,7 @@ export default class Template extends BaseEntity {
     channelId!: string
 
   @Column({
-    type: 'enum',
+    type: 'varchar',
     enum: ['button', 'select', 'modal'],
     default: TypeTemplate.Button
   })

@@ -1,7 +1,6 @@
 import { Router } from '@/controllers/router.js'
 import { Plugin } from '@/database/entity/Plugin.js'
 import { storage } from '@/index.js'
-import { z } from 'zod'
 
 export default new Router({
   name: 'Dowload Plugin Release',

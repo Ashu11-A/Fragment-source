@@ -38,7 +38,6 @@
 
     "outDir": "./dist/mjs",
     "rootDir": "./",
-    "baseUrl": "./",
     "paths": {
       "@/*": ["./src/*"]
     },

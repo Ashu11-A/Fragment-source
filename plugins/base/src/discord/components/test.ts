@@ -1,12 +1,12 @@
-import { Component } from 'discord'
+import type { PluginContext } from 'discord'
 
-new Component({
-  customId: 'test',
-  cache: 'cached',
-  type: 'Button',
-  async run (interaction) {
-    await interaction.reply({
-      content: 'Test'
-    })
-  }
-})
+export default function register(ctx: PluginContext): void {
+  ctx.component({
+    customId: 'test',
+    cache: 'cached',
+    type: 'Button',
+    async run(interaction) {
+      await interaction.reply({ content: 'Test' })
+    },
+  })
+}

@@ -1,19 +1,39 @@
 import { fetch } from 'bun'
 import { existsSync, mkdirSync } from 'fs'
-import { readFile, writeFile } from 'fs/promises'
+import { writeFile } from 'fs/promises'
 import { join } from 'path'
-import type { Socket } from 'socket.io'
+import SemVer from 'semver'
+import type { PluginModule } from 'discord'
 import { i18 } from '..'
 import { PathType, type ManagerOptions, type Metadata, type MetadataKeys } from '../types/manager'
-import { WebSocket } from './Websocket'
 
-const keys: MetadataKeys[] = ['author', 'description', 'license', 'name', 'version']
+/**
+ * The framework version that core exposes to plugins.
+ * Plugins declare `frameworkVersion: "^1.0.0"` in their metadata;
+ * Manager validates this against FRAMEWORK_VERSION before calling setup().
+ */
+export const FRAMEWORK_VERSION = '1.0.0'
 
+const REQUIRED_METADATA_KEYS: MetadataKeys[] = [
+  'author',
+  'description',
+  'license',
+  'name',
+  'version',
+  'frameworkVersion',
+]
+
+/**
+ * Loads and validates a plugin module using dynamic import().
+ *
+ * Replaces the old Worker + Socket.io handshake approach:
+ * plugins are now plain ES modules imported directly into core's process.
+ * They must export `{ metadata, setup }` matching the PluginModule interface.
+ */
 export class Manager {
-  public worker!: Worker
   public metadata!: Metadata
-  public websocketId!: string
-  public socket!: Socket
+  public module!: PluginModule
+  public resolvedURL!: string
 
   constructor(public options: ManagerOptions) {
     if (!options.cachePath) this.options.cachePath = join(process.cwd(), '/cache')
@@ -23,119 +43,129 @@ export class Manager {
     }
   }
 
-  async start() {
-    const type = this.isLinkOrPath(this.options.fileURL)
-    if (type === PathType.Invalid) throw new Error(i18('manager.invalidURL', { url: this.options.fileURL }))
+  async start(): Promise<PluginModule> {
+    const type = this.classifyInput(this.options.fileURL)
+    if (type === PathType.Invalid) {
+      throw new Error(i18('manager.invalidURL', { url: this.options.fileURL }))
+    }
 
-    let blob: Blob
     switch (type) {
     case PathType.Path: {
       console.log(i18('manager.filePathDetected', { fileURL: this.options.fileURL }))
-      blob = await this.createBlobFromFilePath(this.options.fileURL)
+      this.resolvedURL = this.options.fileURL
       break
     }
     case PathType.URL: {
-      const cachedFilePath = this.getCachedFilePath()
-
-      if (existsSync(cachedFilePath)) {
-        console.log(i18('manager.usingCachedFile', { cachedFilePath }))
-        blob = await this.createBlobFromFilePath(cachedFilePath)
-        break
+      const cachedPath = this.getCachedFilePath()
+      if (existsSync(cachedPath)) {
+        console.log(i18('manager.usingCachedFile', { cachedFilePath: cachedPath }))
+        this.resolvedURL = cachedPath
+      } else {
+        console.log(i18('manager.downloadingFile', { fileURL: this.options.fileURL }))
+        await this.downloadToCache(this.options.fileURL, cachedPath)
+        this.resolvedURL = cachedPath
       }
-
-      console.log(i18('manager.downloadingFile', { fileURL: this.options.fileURL }))
-      blob = await this.createBlobFromURL(this.options.fileURL, cachedFilePath)
       break
     }
     }
 
-    const blobUrl = URL.createObjectURL(blob)
-    console.log(i18('manager.blobUrlCreated', { blobUrl }))
+    // Cache-busting query string enables hot-reload without restarting core.
+    // Bun treats each unique specifier as a separate module, bypassing the ESM cache.
+    const importSpecifier = `${this.resolvedURL}?t=${Date.now()}`
 
-    this.worker = new Worker(blobUrl)
-    console.log(i18('manager.workerCreated'))
+    console.log(i18('manager.importing', { fileURL: this.options.fileURL }))
 
-    const processed = new Promise<void>((resolve, reject) => {
-      this.worker.onmessage = async (event) => {
-        const data = JSON.parse(event.data)
-        // console.log(i18('manager.receivedMessage', { data: JSON.stringify(data) }))
-    
-        if (data.metadata !== undefined) {
-          const metadata = data.metadata
-          const hasMissingKeys = keys.some((key) => !(key in metadata) || metadata[key] === undefined)
+    try {
+      this.module = await import(importSpecifier) as PluginModule
+    } catch (err) {
+      throw new Error(`[Manager] Failed to import plugin at "${this.options.fileURL}": ${err}`)
+    }
 
-          if (hasMissingKeys) {
-            const missingKeys = keys.filter((key) => !(key in metadata) || metadata[key] === undefined)
-            console.error(i18('manager.metadataMissingKeys', { missingKeys: missingKeys.join(', ') }))
-            return reject()
-          }
-        
-          this.metadata = metadata
-        }
-    
-        if (data.websocketId !== undefined) {
-          this.websocketId = data.websocketId as string
-    
-          const client = WebSocket.io.sockets.sockets.get(this.websocketId)
-          if (!client) {
-            console.log(i18('manager.socketNotFound', { 
-              nameOrId: this.metadata?.name ?? this.websocketId 
-            }))
-            this.worker.terminate()
-            return reject()
-          }
+    this.validateExports()
+    this.metadata = this.module.metadata
+    this.validateCompatibility()
 
-          this.socket = client
-        }
-      }
-
-      setTimeout(() => {
-        if (!this.metadata || !this.websocketId || !this.socket) {
-          this.worker.terminate()
-          reject(i18('manager.workerTimeout', { fileURL: this.options.fileURL }))
-        }
-        
-        console.log(i18('manager.pluginInitialized'))
-        resolve()
-      }, 5_000)
-    })
-
-    this.worker.onmessageerror = (event) => console.log(event)
-    this.worker.onerror = (event) => console.log(event)
-
-    this.worker.postMessage([{ info: true }, { port: this.options.port }])
-    console.log(i18('manager.sentInitialMessage'), '\n')
-
-    await Promise.race([
-      processed,
-      new Promise((_, reject) => setTimeout(() => reject('Timeout'), 10000))
-    ])
-    
-    return this.worker
+    console.log(i18('manager.pluginInitialized'))
+    return this.module
   }
 
-  private isLinkOrPath(input: string): PathType {
-    const urlPattern = /^(https?:\/\/|ftp:\/\/|file:\/\/)[^\s]+$/i // URLs HTTP, HTTPS, FTP, FILE
-    const pathPattern = /^([a-zA-Z]:\\|\.\/|\/|~\/|\.\.\/)[^\s]*$/ // Common file paths
+  // ---------------------------------------------------------------------------
+  // Validation
+  // ---------------------------------------------------------------------------
 
-    const isUrl = urlPattern.test(input)
-    const isPath = pathPattern.test(input)
+  /**
+   * Structural check: the module must export `metadata` (object) and `setup` (function).
+   * Missing or malformed exports fail loudly so plugin authors get clear errors.
+   */
+  private validateExports(): void {
+    if (!this.module.metadata || typeof this.module.metadata !== 'object') {
+      throw new Error(
+        `[Manager] Plugin at "${this.options.fileURL}" is missing a "metadata" export.`
+      )
+    }
 
-    if (isUrl) return PathType.URL
-    if (isPath) return PathType.Path
+    const missingKeys = REQUIRED_METADATA_KEYS.filter(
+      (key) => !(key in this.module.metadata) || (this.module.metadata as Record<string, unknown>)[key] === undefined
+    )
+    if (missingKeys.length > 0) {
+      throw new Error(
+        i18('manager.metadataMissingKeys', { missingKeys: missingKeys.join(', ') })
+      )
+    }
 
+    if (typeof this.module.setup !== 'function') {
+      throw new Error(
+        `[Manager] Plugin at "${this.options.fileURL}" is missing a "setup" export (must be an async function).`
+      )
+    }
+  }
+
+  /**
+   * Semver compatibility check: the plugin's declared `frameworkVersion` range
+   * must be satisfied by FRAMEWORK_VERSION.
+   *
+   * This runs at load-time (dynamic import) and mirrors the build-time TypeScript
+   * type checks that guarantee API shape compatibility.
+   */
+  private validateCompatibility(): void {
+    const required = this.metadata.frameworkVersion
+
+    if (!SemVer.validRange(required)) {
+      throw new Error(
+        `[Manager] Plugin "${this.metadata.name}" has an invalid frameworkVersion: "${required}". ` +
+        'Use a valid semver range (e.g. "^1.0.0").'
+      )
+    }
+
+    if (!SemVer.satisfies(FRAMEWORK_VERSION, required)) {
+      throw new Error(
+        `[Manager] Plugin "${this.metadata.name}" requires framework version "${required}", ` +
+        `but core provides "${FRAMEWORK_VERSION}". Update the plugin or core to match.`
+      )
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // URL / path resolution
+  // ---------------------------------------------------------------------------
+
+  private classifyInput(input: string): PathType {
+    const urlPattern = /^(https?:\/\/|ftp:\/\/|file:\/\/)[^\s]+$/i
+    const pathPattern = /^([a-zA-Z]:\\|\.\/|\/|~\/|\.\.\/)[^\s]*$/
+
+    if (urlPattern.test(input)) return PathType.URL
+    if (pathPattern.test(input)) return PathType.Path
     return PathType.Invalid
   }
 
   private getCachedFilePath(): string {
     const fileName = this.options.fileURL.split('/').pop() as string
     const cachePath = join(this.options.cachePath as string, fileName)
-
     console.log(i18('manager.resolvedCachePath', { cachePath }))
     return cachePath
   }
 
-  private async createBlobFromURL(url: string, cachePath: string): Promise<Blob> {
+  private async downloadToCache(url: string, cachePath: string): Promise<void> {
     console.log(i18('manager.fetchingUrl', { url }))
     const response = await fetch(url)
 
@@ -145,20 +175,8 @@ export class Manager {
     }
 
     const buffer = await response.bytes()
-    const blob = await response.blob()
-    
     console.log(i18('manager.fetchedBlob'))
     console.log(i18('manager.savingToCache', { cachePath }))
-
-    await writeFile(cachePath, buffer, { encoding: 'utf-8' })
-
-    return blob
-  }
-
-  private async createBlobFromFilePath(filePath: string): Promise<Blob> {
-    const fileBuffer = await readFile(filePath)
-    console.log(i18('manager.readFileBlob'))
-
-    return new Blob([fileBuffer], { type: 'application/octet-stream' })
+    await writeFile(cachePath, buffer)
   }
 }

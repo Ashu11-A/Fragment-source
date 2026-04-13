@@ -30,9 +30,8 @@
 
     "outDir": "./build/esm",
     "rootDir": "./",
-    "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
   },
   "references": [

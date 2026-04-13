@@ -6,8 +6,8 @@ import chalk from 'chalk'
 import type { FastifyReply, FastifyRequest, RouteShorthandOptions } from 'fastify'
 import { glob } from 'glob'
 import { dirname, join } from 'path'
-import routers from 'routers'
 import { fileURLToPath } from 'url'
+import routers from '../../routers'
 
 export async function registerRouter () {
   if (Fastify.server === undefined) throw new Error('Server not configured!')

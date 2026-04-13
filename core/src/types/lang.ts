@@ -1,4 +1,4 @@
-/* eslint-disable no-var */
+ 
 
 import type { i18 as lang } from '@/lang'
 

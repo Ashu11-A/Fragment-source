@@ -1,9 +1,11 @@
-import { Crons } from 'discord'
+import type { PluginContext } from 'discord'
 
-new Crons({
-  name: '',
-  cron: '',
-  exec() {
-        
-  },
-})
+export default function register(ctx: PluginContext): void {
+  ctx.cron({
+    name: '',
+    cron: '',
+    exec() {
+      // placeholder
+    },
+  })
+}

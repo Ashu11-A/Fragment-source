@@ -1,8 +1,10 @@
 import { type ClientEvents } from 'discord.js'
 
-interface EventData<Key extends keyof ClientEvents> {
+export interface EventData<Key extends keyof ClientEvents> {
   name: Key
   once?: boolean
+  /** Assigned by core when registered via PluginContext */
+  pluginId?: string
   run (...args: ClientEvents[Key]): void
 }
 

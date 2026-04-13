@@ -18,7 +18,8 @@ export default {
     'savingToCache': '💾 Salvando arquivo buscado no cache: {{cachePath}}',
     'readFileBlob': '📦 Arquivo lido e convertido para Blob.',
     'workerTimeout': '⏱️ Worker expirado: {{fileURL}}. Encerrando...',
-    'invalidURL': '❌ URL inválida: {{url}}'
+    'invalidURL': '❌ URL inválida: {{url}}',
+    'importing': '📦 Importando módulo do plugin: {{fileURL}}'
   },
   'plugins': {
     'new': '✨ Novo plugin adicionado!',
