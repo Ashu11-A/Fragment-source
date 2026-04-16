@@ -5,16 +5,19 @@
   "module": "src/app.ts",
   "type": "module",
   "scripts": {
-    "lint": "eslint -c eslint.config.js --fix"
+    "lint": "eslint --fix ."
   },
   "devDependencies": {
     "@types/chokidar": "^2.1.7"
   },
   "dependencies": {
+    "boxen": "^8.0.1",
+    "chalk": "^5.6.2",
     "chokidar": "^4.0.3",
+    "database": "workspace:../packages/database",
     "discord": "workspace:../packages/discord",
     "discord.js": "^14.26.2",
-    "semver": "^7.7.4",
-    "socket.io": "^4.8.3"
+    "ora": "^9.3.0",
+    "semver": "^7.7.4"
   }
 }

@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="./.github/img/logo.png" alt="Fragment" width="250" />
+
 # Fragment
 
 ![license-info](https://img.shields.io/badge/license-Ashu11%2D%2DA-a?style=for-the-badge&colorA=302D41&colorB=f9e2af&logoColor=f9e2af&logo=AdBlock)

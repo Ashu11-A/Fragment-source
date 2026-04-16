@@ -1,10 +1,8 @@
-import { createDatabase } from '@/utils/database'
 import type { PluginContext } from 'discord'
+import { database } from '@/database'
 import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ChannelType, EmbedBuilder, MessageFlags } from 'discord.js'
 
-export default function register(ctx: PluginContext): void {
-  const database = createDatabase(ctx)
-
+export default function ticketConfig(ctx: PluginContext) {
   ctx.config({
     name: 'ticket',
     description: '[ 🎫 Ticket ] Configurar o sistema de Tickets',
@@ -135,3 +133,4 @@ export default function register(ctx: PluginContext): void {
     },
   })
 }
+

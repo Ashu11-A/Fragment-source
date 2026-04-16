@@ -87,6 +87,10 @@ export class PluginBuilder {
       '--bundle --target=bun',
       // '--minify --minify-syntax --minify-whitespace --minify-identifiers',
       '--no-sourcemap',
+      // One TypeORM instance only: core resolves these from its node_modules at runtime.
+      // Bundling typeorm into the plugin duplicates MetadataArgsStorage and breaks DataSource.initialize().
+      '--external=typeorm',
+      '--external=reflect-metadata',
       ...options?.options.buildArgs ?? [],
     )
   }

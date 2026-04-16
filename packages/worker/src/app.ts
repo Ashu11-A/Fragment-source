@@ -1,7 +1,5 @@
 export * from './controllers/Context'
 export * from './controllers/Manager'
 export * from './controllers/Plugin'
-export * from './controllers/Version'
 export * from './controllers/Watcher'
-export * from './controllers/Websocket'
 export * from './types/manager'

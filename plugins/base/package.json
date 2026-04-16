@@ -12,25 +12,14 @@
   "scripts": {
     "build": "bun src/build.ts",
     "dev": "bun src/app.ts",
-    "lint": "eslint -c eslint.config.js --fix"
-  },
-  "devDependencies": {
-    "glob": "^10.5.0",
-    "@types/node-fetch": "^2.6.13",
-    "@types/socket.io": "^3.0.2",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-n": "^16.6.2",
-    "eslint-plugin-promise": "^6.6.0"
+    "lint": "eslint --fix ."
   },
   "dependencies": {
-    "discord.js": "^14.26.2",
-    "reflect-metadata": "^0.1.14",
-    "typeorm": "0.3.20",
-    "utils": "workspace:../../packages/utils",
     "build": "workspace:../../packages/build",
-    "socket-client": "workspace:../../packages/socket",
-    "discord": "workspace:../../packages/discord"
+    "discord": "workspace:../../packages/discord",
+    "utils": "workspace:../../packages/utils"
+  },
+  "fragment": {
+    "dependencies": []
   }
 }

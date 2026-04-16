@@ -1,139 +1,235 @@
-import { ChildProcess, spawn } from 'child_process'
-import { cp } from 'fs/promises'
-import { glob } from 'glob'
-import { basename, join } from 'path'
-import { BuildType, PluginBuilder, type BuildMetadata } from './build'
-import chokidar from 'chokidar'
+import { ChildProcess, spawn } from 'child_process';
+import { cp, mkdir, rm } from 'fs/promises';
+import { glob } from 'glob';
+import { join } from 'path';
+import { BuildType, PluginBuilder, type BuildMetadata } from './build';
+import chokidar from 'chokidar';
 
-const outputDirectory = join(process.cwd(), 'releases')
+const outputDirectoryString = join(process.cwd(), 'releases');
+const corePluginsDirectoryString = join(process.cwd(), 'core/plugins');
 
-const config: BuildMetadata = {
+const buildConfiguration: BuildMetadata = {
   path: 'plugins/*',
   type: BuildType.File,
   options: {
     entryFile: 'src/app.ts',
-    outputDirectory,
+    outputDirectory: outputDirectoryString,
+  }
+};
+
+async function rebuildPlugins(): Promise<void> {
+  await rm(outputDirectoryString, { recursive: true, force: true });
+  await mkdir(outputDirectoryString, { recursive: true });
+  await rm(corePluginsDirectoryString, { recursive: true, force: true });
+  await mkdir(corePluginsDirectoryString, { recursive: true });
+
+  const pluginPathsArray = await glob([buildConfiguration.path], { cwd: process.cwd() });
+
+  for (const currentPath of pluginPathsArray) {
+    buildConfiguration.path = currentPath;
+    const pluginBuilderInstance = new PluginBuilder(buildConfiguration);
+    await pluginBuilderInstance.build();
+  }
+
+  const generatedPluginsArray = await glob('plugin-*.js', { cwd: outputDirectoryString });
+
+  for (const generatedPluginFile of generatedPluginsArray) {
+    await cp(
+      join(outputDirectoryString, generatedPluginFile),
+      join(corePluginsDirectoryString, generatedPluginFile)
+    );
   }
 }
 
-for (const path of await glob([config.path], { cwd: process.cwd() })) {
-  config.path = path
-  const builder = new PluginBuilder(config)
-  await builder.build()
+const RESTART_DELAY_MILLISECONDS = 400;
+
+let isServerDirty: boolean = false;
+let isPluginsDirty: boolean = false;
+let isCoreDirty: boolean = false;
+let watcherIsReady: boolean = false;
+
+let restartTimerInstance: ReturnType<typeof setTimeout> | null = null;
+let serverProcessInstance: ChildProcess | null = null;
+let coreProcessInstance: ChildProcess | null = null;
+
+const fileWatcher = chokidar.watch(
+  ['server/**/*', 'core/**/*', 'plugins/**/*', 'packages/**/*'],
+  {
+    ignored: [
+      'core/plugins',
+      'devlop.ts',
+      'plugins/*/src/register.ts',
+      'plugins/*/entries.json',
+      'core/entries',
+      'core/locales',
+      'server/database.wm',
+      '**/node_modules/**',
+      '**/.git/**',
+    ],
+  }
+);
+
+function killSpecificProcess(processToKill: ChildProcess | null): void {
+  if (processToKill && !processToKill.killed) {
+    processToKill.kill();
+  }
 }
 
-for (const plugin of await glob(`${outputDirectory}/*`)) {
-  const pluginName = basename(plugin)
-
-  cp(plugin, join(process.cwd(), `core/plugins/${pluginName}`))
+function killAllProcesses(): void {
+  console.log('Finalizando todos os processos filhos...');
+  killSpecificProcess(serverProcessInstance);
+  killSpecificProcess(coreProcessInstance);
 }
 
-const watcher = chokidar.watch([
-  'server/**/*',
-  'core/**/*',
-  'plugins/**/*',
-  'packages/**/*'
-], {
-  ignored: [
-    'core/plugins',
-    'devlop.ts',
-    'plugins/tickets/src/register.ts',
-    'plugins/tickets/entries.json',
-    'core/entries',
-    'core/locales',
-    'server/database.wm'
-  ]
-})
+function startServerProcess(): Promise<ChildProcess> {
+  return new Promise<ChildProcess>((resolve, reject) => {
+    const processInstance = spawn('bun', ['run', 'dev'], {
+      cwd: join(process.cwd(), 'server'),
+      stdio: ['inherit', 'pipe', 'pipe']
+    });
 
-const childProcesses: ChildProcess[] = []
+    let isProcessSettled: boolean = false;
 
-function killAll() {
-  console.log('Matando todos os processos filhos...')
-  for (const child of childProcesses) {
-    if (!child.killed) {
-      child.kill()
+    function handleProcessError(dataBuffer: Buffer): void {
+      const outputString = dataBuffer.toString();
+      process.stdout.write(outputString);
+
+      if (outputString.includes('EADDRINUSE') || outputString.includes('Failed to start server')) {
+        if (!isProcessSettled) {
+          isProcessSettled = true;
+          reject(new Error(`Erro no servidor: ${outputString}`));
+          killAllProcesses();
+        }
+      }
     }
-  }
+
+    processInstance.stdout?.on('data', (dataBuffer: Buffer) => {
+      const outputString = dataBuffer.toString();
+      process.stdout.write(outputString);
+
+      // Alterado para reconhecer os logs reais que o seu servidor emite
+      const isServerReady = outputString.includes('successfully registered!') || outputString.includes('Bun Inspector');
+
+      if (isServerReady && !isProcessSettled) {
+        isProcessSettled = true;
+        resolve(processInstance);
+      }
+    });
+
+    processInstance.stderr?.on('data', handleProcessError);
+
+    processInstance.on('error', (errorInstance: Error) => {
+      if (!isProcessSettled) {
+        isProcessSettled = true;
+        reject(errorInstance);
+        killAllProcesses();
+      }
+    });
+
+    processInstance.on('exit', (exitCodeNumber) => {
+      console.log(`Servidor finalizado com código ${exitCodeNumber}`);
+      if (exitCodeNumber !== 0 && !isProcessSettled) {
+        isProcessSettled = true;
+        reject(new Error(`Servidor finalizou com código ${exitCodeNumber}`));
+        killAllProcesses();
+      } else if (exitCodeNumber !== 0) {
+        killAllProcesses();
+      }
+    });
+  });
 }
 
-function run(directory: string): ChildProcess
-function run(directory: string, waitFor: string): Promise<void>
-function run(directory: string, waitFor?: string): Promise<void> | ChildProcess {
-  if (waitFor) {
-    return new Promise<void>((resolve, reject) => {
-      const proc = spawn('bun', ['run', 'dev'], {
-        cwd: join(process.cwd(), directory),
-        stdio: ['inherit', 'pipe', 'pipe']
-      })
+function startCoreProcess(): ChildProcess {
+  const processInstance = spawn('bun', ['run', 'dev'], {
+    cwd: join(process.cwd(), 'core'),
+    stdio: 'inherit'
+  });
 
-      childProcesses.push(proc)
-      let settled = false
+  processInstance.on('exit', (exitCodeNumber) => {
+    console.log(`Core finalizado com código ${exitCodeNumber}`);
+    if (exitCodeNumber !== 0) {
+      killAllProcesses();
+    }
+  });
 
-      function handleError(data: Buffer) {
-        const output = data.toString()
-        process.stdout.write(output)
-        if (output.includes('EADDRINUSE') || output.includes('Failed to start server')) {
-          if (!settled) {
-            settled = true
-            reject(new Error(`Erro no processo em ${directory}: ${output}`))
-            killAll()
-          }
-        }
-      }
-
-      proc.stdout?.on('data', (data: Buffer) => {
-        const output = data.toString()
-        process.stdout.write(output)
-        if (output.includes(waitFor) && !settled) {
-          settled = true
-          resolve()
-        }
-      })
-
-      proc.stderr?.on('data', handleError)
-
-      proc.on('error', (err) => {
-        if (!settled) {
-          settled = true
-          reject(err)
-          killAll()
-        }
-      })
-
-      proc.on('exit', code => {
-        console.log(`Processo em ${directory} finalizado com código ${code}`)
-        if (code !== 0 && !settled) {
-          settled = true
-          reject(new Error(`Processo em ${directory} finalizou com código ${code}`))
-          killAll()
-        }
-      })
-    })
-  } else {
-    const proc = spawn('bun', ['run', 'dev'], {
-      cwd: join(process.cwd(), directory),
-      stdio: 'inherit'
-    })
-    childProcesses.push(proc)
-    proc.on('exit', code => {
-      console.log(`Processo em ${directory} finalizado com código ${code}`)
-      if (code !== 0) {
-        killAll()
-      }
-    })
-    return proc
-  }
+  return processInstance;
 }
 
-watcher.on('all', (name) => console.log(name))
-watcher.on('all', async () => {
-  killAll()
+async function applyModularChanges(): Promise<void> {
+  const shouldRestartServer = isServerDirty;
+  const shouldRebuildPlugins = isPluginsDirty;
+  const shouldRestartCore = isCoreDirty || isPluginsDirty;
+
+  isServerDirty = false;
+  isPluginsDirty = false;
+  isCoreDirty = false;
 
   try {
-    await run('server', 'Server listening')
-    run('core')
-  } catch (error) {
-    console.error('Erro ao iniciar os processos:', error)
-    killAll()
+    if (shouldRestartServer) {
+      console.log('[devlop] Alteração no servidor detectada. Reinicializando apenas o servidor...');
+      killSpecificProcess(serverProcessInstance);
+      serverProcessInstance = await startServerProcess();
+    }
+
+    if (shouldRebuildPlugins) {
+      console.log('[devlop] Alteração em plugins ou pacotes detectada. Reconstruindo...');
+      await rebuildPlugins();
+    }
+
+    if (shouldRestartCore) {
+      console.log('[devlop] Reinicializando o core...');
+      killSpecificProcess(coreProcessInstance);
+      coreProcessInstance = startCoreProcess();
+    }
+  } catch (errorInstance: unknown) {
+    console.error('Erro ao aplicar as alterações:', errorInstance);
+    killAllProcesses();
   }
-})
+}
+
+async function initializeDevelopmentStack(): Promise<void> {
+  try {
+    console.log('[devlop] Inicializando ambiente de desenvolvimento...');
+    await rebuildPlugins();
+    serverProcessInstance = await startServerProcess();
+    coreProcessInstance = startCoreProcess();
+  } catch (errorInstance: unknown) {
+    console.error('Erro durante a inicialização:', errorInstance);
+    killAllProcesses();
+  }
+}
+
+fileWatcher.on('ready', () => {
+  watcherIsReady = true;
+});
+
+fileWatcher.on('all', (eventNameString, filePathString) => {
+  if (!watcherIsReady) return;
+
+  const validEventsArray = ['add', 'change', 'unlink', 'addDir', 'unlinkDir'];
+  if (!validEventsArray.includes(eventNameString)) return;
+
+  const normalizedPathString = filePathString.replace(/\\/g, '/');
+  const currentWorkingDirectoryString = process.cwd().replace(/\\/g, '/');
+  
+  const relativePathString = normalizedPathString.startsWith(currentWorkingDirectoryString)
+    ? normalizedPathString.slice(currentWorkingDirectoryString.length).replace(/^\//, '')
+    : normalizedPathString;
+
+  if (relativePathString.startsWith('server/')) {
+    isServerDirty = true;
+  } else if (relativePathString.startsWith('plugins/') || relativePathString.startsWith('packages/')) {
+    isPluginsDirty = true;
+  } else if (relativePathString.startsWith('core/')) {
+    isCoreDirty = true;
+  }
+
+  if (restartTimerInstance) clearTimeout(restartTimerInstance);
+
+  restartTimerInstance = setTimeout(() => {
+    restartTimerInstance = null;
+    void applyModularChanges();
+  }, RESTART_DELAY_MILLISECONDS);
+});
+
+void initializeDevelopmentStack();

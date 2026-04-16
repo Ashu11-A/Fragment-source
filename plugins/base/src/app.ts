@@ -3,6 +3,7 @@ import 'reflect-metadata'
 import type { PluginContext, PluginMetadata, PluginModule } from 'discord'
 import { metadata as getPackageMetadata } from 'utils'
 import { registerAll } from './register.js'
+import { database } from './database'
 
 /**
  * Plugin metadata — validated by core before setup() is called.
@@ -19,6 +20,7 @@ export const metadata: PluginMetadata = {
  * via the provided PluginContext — no direct Discord connections allowed.
  */
 export async function setup(ctx: PluginContext): Promise<void> {
+  ctx.registerSchema(database)
   await registerAll(ctx)
 }
 

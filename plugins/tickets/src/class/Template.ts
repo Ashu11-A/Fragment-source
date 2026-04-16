@@ -1,5 +1,5 @@
 import { TypeTemplate } from '@/types/entries.js'
-import { database } from '@/utils/database.js'
+import { database } from '@/database'
 import { checkChannel, Error } from 'discord'
 import { ButtonInteraction, type CacheType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, StringSelectMenuInteraction } from 'discord.js'
 import { TemplateButtonBuilder } from './TemplateButtonBuilder.js'
@@ -25,7 +25,7 @@ export class Template {
   async create ({ title, description, channelId, guildId }: TicketCreate) {
     if (!(this.interaction instanceof CommandInteraction)) return
     if (!this.interaction.deferred) await this.interaction.deferReply()
-    const channel = await checkChannel(channelId, this.interaction)
+    const channel = await checkChannel(this.interaction.client, channelId, this.interaction)
     // const cart = new DefaultTicketCart()
     //   .setTitle(this.interaction.guild?.name ?? '')
     //   .setDescription('Teste')

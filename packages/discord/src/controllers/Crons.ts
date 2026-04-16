@@ -17,7 +17,6 @@ export interface CronsConfigurations<Metadata = undefined> {
   /**
    * Function to be executed when the cron job is triggered.
    */
-   
   exec(cron: CronsConfigurations<Metadata>, interval: CronExpression): void
   /**
    * Metadata for the cron job, for specific information.
@@ -44,7 +43,6 @@ export interface UniqueCron<MetaArgs> {
   /**
    * Function to be executed when the unique cron job is triggered.
    */
-   
   exec(cron: UniqueCron<MetaArgs>): void
   /**
    * Metadata for the unique cron job, for specific information.
@@ -71,7 +69,7 @@ export class Crons<Metadata> {
    * EventEmitter used for managing cron job events.
    */
   public static set = new EventEmitter()
-  public static timeouts = new Map()
+  public static timeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
   /**
    * Starts the specified cron job.
@@ -94,13 +92,12 @@ export class Crons<Metadata> {
    * Configures unique cron jobs that run only once.
    * @return Returns the setTimeout ID, which can be used for cancellation.
    */
-  public static once<MetaArgs>(cron: UniqueCron<MetaArgs>): Timer {
+  public static once<MetaArgs>(cron: UniqueCron<MetaArgs>): ReturnType<typeof setTimeout> {
     const interval = cronParser.parseExpression(cron.cron)
     const nextScheduledTime = interval.next().getTime()
     const currentTime = Date.now()
     const delay = nextScheduledTime - currentTime
 
-    // Schedules the unique cron job and logs success
     console.log(`| Unique Cron' - ${cron.name} added successfully.`)
 
     return setTimeout(() => {
@@ -162,7 +159,7 @@ export class Crons<Metadata> {
     Crons.all.push(cron as CronsConfigurationsSystem<InstanceType<typeof Crons>['data']['metadata']>)
   }
 
-  public static async register() {
+  public static async register () {
     for (const isolated of Crons.all) {
       Crons.set.on(isolated.uuid, isolated.exec)// create Cron Event
       Crons.start(isolated) // Run Cron events

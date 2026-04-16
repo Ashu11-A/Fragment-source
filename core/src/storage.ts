@@ -28,15 +28,13 @@ if (
   publicKey = await readFile(PUBLIC_KEY_PATH, { encoding: 'utf-8' })
 }
 
-/*
-const crypt = new Crypt({
-  privateKey,
-  publicKey,
-})
-  */
+// const crypt = new Crypt({
+//   privateKey,
+//   publicKey,
+// })
 
 const { driver } = new Storage<{ '.data': DataCrypted }>({
-  // crypt: crypt,
+  // crypt,
   driver: new LocalStorage({
     storagePath: join(root, '/storage')
   })

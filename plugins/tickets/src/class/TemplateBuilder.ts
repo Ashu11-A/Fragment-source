@@ -1,5 +1,5 @@
-import Template from '@/entity/Template.entry.js'
-import { database } from '@/utils/database.js'
+import Template from '@/database/entity/Template.entry.js'
+import { database } from '@/database'
 import { checkURL, Error } from 'discord'
 import { Colors, EmbedBuilder, Message, MessageComponentInteraction, type APIEmbed as APIEmbedDiscord, type ButtonInteraction, type CacheType, type CommandInteraction, type ModalSubmitInteraction, type StringSelectMenuInteraction } from 'discord.js'
 import { TemplateButtonBuilder } from './TemplateButtonBuilder.js'

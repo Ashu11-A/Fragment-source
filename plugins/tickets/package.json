@@ -12,14 +12,16 @@
   "scripts": {
     "build": "bun src/build.ts",
     "dev": "bun run src/app.ts",
-    "lint": "eslint -c eslint.config.js --fix"
+    "lint": "eslint --fix ."
   },
   "dependencies": {
     "build": "workspace:../../packages/build",
-    "cli": "workspace:../../packages/cli",
     "crypt": "workspace:../../packages/crypt",
+    "database": "workspace:../../packages/database",
     "storage": "workspace:../../packages/storage",
-    "discord": "workspace:../../packages/discord",
-    "socket-client": "workspace:../../packages/socket"
+    "discord": "workspace:../../packages/discord"
+  },
+  "fragment": {
+    "dependencies": []
   }
 }

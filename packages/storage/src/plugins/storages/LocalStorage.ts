@@ -71,7 +71,6 @@ export class LocalStorage extends BaseStorage {
     options?: { isJson?: boolean, folder?: string }
   ) {
     if (this.cache.exist(key)) {
-      console.log('Arquivo em cache')
       const cached = await this.cache.get(key)
       if (cached) {
         if (options?.isJson) {

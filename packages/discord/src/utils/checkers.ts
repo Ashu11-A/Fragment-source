@@ -1,5 +1,4 @@
-import { Discord } from 'discord'
-import { EmbedBuilder, PartialGroupDMChannel, type CacheType, type CommandInteraction } from 'discord.js'
+import { Client, EmbedBuilder, PartialGroupDMChannel, type CacheType, type CommandInteraction } from 'discord.js'
 
 export function checkHexCor (cor: string | null): [boolean, string] | [boolean] {
   if (cor === null) {
@@ -25,8 +24,8 @@ export function checkURL (url: string | null): [boolean, string] {
   }
 }
 
-export async function checkChannel(channelId: string, interaction: CommandInteraction<CacheType>) {
-  const channel = await Discord.client.channels.fetch(channelId)
+export async function checkChannel(client: Client<boolean>, channelId: string, interaction: CommandInteraction<CacheType>) {
+  const channel = await client.channels.fetch(channelId)
   const embed = new EmbedBuilder({ title: 'Channel fornecido é inválido!'}).setColor('Red')
 
   if (channel === null || !channel.isTextBased() && !channel.isDMBased()) {

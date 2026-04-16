@@ -1,9 +1,9 @@
-import Claim from '@/entity/Claim.entry.js'
-import Config, { type Roles } from '@/entity/Config.entry.js'
-import Ticket from '@/entity/Ticket.entry.js'
-import { database } from '@/utils/database.js'
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction } from 'discord.js'
+import { database } from '@/database'
+import Claim from '@/database/entity/Claim.entry.js'
+import Config, { type Roles } from '@/database/entity/Config.entry.js'
+import Ticket from '@/database/entity/Ticket.entry.js'
 import { ActionDrawer, Error } from 'discord'
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction } from 'discord.js'
 
 interface ClaimOptions {
     ticketId: number

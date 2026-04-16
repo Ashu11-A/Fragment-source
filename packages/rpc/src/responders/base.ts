@@ -1,4 +1,4 @@
-import type { TReply } from "server/src/types/router"
+import type { TReply } from 'server/src/types/router'
 
 export class Response {
   readonly message: string

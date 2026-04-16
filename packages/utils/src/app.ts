@@ -25,8 +25,21 @@ export type Metadata = {
   author: string
   license: string
   api?: string
-}  
+  /** Database dependencies captured at build time from package.json fragment.dependencies */
+  dependencies?: Array<{ name: string; version: string }>
+}
+
 export const metadata = (): Metadata => {
-  const infos = ['name', 'version', 'description', 'author', 'license'].reverse()
-  return Object.entries(Package.getData()).reverse().filter(([key]) => infos.includes(key)).reduce((object, [key, value]) => ({ [key]: value, ...object }), {}) as Metadata
+  const pkg = Package.getData() as Record<string, unknown>
+  const infos = ['name', 'version', 'description', 'author', 'license']
+  const base = Object.entries(pkg)
+    .filter(([key]) => infos.includes(key))
+    .reduce((obj, [k, v]) => ({ ...obj, [k]: v }), {}) as Metadata
+
+  const fragment = pkg['fragment'] as Record<string, unknown> | undefined
+  if (Array.isArray(fragment?.['dependencies'])) {
+    base.dependencies = fragment['dependencies'] as Array<{ name: string; version: string }>
+  }
+
+  return base
 }

@@ -6,7 +6,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "lint": "eslint -c eslint.config.js --fix"
+    "lint": "eslint --fix ."
   },
   "dependencies": {
     "glob": "^11.1.0",

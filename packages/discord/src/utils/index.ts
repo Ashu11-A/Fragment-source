@@ -1,3 +1,7 @@
 export * from './actionDrawer'
 export * from './buttonRedirect'
 export * from './checkers'
+export * from './fragmentComponents'
+export * from './fragmentError'
+export * from './youSure'
+export * from './pluginContextRegister'

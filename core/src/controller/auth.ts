@@ -1,6 +1,9 @@
 import { client, root } from '@/index.js'
 import { storage, type DataCrypted } from '@/storage'
+import { log, section, spinner } from '@/ui.js'
 import { AxiosError } from 'axios'
+import boxen from 'boxen'
+import chalk from 'chalk'
 import { CronJob } from 'cron'
 import { rm } from 'fs/promises'
 import prompts, { type PromptObject } from 'prompts'
@@ -52,8 +55,8 @@ export class Auth {
 
   async timeout () {
     if (lastTry !== undefined && (new Date().getTime() - new Date(lastTry ?? 0).getTime()) < 10 * 1000) {
-      console.log(i18('error.timeout', { time: 10 }))
-      await new Promise<void>((resolve) => setTimeout(() => resolve(), 10 * 1000))
+      const spin = spinner(i18('error.timeout', { time: 10 })).start()
+      await new Promise<void>((resolve) => setTimeout(() => { spin.stop(); resolve() }, 10 * 1000))
     }
     lastTry = new Date()
   }
@@ -73,7 +76,8 @@ export class Auth {
 
   async login(): Promise<User> {
     await this.timeout()
-    
+    section('Authentication')
+    const spin = spinner('Signing in...').start()
     try {
       const response = await client.query('/auth/login', 'post', {
         email: this.email as string,
@@ -81,6 +85,7 @@ export class Auth {
       })
       if (!isSuccessResponse(response)) throw response
 
+      spin.succeed('Signed in')
       client.setAccessToken(response.data.accessToken.token)
       await storage.append('.data', {
         accessToken: response.data.accessToken,
@@ -92,16 +97,20 @@ export class Auth {
 
       Auth.user = profile.data
 
+      console.log(
+        boxen(
+          chalk.bold(`Hello, ${profile.data.name}`) + '\n' + chalk.dim('Authenticated successfully'),
+          { padding: { top: 0, bottom: 0, left: 2, right: 2 }, borderStyle: 'round', borderColor: 'green' }
+        )
+      )
       console.log()
-      console.log(i18('authenticate.hello', { name: profile.data.name }))
-      console.log()
-  
+
       lastTry = undefined
       await this.validator()
       return profile.data
     } catch (err) {
-      console.log(err)
-      console.log(i18('error.unstable', { element: 'API' }))
+      spin.fail(i18('error.unstable', { element: 'API' }))
+      log.error(String(err instanceof Error ? err.message : err))
 
       const options = [
         `(1) ${i18('authenticate.logout')}`,
@@ -165,7 +174,8 @@ export class Auth {
       lastTry = undefined
       return await this.validator()
     } catch (err) {
-      console.log('Ocorreu um erro ao tentar pegar a lista de bots!', err)
+      log.error('Failed to fetch bot list')
+      log.muted(String(err instanceof Error ? err.message : err))
       await this.login()
       return await this.validator()
     }
@@ -191,12 +201,12 @@ export class Auth {
 
       attempts = attempts + 1
 
-      if (!bot.data.enabled) console.log(i18('error.disabled', { element: 'Bot' }))
+      if (!bot.data.enabled) log.warn(i18('error.disabled', { element: 'Bot' }))
       if (Auth.bot === undefined) this.cron()
 
       Auth.bot = bot.data
     } catch (err) {
-      console.log(`☝️ Então ${(Auth.user as User).name}, não achei o registro do seu bot!`)
+      log.error(`Bot record not found for ${(Auth.user as User).name}`)
       const options = [
         `(1) ${i18('authenticate.change_token')}`,
         `(2) ${i18('authenticate.try_again')}`,

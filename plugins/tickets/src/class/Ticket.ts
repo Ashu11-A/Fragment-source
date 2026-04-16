@@ -1,5 +1,5 @@
-import TicketInterface from '@/entity/Ticket.entry.js'
-import { database } from '@/utils/database.js'
+import TicketInterface from '@/database/entity/Ticket.entry.js'
+import { database } from '@/database'
 import { ActionDrawer, Error } from 'discord'
 import { AttachmentBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, ComponentType, EmbedBuilder, ModalSubmitInteraction, PermissionsBitField, StringSelectMenuInteraction } from 'discord.js'
 import { TicketBuilder } from './TicketBuilder.js'

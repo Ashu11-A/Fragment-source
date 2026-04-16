@@ -5,7 +5,7 @@
   "types": "src/app.ts",
   "type": "module",
   "scripts": {
-    "lint": "eslint -c eslint.config.js --fix"
+    "lint": "eslint --fix ."
   },
   "devDependencies": {
     "@types/prompts": "^2.4.9"

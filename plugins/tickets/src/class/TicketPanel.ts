@@ -1,4 +1,4 @@
-import { database } from '@/utils/database.js'
+import { database } from '@/database'
 import { Error, ModalBuilder, StringSelectMenuBuilder } from 'discord'
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, type SelectMenuComponentOptionData, StringSelectMenuInteraction, TextInputBuilder, TextInputStyle } from 'discord.js'
 import { TicketBuilder } from './TicketBuilder.js'

@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node .",
     "dev": "bun run src/app.ts #--inspect-brk=ws://localhost:6499",
-    "lint": "eslint -c eslint.config.js --fix"
+    "lint": "eslint --fix ."
   },
   "author": {
     "name": "Ashu11-a",
@@ -23,37 +23,39 @@
   "devDependencies": {
     "@types/cron": "^2.4.3",
     "@types/express": "^5.0.6",
+    "@types/figlet": "^1.7.0",
     "@types/marked-terminal": "^6.1.1",
     "@types/node-fetch": "^2.6.13",
     "@types/prompts": "^2.4.9",
     "@types/signale": "^1.4.7",
-    "@types/socket.io": "^3.0.2",
     "@types/yargs": "^17.0.35",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.58.1"
   },
   "dependencies": {
-    "cli": "workspace:../packages/cli",
+    "boxen": "^8.0.1",
     "cron": "^3.5.0",
+    "crypt": "workspace:../packages/crypt",
+    "database": "workspace:../packages/database",
+    "discord": "workspace:../packages/discord",
     "discord.js": "^14.26.2",
     "dotenv": "^16.6.1",
     "express": "^4.22.1",
+    "figlet": "^1.11.0",
     "glob": "^11.1.0",
     "lang": "workspace:../packages/lang",
     "marked": "^15.0.12",
     "marked-terminal": "^7.3.0",
     "mysql2": "^3.22.0",
+    "ora": "^9.3.0",
     "prompts": "^2.4.2",
     "reflect-metadata": "^0.2.2",
     "rpc": "workspace:../packages/rpc",
     "server": "workspace:../server",
-    "socket.io": "^4.8.3",
-    "socket.io-client": "^4.8.3",
+    "storage": "workspace:../packages/storage",
     "typeorm": "^0.3.28",
     "utils": "workspace:../packages/utils",
     "worker": "workspace:../packages/worker",
-    "storage": "workspace:../packages/storage",
-    "crypt": "workspace:../packages/crypt",
     "yargs": "^17.7.2"
   }
 }

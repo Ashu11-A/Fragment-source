@@ -13,3 +13,4 @@ release
 .early.coverage
 /core/storage
 *.wm
+/test

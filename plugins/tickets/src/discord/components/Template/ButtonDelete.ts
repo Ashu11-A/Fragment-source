@@ -1,32 +1,31 @@
 import { TemplateBuilder } from '@/class/TemplateBuilder.js'
-import { ActionDrawer } from 'discord'
-import type { PluginContext } from 'discord'
+import { ResponderType } from '@constatic/base'
+import { ActionDrawer, createResponder } from 'discord'
 import { ButtonBuilder, ButtonStyle, ComponentType, EmbedBuilder } from 'discord.js'
 
-export default function register(ctx: PluginContext): void {
-  ctx.component({
-    customId: 'DeleteTemplate',
-    type: 'Button',
-    async run(interaction) {
-      const initialInteraction = await interaction.reply({
-        fetchReply: true,
-        ephemeral: true,
-        embeds: [new EmbedBuilder({ title: 'Deseja realmente apagar esse Template?' })],
-        components: ActionDrawer([
-          new ButtonBuilder({ customId: 'yes', emoji: { name: '✔️' }, style: ButtonStyle.Success }),
-          new ButtonBuilder({ customId: 'no', emoji: { name: '✖️' }, style: ButtonStyle.Danger })
-        ], 2)
-      })
-      const collector = initialInteraction.createMessageComponentCollector({ componentType: ComponentType.Button })
-      collector.on('collect', async (subInteraction) => {
-        collector.stop()
-        if (subInteraction.customId === 'yes') {
-          await new TemplateBuilder({ interaction: subInteraction }).delete({ messageId: interaction.message.id })
-          return
-        }
-        await subInteraction.update({ embeds: [new EmbedBuilder({ title: 'Ação cancelada!' }).setColor('Green')], components: [] })
-      })
-      if (!interaction.replied) await interaction.deleteReply()
-    },
-  })
-}
+export default createResponder({
+  customId: 'DeleteTemplate',
+  types: [ResponderType.Button],
+  async run(interaction) {
+    const initialInteraction = await interaction.reply({
+      fetchReply: true,
+      ephemeral: true,
+      embeds: [new EmbedBuilder({ title: 'Deseja realmente apagar esse Template?' })],
+      components: ActionDrawer([
+        new ButtonBuilder({ customId: 'yes', emoji: { name: '✔️' }, style: ButtonStyle.Success }),
+        new ButtonBuilder({ customId: 'no', emoji: { name: '✖️' }, style: ButtonStyle.Danger })
+      ], 2)
+    })
+    const collector = initialInteraction.createMessageComponentCollector({ componentType: ComponentType.Button })
+    collector.on('collect', async (subInteraction) => {
+      collector.stop()
+      if (subInteraction.customId === 'yes') {
+        await new TemplateBuilder({ interaction: subInteraction }).delete({ messageId: interaction.message.id })
+        return
+      }
+      await subInteraction.update({ embeds: [new EmbedBuilder({ title: 'Ação cancelada!' }).setColor('Green')], components: [] })
+    })
+    if (!interaction.replied) await interaction.deleteReply()
+  },
+})
+

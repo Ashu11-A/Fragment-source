@@ -1,0 +1,17 @@
+{
+  "name": "database",
+  "version": "1.0.0",
+  "private": true,
+  "module": "src/app.ts",
+  "types": "src/app.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/app.ts",
+      "import": "./src/app.ts"
+    }
+  },
+  "scripts": {
+    "lint": "eslint --fix ."
+  }
+}

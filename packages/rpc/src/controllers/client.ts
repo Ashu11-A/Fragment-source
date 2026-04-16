@@ -1,18 +1,18 @@
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
 import axios, { AxiosError } from 'axios'
-import { CodesError, CodesSuccess, type ErrorData, type SucessData, type TReply } from 'server'
+import { CodesError, type ErrorData, type SucessData, type TReply } from 'server'
+import { ZodError } from 'zod'
 import { ErrorResponse, SuccessResponse, type SuccessResponseOptions } from '../app'
 import { ZodResponse } from '../responders/zod'
-import { ZodError } from 'zod'
 
 function isErrorStatus(status: number): status is typeof CodesError[number] {
   return CodesError.includes(status as typeof CodesError[number])
 }
 
 // Tipo para extrair parâmetros da rota
-type ExtractRouteParams<T extends string> = T extends `${infer Start}:${infer Param}/${infer Rest}`
+type ExtractRouteParams<T extends string> = T extends `${string}:${infer Param}/${infer Rest}`
   ? { [K in Param | keyof ExtractRouteParams<Rest>]: string | number }
-  : T extends `${infer Start}:${infer Param}`
+  : T extends `${string}:${infer Param}`
     ? { [K in Param]: string | number }
     : Record<string, never>
 
@@ -28,7 +28,6 @@ type RouterShape = {
 // Tipo para os argumentos da query baseado na rota
 type QueryArgs<
   Path extends string,
-  Method extends string,
   Router extends RouterShape
 > = [
   ...(HasRouteParams<Path> extends true
@@ -71,7 +70,7 @@ export class Client<Routers extends Record<string, Record<string, RouterShape>>>
   >(
     path: Path,
     method: Method,
-    ...args: QueryArgs<Path, Method, Router>
+    ...args: QueryArgs<Path, Router>
   ): Promise<ErrorResponse | ZodResponse | SuccessResponse<ExtractSuccessData<Router['response']>>> {
     const hasParams = String(path).includes(':')
     const params = hasParams ? args[0] as Record<string, string | number> : undefined

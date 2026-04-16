@@ -29,13 +29,14 @@
 		"noImplicitReturns": true,
 
     "outDir": "./build/esm",
-    "rootDir": "./",
     "paths": {
       "@/*": ["./src/*"]
     },
   },
   "references": [
-    { "path": "../server" }
+    { "path": "../server" },
+    { "path": "../plugins/tickets" },
+    { "path": "../plugins/base" }
   ],
   "include": ["src", "entries", "locales"],
   "exclude": ["node_modules"]

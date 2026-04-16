@@ -1,5 +1,3 @@
- 
-
 import type { i18 as lang } from '@/lang'
 
 declare global {

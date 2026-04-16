@@ -1,15 +1,14 @@
 import { root } from '@/index.js'
-import { lang } from '@/lang'
-import { storage } from '@/storage'
-import { Command } from 'discord'
+import { lang } from '@/lang.js'
+import { storage } from '@/storage.js'
+import { createCommand } from 'discord'
 import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, MessageFlags } from 'discord.js'
 import { glob } from 'glob'
 
-new Command({
+export default createCommand({
   name: 'language',
   description: '[ ☢️ Core ] Set current language',
   dmPermission: false,
-  pluginId: '-1',
   type: ApplicationCommandType.ChatInput,
   options: [
     {
@@ -20,14 +19,14 @@ new Command({
       required: true
     }
   ],
-  async autoComplete(interaction) {
+  async autocomplete(interaction) {
     const { options } = interaction
     const response: ApplicationCommandOptionChoiceData[] = []
 
     switch (options.getFocused(true).name) {
     case 'name': {
       const languages = await glob('locales/*', { cwd: root })
-      console.log(languages)
+
       response.push(...languages.map((lang) => {
         const lastValue = lang.split('/').length - 1
         

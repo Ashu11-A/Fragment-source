@@ -1,6 +1,6 @@
 import type { PluginContext } from 'discord'
 
-export default function register(ctx: PluginContext): void {
+export default function cronsTest (ctx: PluginContext) {
   ctx.cron({
     name: '',
     cron: '',

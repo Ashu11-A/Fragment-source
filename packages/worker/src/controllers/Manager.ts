@@ -3,6 +3,7 @@ import { existsSync, mkdirSync } from 'fs'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import SemVer from 'semver'
+import chalk from 'chalk'
 import type { PluginModule } from 'discord'
 import { i18 } from '..'
 import { PathType, type ManagerOptions, type Metadata, type MetadataKeys } from '../types/manager'
@@ -38,7 +39,6 @@ export class Manager {
   constructor(public options: ManagerOptions) {
     if (!options.cachePath) this.options.cachePath = join(process.cwd(), '/cache')
     if (!existsSync(this.options.cachePath as string)) {
-      console.log(i18('manager.cachePathNotExist'))
       mkdirSync(this.options.cachePath as string, { recursive: true })
     }
   }
@@ -51,17 +51,14 @@ export class Manager {
 
     switch (type) {
     case PathType.Path: {
-      console.log(i18('manager.filePathDetected', { fileURL: this.options.fileURL }))
       this.resolvedURL = this.options.fileURL
       break
     }
     case PathType.URL: {
       const cachedPath = this.getCachedFilePath()
       if (existsSync(cachedPath)) {
-        console.log(i18('manager.usingCachedFile', { cachedFilePath: cachedPath }))
         this.resolvedURL = cachedPath
       } else {
-        console.log(i18('manager.downloadingFile', { fileURL: this.options.fileURL }))
         await this.downloadToCache(this.options.fileURL, cachedPath)
         this.resolvedURL = cachedPath
       }
@@ -69,11 +66,7 @@ export class Manager {
     }
     }
 
-    // Cache-busting query string enables hot-reload without restarting core.
-    // Bun treats each unique specifier as a separate module, bypassing the ESM cache.
     const importSpecifier = `${this.resolvedURL}?t=${Date.now()}`
-
-    console.log(i18('manager.importing', { fileURL: this.options.fileURL }))
 
     try {
       this.module = await import(importSpecifier) as PluginModule
@@ -85,7 +78,6 @@ export class Manager {
     this.metadata = this.module.metadata
     this.validateCompatibility()
 
-    console.log(i18('manager.pluginInitialized'))
     return this.module
   }
 
@@ -160,23 +152,17 @@ export class Manager {
 
   private getCachedFilePath(): string {
     const fileName = this.options.fileURL.split('/').pop() as string
-    const cachePath = join(this.options.cachePath as string, fileName)
-    console.log(i18('manager.resolvedCachePath', { cachePath }))
-    return cachePath
+    return join(this.options.cachePath as string, fileName)
   }
 
   private async downloadToCache(url: string, cachePath: string): Promise<void> {
-    console.log(i18('manager.fetchingUrl', { url }))
     const response = await fetch(url)
 
     if (!response.ok) {
-      console.error(i18('manager.fetchFailed', { statusText: response.statusText }))
-      throw new Error(response.statusText)
+      throw new Error(chalk.red(`Failed to fetch ${url}: ${response.statusText}`))
     }
 
     const buffer = await response.bytes()
-    console.log(i18('manager.fetchedBlob'))
-    console.log(i18('manager.savingToCache', { cachePath }))
     await writeFile(cachePath, buffer)
   }
 }

@@ -1,5 +1,5 @@
-import Ticket, { type Event, type History, type TicketCategories, type Message as TicketMessage, type TicketType, type User as UserTicket, type Voice } from '@/entity/Ticket.entry.js'
-import { database } from '@/utils/database.js'
+import Ticket, { type Event, type History, type TicketCategories, type Message as TicketMessage, type TicketType, type User as UserTicket, type Voice } from '@/database/entity/Ticket.entry.js'
+import { database } from '@/database'
 import { ActionDrawer, ButtonBuilder, buttonRedirect, Error } from 'discord'
 import { ActionRowBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, type OverwriteResolvable, PartialGroupDMChannel, PermissionsBitField, StringSelectMenuInteraction, TextChannel, User } from 'discord.js'
 import { ClaimBuilder } from './ClaimBuilder.js'

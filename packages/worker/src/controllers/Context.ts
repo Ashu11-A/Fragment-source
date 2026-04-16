@@ -1,8 +1,44 @@
-import { Command, Component, Config, Crons, Event } from 'discord'
-import type { CommandData, ComponentData, ConfigOptions, CronsConfigurations, EventData } from 'discord'
-import type { PluginContext, PluginDatabase, PluginMetadata } from 'discord'
+import { registerDatabase } from 'database'
+import { registerPluginSlashCommandInConstatic, type PluginContext, type PluginMetadata } from 'discord'
 import type { ClientEvents } from 'discord.js'
+import {
+  Config,
+  Crons,
+  discordEventListeners,
+  interactionComponents,
+  slashCommands,
+  type ConfigOptions,
+  type CronsConfigurations,
+  type PluginComponentData,
+  type PluginDiscordEventData,
+  type PluginSlashCommandData,
+} from 'discord/registries'
+import { getMetadataArgsStorage } from 'typeorm'
 import type { EntityClass, PluginRegistration } from '../types/manager.js'
+
+/** Mirrors TypeORM's DefaultNamingStrategy for deriving table names from class names. */
+function toSnakeCase(str: string): string {
+  return str.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '')
+}
+
+/**
+ * Patches the TypeORM metadata store so that the entity's table name is
+ * automatically prefixed with the plugin name.
+ *
+ * Name resolution order:
+ *  1. `@Entity('custom_name')` or `@Entity({ name: 'custom_name' })` → `<plugin>_custom_name`
+ *  2. `@Entity()` (no name) → `<plugin>_<class_name_snake_case>`
+ *
+ * Safe to call multiple times — skips if the prefix is already present.
+ */
+function applyTablePrefix(entity: EntityClass, prefix: string): void {
+  const storage = getMetadataArgsStorage()
+  const tableMeta = storage.tables.find((t) => t.target === entity)
+  if (!tableMeta) return
+  const baseName = tableMeta.name ?? toSnakeCase((entity as { name: string }).name)
+  if (baseName.startsWith(`${prefix}_`)) return
+  tableMeta.name = `${prefix}_${baseName}`
+}
 
 /**
  * Creates the PluginContext object injected into every plugin's setup() call.
@@ -14,9 +50,10 @@ import type { EntityClass, PluginRegistration } from '../types/manager.js'
  */
 export function createPluginContext(
   pluginId: string,
-  metadata: PluginMetadata,
-  database: PluginDatabase
+  metadata: PluginMetadata
 ): { ctx: PluginContext; registration: PluginRegistration } {
+  const pluginPrefix = metadata.name.replace(/^plugin-/, '')
+
   const registration: PluginRegistration = {
     pluginName: metadata.name,
     commandNames: [],
@@ -30,17 +67,18 @@ export function createPluginContext(
   const ctx: PluginContext = {
     id: pluginId,
     metadata,
-    database,
 
-    command<D extends boolean>(data: CommandData<D>) {
-      Command.all.set(data.name, { ...data, pluginId })
+    command<D extends boolean>(data: PluginSlashCommandData<D>) {
+      const merged = { ...data, pluginId }
+      slashCommands.set(data.name, merged)
       registration.commandNames.push(data.name)
+      registerPluginSlashCommandInConstatic(merged)
     },
 
-    event<K extends keyof ClientEvents>(data: EventData<K>) {
+    event<K extends keyof ClientEvents>(data: PluginDiscordEventData<K>) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const handler = data.run.bind(data) as (...args: any[]) => unknown
-      Event.all.push({ ...data, pluginId } as EventData<keyof ClientEvents>)
+      discordEventListeners.push({ ...data, pluginId } as PluginDiscordEventData<keyof ClientEvents>)
       registration.eventHandlers.push({
         name: data.name as string,
         handler,
@@ -48,9 +86,9 @@ export function createPluginContext(
       })
     },
 
-    component(data: ComponentData) {
+    component(data: PluginComponentData) {
       const namespacedId = `${metadata.name}_${data.customId}`
-      Component.all.push({ ...data, customId: namespacedId, pluginId })
+      interactionComponents.push({ ...data, customId: namespacedId, pluginId })
       registration.componentIds.push(namespacedId)
     },
 
@@ -66,7 +104,21 @@ export function createPluginContext(
     },
 
     registerEntity(entity: EntityClass) {
-      registration.entities.push(entity)
+      applyTablePrefix(entity, pluginPrefix)
+      if (!registration.entities.includes(entity)) {
+        registration.entities.push(entity)
+      }
+    },
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    registerSchema(schema: Record<string, any>) {
+      for (const entity of Object.values(schema)) {
+        applyTablePrefix(entity as EntityClass, pluginPrefix)
+        if (!registration.entities.includes(entity as EntityClass)) {
+          registration.entities.push(entity as EntityClass)
+        }
+      }
+      registerDatabase(pluginPrefix, schema)
     },
   }
 

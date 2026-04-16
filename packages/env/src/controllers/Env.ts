@@ -23,11 +23,11 @@ export class Env {
       const value = this.parser(match[2])
       matches.push({ variable: match[1], value })
     }
-  
+
     for (const { value, variable } of matches) {
       process.env[variable] = value
     }
-    
+
     return matches
   }
 

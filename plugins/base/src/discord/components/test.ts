@@ -1,12 +1,11 @@
-import type { PluginContext } from 'discord'
+import { createResponder } from 'discord'
+import { ResponderType } from '@constatic/base'
 
-export default function register(ctx: PluginContext): void {
-  ctx.component({
-    customId: 'test',
-    cache: 'cached',
-    type: 'Button',
-    async run(interaction) {
-      await interaction.reply({ content: 'Test' })
-    },
-  })
-}
+export default createResponder({
+  customId: 'test',
+  cache: 'cached',
+  types: [ResponderType.Button],
+  async run(interaction) {
+    await interaction.reply({ content: 'Test' })
+  },
+})
