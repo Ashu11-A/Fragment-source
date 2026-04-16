@@ -30,7 +30,7 @@
     "@types/signale": "^1.4.7",
     "@types/yargs": "^17.0.35",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.58.1"
+    "typescript-eslint": "^8.58.2"
   },
   "dependencies": {
     "boxen": "^8.0.1",
@@ -38,7 +38,7 @@
     "crypt": "workspace:../packages/crypt",
     "database": "workspace:../packages/database",
     "discord": "workspace:../packages/discord",
-    "discord.js": "^14.26.2",
+    "discord.js": "^14.26.3",
     "dotenv": "^16.6.1",
     "express": "^4.22.1",
     "figlet": "^1.11.0",

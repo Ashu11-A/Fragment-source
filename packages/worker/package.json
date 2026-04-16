@@ -16,7 +16,7 @@
     "chokidar": "^4.0.3",
     "database": "workspace:../packages/database",
     "discord": "workspace:../packages/discord",
-    "discord.js": "^14.26.2",
+    "discord.js": "^14.26.3",
     "ora": "^9.3.0",
     "semver": "^7.7.4"
   }
