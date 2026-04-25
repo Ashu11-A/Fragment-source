@@ -1,9 +1,9 @@
 import { database } from '@/database'
 import { ClaimBuilder } from '@/class/ClaimBuilder.js'
-import { createEvent } from 'discord'
+import { Event } from 'discord'
 import { AuditLogEvent, EmbedBuilder, MessageFlagsBitField } from 'discord.js'
 
-export default createEvent({
+export default new Event({
   name: 'messageDeleteClaimMessage',
   event: 'messageDelete',
   async run (message) {

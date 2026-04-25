@@ -19,10 +19,11 @@
     "lint": "eslint --fix ."
   },
   "dependencies": {
-    "@constatic/base": "latest",
+    "url-ast": "^3.0.1",
+    "@ashu11a/constatic": "^1.0.1",
     "@magicyan/discord": "1.7.3",
-    "utils": "workspace:../utils",
     "cron-parser": "^4.9.0",
-    "discord.js": "^14.26.3"
+    "discord.js": "^14.26.3",
+    "utils": "workspace:../utils"
   }
 }

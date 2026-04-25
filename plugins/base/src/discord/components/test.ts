@@ -1,7 +1,6 @@
-import { createResponder } from 'discord'
-import { ResponderType } from '@constatic/base'
+import { Responder, ResponderType } from 'discord'
 
-export default createResponder({
+export default new Responder({
   customId: 'test',
   cache: 'cached',
   types: [ResponderType.Button],

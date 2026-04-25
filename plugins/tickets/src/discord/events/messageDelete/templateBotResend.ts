@@ -1,10 +1,9 @@
 import { database } from '@/database'
-import { TemplateBuilder } from '@/class/TemplateBuilder.js'
-import { TemplateButtonBuilder } from '@/class/TemplateButtonBuilder.js'
-import { createEvent } from 'discord'
+import { TemplateManager } from '@/class/TemplateManager.js'
+import { Event } from 'discord'
 import { Message } from 'discord.js'
 
-export default createEvent({
+export default new Event({
   name: 'messageDeleteTemplateBotResend',
   event: 'messageDelete',
   async run (message) {
@@ -12,9 +11,10 @@ export default createEvent({
     const template = await database.template.findOne({ where: { messageId: message.id } })
     if (template === null) return
 
-    const embed = new TemplateBuilder({ interaction: message }).render(message.embeds[0].toJSON())
-    const buttons = new TemplateButtonBuilder().setProperties(template.properties).setSelects(template.selects).setMode('production').render()
-    const newMessage = await message.channel.send({ embeds: [embed], components: buttons })
+    const manager = new TemplateManager({ interaction: message, template }).setMode('production')
+    const embed = manager.renderEmbed(message.embeds[0].toJSON())
+    const components = manager.renderComponents()
+    const newMessage = await message.channel.send({ embeds: [embed], components })
     await database.template.update({ id: template.id }, { messageId: newMessage.id })
   },
 })

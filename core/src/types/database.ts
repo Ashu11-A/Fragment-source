@@ -14,5 +14,5 @@
  * The build script can auto-generate this file by scanning plugins/ for database.ts files.
  */
 
-import type {} from '../../../plugins/tickets/src/database/entity/index.js'
-import type {} from '../../../plugins/base/src/entity/index.js'
+import type {} from '../../../plugins/tickets/src/database/index.js'
+import type {} from '../../../plugins/base/src/database/index.js'

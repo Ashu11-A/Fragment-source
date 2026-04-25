@@ -10,6 +10,11 @@ const options: BuildOptions = {
   // signatureLength: 256,
   outputDirectory,
 }
+/** Garante um único `ConstaticApp` com o core (evita `printLogs` / `▸` vazios no bootstrap). */
+const pluginBundleOptions: BuildOptions = {
+  ...options,
+  buildArgs: ['--external=@ashu11a/constatic'],
+}
 
 const projects: BuildMetadata[] = [
   {
@@ -17,7 +22,7 @@ const projects: BuildMetadata[] = [
     type: BuildType.File,
     release: true,
     prebuild: true,
-    options
+    options: pluginBundleOptions
   },
   {
     path: 'packages/*',

@@ -4,7 +4,7 @@
   "module": "core/index.ts",
   "type": "module",
   "workspaces": {
-    "packages": ["server", "core", "packages/*", "plugins/*"],
+    "packages": ["server", "core", "dashboard", "packages/*", "plugins/*", "packages/socket"],
     "catalog": {
       "zod": "^3.24.2"
     }
@@ -41,5 +41,8 @@
     "msgpackr-extract",
     "protobufjs",
     "utf-8-validate"
-  ]
+  ],
+  "overrides": {
+    "unplugin": "2.3.11"
+  }
 }

@@ -1,8 +1,8 @@
 import { database } from '@/database'
-import { createEvent } from 'discord'
+import { Event } from 'discord'
 import { TextChannel } from 'discord.js'
   
-export default createEvent({
+export default new Event({
   name: 'voiceStateUpdate',
   event: 'voiceStateUpdate',
   async run(oldState, newState) {

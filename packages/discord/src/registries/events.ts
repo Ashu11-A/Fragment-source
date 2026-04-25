@@ -1,11 +1,5 @@
-import type { ClientEvents } from 'discord.js'
+import { Event as ConstaticEvent, type ClientEventKey } from '@ashu11a/constatic'
 
-/** Discord.js client event registrations from `ctx.event`. */
-export interface PluginDiscordEventData<Key extends keyof ClientEvents = keyof ClientEvents> {
-  name: Key
-  once?: boolean
-  pluginId?: string
-  run (...args: ClientEvents[Key]): void
+export class Event<EventName extends ClientEventKey = ClientEventKey> extends ConstaticEvent<EventName> {
+  public pluginName?: string
 }
-
-export const discordEventListeners: Array<PluginDiscordEventData<keyof ClientEvents>> = []

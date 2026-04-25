@@ -4,13 +4,18 @@ import 'reflect-metadata'
 
 import { Fastify } from './controllers/fastify.js'
 import Database from './database/dataSource.js'
-import { registerRouter } from './scripts/routers.js'
+import { registerArtifactRoutes } from './scripts/artifactRoutes.js'
+import { registerFileRoutes } from './scripts/fileRoutes.js'
 
 const fastify = new Fastify({ port: Number(process.env['PORT']) || 3000, host: '0.0.0.0' })
+
+console.log('[db] connecting...')
 await Database.initialize()
+console.log('[db] connected')
 
 await import('./scripts/register.js')
 
 fastify.config()
-await registerRouter()
+registerFileRoutes()
+registerArtifactRoutes()
 await fastify.listen()

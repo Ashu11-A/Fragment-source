@@ -14,6 +14,8 @@ const buildConfiguration: BuildMetadata = {
   options: {
     entryFile: 'src/app.ts',
     outputDirectory: outputDirectoryString,
+    /** Alinha o singleton do Constatic com o processo do core (ver `pluginBundleOptions` em release.ts). */
+    buildArgs: ['--external=@ashu11a/constatic'],
   }
 };
 

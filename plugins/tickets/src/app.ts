@@ -2,19 +2,14 @@
 
 import 'reflect-metadata'
 
-import type { PluginContext, PluginMetadata, PluginModule } from 'discord'
-import { metadata as getPackageMetadata } from 'utils'
+import { Plugin } from 'plugin'
 import { database } from './database/index.js'
 import { registerAll } from './register.js'
 
-export const metadata: PluginMetadata = {
-  ...getPackageMetadata(),
+export default new Plugin({
   frameworkVersion: '^1.0.0',
-}
-
-export async function setup(ctx: PluginContext): Promise<void> {
-  ctx.registerSchema(database)
-  await registerAll(ctx)
-}
-
-export type { PluginModule }
+  setup: async (ctx) => {
+    ctx.registerSchema(database)
+    await registerAll(ctx)
+  },
+})

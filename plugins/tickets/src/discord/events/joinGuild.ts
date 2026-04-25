@@ -1,8 +1,8 @@
 import { database } from '@/database'
 import type Guild from '@/database/entity/Guild.entry.js'
-import { createEvent } from 'discord'
+import { Event } from 'discord'
 
-export default createEvent({
+export default new Event({
   name: 'guildCreate',
   event: 'guildCreate',
   async run(guild) {

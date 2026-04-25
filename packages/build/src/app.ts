@@ -49,12 +49,14 @@ async function generateEntitySection(): Promise<{ imports: string[]; registerCal
 async function generateDirectorySection(
   directory: string
 ): Promise<{ imports: string[]; registerCalls: string[] }> {
-  const files = await glob(`discord/${directory.toLowerCase()}/**/*.{ts,js}`, {
+  const allFiles = await glob(`discord/${directory.toLowerCase()}/**/*.{ts,js}`, {
     cwd: sourcePath,
     dotRelative: false,
   })
+  // *Actions* são, em geral, anexados ao `Command` via `.action(…, bot)`; o Constatic
+  // já regista o `Responder`. Não listar *Actions* aqui evita duplicar o mesmo handler.
+  const files = allFiles.filter((file) => !basename(file).match(/Actions\.(ts|js)$/))
 
-  const imports: string[] = []
   const registerCalls: string[] = []
 
   const registerFn =
@@ -69,16 +71,20 @@ async function generateDirectorySection(
   files.forEach((file, index) => {
     const identifier = `${directory.toLowerCase()}${index}`
     const relPath = getPlatformPath(file).replace(/\.(ts|js)$/, '')
+    /** Import dinâmico para correr *depois* de `Package.setData(pkg)` no `registerAll`
+     * (imports estáticos são hoistados e executavam antes, gerando `/undefined/…` nos customId). */
+    const specifier = `${relPath}.js`
 
-    imports.push(`import ${identifier} from '${relPath}'`)
     if (registerFn !== null) {
-      registerCalls.push(`  ${registerFn}(ctx, ${identifier})`)
+      registerCalls.push(
+        `  const { default: ${identifier} } = await import('${specifier}')\n  ${registerFn}(ctx, ${identifier})`,
+      )
     } else {
-      registerCalls.push(`  ${identifier}(ctx)`)
+      registerCalls.push(`  await (await import('${specifier}')).default(ctx)`)
     }
   })
 
-  return { imports, registerCalls }
+  return { imports: [] as string[], registerCalls }
 }
 
 // ─── Dependency detection ──────────────────────────────────────────────────────
@@ -249,31 +255,39 @@ export async function build(filePath: string): Promise<void> {
   ]
   const allRegisterCalls: string[] = []
 
-  allImports.push('\nPackage.setData(pkg)')
-
   const { imports: entityImports, registerCalls: entityCalls } = await generateEntitySection()
   allImports.push(...entityImports)
   allRegisterCalls.push(...entityCalls)
 
   for (const dir of DIRECTORIES) {
-    const { imports, registerCalls } = await generateDirectorySection(dir)
-    if (imports.length > 0) {
-      allImports.push(`\n// ${dir}`)
-      allImports.push(...imports)
+    const { registerCalls } = await generateDirectorySection(dir)
+    if (registerCalls.length > 0) {
+      allRegisterCalls.push(`  // ${dir}`)
       allRegisterCalls.push(...registerCalls)
     }
   }
 
-  if (allRegisterCalls.some((registerCall) => registerCall.includes('registerCreated'))) {
+  const needCommand = allRegisterCalls.some((c) => c.includes('registerCreatedCommand'))
+  const needEvent = allRegisterCalls.some((c) => c.includes('registerCreatedEvent'))
+  const needResponder = allRegisterCalls.some((c) => c.includes('registerCreatedResponder'))
+  if (needCommand || needEvent || needResponder) {
+    const names = [
+      ...(needCommand ? ['registerCreatedCommand'] : []),
+      ...(needEvent ? ['registerCreatedEvent'] : []),
+      ...(needResponder ? ['registerCreatedResponder'] : []),
+    ]
     allImports.splice(
       1,
       0,
-      'import { registerCreatedCommand, registerCreatedEvent, registerCreatedResponder } from \'discord\''
+      `import { ${names.join(', ')} } from 'discord'`
     )
   }
 
   const content = [
     ...allImports,
+    '',
+    '/** Obrigatório antes de `new Plugin()` em app.ts: o construtor lê metadata via Package.getData(). */',
+    'Package.setData(pkg)',
     '',
     '/** Gerado automaticamente — não edite manualmente. */',
     'export async function registerAll(ctx: PluginContext): Promise<void> {',

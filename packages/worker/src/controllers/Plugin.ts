@@ -1,45 +1,84 @@
-import { readdir } from 'fs/promises'
-import { basename, join } from 'path'
-import { existsSync, mkdirSync } from 'fs'
-import SemVer from 'semver'
 import chalk from 'chalk'
-import ora from 'ora'
 import { unregisterDatabase } from 'database'
-import { unregisterPluginSlashCommandFromConstatic } from 'discord'
-import {
-  Config,
-  Crons,
-  discordEventListeners,
-  interactionComponents,
-  slashCommands,
-} from 'discord/registries'
+import { Crons, unregisterCommand } from 'discord/registries'
+import type { PluginManifest } from 'discord'
+import { existsSync, mkdirSync } from 'fs'
+import { readdir } from 'fs/promises'
+import ora from 'ora'
+import { basename, join } from 'path'
+import SemVer from 'semver'
 import { i18 } from '..'
-import { Manager } from './Manager'
-import { createPluginContext } from './Context'
-import { Watcher } from './Watcher'
 import type { PluginRegistration } from '../types/manager.js'
+import { createPluginContext } from './Context'
+import { Manager } from './Manager'
+import { Watcher } from './Watcher'
 
 type PluginEntry = {
   manager: Manager
   registration: PluginRegistration
+  /** Static manifest produced by `plugin.inspect()` — available for external systems. */
+  manifest?: PluginManifest
   fileURL: string
-  pluginId: string
+  pluginName: string
 }
+
+export type RegisterResult =
+  | { ok: true; pluginName: string; filePath: string }
+  | { ok: false; filePath: string; error: string; details?: string }
 
 type PluginCallbacks = {
   /** Invoked after setup() completes — use to attach Discord events and register entities */
-  onPluginLoaded?: (pluginId: string, registration: PluginRegistration) => Promise<void>
+  onPluginLoaded?: (pluginName: string, registration: PluginRegistration) => Promise<void>
   /** Invoked before a plugin is unloaded — use to detach Discord events */
-  onPluginUnloaded?: (pluginId: string, registration: PluginRegistration) => Promise<void>
+  onPluginUnloaded?: (pluginName: string, registration: PluginRegistration) => Promise<void>
 }
 
-let nextPluginId = 0
-
 export class Plugin {
-  /** All currently loaded plugins keyed by their unique pluginId */
+  /** All currently loaded plugins keyed by their name (metadata.name) */
   static readonly all = new Map<string, PluginEntry>()
 
+  /**
+   * Returns the `PluginManifest` for every loaded plugin that was defined with
+   * `new Plugin({...})`. Plugins using the legacy `export { metadata, setup }`
+   * format will not have a manifest and are excluded from the result.
+   */
+  static manifests(): PluginManifest[] {
+    return [...Plugin.all.values()]
+      .filter((e): e is PluginEntry & { manifest: PluginManifest } => e.manifest !== undefined)
+      .map((e) => e.manifest)
+  }
+
   constructor(private readonly callbacks: PluginCallbacks = {}) {}
+
+  /**
+   * Public list of `plugin-*.js` under `./plugins` (same rules as load); sorted by filename.
+   */
+  public async listDiscoveredBundlePaths (): Promise<string[]> {
+    return this.resolvePluginBundlePaths()
+  }
+
+  /**
+   * Absolute paths to every `plugin-*.js` under `./plugins` (sorted by filename).
+   */
+  private async resolvePluginBundlePaths (): Promise<string[]> {
+    const dir = join(process.cwd(), 'plugins')
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true })
+      return []
+    }
+
+    let names: string[] = []
+    try {
+      names = await readdir(dir)
+    } catch {
+      return []
+    }
+
+    return names
+      .filter((n) => n.endsWith('.js') && n.startsWith('plugin-'))
+      .sort()
+      .map((n) => join(dir, n))
+  }
 
   /**
    * Loads every `plugin-*.js` bundle already present under `./plugins` (sorted by filename).
@@ -47,31 +86,50 @@ export class Plugin {
    * from plugins are in the shared registries when the client connects.
    */
   public async loadExistingBundles (): Promise<void> {
-    const dir = join(process.cwd(), 'plugins')
-    if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true })
-      return
-    }
-
-    let names: string[] = []
-    try {
-      names = await readdir(dir)
-    } catch {
-      return
-    }
-
-    const paths = names
-      .filter((n) => n.endsWith('.js') && n.startsWith('plugin-'))
-      .sort()
-      .map((n) => join(dir, n))
-
+    const paths = await this.resolvePluginBundlePaths()
     if (paths.length === 0) return
 
     console.log('\n' + chalk.cyan('◆') + ' ' + chalk.bold('Plugins'))
     for (const filePath of paths) {
-      await this.register(filePath)
+      const r = await this.register(filePath)
+      if (!r.ok) {
+        console.error(chalk.red(`[plugins] ${basename(filePath)}: ${r.error}`))
+      }
     }
     console.log(chalk.dim(`\n  ${paths.length} plugin${paths.length === 1 ? '' : 's'} loaded`))
+  }
+
+  /**
+   * Unloads every plugin currently in memory (registries cleared, DB hooks run).
+   */
+  public async unloadAll (): Promise<void> {
+    const ids = [...Plugin.all.keys()]
+    for (const id of ids) {
+      await this.unload(id)
+    }
+  }
+
+  /**
+   * Full reload: unload all plugins, then import every `plugin-*.js` from `./plugins` from disk
+   * (does not require plugins to have been loaded before).
+   */
+  public async reloadAllFromDisk (): Promise<Array<{ filePath: string; pluginName?: string; error?: string }>> {
+    await this.unloadAll()
+    const paths = await this.resolvePluginBundlePaths()
+    const results: Array<{ filePath: string; pluginName?: string; error?: string }> = []
+    if (paths.length === 0) return results
+
+    console.log('\n' + chalk.cyan('◆') + ' ' + chalk.bold('Plugins') + ' ' + chalk.dim('(full reload)'))
+    for (const filePath of paths) {
+      const r = await this.register(filePath)
+      if (r.ok) {
+        results.push({ filePath, pluginName: r.pluginName })
+      } else {
+        results.push({ filePath, error: r.error })
+      }
+    }
+    console.log(chalk.dim(`\n  ${paths.length} plugin${paths.length === 1 ? '' : 's'} loaded`))
+    return results
   }
 
   /**
@@ -84,7 +142,10 @@ export class Plugin {
       if (!name.endsWith('.js') || !name.startsWith('plugin-')) return
 
       console.log(chalk.cyan('  >') + '  ' + chalk.dim('New plugin detected'))
-      await this.register(filePath)
+      const r = await this.register(filePath)
+      if (!r.ok) {
+        console.error(chalk.red(`[watcher] ${basename(filePath)}: ${r.error}`))
+      }
     }
 
     console.log('\n' + chalk.cyan('◆') + ' ' + chalk.bold('Watcher') + '  ' + chalk.dim('watching ./plugins'))
@@ -101,14 +162,12 @@ export class Plugin {
    * 4. Run plugin.setup(ctx) — populates commands, events, entities, etc.
    * 5. Invoke onPluginLoaded so core can attach events and reinitialise the DB.
    */
-  async register(filePath: string): Promise<string | undefined> {
+  async register(filePath: string): Promise<RegisterResult> {
     const existing = [...Plugin.all.values()].find((e) => e.fileURL === filePath)
     if (existing) {
       console.log(chalk.yellow('  ⚠') + '  ' + chalk.yellow('Hot-reloading: ') + chalk.dim(basename(filePath)))
-      await this.unload(existing.pluginId)
+      await this.unload(existing.pluginName)
     }
-
-    const pluginId = `plugin_${nextPluginId++}`
 
     const manager = new Manager({ fileURL: filePath })
 
@@ -119,24 +178,22 @@ export class Plugin {
     try {
       await manager.start()
 
-      const { ctx, registration } = createPluginContext(
-        pluginId,
-        manager.metadata
-      )
+      const { ctx, registration } = createPluginContext(manager.metadata)
 
       await manager.module.setup(ctx)
       schemaKey = manager.metadata.name.replace(/^plugin-/, '')
 
       this.validateDependencies(manager)
 
-      Plugin.all.set(pluginId, { manager, registration, fileURL: filePath, pluginId })
+      const pluginName = manager.metadata.name
+      const manifest = await manager.module.inspect?.()
+      Plugin.all.set(pluginName, { manager, registration, manifest, fileURL: filePath, pluginName })
 
-      const name = manager.metadata.name
       const version = manager.metadata.version ?? '?'
 
       spin.stopAndPersist({
         symbol: chalk.green('  ✓'),
-        text: chalk.bold.cyan(name) + chalk.dim(`@${version}`),
+        text: chalk.bold.cyan(pluginName) + chalk.dim(`@${version}`),
       })
 
       console.log(chalk.green('    >') + '  ' + i18('plugins.commands',   { length: String(registration.commandNames.length) }))
@@ -146,16 +203,18 @@ export class Plugin {
       console.log(chalk.green('    >') + '  ' + i18('plugins.crons',      { length: String(registration.cronUuids.length) }))
 
       if (this.callbacks.onPluginLoaded) {
-        await this.callbacks.onPluginLoaded(pluginId, registration)
+        await this.callbacks.onPluginLoaded(pluginName, registration)
       }
 
-      return pluginId
+      return { ok: true, pluginName, filePath }
     } catch (error) {
       if (schemaKey) unregisterDatabase(schemaKey)
 
+      const errMsg = String(error instanceof Error ? error.message : error)
+      const errDetails = error instanceof Error ? error.stack : undefined
       spin.fail(chalk.red(`Failed to load ${basename(filePath)}`))
-      console.error(chalk.dim(String(error instanceof Error ? error.message : error)))
-      return undefined
+      console.error(chalk.dim(errMsg))
+      return { ok: false, filePath, error: errMsg, details: errDetails }
     }
   }
 
@@ -212,38 +271,25 @@ export class Plugin {
   }
 
   /**
-   * Unload a plugin by its pluginId.
+   * Unload a plugin by its name (metadata.name).
    *
    * Removes all registered commands, events, components, configs and crons
    * from the shared registries. Core's onPluginUnloaded callback is called first
    * so Discord.client event listeners can be detached cleanly.
    */
-  async unload(pluginId: string): Promise<void> {
-    const entry = Plugin.all.get(pluginId)
+  async unload(pluginName: string): Promise<void> {
+    const entry = Plugin.all.get(pluginName)
     if (!entry) return
 
     if (this.callbacks.onPluginUnloaded) {
-      await this.callbacks.onPluginUnloaded(pluginId, entry.registration)
+      await this.callbacks.onPluginUnloaded(pluginName, entry.registration)
     }
 
     const { registration } = entry
 
     for (const name of registration.commandNames) {
-      slashCommands.delete(name)
-      unregisterPluginSlashCommandFromConstatic(name)
+      unregisterCommand(name)
     }
-
-    for (let i = discordEventListeners.length - 1; i >= 0; i--) {
-      const e = discordEventListeners[i]
-      if (e?.pluginId === pluginId) discordEventListeners.splice(i, 1)
-    }
-
-    for (let i = interactionComponents.length - 1; i >= 0; i--) {
-      const c = interactionComponents[i]
-      if (c?.pluginId === pluginId) interactionComponents.splice(i, 1)
-    }
-
-    Config.all = Config.all.filter((c) => c.pluginId !== pluginId)
 
     for (const uuid of registration.cronUuids) {
       const timeout = Crons.timeouts.get(uuid)
@@ -253,9 +299,9 @@ export class Plugin {
       if (idx !== -1) Crons.all.splice(idx, 1)
     }
 
-    Plugin.all.delete(pluginId)
+    Plugin.all.delete(pluginName)
 
-    console.log(chalk.yellow('  ○') + '  ' + chalk.dim(`Plugin unloaded: ${entry.manager.metadata.name ?? pluginId}`))
+    console.log(chalk.yellow('  ○') + '  ' + chalk.dim(`Plugin unloaded: ${pluginName}`))
   }
 
 }

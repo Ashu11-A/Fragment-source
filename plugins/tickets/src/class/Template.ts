@@ -1,11 +1,12 @@
 import { TypeTemplate } from '@/types/entries.js'
 import { database } from '@/database'
-import { checkChannel, Error } from 'discord'
-import { ButtonInteraction, type CacheType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, StringSelectMenuInteraction } from 'discord.js'
-import { TemplateButtonBuilder } from './TemplateButtonBuilder.js'
+import { Error } from 'discord'
+import { CommandInteraction } from 'discord.js'
+import { TemplateManager } from './TemplateManager.js'
+import { BaseInteractionBuilder, type CachedInteraction } from './BaseInteractionBuilder.js'
 
 interface TicketOptions {
-    interaction: CommandInteraction<CacheType> | ModalSubmitInteraction<CacheType> | ButtonInteraction<CacheType> | StringSelectMenuInteraction<CacheType>
+    interaction: CachedInteraction
 }
 
 interface TicketCreate {
@@ -15,40 +16,38 @@ interface TicketCreate {
     guildId: string
 }
 
-
-export class Template {
-  private readonly interaction
+export class Template extends BaseInteractionBuilder {
   constructor ({ interaction }: TicketOptions) {
-    this.interaction = interaction
+    super({ interaction })
   }
 
   async create ({ title, description, channelId, guildId }: TicketCreate) {
     if (!(this.interaction instanceof CommandInteraction)) return
     if (!this.interaction.deferred) await this.interaction.deferReply()
-    const channel = await checkChannel(this.interaction.client, channelId, this.interaction)
-    // const cart = new DefaultTicketCart()
-    //   .setTitle(this.interaction.guild?.name ?? '')
-    //   .setDescription('Teste')
-    // const image = await cart.build({ format: 'png' })
-    // const attachment = new AttachmentBuilder(image, { name: 'ticketView.png' })
 
-    if (!channel) return
+    const channel = await this.validateTextChannel(channelId)
+    if (channel === null) return
 
-    const embed = new EmbedBuilder({
-      title,
-      description,
-      footer: { text: `Equipe ${this.interaction.guild?.name}`, iconURL: (this.interaction?.guild?.iconURL({ size: 64 }) ?? undefined) }
-    })
-
-    const buttonBuilder = new TemplateButtonBuilder()
-    const components = buttonBuilder
+    const manager = new TemplateManager({ interaction: this.interaction })
+      .setTitle(title)
+      .setDescription(description)
       .setMode('debug')
       .setType(TypeTemplate.Button)
-      .render()
+
+    const embed = manager.renderEmbed({
+      footer: {
+        text: `Equipe ${this.guild.name}`,
+        icon_url: this.guild.iconURL({ size: 64 }) ?? undefined
+      }
+    })
+    const components = manager.renderComponents()
 
     await channel.send({ embeds: [embed], components }).then(async (message) => {
       const guild = await database.guild.findOne({ where: { guildId } })
-      if (guild === null) return await new Error({ element: 'Guild', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
+      if (guild === null) {
+        await new Error({ element: 'Guild', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
+        return
+      }
       const create = await database.template.create({
         guild,
         messageId: message.id,

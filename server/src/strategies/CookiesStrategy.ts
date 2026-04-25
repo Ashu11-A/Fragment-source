@@ -20,11 +20,8 @@ export class CookiesStrategy extends Strategy<User> {
       const auth = await Auth.findOneBy({ accessToken: cookie })
       if (!auth) return this.fail('Token not found, it has been revoked', 404)
       if (!auth.valid) return this.fail('Token is invalid! weigh another one', 408)
-        
-      const { valid, value: token } = request.unsignCookie(cookie)
-      if (!valid || !token) return this.fail('Cookie inválido', 401)
 
-      const userData = jwt.verify(token, secret, { algorithms: ['HS512'] })
+      const userData = jwt.verify(cookie, secret, { algorithms: ['HS512'] })
       if (typeof userData !== 'object' || !userData) return this.fail('Token inválido', 403)
       if (!('id' in userData) || !('uuid' in userData)) return this.fail('Token incompleto', 401)
 

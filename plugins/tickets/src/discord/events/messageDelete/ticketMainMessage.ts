@@ -1,9 +1,9 @@
 import { database } from '@/database'
 import { TicketBuilder } from '@/class/TicketBuilder.js'
-import { createEvent } from 'discord'
+import { Event } from 'discord'
 import { AuditLogEvent, EmbedBuilder, MessageFlagsBitField } from 'discord.js'
 
-export default createEvent({
+export default new Event({
   name: 'messageDeleteTicketMainMessage',
   event: 'messageDelete',
   async run (message) {

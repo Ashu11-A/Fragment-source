@@ -15,9 +15,13 @@ export class BearerStrategy extends Strategy<User> {
       const secret = process.env.JWT_TOKEN
       if (!secret) throw new Error('JWT_TOKEN não definido!')
       
-      const token = request.headers['authorization']?.replace('Bearer', '').trim()
+      const authHeader = request.headers['authorization']
+      const token =
+        typeof authHeader === 'string'
+          ? authHeader.replace(/^Bearer\s+/i, '').trim()
+          : ''
       request.headers['authorization'] = token
-      if (!token) return this.fail('Token de autenticação necessário', 401)
+      if (token.length === 0) return this.fail('Token de autenticação necessário', 401)
 
       const auth = await Auth.findOneBy({ accessToken: token })
       if (!auth) return this.fail('Token not found, it has been revoked', 404)

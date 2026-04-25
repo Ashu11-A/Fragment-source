@@ -1,9 +1,11 @@
-import type { ClientEvents } from 'discord.js'
-import type { PluginComponentData } from '../registries/components.js'
+import type {
+  ClientEventKey,
+  EventData,
+  ResponderData,
+  ResponderType,
+} from '@ashu11a/constatic'
+import type { CacheType } from 'discord.js'
 import type { CronsConfigurations } from '../controllers/Crons.js'
-import type { ConfigOptions } from '../controllers/Config.js'
-import type { PluginDiscordEventData } from '../registries/events.js'
-import type { PluginSlashCommandData } from '../registries/slashCommands.js'
 
 /**
  * A database dependency on another plugin.
@@ -52,14 +54,14 @@ export interface PluginContext {
   readonly id: string
   readonly metadata: PluginMetadata
 
-  /** Register a slash command or context-menu command (legacy registry; prefer `createCommand` from `discord`) */
-  command<D extends boolean>(data: PluginSlashCommandData<D>): void
-  /** Register a Discord event listener (legacy registry; prefer `createEvent` from `discord`) */
-  event<K extends keyof ClientEvents>(data: PluginDiscordEventData<K>): void
-  /** Register an interaction component handler (legacy registry; prefer `createResponder` from `discord`) */
-  component(data: PluginComponentData): void
-  /** Register a /config subcommand */
-  config(data: ConfigOptions): void
+  /**
+   * Instância de `Command` (export do módulo, após a cadeia `.action(…, bot)`)
+   * ou, em raros casos, o objeto `CommandData` plano.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  command: (data: any) => void
+  event<K extends ClientEventKey>(data: EventData<K>): void
+  component<Path extends string, Types extends readonly ResponderType[], Cache extends CacheType>(data: ResponderData<Path, Types, Cache>): void
   /** Register a cron job */
   cron<M>(data: CronsConfigurations<M>): void
 
@@ -86,6 +88,63 @@ export interface PluginContext {
   registerSchema(schema: Record<string, any>): void
 }
 
+// ---------------------------------------------------------------------------
+// Plugin manifest — static description of everything a plugin registers
+// ---------------------------------------------------------------------------
+
+export type SubcommandManifest = {
+  name: string
+  description: string
+}
+
+export type SubcommandGroupManifest = {
+  name: string
+  description: string
+  subcommands: SubcommandManifest[]
+}
+
+export type CommandManifest = {
+  name: string
+  description?: string
+  /** Direct `Subcommand` options (not inside a group) */
+  subcommands: SubcommandManifest[]
+  /** `SubcommandGroup` options, each containing their own subcommands */
+  groups: SubcommandGroupManifest[]
+}
+
+export type ComponentManifest = {
+  customId: string
+  /** Values from `ResponderType`, e.g. `'button'`, `'modal'`, `'select.string'` */
+  types: string[]
+}
+
+export type EventManifest = {
+  name: string
+  event: string
+  once: boolean
+}
+
+export type CronManifest = {
+  name: string
+  cron: string
+  once: boolean
+}
+
+/**
+ * Side-effect-free snapshot of everything a plugin would register.
+ * Produced by `Plugin.inspect()` without touching any global registry.
+ */
+export type PluginManifest = {
+  metadata: PluginMetadata
+  commands: CommandManifest[]
+  components: ComponentManifest[]
+  events: EventManifest[]
+  configs: string[]
+  crons: CronManifest[]
+  /** Entity class names collected from `registerEntity` / `registerSchema` calls */
+  entities: string[]
+}
+
 /**
  * Contract that every plugin module must satisfy.
  * Plugins are loaded via dynamic import(); this is what core expects to find.
@@ -95,4 +154,9 @@ export interface PluginModule {
   metadata: PluginMetadata
   /** Called once by core to register commands, events, components, etc. */
   setup(ctx: PluginContext): Promise<void>
+  /**
+   * Returns a side-effect-free manifest of all registrations the plugin would
+   * perform. Available when the plugin is defined with `new Plugin({...})`.
+   */
+  inspect?(): Promise<PluginManifest>
 }

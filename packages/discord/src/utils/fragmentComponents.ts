@@ -8,7 +8,7 @@ import {
   type SelectMenuComponentOptionData,
   type TextInputBuilder,
 } from 'discord.js'
-import { Package } from 'utils'
+import { toPluginComponentPath } from './pluginComponentPath.js'
 
 export interface BaseButtonComponentData {
   customId?: string
@@ -20,7 +20,7 @@ export interface BaseButtonComponentData {
 }
 
 /**
- * Botão com `customId` prefixado pelo nome do plugin (`Package`), alinhado aos respondentes do ecossistema Fragment / @constatic/base.
+ * Botão com `customId` alinhado ao plugin, ex. `/ticket/Switch` a partir de sufixo `Switch`.
  */
 export class ButtonBuilder extends DjsButtonBuilder {
   public readonly customId?: string
@@ -29,7 +29,7 @@ export class ButtonBuilder extends DjsButtonBuilder {
     this.customId = customId
     this.setStyle(style)
     this.setDisabled(disabled ?? false)
-    if (url === undefined) this.setCustomId(`${Package.getData().name}_${customId}`)
+    if (url === undefined) this.setCustomId(toPluginComponentPath(customId!))
     else this.setURL(url)
     if (label) this.setLabel(label)
     if (emoji) this.setEmoji(emoji)
@@ -43,14 +43,14 @@ export interface FragmentModalBuilderData {
 }
 
 /**
- * Modal com `customId` prefixado pelo nome do plugin.
+ * Modal com o mesmo esquema de path que `Button`/`Responder` (ver `toPluginComponentPath`).
  */
 export class ModalBuilder extends DjsModalBuilder {
   constructor ({ components, customId, title }: FragmentModalBuilderData) {
     super()
     this.setTitle(title)
     if (components) this.setComponents(components)
-    this.setCustomId(`${Package.getData().name}_${customId}`)
+    this.setCustomId(toPluginComponentPath(customId))
   }
 }
 
@@ -70,7 +70,7 @@ export class StringSelectMenuBuilder extends DjsStringSelectMenuBuilder {
   constructor ({ customId, options, disabled, maxValues, minValues, placeholder }: StringSelectMenuComponentData) {
     super()
     this.setOptions(options)
-    this.setCustomId(`${Package.getData().name}_${customId}`)
+    this.setCustomId(toPluginComponentPath(customId))
     if (disabled) this.setDisabled(disabled)
     if (maxValues) this.setMaxValues(maxValues)
     if (minValues) this.setMinValues(minValues)

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { BaseStorage } from '../plugins/storages/Base.js'
-import type { Crypt } from 'crypt'
+import type { Crypt } from './Crypt.js'
 
 type StorageParams = {
   driver: BaseStorage

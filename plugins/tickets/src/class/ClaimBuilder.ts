@@ -2,8 +2,8 @@ import { database } from '@/database'
 import Claim from '@/database/entity/Claim.entry.js'
 import Config, { type Roles } from '@/database/entity/Config.entry.js'
 import Ticket from '@/database/entity/Ticket.entry.js'
-import { ActionDrawer, Error } from 'discord'
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction } from 'discord.js'
+import { ActionDrawer, Error, ButtonBuilder } from 'discord'
+import { ActionRowBuilder, ButtonBuilder as DjsButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction } from 'discord.js'
 
 interface ClaimOptions {
     ticketId: number
@@ -18,7 +18,7 @@ export class ClaimBuilder {
   private options!: ClaimOptions
   private ticketData: Ticket | undefined
   public embed!: EmbedBuilder | undefined
-  public buttons!: ActionRowBuilder<ButtonBuilder>[] | undefined
+  public buttons!: ActionRowBuilder<DjsButtonBuilder>[] | undefined
 
   constructor ({ interaction }: { interaction: Interaction }) {
     this.interaction = interaction

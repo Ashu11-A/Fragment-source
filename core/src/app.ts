@@ -3,8 +3,10 @@ import 'dotenv/config'
 import 'reflect-metadata'
 import './register.js'
 
+import { installCorePluginRequestHandlers } from './corePluginRequest.js'
 import { Auth } from '@/controller/auth.js'
-import { database } from '@/controller/database.js'
+import { coreActivity } from '@/activity.js'
+import { database } from '@/index.js'
 import { storage } from '@/storage.js'
 import { log, section, spinner } from '@/ui.js'
 import { startDiscord } from 'discord'
@@ -31,8 +33,10 @@ async function startDiscordBot(): Promise<void> {
       ]
     })
     spin.succeed('Discord connected')
+    coreActivity.success('discord', 'Discord gateway connected', { userId: Auth.user?.id })
   } catch (err) {
     spin.fail('Discord connection failed')
+    coreActivity.error('discord', `Discord connection failed: ${err instanceof Error ? err.message : String(err)}`)
     throw err
   }
 }
@@ -41,15 +45,18 @@ async function startDiscordBot(): Promise<void> {
 await new Auth().checker()
 
 // ── Plugin loader ────────────────────────────────────────────────────────────
-const plugin = new Plugin({
-  onPluginLoaded: async (_pluginId, registration) => {
+export const plugin = new Plugin({
+  onPluginLoaded: async (pluginName, registration) => {
     if (registration.entities.length > 0) {
-      await database.registerPluginEntities(_pluginId, registration.pluginName, registration.entities)
+      await database.register(pluginName, registration.entities)
     }
+    coreActivity.success('plugin', `Plugin "${pluginName}" loaded`, {
+      entities: registration.entities.length,
+    })
   },
-
-  onPluginUnloaded: async (_pluginId, registration) => {
-    await database.unregisterPlugin(_pluginId, registration.pluginName)
+  onPluginUnloaded: async (pluginName) => {
+    await database.unregister(pluginName)
+    coreActivity.info('plugin', `Plugin "${pluginName}" unloaded`)
   },
 })
 
@@ -57,4 +64,6 @@ await plugin.loadExistingBundles()
 await startDiscordBot()
 
 plugin.watcher()
+
+await installCorePluginRequestHandlers()
 

@@ -1,11 +1,11 @@
 import { root } from '@/index.js'
 import { lang } from '@/lang.js'
 import { storage } from '@/storage.js'
-import { createCommand } from 'discord'
+import { Command } from 'discord'
 import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, MessageFlags } from 'discord.js'
 import { glob } from 'glob'
 
-export default createCommand({
+export default new Command({
   name: 'language',
   description: '[ ☢️ Core ] Set current language',
   dmPermission: false,

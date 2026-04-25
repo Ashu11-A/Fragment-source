@@ -1,18 +1,15 @@
+import type {
+  ClientEventKey,
+  EventData,
+  ResponderData,
+  ResponderType,
+} from '@ashu11a/constatic'
+import { Responder } from '@ashu11a/constatic'
 import { registerDatabase } from 'database'
-import { registerPluginSlashCommandInConstatic, type PluginContext, type PluginMetadata } from 'discord'
-import type { ClientEvents } from 'discord.js'
-import {
-  Config,
-  Crons,
-  discordEventListeners,
-  interactionComponents,
-  slashCommands,
-  type ConfigOptions,
-  type CronsConfigurations,
-  type PluginComponentData,
-  type PluginDiscordEventData,
-  type PluginSlashCommandData,
-} from 'discord/registries'
+import { type PluginContext, type PluginMetadata } from 'discord'
+import type { CacheType } from 'discord.js'
+import { collectCommandActionComponents } from 'discord'
+import { Crons, registerPluginCommand, type CronsConfigurations } from 'discord/registries'
 import { getMetadataArgsStorage } from 'typeorm'
 import type { EntityClass, PluginRegistration } from '../types/manager.js'
 
@@ -49,7 +46,6 @@ function applyTablePrefix(entity: EntityClass, prefix: string): void {
  *  - register TypeORM entities with the DataSource
  */
 export function createPluginContext(
-  pluginId: string,
   metadata: PluginMetadata
 ): { ctx: PluginContext; registration: PluginRegistration } {
   const pluginPrefix = metadata.name.replace(/^plugin-/, '')
@@ -65,36 +61,36 @@ export function createPluginContext(
   }
 
   const ctx: PluginContext = {
-    id: pluginId,
+    id: metadata.name,
     metadata,
 
-    command<D extends boolean>(data: PluginSlashCommandData<D>) {
-      const merged = { ...data, pluginId }
-      slashCommands.set(data.name, merged)
-      registration.commandNames.push(data.name)
-      registerPluginSlashCommandInConstatic(merged)
+    // Instância `Command` (plugin) ou `CommandData` puro; ver `registerPluginCommand`.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    command (input: any) {
+      const name = (input?.data?.name ?? input?.name) as string
+      registration.commandNames.push(name)
+      registerPluginCommand(input)
+      for (const { customId } of collectCommandActionComponents(input)) {
+        if (!registration.componentIds.includes(customId)) {
+          registration.componentIds.push(customId)
+        }
+      }
     },
 
-    event<K extends keyof ClientEvents>(data: PluginDiscordEventData<K>) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const handler = data.run.bind(data) as (...args: any[]) => unknown
-      discordEventListeners.push({ ...data, pluginId } as PluginDiscordEventData<keyof ClientEvents>)
+    event<K extends ClientEventKey>(data: EventData<K>) {
+       
+       
+      const handler = ((...args: unknown[]) => (data.run as (...a: unknown[]) => Promise<void>)(...args)) as (...args: unknown[]) => unknown
       registration.eventHandlers.push({
-        name: data.name as string,
+        name: data.event as string,
         handler,
         once: data.once ?? false,
       })
     },
 
-    component(data: PluginComponentData) {
-      const namespacedId = `${metadata.name}_${data.customId}`
-      interactionComponents.push({ ...data, customId: namespacedId, pluginId })
-      registration.componentIds.push(namespacedId)
-    },
-
-    config(data: ConfigOptions) {
-      Config.all.push({ ...data, pluginId })
-      registration.configNames.push(data.name)
+    component<Path extends string, Types extends readonly ResponderType[], Cache extends CacheType>(data: ResponderData<Path, Types, Cache>) {
+      registration.componentIds.push(data.customId)
+      new Responder(data)
     },
 
     cron<M>(data: CronsConfigurations<M>) {

@@ -1,0 +1,664 @@
+@import "tailwindcss";
+
+/* ─── Custom Theme (Discord-Inspired) ─── */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Discord Blurple palette */
+  --color-blurple-50: #eef2ff;
+  --color-blurple-100: #e0e7ff;
+  --color-blurple-200: #c7d2fe;
+  --color-blurple-300: #a5b4fc;
+  --color-blurple-400: #818cf8;
+  --color-blurple-500: #5865f2;
+  --color-blurple-600: #4f46e5;
+  --color-blurple-700: #4338ca;
+  --color-blurple-800: #3730a3;
+  --color-blurple-900: #312e81;
+
+  /* Dark surface colors */
+  --color-surface-50: #f8fafc;
+  --color-surface-100: #f1f5f9;
+  --color-surface-200: #e2e8f0;
+  --color-surface-300: #cbd5e1;
+  --color-surface-400: #94a3b8;
+  --color-surface-500: #64748b;
+  --color-surface-600: #475569;
+  --color-surface-700: #334155;
+  --color-surface-800: #1e293b;
+  --color-surface-900: #0f172a;
+  --color-surface-950: #020617;
+
+  /* Accent colors */
+  --color-success: #57f287;
+  --color-warning: #fee75c;
+  --color-danger: #ed4245;
+  --color-info: #5865f2;
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-slide-up: slide-up 0.3s ease-out;
+  --animate-slide-right: slide-right 0.25s ease-out;
+  --animate-scale-in: scale-in 0.2s ease-out;
+  --animate-pulse-soft: pulse-soft 2s ease-in-out infinite;
+  --animate-fade-out: fade-out 0.2s ease-in;
+  --animate-spin: spin 1s linear infinite;
+}
+
+/* ─── Keyframes ─── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-right {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Base Styles ─── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-700) transparent;
+}
+
+html.light * {
+  scrollbar-color: var(--color-surface-300) transparent;
+}
+
+html {
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  margin: 0;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Dark/Light mode variables ─── */
+:root {
+  --bg-primary: var(--color-surface-950);
+  --bg-secondary: var(--color-surface-900);
+  --bg-tertiary: var(--color-surface-800);
+  --bg-elevated: var(--color-surface-700);
+  --text-primary: var(--color-surface-50);
+  --text-secondary: var(--color-surface-400);
+  --text-muted: var(--color-surface-500);
+  --border-color: var(--color-surface-700);
+  --border-subtle: var(--color-surface-800);
+  --ring-offset: var(--color-surface-950);
+
+  --sidebar-guild: var(--color-surface-950);
+  --sidebar-nav: var(--color-surface-900);
+  --topbar-bg: color-mix(in srgb, var(--color-surface-900) 80%, transparent);
+  --input-bg: color-mix(in srgb, var(--color-surface-900) 50%, transparent);
+  --input-border: var(--color-surface-700);
+  --input-compact-bg: color-mix(in srgb, var(--color-surface-800) 50%, transparent);
+  --input-compact-border: color-mix(in srgb, var(--color-surface-700) 50%, transparent);
+  --card-bg: color-mix(in srgb, var(--color-surface-900) 80%, transparent);
+  --card-border: color-mix(in srgb, var(--color-surface-700) 50%, transparent);
+  --card-elevated: var(--color-surface-900);
+  --card-nested: color-mix(in srgb, var(--color-surface-900) 80%, transparent);
+  --list-row: color-mix(in srgb, var(--color-surface-900) 50%, transparent);
+  --list-row-muted: color-mix(in srgb, var(--color-surface-900) 30%, transparent);
+  --dropdown-bg: var(--color-surface-900);
+  --dropdown-item-focus: var(--color-surface-800);
+  --dropdown-separator: color-mix(in srgb, var(--color-surface-700) 50%, transparent);
+  --tooltip-bg: var(--color-surface-800);
+  --tooltip-border: color-mix(in srgb, var(--color-surface-700) 50%, transparent);
+  --scroll-thumb: var(--color-surface-700);
+  --dialog-overlay: rgba(0, 0, 0, 0.6);
+  --dialog-content-bg: var(--color-surface-900);
+  --dialog-content-border: color-mix(in srgb, var(--color-surface-700) 50%, transparent);
+  --switch-off: var(--color-surface-700);
+  --status-off: var(--color-surface-600);
+  --nav-link-active: color-mix(in srgb, var(--color-blurple-500) 15%, transparent);
+  --nav-link-hover: color-mix(in srgb, var(--color-surface-800) 70%, transparent);
+  --nav-dot-idle: var(--color-surface-600);
+  --nav-dot-hover: var(--color-surface-400);
+  --guild-bot-inactive: var(--color-surface-800);
+  --guild-add-bg: var(--color-surface-800);
+  --icon-placeholder: var(--color-surface-800);
+  --quick-action-bg: var(--color-surface-800);
+  --quick-action-hover: var(--color-surface-700);
+  --table-row-hover: color-mix(in srgb, var(--color-surface-800) 30%, transparent);
+  --select-bg: var(--color-surface-950);
+  --overlay-scrim: rgba(0, 0, 0, 0.5);
+  --deco-blob-a: color-mix(in srgb, var(--color-blurple-500) 10%, transparent);
+  --deco-blob-b: color-mix(in srgb, #a855f7 10%, transparent);
+  --badge-default-bg: color-mix(in srgb, var(--color-blurple-500) 20%, transparent);
+  --badge-default-border: color-mix(in srgb, var(--color-blurple-500) 30%, transparent);
+  --badge-secondary-bg: color-mix(in srgb, var(--color-surface-700) 50%, transparent);
+  --badge-secondary-border: color-mix(in srgb, var(--color-surface-600) 50%, transparent);
+}
+
+html.light {
+  --bg-primary: #ffffff;
+  --bg-secondary: var(--color-surface-50);
+  --bg-tertiary: var(--color-surface-100);
+  --bg-elevated: var(--color-surface-200);
+  --text-primary: var(--color-surface-900);
+  --text-secondary: var(--color-surface-600);
+  --text-muted: var(--color-surface-500);
+  --border-color: var(--color-surface-200);
+  --border-subtle: var(--color-surface-100);
+  --ring-offset: #ffffff;
+
+  --sidebar-guild: var(--color-surface-100);
+  --sidebar-nav: #ffffff;
+  --topbar-bg: color-mix(in srgb, #ffffff 80%, transparent);
+  --input-bg: color-mix(in srgb, var(--color-surface-50) 90%, #ffffff);
+  --input-border: var(--color-surface-200);
+  --input-compact-bg: var(--color-surface-100);
+  --input-compact-border: var(--color-surface-200);
+  --card-bg: #ffffff;
+  --card-border: var(--color-surface-200);
+  --card-elevated: #ffffff;
+  --card-nested: var(--color-surface-50);
+  --list-row: var(--color-surface-50);
+  --list-row-muted: color-mix(in srgb, var(--color-surface-100) 50%, #ffffff);
+  --dropdown-bg: #ffffff;
+  --dropdown-item-focus: var(--color-surface-100);
+  --dropdown-separator: color-mix(in srgb, var(--color-surface-200) 50%, transparent);
+  --tooltip-bg: var(--color-surface-100);
+  --tooltip-border: var(--color-surface-200);
+  --scroll-thumb: var(--color-surface-300);
+  --dialog-content-bg: #ffffff;
+  --dialog-content-border: var(--color-surface-200);
+  --switch-off: var(--color-surface-300);
+  --status-off: var(--color-surface-400);
+  --nav-link-hover: var(--color-surface-100);
+  --nav-dot-idle: var(--color-surface-400);
+  --nav-dot-hover: var(--color-surface-500);
+  --guild-bot-inactive: var(--color-surface-200);
+  --guild-add-bg: var(--color-surface-100);
+  --icon-placeholder: var(--color-surface-100);
+  --quick-action-bg: var(--color-surface-100);
+  --quick-action-hover: var(--color-surface-200);
+  --table-row-hover: var(--color-surface-100);
+  --select-bg: #ffffff;
+  --deco-blob-a: color-mix(in srgb, var(--color-blurple-500) 8%, transparent);
+  --deco-blob-b: color-mix(in srgb, #a855f7 8%, transparent);
+  --badge-secondary-bg: color-mix(in srgb, var(--color-surface-200) 80%, #ffffff);
+  --badge-secondary-border: color-mix(in srgb, var(--color-surface-300) 50%, transparent);
+}
+
+/* ═══ Theme-driven utility classes (prefer over Tailwind bg-* in components) ═══ */
+.ui-app-screen {
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+.ui-sidebar-guild {
+  background: var(--sidebar-guild);
+  border-color: color-mix(in srgb, var(--border-color) 50%, transparent);
+}
+
+.ui-sidebar-nav {
+  background: var(--sidebar-nav);
+  border-color: color-mix(in srgb, var(--border-color) 50%, transparent);
+}
+
+.ui-topbar {
+  background: var(--topbar-bg);
+  border-color: color-mix(in srgb, var(--border-color) 50%, transparent);
+}
+
+.ui-card {
+  background: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--text-primary);
+  border-width: 1px;
+  border-style: solid;
+  backdrop-filter: blur(4px);
+}
+
+.ui-card-elevated {
+  background: var(--card-elevated);
+  border-color: color-mix(in srgb, var(--border-color) 50%, transparent);
+}
+
+.ui-card-nested {
+  background: var(--card-nested);
+  border-color: color-mix(in srgb, var(--border-color) 50%, transparent);
+}
+
+.ui-list-row {
+  background: var(--list-row);
+  border-color: color-mix(in srgb, var(--border-color) 50%, transparent);
+}
+
+.ui-list-row-muted {
+  background: var(--list-row-muted);
+  border-color: color-mix(in srgb, var(--border-color) 50%, transparent);
+}
+
+.ui-input {
+  background: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-primary);
+}
+
+.ui-input-compact {
+  background: var(--input-compact-bg);
+  border-color: var(--input-compact-border);
+}
+
+.ui-input::placeholder {
+  color: var(--text-muted);
+}
+
+.ui-dropdown-content {
+  background: var(--dropdown-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+}
+
+.ui-dropdown-item {
+  color: var(--text-primary);
+}
+.ui-dropdown-item:focus,
+.ui-dropdown-item[data-highlighted] {
+  background: var(--dropdown-item-focus);
+  outline: none;
+}
+
+.ui-dropdown-separator {
+  background: var(--dropdown-separator);
+}
+
+.ui-tooltip {
+  background: var(--tooltip-bg);
+  border: 1px solid var(--tooltip-border);
+  color: var(--text-primary);
+}
+
+.ui-scroll-thumb {
+  background: var(--scroll-thumb);
+}
+
+.ui-separator {
+  background: var(--dropdown-separator);
+}
+
+.ui-dialog-overlay {
+  background: var(--dialog-overlay);
+}
+
+.ui-dialog-content {
+  background: var(--dialog-content-bg);
+  border: 1px solid var(--dialog-content-border);
+  color: var(--text-primary);
+}
+
+.ui-dialog-close-ring {
+  --tw-ring-offset-color: var(--ring-offset);
+}
+
+.ui-switch {
+  background: var(--switch-off);
+}
+.ui-switch[aria-checked="true"] {
+  background: var(--color-blurple-500);
+}
+.ui-switch-ring {
+  --tw-ring-offset-color: var(--ring-offset);
+}
+
+.ui-switch-knob {
+  background: #fff;
+}
+
+.ui-avatar-fallback {
+  background: var(--badge-default-bg);
+  color: var(--color-blurple-400);
+}
+
+.ui-nav-link-active {
+  background: var(--nav-link-active);
+  color: var(--color-blurple-400);
+}
+
+.ui-nav-link:not(.ui-nav-link-active) {
+  color: var(--text-secondary);
+}
+.ui-nav-link:not(.ui-nav-link-active):hover {
+  background: var(--nav-link-hover);
+  color: var(--text-primary);
+}
+
+.ui-pulse-dot {
+  background: var(--color-blurple-400);
+}
+
+.ui-plugin-dot {
+  background: var(--nav-dot-idle);
+}
+.ui-plugin-dot-active {
+  background: var(--color-blurple-400);
+}
+a:hover .ui-plugin-dot:not(.ui-plugin-dot-active) {
+  background: var(--nav-dot-hover);
+}
+
+.ui-guild-pill {
+  color: #fff;
+  background: var(--color-blurple-500);
+  box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--color-blurple-500) 25%, transparent);
+}
+.ui-guild-pill-mid {
+  color: #fff;
+  background: color-mix(in srgb, var(--color-blurple-500) 80%, transparent);
+  box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--color-blurple-500) 25%, transparent);
+}
+.ui-guild-pill-mid:hover {
+  background: var(--color-blurple-600);
+  border-radius: 0.75rem;
+}
+.ui-guild-pill .ui-guild-indicator,
+.ui-guild-pill-mid .ui-guild-indicator {
+  background: #fff;
+}
+
+.ui-guild-avatar {
+  color: var(--text-secondary);
+  background: var(--guild-bot-inactive);
+}
+.ui-guild-avatar-selected {
+  background: var(--color-blurple-500);
+  color: #fff;
+}
+.ui-guild-avatar:not(.ui-guild-avatar-selected):hover {
+  background: var(--color-blurple-500);
+  color: #fff;
+  border-radius: 0.75rem;
+}
+.ui-guild-avatar .ui-guild-indicator {
+  background: #fff;
+}
+
+.ui-guild-add {
+  background: var(--guild-add-bg);
+  color: var(--color-success);
+}
+.ui-guild-add:hover {
+  border-radius: 0.75rem;
+  background: var(--color-success);
+  color: #fff;
+}
+
+.ui-guild-status {
+  border-color: var(--sidebar-guild);
+}
+.ui-guild-status-on {
+  background: var(--color-success);
+}
+.ui-guild-status-off {
+  background: var(--status-off);
+}
+
+.ui-status-dot {
+  background: var(--color-success);
+}
+.ui-status-dot-off {
+  background: var(--status-off);
+}
+
+.ui-overlay-scrim {
+  background: var(--overlay-scrim);
+}
+
+.ui-activity-success {
+  background: var(--color-success);
+}
+.ui-activity-error {
+  background: var(--color-danger);
+}
+.ui-activity-info {
+  background: var(--color-blurple-400);
+}
+
+.ui-deco-blob {
+  position: absolute;
+  border-radius: 9999px;
+  width: 24rem;
+  height: 24rem;
+  filter: blur(48px);
+  pointer-events: none;
+}
+.ui-deco-blob-a {
+  background: var(--deco-blob-a);
+}
+.ui-deco-blob-b {
+  background: var(--deco-blob-b);
+}
+
+.ui-auth-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, var(--color-blurple-500), #9333ea);
+  box-shadow: 0 20px 25px -5px color-mix(in srgb, var(--color-blurple-500) 30%, transparent);
+}
+
+.ui-icon-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  background: var(--icon-placeholder);
+}
+
+.ui-icon-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  background: linear-gradient(
+    to bottom right,
+    color-mix(in srgb, var(--color-blurple-500) 20%, transparent),
+    color-mix(in srgb, #a855f7 20%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--color-blurple-500) 20%, transparent);
+}
+.ui-icon-tile:hover {
+  background: linear-gradient(
+    to bottom right,
+    color-mix(in srgb, var(--color-blurple-500) 30%, transparent),
+    color-mix(in srgb, #a855f7 30%, transparent)
+  );
+}
+
+.ui-icon-tile-bots {
+  background: linear-gradient(
+    to bottom right,
+    color-mix(in srgb, var(--color-blurple-500) 20%, transparent),
+    color-mix(in srgb, #6366f1 20%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--color-blurple-500) 20%, transparent);
+}
+
+.ui-tile-avatar-outline {
+  border: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent);
+  border-color: var(--bg-primary);
+}
+.ui-avatar-wrap .ui-tile-avatar-outline {
+  border-color: var(--bg-primary);
+}
+/* Anel de estado sobre ícone em fundo de card */
+.ui-status-ring-card {
+  border-color: var(--card-bg);
+}
+
+.ui-quick-action {
+  background: var(--quick-action-bg);
+  color: var(--text-primary);
+}
+.ui-quick-action:hover {
+  background: var(--quick-action-hover);
+}
+
+.ui-table-row {
+  border-color: color-mix(in srgb, var(--border-color) 30%, transparent);
+}
+.ui-table-row:hover {
+  background: var(--table-row-hover);
+}
+
+.ui-alert-danger {
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 20%, transparent);
+  color: var(--color-danger);
+}
+
+.ui-select {
+  background: var(--select-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
+}
+
+/* Buttons — cores de marca/estado permanecem centralizadas */
+.btn-default {
+  background: var(--color-blurple-500);
+  color: #fff;
+  box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--color-blurple-500) 25%, transparent);
+}
+.btn-default:hover {
+  background: var(--color-blurple-600);
+}
+.btn-destructive {
+  background: var(--color-danger);
+  color: #fff;
+  box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--color-danger) 25%, transparent);
+}
+.btn-destructive:hover {
+  background: #dc2626;
+}
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
+}
+.btn-outline:hover {
+  background: var(--quick-action-bg);
+}
+.btn-secondary {
+  background: var(--quick-action-bg);
+  color: var(--text-primary);
+}
+.btn-secondary:hover {
+  background: var(--quick-action-hover);
+}
+.btn-ghost {
+  color: var(--text-secondary);
+  background: transparent;
+}
+.btn-ghost:hover {
+  background: var(--quick-action-bg);
+  color: var(--text-primary);
+}
+.btn-link {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.btn-ring {
+  --tw-ring-offset-color: var(--ring-offset);
+}
+
+/* Badge */
+.badge-default {
+  background: var(--badge-default-bg);
+  color: var(--color-blurple-400);
+  border-color: var(--badge-default-border);
+}
+.badge-secondary {
+  background: var(--badge-secondary-bg);
+  color: var(--text-primary);
+  border-color: var(--badge-secondary-border);
+}
+.badge-success {
+  background: color-mix(in srgb, #10b981 20%, transparent);
+  color: #34d399;
+  border-color: color-mix(in srgb, #10b981 30%, transparent);
+}
+.badge-warning {
+  background: color-mix(in srgb, #f59e0b 20%, transparent);
+  color: #fbbf24;
+  border-color: color-mix(in srgb, #f59e0b 30%, transparent);
+}
+.badge-danger {
+  background: color-mix(in srgb, #ef4444 20%, transparent);
+  color: #f87171;
+  border-color: color-mix(in srgb, #ef4444 30%, transparent);
+}
+.badge-outline {
+  background: transparent;
+  border-color: var(--input-border);
+  color: var(--text-primary);
+}
+.badge-success-soft {
+  color: var(--color-success);
+  border-color: color-mix(in srgb, var(--color-success) 30%, transparent);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+}
+html.light .badge-success-soft {
+  color: #16a34a;
+}
+
+/* ─── Glassmorphism utility ─── */
+.glass {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+html.light .glass {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(203, 213, 225, 0.4);
+}
+
+/* ─── Gradient text ─── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-blurple-400), var(--color-blurple-500), #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

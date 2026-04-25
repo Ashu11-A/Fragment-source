@@ -1,0 +1,17 @@
+{
+  "name": "socket",
+  "version": "1.0.0",
+  "private": true,
+  "module": "src/app.ts",
+  "types": "src/app.ts",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint --fix ."
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "zod": "^3.25.76"
+  }
+}

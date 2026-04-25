@@ -1,5 +1,5 @@
 import { fetch } from 'bun'
-import { existsSync, mkdirSync } from 'fs'
+import { existsSync, mkdirSync, unlinkSync } from 'fs'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import SemVer from 'semver'
@@ -43,6 +43,19 @@ export class Manager {
     }
   }
 
+  /**
+   * Deletes the cached file for a remote plugin URL so the next `register()` download is forced.
+   * No-op for local filesystem paths.
+   */
+  static invalidateRemoteCache (fileURL: string, cachePath: string = join(process.cwd(), '/cache')): void {
+    const urlPattern = /^(https?:\/\/|ftp:\/\/|file:\/\/)[^\s]+$/i
+    if (!urlPattern.test(fileURL)) return
+
+    const fileName = fileURL.split('/').pop() as string
+    const fullPath = join(cachePath, fileName)
+    if (existsSync(fullPath)) unlinkSync(fullPath)
+  }
+
   async start(): Promise<PluginModule> {
     const type = this.classifyInput(this.options.fileURL)
     if (type === PathType.Invalid) {
@@ -69,7 +82,15 @@ export class Manager {
     const importSpecifier = `${this.resolvedURL}?t=${Date.now()}`
 
     try {
-      this.module = await import(importSpecifier) as PluginModule
+      const raw = await import(importSpecifier) as Record<string, unknown>
+      // Support new format: `export default new Plugin({...})`
+      // The default export carries both `metadata` and `setup` on the instance.
+      const def = raw['default']
+      if (def && typeof def === 'object' && 'metadata' in def && 'setup' in def) {
+        this.module = def as PluginModule
+      } else {
+        this.module = raw as unknown as PluginModule
+      }
     } catch (err) {
       throw new Error(`[Manager] Failed to import plugin at "${this.options.fileURL}": ${err}`)
     }

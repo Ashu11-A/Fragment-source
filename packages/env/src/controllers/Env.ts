@@ -25,17 +25,30 @@ export class Env {
     }
 
     for (const { value, variable } of matches) {
-      process.env[variable] = value
+      const serialized = typeof value === 'boolean' ? (value ? 'true' : 'false') : String(value)
+      process.env[variable] = serialized
     }
 
     return matches
   }
 
+  /**
+   * Só converte para número quando o valor cabe em inteiro seguro (≤ 2^53-1).
+   * IDs do Discord (snowflakes) excedem isso — manter string evita 1108904234222620713 → 1108904234222620700.
+   */
   parser (value: string) {
-    switch (true) {
-    case !Number.isNaN(Number(value)): return Number(value)
-    case /^(true|false)$/.test(value): return Boolean(value)
-    default: return value
+    const trimmed = value.trim()
+    if (/^(true|false)$/i.test(trimmed)) return trimmed.toLowerCase() === 'true'
+    if (trimmed === '') return value
+
+    const n = Number(trimmed)
+    if (
+      !Number.isNaN(n)
+      && Number.isSafeInteger(n)
+      && String(n) === trimmed
+    ) {
+      return n
     }
+    return value
   }
 }

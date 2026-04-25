@@ -8,9 +8,9 @@ import {
   type ModalSubmitInteraction,
   type StringSelectMenuInteraction,
 } from 'discord.js'
-import { Package } from 'utils'
 import { ActionDrawer } from './actionDrawer'
 import { ButtonBuilder } from './fragmentComponents'
+import { toPluginComponentPath } from './pluginComponentPath.js'
 
 type Interaction =
   | CommandInteraction<CacheType>
@@ -34,9 +34,8 @@ export class YouSure {
   }
 
   async question (): Promise<boolean> {
-    const pkg = Package.getData().name ?? ''
-    const confirmId = `${pkg}_${CONFIRM_SUFFIX}`
-    const cancelId = `${pkg}_${CANCEL_SUFFIX}`
+    const confirmId = toPluginComponentPath(CONFIRM_SUFFIX)
+    const cancelId = toPluginComponentPath(CANCEL_SUFFIX)
 
     const embed = new EmbedBuilder({
       title: this.title ?? 'Tem certeza que deseja fazer isso?',

@@ -1,5 +1,5 @@
 import { database } from '@/database'
-import { TemplateButtonBuilder } from '@/class/TemplateButtonBuilder.js'
+import { TemplateManager } from '@/class/TemplateManager.js'
 import { checkHexCor, checkURL, ModalBuilder } from 'discord'
 import {
   ActionRowBuilder,
@@ -43,7 +43,7 @@ export async function runEditButton (interaction: ButtonInteraction, action: str
   await interaction.showModal(modal)
 }
 
-export async function runEditModal (interaction: ModalSubmitInteraction, action: string): Promise<void> {
+export async function runEditModal (interaction: ModalSubmitInteraction<'cached'>, action: string): Promise<void> {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral })
   const templateData = await database.template.findOne({ where: { messageId: interaction.message?.id } })
   if (templateData === null) { await interaction.editReply({ embeds: [notFound] }); return }
@@ -65,7 +65,7 @@ export async function runEditModal (interaction: ModalSubmitInteraction, action:
   templateData.properties = Object.assign((templateData.properties ?? {}), { [action]: true })
   await database.template.save(templateData)
     .then(async () => {
-      const components = new TemplateButtonBuilder().setMode('debug').setProperties(templateData.properties).setSelects(templateData.selects).setType(templateData.type).setSystem(templateData.systems ?? []).render()
+      const components = new TemplateManager({ interaction }).setMode('debug').setProperties(templateData.properties).setSelects(templateData.selects).setType(templateData.type).setSystem(templateData.systems ?? []).renderComponents()
       interaction.message?.edit({ embeds: [embed], components })
       await interaction.editReply({ embeds: [new EmbedBuilder({ title: 'Alteração salva com sucesso!' }).setColor('Green')] })
       setTimeout(() => { interaction.deleteReply() }, 2000)

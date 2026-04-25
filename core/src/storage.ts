@@ -1,8 +1,7 @@
-import { Crypt } from 'crypt'
 import { readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
 import type { Routers } from 'server'
-import { LocalStorage, Storage } from 'storage'
+import { Crypt, LocalStorage, Storage } from 'storage'
 import { exists } from 'utils'
 import { root } from './index.js'
 
@@ -41,13 +40,13 @@ const { driver } = new Storage<{ '.data': DataCrypted }>({
 })
 
 export type DataCrypted = {
-  email: string
-  password: string
-  botId: number
-  token: string
-  language: string
-  accessToken: NonNullable<Routers['/auth/login']['post']['response']['200']['data']['accessToken']>
-  refreshToken: NonNullable<Routers['/auth/login']['post']['response']['200']['data']['refreshToken']>
+  email?: string
+  password?: string
+  botId?: number
+  token?: string
+  language?: string
+  accessToken?: NonNullable<Routers['/auth/login']['post']['response']['200']['data']['accessToken']>
+  refreshToken?: NonNullable<Routers['/auth/login']['post']['response']['200']['data']['refreshToken']>
 }
 
 export const storage = driver

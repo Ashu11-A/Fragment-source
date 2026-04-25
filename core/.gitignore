@@ -4,6 +4,7 @@ dist
 .env.development
 plugins
 entries
+.fragment
 
 privateKey.pem
 publicKey.pem

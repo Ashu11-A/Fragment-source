@@ -16,10 +16,10 @@
   },
   "dependencies": {
     "build": "workspace:../../packages/build",
-    "crypt": "workspace:../../packages/crypt",
     "database": "workspace:../../packages/database",
     "storage": "workspace:../../packages/storage",
-    "discord": "workspace:../../packages/discord"
+    "discord": "workspace:../../packages/discord",
+    "plugin": "workspace:../../packages/plugin"
   },
   "fragment": {
     "dependencies": []

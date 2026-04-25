@@ -17,6 +17,7 @@
   "dependencies": {
     "build": "workspace:../../packages/build",
     "discord": "workspace:../../packages/discord",
+    "plugin": "workspace:../../packages/plugin",
     "utils": "workspace:../../packages/utils"
   },
   "fragment": {

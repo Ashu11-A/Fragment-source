@@ -1,10 +1,23 @@
 import { database } from '@/database'
 import { Template } from '@/class/Template'
-import { TemplateBuilder } from '@/class/TemplateBuilder'
-import { createCommand, Error } from 'discord'
+import { TemplateManager } from '@/class/TemplateManager.js'
+import { Close, CloseQuestionSubmit, CloseWithQuestion, Panel, PanelSelect, Switch } from '../components/Ticket/TicketActions.js'
+import { Claim, Delete, Transcript } from '../components/Claim/ClaimActions.js'
+import {
+  AddSelectButton, AddSelectModal,
+  Category, Config, DeleteTemplate, EditSelectMenu,
+  ModalOpen, MoreDetailsModal, MoreDetailsToggle,
+  Open, Save, SelectCategory, SelectMenu,
+  SetButton, SetColorButton, SetColorModal,
+  SetDescriptionButton, SetDescriptionModal,
+  SetImageButton, SetImageModal, SetModal,
+  SetSelect, SetThumbnailButton, SetThumbnailModal,
+  SetTitleButton, SetTitleModal,
+} from '../components/Template/TemplateActions.js'
+import { Command, Error } from 'discord'
 import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, Colors, EmbedBuilder, MessageFlags, PermissionFlagsBits } from 'discord.js'
 
-export default createCommand({
+export default new Command({
   name: 'ticket',
   description: '[ 🎫 Ticket ] Comandos slash dos tickets',
   type: ApplicationCommandType.ChatInput,
@@ -241,7 +254,7 @@ export default createCommand({
           if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
           templateData.categories = [ ...(templateData.categories ?? []), { emoji, title }]
 
-          await new TemplateBuilder({ interaction }).setData(templateData).edit({ messageId: templateId }).then(async () => {
+          await new TemplateManager({ interaction }).setData(templateData).edit({ messageId: templateId }).then(async () => {
             await interaction.editReply({
               embeds: [new EmbedBuilder({
                 title: 'Categoria criada com sucesso!'
@@ -259,7 +272,7 @@ export default createCommand({
 
           templateData.categories = templateData?.categories.filter((category) => category.title !== title)
 
-          await new TemplateBuilder({ interaction }).setData(templateData).edit({ messageId: templateId }).then(async () => {
+          await new TemplateManager({ interaction }).setData(templateData).edit({ messageId: templateId }).then(async () => {
             await interaction.editReply({
               embeds: [new EmbedBuilder({
                 title: 'Categoria removida com sucesso!'
@@ -292,7 +305,7 @@ export default createCommand({
         break
       }
       case 'change': {
-        const builder = new TemplateBuilder({ interaction })
+        const builder = new TemplateManager({ interaction })
         const templateId = options.getString('message_id', true)
         const switchMode = options.getString('mode')
         const title = options.getString('title')
@@ -318,4 +331,38 @@ export default createCommand({
     }
   }
 })
-
+  .action('switch', Switch)
+  .action('close', Close)
+  .action('closeWithQuestion', CloseWithQuestion)
+  .action('closeQuestionSubmit', CloseQuestionSubmit)
+  .action('panel', Panel)
+  .action('panelSelect', PanelSelect)
+  .action('category', Category)
+  .action('config', Config)
+  .action('deleteTemplate', DeleteTemplate)
+  .action('moreDetailsToggle', MoreDetailsToggle)
+  .action('save', Save)
+  .action('editSelectMenu', EditSelectMenu)
+  .action('addSelectButton', AddSelectButton)
+  .action('addSelectModal', AddSelectModal)
+  .action('setButton', SetButton)
+  .action('setModal', SetModal)
+  .action('setSelect', SetSelect)
+  .action('setTitleButton', SetTitleButton)
+  .action('setTitleModal', SetTitleModal)
+  .action('setDescriptionButton', SetDescriptionButton)
+  .action('setDescriptionModal', SetDescriptionModal)
+  .action('setThumbnailButton', SetThumbnailButton)
+  .action('setThumbnailModal', SetThumbnailModal)
+  .action('setImageButton', SetImageButton)
+  .action('setImageModal', SetImageModal)
+  .action('setColorButton', SetColorButton)
+  .action('setColorModal', SetColorModal)
+  .action('open', Open)
+  .action('modalOpen', ModalOpen)
+  .action('moreDetailsModal', MoreDetailsModal)
+  .action('selectCategory', SelectCategory)
+  .action('selectMenu', SelectMenu)
+  .action('claim', Claim)
+  .action('delete', Delete)
+  .action('transcript', Transcript)

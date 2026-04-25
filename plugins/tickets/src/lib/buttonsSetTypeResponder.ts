@@ -1,12 +1,11 @@
 import { database } from '@/database'
-import { TemplateButtonBuilder } from '@/class/TemplateButtonBuilder.js'
+import { TemplateManager } from '@/class/TemplateManager.js'
 import { TypeTemplate } from '@/types/entries'
-import { ResponderType } from '@constatic/base'
-import { createResponder } from 'discord'
+import { Responder, ResponderType } from 'discord'
 import { EmbedBuilder, MessageFlags } from 'discord.js'
 
 export function createSetTypeResponder (customId: string, type: TypeTemplate) {
-  return createResponder({
+  return Responder({
     customId,
     types: [ResponderType.Button],
     async run (interaction) {
@@ -19,13 +18,13 @@ export function createSetTypeResponder (customId: string, type: TypeTemplate) {
           .then(async () => {
             await interaction.editReply({ embeds: [new EmbedBuilder({ title: '✅ Informações setados com sucesso' }).setColor('Green')] })
             setTimeout(() => interaction.deleteReply(), 5000)
-            const components = new TemplateButtonBuilder()
+            const components = new TemplateManager({ interaction })
               .setMode('debug')
               .setProperties(templateData.properties)
               .setSelects(templateData.selects)
               .setSystem(templateData.systems ?? [])
               .setType(type)
-              .render()
+              .renderComponents()
             await interaction.message.edit({ components })
           })
           .catch(async () => {

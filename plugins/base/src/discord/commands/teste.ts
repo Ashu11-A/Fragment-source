@@ -1,8 +1,8 @@
 import { ApplicationCommandType } from 'discord.js'
-import { createCommand } from 'discord'
+import { Command } from 'discord'
 import { database } from '@/database'
 
-export default createCommand({
+export default new Command({
   name: 'test',
   description: 'Apenas um teste',
   dmPermission: false,

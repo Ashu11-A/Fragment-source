@@ -16,8 +16,8 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "lang": "workspace:../lang",
     "mime-types": "^2.1.35",
-    "node-forge": "^1.4.0",
-    "crypt": "workspace:../crypt"
+    "node-forge": "^1.4.0"
   }
 }

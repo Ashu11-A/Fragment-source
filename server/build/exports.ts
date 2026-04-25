@@ -1,3 +1,2 @@
-export type { Routers } from './rpc'
-export * from '../src/types/router'
-export * from '../src/database/enums'
+export type { AppRouter } from '../src/routers/index.js'
+export * from '../src/database/enums.js'
