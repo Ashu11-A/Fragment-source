@@ -73,14 +73,14 @@ export async function callCorePlugin(
     throw new TRPCError({ code: 'FORBIDDEN', message: 'Bot not found or not yours.' })
   }
 
-  const { Fastify } = await import('../controllers/fastify.js')
+  const { Fastify } = await import('../infra/fastify.js')
   const raw = Fastify.server?.io
   const room = raw?.sockets?.adapter?.rooms?.get(`bot:${botId}`)
   if (room == null || room.size === 0) {
     throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Core is offline (no process linked to this bot).' })
   }
 
-  const { getIo } = await import('../controllers/socket.js')
+  const { getIo } = await import('../infra/socket.js')
   const io = getIo()
 
   const requestId = randomUUID()

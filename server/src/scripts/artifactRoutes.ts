@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server'
-import { authenticator } from '@/controllers/auth.js'
-import { Fastify } from '@/controllers/fastify.js'
+import { authenticator } from '@/infra/auth.js'
+import { Fastify } from '@/infra/fastify.js'
 import { getAssetById } from '@/lib/githubReleases.js'
 
 /**

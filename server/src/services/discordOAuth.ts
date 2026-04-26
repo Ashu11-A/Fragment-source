@@ -65,25 +65,21 @@ export function verifyDiscordOAuthState (token: string): DiscordOAuthStatePayloa
 }
 
 export function getAllowedDiscordRedirectUris (): string[] {
+  const list: string[] = []
+
   const rawEnv = process.env.DISCORD_ALLOWED_REDIRECT_URIS
-  const raw = (typeof rawEnv === 'string' ? rawEnv : String(rawEnv ?? '')).trim()
+  const raw = (typeof rawEnv === 'string' ? rawEnv : '').trim()
   if (raw.length > 0) {
-    return raw.split(',').map((segment) => segment.trim()).filter((segment) => segment.length > 0)
+    list.push(...raw.split(',').map((segment) => segment.trim()).filter((segment) => segment.length > 0))
   }
 
-  const list: string[] = [
-    'http://127.0.0.1:9786/callback',
-    'http://localhost:9786/callback',
-    'http://localhost:5173/login/discord/callback',
-    'http://127.0.0.1:5173/login/discord/callback',
-  ]
-
+  // FRONT_END_URL é o fallback automático: deriva a URI canônica sem hardcode de portas.
   const frontEndUrl = process.env.FRONT_END_URL?.trim()
-  if (frontEndUrl !== undefined && frontEndUrl.length > 0) {
+  if (frontEndUrl && frontEndUrl.length > 0) {
     try {
-      const parsedFront = new URL(frontEndUrl)
-      list.push(`${parsedFront.origin}/login/discord/callback`)
-    } catch { /* URL inválido em FRONT_END_URL — ignorar */ }
+      const origin = new URL(frontEndUrl).origin
+      list.push(`${origin}/login/discord/callback`)
+    } catch { /* FRONT_END_URL inválida — ignorar */ }
   }
 
   return [...new Set(list)]

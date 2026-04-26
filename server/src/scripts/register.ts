@@ -1,76 +1,76 @@
 import { User } from '@/database/entity/User'
 import { Role } from '@/database/enums'
-import { isDev } from '@/utils/dev'
+import { isDev } from '@/lib/dev'
 import { faker } from '@faker-js/faker'
 import { nanoid } from 'nanoid'
 
-if (isDev) {
+export async function seedDatabase(): Promise<void> {
+  if (!isDev) {
+    console.log('[seed] produção detectada — seed ignorado')
+    return
+  }
 
-  let admim = await User.findOneBy({ email: 'admin@admin.com' })
-  if (!admim) {
-    admim = await (await User.create({
-      name: 'Matheus',
-      username: 'Ashu',
-      email: 'admin@admin.com',
-      language: 'pt-BR',
-      uuid: nanoid(),
-      role: Role.Administrator
-    })
-      .setPassword('admin1234'))
-      .save()
+  let admin = await User.findOneBy({ email: 'admin@admin.com' })
+  if (!admin) {
+    admin = await (
+      await User.create({
+        name: 'Matheus',
+        username: 'Ashu',
+        email: 'admin@admin.com',
+        language: 'pt-BR',
+        uuid: nanoid(),
+        role: Role.Administrator,
+      }).setPassword('admin1234')
+    ).save()
+    console.log('[seed] admin criado')
   }
 
   let testUser = await User.findOneBy({ email: 'user@user.com' })
   if (!testUser) {
-    testUser = await (await User.create({
-      name: 'User Teste',
-      username: 'user',
-      email: 'user@user.com',
-      language: 'pt-BR',
-      uuid: nanoid(),
-      role: Role.User,
-    })
-      .setPassword('user1234'))
-      .save()
+    testUser = await (
+      await User.create({
+        name: 'User Teste',
+        username: 'user',
+        email: 'user@user.com',
+        language: 'pt-BR',
+        uuid: nanoid(),
+        role: Role.User,
+      }).setPassword('user1234')
+    ).save()
+    console.log('[seed] usuário de teste criado')
   }
 
-  // 2) Verifica quantos usuários já existem
   const totalUsers = await User.count()
   const MAX_USERS = 20
 
   if (totalUsers < MAX_USERS) {
-    const toGenerate = MAX_USERS - totalUsers
+    const countToGenerate = MAX_USERS - totalUsers
 
-    const fakeUsersData: Array<{
-      name: string
-      username: string
-      email: string
-      language: string
-      role: Role
-    }> = Array.from({ length: toGenerate }).map(() => ({
+    const fakeUsersData = Array.from({ length: countToGenerate }).map(() => ({
       name: faker.person.fullName(),
       username: faker.internet.username().toLowerCase(),
       email: faker.internet.email().toLowerCase(),
       language: faker.helpers.arrayElement(['pt-BR', 'en-US']),
-      role: Role.User
+      role: Role.User,
     }))
 
-    for (const u of fakeUsersData) {
-      const exists = await User.findOneBy({ email: u.email })
+    for (const userData of fakeUsersData) {
+      const exists = await User.findOneBy({ email: userData.email })
       if (!exists) {
-        await (await User.create({
-          name: u.name,
-          username: u.username,
-          email: u.email,
-          language: u.language,
-          uuid: nanoid(),
-          role: u.role,
-        })
-          .setPassword('password123'))
-          .save()
+        await (
+          await User.create({
+            name: userData.name,
+            username: userData.username,
+            email: userData.email,
+            language: userData.language,
+            uuid: nanoid(),
+            role: userData.role,
+          }).setPassword('password123')
+        ).save()
       }
     }
+    console.log(`[seed] ${countToGenerate} usuários fake gerados`)
   } else {
-    console.log(`Já existem ${totalUsers} usuários. Ignorando criação de fakes.`)
+    console.log(`[seed] já existem ${totalUsers} usuários — seed de fakes ignorado`)
   }
 }

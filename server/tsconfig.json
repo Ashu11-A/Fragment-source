@@ -42,6 +42,6 @@
       "@/*": ["./src/*"]
     },
   },
-  "include": ["src", "routers", "ws"],
+  "include": ["src", "routes", "ws"],
   "exclude": ["node_modules", "dist"]
 }

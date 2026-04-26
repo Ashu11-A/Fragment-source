@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
-import type { Routers } from 'server'
+import type { IssuedSessionPayload } from 'server'
 import { Crypt, LocalStorage, Storage } from 'storage'
 import { exists } from 'utils'
 import { root } from './index.js'
@@ -45,8 +45,8 @@ export type DataCrypted = {
   botId?: number
   token?: string
   language?: string
-  accessToken?: NonNullable<Routers['/auth/login']['post']['response']['200']['data']['accessToken']>
-  refreshToken?: NonNullable<Routers['/auth/login']['post']['response']['200']['data']['refreshToken']>
+  accessToken?: NonNullable<IssuedSessionPayload['data']['accessToken']>
+  refreshToken?: NonNullable<IssuedSessionPayload['data']['refreshToken']>
 }
 
 export const storage = driver

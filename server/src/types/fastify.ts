@@ -1,6 +1,6 @@
 import { User } from '@/database/entity/User.js'
-import { BearerStrategy } from '@/strategies/BearerStrategy.js'
-import { CookiesStrategy } from '@/strategies/CookiesStrategy.js'
+import { BearerStrategy } from '@/security/strategies/BearerStrategy.js'
+import { CookiesStrategy } from '@/security/strategies/CookiesStrategy.js'
 import type { Server } from 'socket.io'
 
 declare module 'fastify' {
