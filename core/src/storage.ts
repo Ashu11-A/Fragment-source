@@ -1,42 +1,12 @@
-import { readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
 import type { IssuedSessionPayload } from 'server'
-import { Crypt, LocalStorage, Storage } from 'storage'
-import { exists } from 'utils'
-import { root } from './index.js'
-
-const PRIVATE_KEY_PATH = join(root, 'privateKey.pem')
-const PUBLIC_KEY_PATH = join(root, 'publicKey.pem')
-
-let privateKey
-let publicKey
-
-if (
-  !(await exists(PRIVATE_KEY_PATH))
-  || !(await exists(PUBLIC_KEY_PATH))
-) {
-  const keys = await Crypt.genKeys()
-
-  privateKey = keys.privateKey
-  publicKey = keys.publicKey
-
-  await writeFile(PRIVATE_KEY_PATH, privateKey, 'utf-8')
-  await writeFile(PUBLIC_KEY_PATH, publicKey, 'utf-8')
-} else {
-  privateKey = await readFile(PRIVATE_KEY_PATH, { encoding: 'utf-8' })
-  publicKey = await readFile(PUBLIC_KEY_PATH, { encoding: 'utf-8' })
-}
-
-// const crypt = new Crypt({
-//   privateKey,
-//   publicKey,
-// })
+import { LocalStorage, Storage } from 'storage'
+import { root } from '@/singletons.js'
 
 const { driver } = new Storage<{ '.data': DataCrypted }>({
-  // crypt,
   driver: new LocalStorage({
-    storagePath: join(root, '/storage')
-  })
+    storagePath: join(root, '/storage'),
+  }),
 })
 
 export type DataCrypted = {
@@ -50,3 +20,8 @@ export type DataCrypted = {
 }
 
 export const storage = driver
+
+export async function mergeStorageData(partial: Partial<DataCrypted>): Promise<void> {
+  const current = (await driver.load('.data', { isJson: true })) ?? {}
+  await driver.append('.data', { ...current, ...partial } as DataCrypted, { isJson: true })
+}

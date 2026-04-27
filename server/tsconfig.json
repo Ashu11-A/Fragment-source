@@ -39,9 +39,15 @@
     "outDir": "./dist/mjs",
     "rootDir": "./",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
     },
   },
+  "references": [
+    { "path": "../packages/discord-oauth" },
+    { "path": "../packages/env" },
+    { "path": "../packages/socket" },
+    { "path": "../packages/storage" }
+  ],
   "include": ["src", "routes", "ws"],
   "exclude": ["node_modules", "dist"]
 }

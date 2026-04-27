@@ -1,27 +1,20 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, type Relation, UpdateDateColumn } from 'typeorm'
-import { FileEntity } from './File.js'
-import { Plugin } from './Plugin.js'
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, type Relation, UpdateDateColumn } from 'typeorm'
+import { FileEntity } from '@/database/entity/File.js'
+import { Plugin } from '@/database/entity/Plugin.js'
+import { BaseEntity } from './base'
 
 @Entity({ name: 'releases' })
 export class Release extends BaseEntity {
-  @PrimaryGeneratedColumn('increment')
-    id!: number
-
   @Column({ type: 'varchar', length: 128 })
-    name!: string
+  name!: string
   @Column({ type: 'varchar', length: 32 })
-    version!: string
+  version!: string
   @Column({ type: 'boolean', default: true })
-    latest!: boolean
+  latest!: boolean
 
   @ManyToOne(() => Plugin, (plugin) => plugin.releases)
-    plugin!: Relation<Plugin>
+  plugin!: Relation<Plugin>
   @OneToOne(() => FileEntity, (file) => file.release, { cascade: true, onDelete: 'CASCADE' })
   @JoinColumn()
-    file!: Relation<FileEntity>
-  
-  @UpdateDateColumn()
-    updatedAt!: Date
-  @CreateDateColumn()
-    createdAt!: Date
+  file!: Relation<FileEntity>
 }

@@ -85,7 +85,7 @@ export function GuildSidebar({ className }: GuildSidebarProps) {
                 )}
                 onClick={() => {
                   setSelectedBotId(bot.id)
-                  navigate({ to: `/bots/${bot.id}` as any })
+                  navigate({ to: '/bots/$botId', params: { botId: String(bot.id) } })
                 }}
               >
                 <span

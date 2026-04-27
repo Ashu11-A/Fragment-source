@@ -1,7 +1,7 @@
 import { type FastifyRequest } from 'fastify'
 import type { IncomingMessage } from 'http'
-import { Strategy } from './Base.js'
-import { validateAccessToken } from '../validateToken.js'
+import { Strategy } from '@/security/strategies/Base.js'
+import { validateAccessToken } from '@/security/validateToken.js'
 import type { User } from '@/database/entity/User.js'
 
 export class BearerStrategy extends Strategy<User> {

@@ -4,8 +4,8 @@ import { useDiscordAuth } from '@/hooks/useDiscordAuth'
 import { useAuth } from '@/providers/AuthProvider'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { LoadingButton } from '@/components/ui/LoadingButton'
-import { ErrorAlert } from '@/components/ui/ErrorAlert'
+import { LoadingButton } from '@/components/LoadingButton'
+import { ErrorAlert } from '@/components/ErrorAlert'
 import { Bot, Eye, EyeOff } from 'lucide-react'
 
 export function LoginPage() {

@@ -18,8 +18,8 @@ const uploadSchema = z.object({
 export function registerFileRoutes() {
   Fastify.server
     .post('/plugins/:id', {
-      preValidation: (req, reply) => authenticator(req, reply, [Role.Administrator]),
-    }, async (request, reply) => {
+      preValidation: (req: import('fastify').FastifyRequest, reply: import('fastify').FastifyReply) => authenticator(req, reply, [Role.Administrator]),
+    }, async (request: import('fastify').FastifyRequest, reply: import('fastify').FastifyReply) => {
       const id = Number((request.params as { id?: string }).id)
       if (!id || Number.isNaN(id)) return reply.status(404).send({ message: 'id not specified!' })
 
@@ -43,7 +43,7 @@ export function registerFileRoutes() {
       })
       if (!plugin) return reply.status(404).send({ message: 'Plugin not found!' })
 
-      if (plugin.releases.find((r) => r.file && (r.file.md5 === md5Hash || r.file.sha265 === sha265Hash))) {
+      if (plugin.releases.find((r: Release) => r.file && (r.file.md5 === md5Hash || r.file.sha265 === sha265Hash))) {
         return reply.status(409).send({ message: 'Conflict, there is already a release with the same sha256 or md5!' })
       }
 
@@ -68,8 +68,8 @@ export function registerFileRoutes() {
     })
 
     .get('/plugins/:id/:version', {
-      preValidation: (req, reply) => authenticator(req, reply, true),
-    }, async (request, reply) => {
+      preValidation: (req: import('fastify').FastifyRequest, reply: import('fastify').FastifyReply) => authenticator(req, reply, true),
+    }, async (request: import('fastify').FastifyRequest, reply: import('fastify').FastifyReply) => {
       const params = request.params as { id: string; version: string }
       const id = parseInt(params.id)
       const version = params.version
@@ -82,7 +82,7 @@ export function registerFileRoutes() {
       })
       if (!plugin) return reply.status(404).send({ message: 'Plugin not found!' })
 
-      const release = plugin.releases.find((r) => r.version === version)
+      const release = plugin.releases.find((r: Release) => r.version === version)
       if (!release) return reply.status(404).send({ message: 'Release not found!' })
 
       const stream = await storage.stream(release.file.sha265)

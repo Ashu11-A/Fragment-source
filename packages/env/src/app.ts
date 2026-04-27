@@ -1,1 +1,1 @@
-export * from './controllers/Env'
+export * from '@/controllers/Env'

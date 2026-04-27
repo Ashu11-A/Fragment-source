@@ -1,5 +1,5 @@
 import { lookup } from 'mime-types'
-import { Cache, type CacheEntry } from '../../controllers/Cache.js'
+import { Cache, type CacheEntry } from '@/controllers/Cache.js'
 
 type CacheProps = {
   /**

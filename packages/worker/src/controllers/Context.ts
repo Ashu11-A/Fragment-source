@@ -11,7 +11,7 @@ import type { CacheType } from 'discord.js'
 import { collectCommandActionComponents } from 'discord'
 import { Crons, registerPluginCommand, type CronsConfigurations } from 'discord/registries'
 import { getMetadataArgsStorage } from 'typeorm'
-import type { EntityClass, PluginRegistration } from '../types/manager.js'
+import type { EntityClass, PluginRegistration } from '@/types/manager.js'
 
 /** Mirrors TypeORM's DefaultNamingStrategy for deriving table names from class names. */
 function toSnakeCase(str: string): string {

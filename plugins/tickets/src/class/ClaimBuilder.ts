@@ -2,7 +2,7 @@ import { database } from '@/database'
 import Claim from '@/database/entity/Claim.entry.js'
 import Config, { type Roles } from '@/database/entity/Config.entry.js'
 import Ticket from '@/database/entity/Ticket.entry.js'
-import { ActionDrawer, Error, ButtonBuilder } from 'discord'
+import { ActionDrawer, DiscordError, ButtonBuilder } from 'discord'
 import { ActionRowBuilder, ButtonBuilder as DjsButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction } from 'discord.js'
 
 interface ClaimOptions {
@@ -57,7 +57,7 @@ export class ClaimBuilder {
   async render() {
     const { guild } = this.interaction
     const ticketData = this.ticketData !== undefined ? this.ticketData : await database.ticket.findOne({ where: { id: this.options.ticketId } })
-    if (ticketData === null || ticketData === undefined) throw await new Error({ element: 'ticket', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
+    if (ticketData === null || ticketData === undefined) throw await new DiscordError({ element: 'ticket', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
     const { team, ownerId, category: { emoji, title }, description, createAt } = ticketData
     const user = (await guild.members.fetch()).find((user) => user.id === ownerId)
 
@@ -122,7 +122,7 @@ export class ClaimBuilder {
   async create(): Promise<Claim | Claim[] | undefined> {
     const { guildId, guild } = this.interaction
     const ticketData = this.ticketData !== undefined ? this.ticketData : await database.ticket.findOne({ where: { id: this.options.ticketId } })
-    if (ticketData === null) throw await new Error({ element: 'executar a ação de criação do claim, pois o setData ou setTicketId não foi definido!', interaction: this.interaction }).notPossible().reply()
+    if (ticketData === null) throw await new DiscordError({ element: 'executar a ação de criação do claim, pois o setData ou setTicketId não foi definido!', interaction: this.interaction }).notPossible().reply()
 
     const configs = await database.config.findOne({ where: { guild: { guildId: guildId } }, relations: { guild: true } }) as Config
     const permissions = this.permissions(configs?.roles ?? [])
@@ -146,7 +146,7 @@ export class ClaimBuilder {
       const result = await database.claim.save(claimData) as Claim
 
       if (result === null || result === undefined) {
-        await new Error({ element: 'criar o claim', interaction: this.interaction }).notPossible().reply()
+        await new DiscordError({ element: 'criar o claim', interaction: this.interaction }).notPossible().reply()
         return
       }
       return claimData
@@ -156,16 +156,16 @@ export class ClaimBuilder {
 
   async edit ({ messageId }: { messageId: string }) {
     const claimData = await database.claim.findOne({ where: { messageId } })
-    if (claimData === null) throw await new Error({ element: 'o claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
+    if (claimData === null) throw await new DiscordError({ element: 'o claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
     
     const channel = await this.interaction.client.channels.fetch(claimData.channelId).catch(async() => null)
-    if (channel === null) throw await new Error({ element: 'do claim', interaction: this.interaction }).notFound({ type: 'Channel' }).reply()
-    if (!channel.isTextBased()) throw await new Error({ element: 'concluir a ação, pois o channel não é um TextBased', interaction: this.interaction }).notPossible().reply()
+    if (channel === null) throw await new DiscordError({ element: 'do claim', interaction: this.interaction }).notFound({ type: 'Channel' }).reply()
+    if (!channel.isTextBased()) throw await new DiscordError({ element: 'concluir a ação, pois o channel não é um TextBased', interaction: this.interaction }).notPossible().reply()
 
-    if (this.embed === undefined || this.buttons) await this.render()
+    if (this.embed === undefined || !this.buttons) await this.render()
 
     const message = await channel.messages.fetch(claimData.messageId).catch(() => null)
-    if (message === null) throw await new Error({ element: 'message do claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
+    if (message === null) throw await new DiscordError({ element: 'message do claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
     await message.edit({
       embeds: [this.embed as EmbedBuilder],
       components: this.buttons
@@ -174,11 +174,11 @@ export class ClaimBuilder {
 
   async delete (id: number) {
     const claimData = await database.claim.findOne({ where: { id } })
-    if (claimData === null) return await new Error({ element: 'claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
+    if (claimData === null) return await new DiscordError({ element: 'claim', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
 
     const channel = await this.interaction.client.channels.fetch(claimData.channelId).catch(async() => null)
-    if (channel === null) return await new Error({ element: 'do claim', interaction: this.interaction }).notFound({ type: 'Channel' }).reply()
-    if (!channel.isTextBased()) return await new Error({ element: 'concluir a ação, pois o channel não é um TextBased', interaction: this.interaction }).notPossible().reply()
+    if (channel === null) return await new DiscordError({ element: 'do claim', interaction: this.interaction }).notFound({ type: 'Channel' }).reply()
+    if (!channel.isTextBased()) return await new DiscordError({ element: 'concluir a ação, pois o channel não é um TextBased', interaction: this.interaction }).notPossible().reply()
 
     const message = await channel.messages.fetch(claimData.messageId).catch(() => null)
     if (message !== null && message.deletable) await message.delete()

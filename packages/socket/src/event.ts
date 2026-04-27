@@ -61,8 +61,8 @@ export class ServerEvent<
     const ctx = args[0] as TCtx
     // Cast needed: TypeScript can't resolve the conditional handler type when K is generic.
     // Data is still Zod-validated by TypedSocket's middleware before reaching this handler.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(socket as any).on(this.name, (data: SchemaData<FragmentClientToServer[K]>) => {
+    type SocketWithOn = { on: (event: string, cb: (data: SchemaData<FragmentClientToServer[K]>) => void) => void }
+    ;(socket as unknown as SocketWithOn).on(this.name, (data: SchemaData<FragmentClientToServer[K]>) => {
       const event = (ctx !== undefined
         ? { data, socket, io, ctx }
         : { data, socket, io }) as ServerRunCtx<K, TCtx>
@@ -107,8 +107,8 @@ export class ClientEvent<K extends string & keyof FragmentServerToClient> {
 
   register(socket: FragmentTypedClient): this {
     // Same cast rationale as ServerEvent.register.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(socket as any).on(this.name, (data: SchemaData<FragmentServerToClient[K]>) => {
+    type ClientSocketWithOn = { on: (event: string, cb: (data: SchemaData<FragmentServerToClient[K]>) => void) => void }
+    ;(socket as unknown as ClientSocketWithOn).on(this.name, (data: SchemaData<FragmentServerToClient[K]>) => {
       void this.options.onRun({ data, socket })
     })
     return this

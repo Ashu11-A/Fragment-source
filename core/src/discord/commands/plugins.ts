@@ -29,8 +29,6 @@ export default new Command({
   async autocomplete (interaction) {
     const response: ApplicationCommandOptionChoiceData[] = []
 
-    console.log(Plugin.all.values())
-
     switch (interaction.options.getFocused(true).name) {
     case 'name': {
       for (const plugin of Plugin.all.values()) {

@@ -6,9 +6,9 @@ import { Activity, Wifi, WifiOff, HardDrive, Cpu, Plug, Bot } from 'lucide-react
 import { BotActivityFeed } from '@/components/bot/BotActivityFeed'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { BotNotFound } from '@/components/ui/BotNotFound'
-import { IconTile } from '@/components/ui/IconTile'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { BotNotFound } from '@/components/BotNotFound'
+import { IconTile } from '@/components/IconTile'
 import { formatDate } from '@/lib/format-utils'
 
 export function BotDashboardPage() {

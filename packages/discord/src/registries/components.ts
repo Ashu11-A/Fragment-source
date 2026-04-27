@@ -16,11 +16,10 @@ import {
 } from '@ashu11a/constatic'
 import { Analyze } from 'url-ast'
 import type { CacheType } from 'discord.js'
-import { toPluginComponentPath } from '../utils/pluginComponentPath.js'
+import { toPluginComponentPath } from '@/utils/pluginComponentPath.js'
 
 /* Cada `get data()` liga o `onClick`/`onSelect`/`onSubmit` ao `this` de `ResponderData` do Constatic. */
 /* eslint-disable @typescript-eslint/no-this-alias -- padrão `const self` para .call(ResponderData) */
-/* eslint-disable @typescript-eslint/no-explicit-any -- interação/params vêm de tipos genéricos do D.js */
 
 export class Responder<
   Path extends string,
@@ -45,8 +44,8 @@ export class Button<const Parse extends string, const Cache extends CacheType = 
       customId: id,
       types: [ResponderType.Button] as const,
       cache: this.options.cache,
-      run (this: { customId: string; types: readonly ResponderType[]; cache?: Cache; run: unknown }, interaction: any, params: any) {
-        return self.options.onClick.call(this as never, interaction, params)
+      run (this: { customId: string; types: readonly ResponderType[]; cache?: Cache; run: unknown }, interaction: unknown, params: unknown) {
+        return self.options.onClick.call(this as never, interaction as never, params as never)
       },
     }
   }
@@ -67,8 +66,8 @@ export class StringSelect<const Parse extends string, const Cache extends CacheT
       customId: id,
       types: [ResponderType.StringSelect] as const,
       cache: this.options.cache,
-      run (this: { customId: string; types: readonly ResponderType[]; cache?: Cache; run: unknown }, interaction: any, params: any) {
-        return self.options.onSelect.call(this as never, interaction, params)
+      run (this: { customId: string; types: readonly ResponderType[]; cache?: Cache; run: unknown }, interaction: unknown, params: unknown) {
+        return self.options.onSelect.call(this as never, interaction as never, params as never)
       },
     }
   }
@@ -105,8 +104,8 @@ export class Modal<const Parse extends string, const Cache extends CacheType = '
       customId: id,
       types: [ResponderType.Modal] as const,
       cache: this.options.cache,
-      run (this: { customId: string; types: readonly ResponderType[]; cache?: Cache; run: unknown }, interaction: any, params: any) {
-        return self.options.onSubmit.call(this as never, interaction, params)
+      run (this: { customId: string; types: readonly ResponderType[]; cache?: Cache; run: unknown }, interaction: unknown, params: unknown) {
+        return self.options.onSubmit.call(this as never, interaction as never, params as never)
       },
     }
   }
@@ -127,8 +126,8 @@ export class ModalComponent<const Parse extends string, const Cache extends Cach
       customId: id,
       types: [ResponderType.ModalComponent] as const,
       cache: this.options.cache,
-      run (this: { customId: string; types: readonly ResponderType[]; cache?: Cache; run: unknown }, interaction: any, params: any) {
-        return self.options.onSubmit.call(this as never, interaction, params)
+      run (this: { customId: string; types: readonly ResponderType[]; cache?: Cache; run: unknown }, interaction: unknown, params: unknown) {
+        return self.options.onSubmit.call(this as never, interaction as never, params as never)
       },
     }
   }

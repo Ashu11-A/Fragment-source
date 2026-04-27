@@ -2,40 +2,19 @@ import {
   EmbedBuilder,
   Message,
   MessageComponentInteraction,
-  type ButtonInteraction,
-  type CacheType,
-  type ColorResolvable,
-  type CommandInteraction,
-  type ModalSubmitInteraction,
-  type StringSelectMenuInteraction,
 } from 'discord.js'
+import type { DiscordErrorOptions, NotFoundType } from '@/types/interactions.js'
 
-interface ErrorOptions {
-  interaction:
-    | CommandInteraction<CacheType>
-    | ModalSubmitInteraction<CacheType>
-    | ButtonInteraction<CacheType>
-    | StringSelectMenuInteraction<CacheType>
-    | Message<boolean>
-  ephemeral?: boolean
-  element: string
-  color?: ColorResolvable
-}
-
-type TypesNotFound = 'Database' | 'Channel' | 'Message'
-
-/**
- * Respostas de erro embutidas para interações Discord (embeds em pt-BR), compatível com o fluxo anterior do pacote `discord`.
- */
-export class Error {
-  private readonly options: ErrorOptions
+/** Respostas de erro embutidas para interações Discord (embeds em pt-BR). */
+export class DiscordError {
+  private readonly options: DiscordErrorOptions
   private embed: EmbedBuilder | undefined
 
-  constructor (options: ErrorOptions) {
+  constructor (options: DiscordErrorOptions) {
     this.options = options
   }
 
-  notFound ({ type }: { type: TypesNotFound }) {
+  notFound ({ type }: { type: NotFoundType }) {
     const { element, color } = this.options
     let embed: EmbedBuilder
     switch (type) {
@@ -60,32 +39,24 @@ export class Error {
 
   invalidProperty () {
     const { element, color } = this.options
-    const embed = new EmbedBuilder({
-      title: `Propriedade \`${element}\` é invalida!`,
-    }).setColor(color ?? 'Red')
-    this.embed = embed
+    this.embed = new EmbedBuilder({ title: `Propriedade \`${element}\` é invalida!` }).setColor(color ?? 'Red')
     return this
   }
 
   notPossible () {
     const { element, color } = this.options
-    this.embed = new EmbedBuilder({
-      title: `Não foi possivel \`${element}\``,
-    }).setColor(color ?? 'Red')
+    this.embed = new EmbedBuilder({ title: `Não foi possivel \`${element}\`` }).setColor(color ?? 'Red')
     return this
   }
 
   forbidden () {
     const { element, color } = this.options
-    this.embed = new EmbedBuilder({
-      title: `Não é fazer isso, pois \`${element}\` não tem permisão!`,
-    }).setColor(color ?? 'Red')
+    this.embed = new EmbedBuilder({ title: `Não é fazer isso, pois \`${element}\` não tem permisão!` }).setColor(color ?? 'Red')
     return this
   }
 
   async reply () {
     const { interaction, ephemeral } = this.options
-
     if (this.embed === undefined) return
     if (!(interaction instanceof Message) && interaction.isRepliable() && !interaction.replied) {
       if (interaction.deferred) {

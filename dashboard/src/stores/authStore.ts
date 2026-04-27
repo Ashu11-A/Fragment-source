@@ -4,7 +4,6 @@ import { clearSessionAccessToken } from '@/lib/sessionAccessToken'
 
 export interface AuthUser {
   id: number
-  uuid: string
   name: string
   username: string
   email: string

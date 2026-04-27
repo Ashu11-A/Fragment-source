@@ -1,9 +1,9 @@
-import { root } from '@/index.js'
+import { root } from '@/singletons.js'
 import { watch } from 'fs'
 import { access, constants, readFile, writeFile } from 'fs/promises'
 import { marked, type MarkedExtension } from 'marked'
 import { markedTerminal } from 'marked-terminal'
-import { join, } from 'path'
+import { join } from 'path'
 import prompt from 'prompts'
 import license from '../../../LICENSE.md' with { type: 'text' }
 
@@ -13,38 +13,34 @@ export class License {
   private licensePath = join(root, '.license')
   static watcherInitialized = false
 
-  async checker () {
-    const exist = await access(this.licensePath, constants.F_OK).then(() => true).catch(() => false)
-  
-    if (exist) {
+  async checker(): Promise<void> {
+    const exists = await access(this.licensePath, constants.F_OK).then(() => true).catch(() => false)
+
+    if (exists) {
       const data = await readFile(this.licensePath, { encoding: 'utf-8' })
-      const accepted = /true/i.test(data)
-      if (!accepted) await this.ask()
-    } else await this.ask()
+      if (!/true/i.test(data)) await this.ask()
+    } else {
+      await this.ask()
+    }
 
     if (!License.watcherInitialized) {
       License.watcherInitialized = true
-      const wather = watch(join(root, '.license'))
-
-      wather.on('change', () => this.checker())
+      const watcher = watch(join(root, '.license'))
+      watcher.on('change', () => this.checker())
     }
   }
 
-  async ask () {
+  async ask(): Promise<void> {
     console.log(marked.parse(license))
-    const response = (await prompt({
+    const response = await prompt({
       name: 'accepted',
       type: 'confirm',
       message: i18('license.accept'),
-      initial: false
-    }))
+      initial: false,
+    })
 
-    if (response.accepted) {
-      await writeFile(join(root, '.license'), 'ACCEPT=true')
-      return
-    }
+    await writeFile(join(root, '.license'), response.accepted ? 'ACCEPT=true' : 'ACCEPT=false')
 
-    await writeFile(join(root, '.license'), 'ACCEPT=false')
-    throw new Error(i18('error.no_possible'))
+    if (!response.accepted) throw new Error(i18('error.no_possible'))
   }
 }

@@ -1,4 +1,4 @@
-/// <reference path="./types/dependencies.ts" />
+import './types/dependencies.js'
 
 import 'reflect-metadata'
 

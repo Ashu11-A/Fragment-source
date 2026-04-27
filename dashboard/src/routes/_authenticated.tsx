@@ -1,4 +1,5 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { useAuthStore } from '@/stores/authStore'
 import { Loader2 } from 'lucide-react'
@@ -16,17 +17,13 @@ function AuthLoader() {
 }
 
 export const Route = createFileRoute('/_authenticated')({
-  /**
-   * Authenticated layout route — redirects to /login if not authenticated.
-   * Uses the zustand store directly (synchronous check) so it works outside
-   * of React component scope inside `beforeLoad`.
-   */
   beforeLoad: () => {
     const state = useAuthStore.getState()
 
-    // If still loading (initial session validation), we let through and the
-    // component will show a loading spinner until AuthProvider resolves.
-    if (state.isLoading) return
+    // Only let through if there's a persisted session still being verified.
+    // Unauthenticated users (no localStorage data) also start with isLoading=true,
+    // so we must check isAuthenticated too before granting passage.
+    if (state.isLoading && state.isAuthenticated) return
 
     if (!state.isAuthenticated) {
       throw redirect({ to: '/login' })
@@ -37,12 +34,18 @@ export const Route = createFileRoute('/_authenticated')({
 
 function AuthenticatedLayout() {
   const { isLoading, isAuthenticated } = useAuthStore()
+  const navigate = useNavigate()
 
-  if (isLoading) return <AuthLoader />
-  if (!isAuthenticated) {
-    // Fallback — beforeLoad should have caught this, but just in case
-    throw redirect({ to: '/login' })
-  }
+  // beforeLoad won't re-run when Zustand state changes, so we handle the
+  // post-verification redirect here: once loading resolves and the session
+  // turns out to be invalid, navigate to /login.
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      void navigate({ to: '/login', replace: true })
+    }
+  }, [isLoading, isAuthenticated, navigate])
+
+  if (isLoading || !isAuthenticated) return <AuthLoader />
 
   return <DashboardLayout />
 }

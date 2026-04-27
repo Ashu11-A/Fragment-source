@@ -13,7 +13,7 @@ import discordAuthRoutes from '../../routes/fastify/discordAuth.js'
 import { BearerStrategy } from '@/security/strategies/BearerStrategy.js'
 import { CookiesStrategy } from '@/security/strategies/CookiesStrategy.js'
 import { createContext } from '@/createContext.js'
-import { setupSocketController } from './socket.js'
+import { setupSocketController } from '@/infra/socket.js'
 import { createAdapter } from '@socket.io/cluster-adapter'
 import cluster from 'cluster'
 
@@ -86,7 +86,7 @@ export class Fastify {
           message: 'Rate limit exceeded. Try again later.',
         }),
       })
-      .register(fastifyIO, {
+      .register(fastifyIO as unknown as import('fastify').FastifyPluginCallback<Record<string, unknown>>, {
         // WebSocket-only em produção: cada conexão é um TCP persistente,
         // garantindo que workers round-robin não dividam a mesma sessão.
         transports: process.env.PRODUCTION === 'true' ? ['websocket'] : ['polling', 'websocket'],
@@ -119,7 +119,7 @@ export class Fastify {
         host: this.options.host
       }, (err) => {
         if (err === null) {
-          if (process.env.PRODUCTION && cluster.isWorker) {
+          if (process.env.PRODUCTION === 'true' && cluster.isWorker) {
             Fastify.server.io.adapter(createAdapter())
             Fastify.server.log.info(`Worker ${process.pid} ready`)
           }

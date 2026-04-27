@@ -1,5 +1,5 @@
-import { lang } from './lang'
-import { storage } from './storage'
+import { lang } from '@/lang'
+import { storage } from '@/storage'
 
 const data = await storage.load('.data', { isJson: true })
 

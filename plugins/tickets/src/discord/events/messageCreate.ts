@@ -31,7 +31,6 @@ export default new Event({
         date: new Date(),
       })
       .edit()
-    console.log(`💬 Nova mensagem salva! TicketId: ${ticketData.id}`)
   },
 })
 

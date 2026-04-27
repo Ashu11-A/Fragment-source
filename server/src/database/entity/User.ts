@@ -1,18 +1,14 @@
 import { compare, hash } from 'bcryptjs'
-import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, type Relation, UpdateDateColumn } from 'typeorm'
-import { Role } from '../enums.js'
-import { Hidden } from '../hooks/hidden.js'
-import { Auth } from './Auth.js'
-import { Bot } from './Bot.js'
-import { Subscription } from './Subscription.js'
+import { Column, CreateDateColumn, Entity, OneToMany, type Relation, UpdateDateColumn } from 'typeorm'
+import { Role } from '@/database/enums.js'
+import { Hidden } from '@/database/hooks/hidden.js'
+import { Auth } from '@/database/entity/Auth.js'
+import { Bot } from '@/database/entity/Bot.js'
+import { Subscription } from '@/database/entity/Subscription.js'
+import { BaseEntity } from './base'
 
 @Entity({ name: 'users' })
 export class User extends BaseEntity {
-  @PrimaryGeneratedColumn()
-    id!: number
-  @Column({ type: 'uuid' })
-    uuid!: string
-
   @Column({ type: 'text'/*, length: 64*/ })
     name!: string
   @Column({ type: 'text'/*, length: 64*/ })
@@ -34,11 +30,6 @@ export class User extends BaseEntity {
     bots!: Relation<Bot[]>
   @OneToMany(() => Subscription, (subscription) => subscription.user)
     subscriptions!: Subscription[]
-
-  @UpdateDateColumn()
-    updatedAt!: Date
-  @CreateDateColumn()
-    createdAt!: Date
 
   async setPassword(password: string): Promise<User> {
     this.password = await hash(password, 10)

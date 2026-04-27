@@ -2,8 +2,8 @@ import { watch } from 'chokidar'
 import { existsSync, mkdirSync } from 'fs'
 import { join } from 'path'
 import chalk from 'chalk'
-import type { WatcherOptions } from '../types/watcher.js'
-import { i18 } from '../index.js'
+import type { WatcherOptions } from '@/types/watcher.js'
+import { i18 } from '@/index.js'
 
 export class Watcher {
   private readonly path = join(process.cwd(), 'plugins')

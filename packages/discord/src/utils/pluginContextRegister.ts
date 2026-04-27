@@ -1,5 +1,5 @@
 import type { Command, Event, ClientEventKey } from '@ashu11a/constatic'
-import type { PluginContext } from '../types/plugin.js'
+import type { PluginContext } from '@/types/plugin.js'
 
 export function registerCreatedCommand (
   ctx: PluginContext,

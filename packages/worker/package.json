@@ -1,9 +1,15 @@
 {
   "name": "worker",
   "version": "1.0.0",
-  "types": "src/app.ts",
   "module": "src/app.ts",
+  "types": "build/src/app.d.ts",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./build/src/app.d.ts",
+      "import": "./src/app.ts"
+    }
+  },
   "scripts": {
     "lint": "eslint --fix ."
   },
@@ -16,6 +22,7 @@
     "chokidar": "^4.0.3",
     "database": "workspace:../packages/database",
     "discord": "workspace:../packages/discord",
+    "lang": "workspace:../packages/lang",
     "discord.js": "^14.26.3",
     "ora": "^9.3.0",
     "semver": "^7.7.4"

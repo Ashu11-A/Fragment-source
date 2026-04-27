@@ -12,6 +12,8 @@ export const database = {
   template: Template,
 } as const
 
+import type { DatabaseRegistry as _DatabaseRegistry } from 'database'
+
 declare module 'database' {
   interface DatabaseRegistry {
     ticket: typeof database

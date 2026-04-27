@@ -3,8 +3,8 @@ import { createReadStream, existsSync } from 'fs'
 import { appendFile as fsAppendFile, mkdir, readdir, readFile, rm, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { Readable } from 'stream'
-import { LRUCache } from '../caches/LRU.js'
-import { BaseStorage } from './Base.js'
+import { LRUCache } from '@/plugins/caches/LRU.js'
+import { BaseStorage } from '@/plugins/storages/Base.js'
 
 type LocalStorageParams = {
   storagePath: string

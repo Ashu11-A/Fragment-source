@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { LangLyrics } from '../types/lang'
-import type { ExtractVariables, Paths, ValueOfLang } from '../types/lyrics'
-import type { Lang } from './Lang'
+import type { LangLyrics } from '@/types/lang'
+import type { ExtractVariables, Paths, ValueOfLang } from '@/types/lyrics'
+import type { Lang } from '@/controllers/Lang'
 
 // IDLEGLANCE
 export class Lyrics<Music, Languages extends Record<string, LangLyrics<Record<string, unknown>>>>{

@@ -4,8 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { ErrorAlert } from '@/components/ui/ErrorAlert'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { ErrorAlert } from '@/components/ErrorAlert'
 import { formatBytes, formatDateTime } from '@/lib/format-utils'
 import { Download, Box, FileJson, ExternalLink, Server } from 'lucide-react'
 

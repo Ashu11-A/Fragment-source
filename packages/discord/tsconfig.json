@@ -12,7 +12,7 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "noEmit": true,
+    "emitDeclarationOnly": true,
 
     // Best practices
     "strict": true,
@@ -26,6 +26,16 @@
 
     // TypeORM
     "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
-  }
+    "experimentalDecorators": true,
+
+    "composite": true,
+    "declarationDir": "./build",
+    "rootDir": "./src",
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "references": [
+    { "path": "../utils" }
+  ],
+  "include": ["src"],
+  "exclude": ["node_modules", "build"]
 }

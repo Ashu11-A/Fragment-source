@@ -52,7 +52,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = profileQuery.data.data
       setUser({
         id: data.id,
-        uuid: data.uuid,
         name: data.name,
         username: data.username,
         email: data.email,
@@ -145,7 +144,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const profileUser = profileData.data
       setUser({
         id: profileUser.id,
-        uuid: profileUser.uuid,
         name: profileUser.name,
         username: profileUser.username,
         email: profileUser.email,

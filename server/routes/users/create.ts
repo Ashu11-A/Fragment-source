@@ -1,5 +1,4 @@
 import { TRPCError } from '@trpc/server'
-import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { User } from '@/database/entity/User.js'
 import { Role } from '@/database/enums.js'
@@ -22,7 +21,7 @@ export const create = adminProcedure
     const existUser = await User.findOneBy({ email: input.email })
     if (existUser) throw new TRPCError({ code: 'CONFLICT', message: 'Um usuário com este email já existe no sistema.' })
 
-    const user = await (await User.create({ ...input, uuid: nanoid() }).setPassword(input.password)).save()
+    const user = await (await User.create({ ...input }).setPassword(input.password)).save()
 
     return {
       message: 'Usuário criado com sucesso!',

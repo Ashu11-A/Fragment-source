@@ -1,5 +1,5 @@
-import { Env } from './controllers/Env'
-import { Generator } from './controllers/Generator'
+import { Env } from '@/controllers/Env'
+import { Generator } from '@/controllers/Generator'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 

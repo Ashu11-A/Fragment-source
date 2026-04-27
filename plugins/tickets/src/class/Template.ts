@@ -1,6 +1,6 @@
 import { TypeTemplate } from '@/types/entries.js'
 import { database } from '@/database'
-import { Error } from 'discord'
+import { DiscordError } from 'discord'
 import { CommandInteraction } from 'discord.js'
 import { TemplateManager } from './TemplateManager.js'
 import { BaseInteractionBuilder, type CachedInteraction } from './BaseInteractionBuilder.js'
@@ -45,7 +45,7 @@ export class Template extends BaseInteractionBuilder {
     await channel.send({ embeds: [embed], components }).then(async (message) => {
       const guild = await database.guild.findOne({ where: { guildId } })
       if (guild === null) {
-        await new Error({ element: 'Guild', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
+        await new DiscordError({ element: 'Guild', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
         return
       }
       const create = await database.template.create({

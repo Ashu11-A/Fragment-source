@@ -11,7 +11,8 @@
     // Bundler mode
     "moduleResolution": "bundler",
     "verbatimModuleSyntax": true,
-    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declarationDir": "./build",
 
     // Best practices
     "strict": true,
@@ -33,7 +34,14 @@
     "composite": true
   },
   "references": [
-    { "path": "../base" }
+    { "path": "../base" },
+    { "path": "../../packages/build" },
+    { "path": "../../packages/database" },
+    { "path": "../../packages/discord" },
+    { "path": "../../packages/lang" },
+    { "path": "../../packages/plugin" },
+    { "path": "../../packages/storage" },
+    { "path": "../../packages/utils" }
   ],
   "include": [
     "src/**/*",

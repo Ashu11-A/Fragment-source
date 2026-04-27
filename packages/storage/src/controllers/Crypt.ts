@@ -2,7 +2,7 @@ import { existsSync } from 'fs'
 import { readFile } from 'fs/promises'
 import forge from 'node-forge'
 import { resolve } from 'path'
-import { i18 } from '../lang.js'
+import { i18 } from '@/lang.js'
 
 const ROOT_PATH = process.cwd()
 const PRIVATE_KEY_PATH = resolve(ROOT_PATH, 'privateKey.pem')

@@ -21,8 +21,6 @@ export type TProcessEnv = {
   DISCORD_CLIENT_ID: string
   DISCORD_CLIENT_SECRET: string
   OAUTH_STATE_SECRET: string
-  COOKIE_DOMAIN?: string
-  DISCORD_ALLOWED_REDIRECT_URIS?: string
 }
 
 type Generic = Dict<string | number | boolean>

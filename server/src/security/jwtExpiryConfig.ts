@@ -1,4 +1,4 @@
-import { timer } from '../lib/timer.js'
+import { timer } from '@/lib/timer.js'
 
 /** Duração em ms (alinhada a datas de cookie e ao payload `expireSeconds` em segundos). */
 export function resolveAccessExpireMs(): number {

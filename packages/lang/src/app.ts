@@ -1,3 +1,3 @@
-export * from './controllers/Lang'
-export * from './controllers/Lyrics'
-export * from './types/lyrics'
+export * from '@/controllers/Lang'
+export * from '@/controllers/Lyrics'
+export * from '@/types/lyrics'

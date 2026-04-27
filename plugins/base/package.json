@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "build": "workspace:../../packages/build",
+    "database": "workspace:../../packages/database",
     "discord": "workspace:../../packages/discord",
     "plugin": "workspace:../../packages/plugin",
     "utils": "workspace:../../packages/utils"

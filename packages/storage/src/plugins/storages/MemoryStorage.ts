@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Readable } from 'stream'
-import { BaseStorage } from './Base.js'
+import { BaseStorage } from '@/plugins/storages/Base.js'
 
 export class MemoryStorage extends BaseStorage {
   private storage = new Map<string, Map<string, Buffer>>()

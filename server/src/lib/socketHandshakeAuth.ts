@@ -1,6 +1,6 @@
 import type { IncomingHttpHeaders } from 'http'
-import { validateAccessToken } from '../security/validateToken.js'
-import type { User } from '../database/entity/User.js'
+import { validateAccessToken } from '@/security/validateToken.js'
+import type { User } from '@/database/entity/User.js'
 
 type HandshakeAuth = { token?: unknown }
 

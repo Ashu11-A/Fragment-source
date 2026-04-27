@@ -11,10 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { PageHeader } from '@/components/ui/PageHeader'
-import { SearchWithBadge } from '@/components/ui/SearchWithBadge'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { DeleteConfirmationDialog } from '@/components/ui/DeleteConfirmationDialog'
+import { PageHeader } from '@/components/PageHeader'
+import { SearchWithBadge } from '@/components/SearchWithBadge'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { DeleteConfirmationDialog } from '@/components/DeleteConfirmationDialog'
 import { createSortableHeader } from '@/lib/table-utils'
 import { formatDate } from '@/lib/format-utils'
 import {

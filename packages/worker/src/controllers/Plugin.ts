@@ -7,11 +7,11 @@ import { readdir } from 'fs/promises'
 import ora from 'ora'
 import { basename, join } from 'path'
 import SemVer from 'semver'
-import { i18 } from '..'
-import type { PluginRegistration } from '../types/manager.js'
-import { createPluginContext } from './Context'
-import { Manager } from './Manager'
-import { Watcher } from './Watcher'
+import { i18 } from '@/index'
+import type { PluginRegistration } from '@/types/manager.js'
+import { createPluginContext } from '@/controllers/Context'
+import { Manager } from '@/controllers/Manager'
+import { Watcher } from '@/controllers/Watcher'
 
 type PluginEntry = {
   manager: Manager

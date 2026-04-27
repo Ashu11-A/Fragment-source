@@ -1,9 +1,8 @@
 import { ButtonInteraction, CommandInteraction, Guild, GuildBasedChannel, Message, ModalSubmitInteraction, StringSelectMenuInteraction, User, type BaseMessageOptions, type TextBasedChannel } from 'discord.js'
-import { Error } from 'discord'
+import { DiscordError } from 'discord'
 
 type ReplyContent = BaseMessageOptions
 
-/** Tipos de interação suportadas pelos builders */
 export type CachedInteraction =
   | CommandInteraction<'cached'>
   | ModalSubmitInteraction<'cached'>
@@ -11,10 +10,6 @@ export type CachedInteraction =
   | StringSelectMenuInteraction<'cached'>
   | Message<true>
 
-/**
- * Classe base abstrata que centraliza lógica compartilhada entre todos os builders.
- * Fornece resolução de usuário, acesso ao guild e utilitários de validação.
- */
 export abstract class BaseInteractionBuilder<T extends CachedInteraction = CachedInteraction> {
   protected readonly interaction: T
   protected user: User
@@ -32,13 +27,11 @@ export abstract class BaseInteractionBuilder<T extends CachedInteraction = Cache
     }
   }
 
-  /** Retorna true se a interação está em estado diferido (deferReply) */
   protected get isDeferred(): boolean {
     if (this.interaction instanceof Message) return false
     return (this.interaction as Exclude<T, Message<true>>).deferred
   }
 
-  /** Retorna true se a interação suporta update (MessageComponentInteraction) */
   protected get isComponentInteraction(): boolean {
     return (
       this.interaction instanceof ButtonInteraction ||
@@ -46,22 +39,15 @@ export abstract class BaseInteractionBuilder<T extends CachedInteraction = Cache
     )
   }
 
-  /**
-   * Busca um canal pelo ID e valida que é text-based.
-   * Envia resposta de erro e retorna null se não encontrado ou inválido.
-   */
   protected async validateTextChannel (channelId: string): Promise<(GuildBasedChannel & TextBasedChannel) | null> {
     const channel = await this.guild.channels.fetch(channelId)
     if (channel?.isTextBased() !== true) {
-      await new Error({ element: channelId, interaction: this.interaction }).notFound({ type: 'Channel' }).reply()
+      await new DiscordError({ element: channelId, interaction: this.interaction }).notFound({ type: 'Channel' }).reply()
       return null
     }
     return channel as GuildBasedChannel & TextBasedChannel
   }
 
-  /**
-   * Responde à interação considerando o estado atual (deferred, component ou fresh).
-   */
   protected async handleInteractionResponse (content: ReplyContent): Promise<void> {
     if (this.interaction instanceof Message) return
 
@@ -77,25 +63,5 @@ export abstract class BaseInteractionBuilder<T extends CachedInteraction = Cache
     }
 
     await this.interaction.reply(content)
-  }
-
-  /** @deprecated Use handleInteractionResponse */
-  protected async safeReply (content: ReplyContent): Promise<void> {
-    return this.handleInteractionResponse(content)
-  }
-
-  /** Retorna o usuário que originou a interação */
-  getUser (): User {
-    return this.user
-  }
-
-  /** Retorna o guild da interação */
-  getGuild (): Guild {
-    return this.guild
-  }
-
-  /** Retorna a interação original */
-  getInteraction (): T {
-    return this.interaction
   }
 }

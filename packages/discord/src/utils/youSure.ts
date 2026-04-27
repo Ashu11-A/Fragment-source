@@ -2,33 +2,20 @@ import {
   ButtonStyle,
   ComponentType,
   EmbedBuilder,
-  type ButtonInteraction,
-  type CacheType,
-  type CommandInteraction,
-  type ModalSubmitInteraction,
-  type StringSelectMenuInteraction,
 } from 'discord.js'
-import { ActionDrawer } from './actionDrawer'
-import { ButtonBuilder } from './fragmentComponents'
-import { toPluginComponentPath } from './pluginComponentPath.js'
-
-type Interaction =
-  | CommandInteraction<CacheType>
-  | ModalSubmitInteraction<CacheType>
-  | ButtonInteraction<CacheType>
-  | StringSelectMenuInteraction<CacheType>
+import { ActionDrawer, ButtonBuilder } from '@/utils/fragmentComponents.js'
+import { toPluginComponentPath } from '@/utils/pluginComponentPath.js'
+import type { AnyInteraction } from '@/types/interactions.js'
 
 const CONFIRM_SUFFIX = 'confirm-button'
 const CANCEL_SUFFIX = 'cancel-button'
 
-/**
- * Diálogo de confirmação com dois botões (customId prefixado pelo plugin, como demais componentes Fragment).
- */
+/** Diálogo de confirmação com dois botões (customId prefixado pelo plugin, como demais componentes Fragment). */
 export class YouSure {
-  private readonly interaction: Interaction
+  private readonly interaction: AnyInteraction
   private readonly title?: string
 
-  constructor ({ interaction, title }: { interaction: Interaction, title?: string }) {
+  constructor ({ interaction, title }: { interaction: AnyInteraction, title?: string }) {
     this.interaction = interaction
     this.title = title
   }
@@ -82,11 +69,7 @@ export class YouSure {
                 await this.interaction.editReply({ embeds: [cancelled], components: [] })
                 return
               }
-              await this.interaction.reply({
-                ephemeral: true,
-                embeds: [cancelled],
-                components: [],
-              })
+              await this.interaction.reply({ ephemeral: true, embeds: [cancelled], components: [] })
             })
           setTimeout(async () => {
             await subInteraction.deleteReply().catch(() => undefined)

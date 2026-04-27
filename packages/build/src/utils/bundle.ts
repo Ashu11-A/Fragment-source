@@ -1,7 +1,7 @@
 import { join } from 'path'
 import { IndentationText, Project } from 'ts-morph'
 import { __plugin_dirname } from 'utils'
-import { getPlatformPath } from '../app'
+import { getPlatformPath } from '@/app'
 
 export function bundle({ cwd, path }: { cwd?: string, path: string }): string {
   const project = new Project({

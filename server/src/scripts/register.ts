@@ -2,7 +2,6 @@ import { User } from '@/database/entity/User'
 import { Role } from '@/database/enums'
 import { isDev } from '@/lib/dev'
 import { faker } from '@faker-js/faker'
-import { nanoid } from 'nanoid'
 
 export async function seedDatabase(): Promise<void> {
   if (!isDev) {
@@ -18,7 +17,6 @@ export async function seedDatabase(): Promise<void> {
         username: 'Ashu',
         email: 'admin@admin.com',
         language: 'pt-BR',
-        uuid: nanoid(),
         role: Role.Administrator,
       }).setPassword('admin1234')
     ).save()
@@ -33,7 +31,6 @@ export async function seedDatabase(): Promise<void> {
         username: 'user',
         email: 'user@user.com',
         language: 'pt-BR',
-        uuid: nanoid(),
         role: Role.User,
       }).setPassword('user1234')
     ).save()
@@ -63,7 +60,6 @@ export async function seedDatabase(): Promise<void> {
             username: userData.username,
             email: userData.email,
             language: userData.language,
-            uuid: nanoid(),
             role: userData.role,
           }).setPassword('password123')
         ).save()

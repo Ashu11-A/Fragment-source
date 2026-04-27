@@ -1,4 +1,4 @@
-import { root } from '@/index.js'
+import { root } from '@/singletons.js'
 import { lang } from '@/lang.js'
 import { storage } from '@/storage.js'
 import { Command } from 'discord'
@@ -16,8 +16,8 @@ export default new Command({
       description: 'Loaded directly from your directory',
       type: ApplicationCommandOptionType.String,
       autocomplete: true,
-      required: true
-    }
+      required: true,
+    },
   ],
   async autocomplete(interaction) {
     const { options } = interaction
@@ -26,40 +26,28 @@ export default new Command({
     switch (options.getFocused(true).name) {
     case 'name': {
       const languages = await glob('locales/*', { cwd: root })
-
-      response.push(...languages.map((lang) => {
-        const lastValue = lang.split('/').length - 1
-        
-        return {
-          name: lang.split('/')[lastValue], // pt-BR
-          value: lang.split('/')[lastValue]
-        } satisfies ApplicationCommandOptionChoiceData
+      response.push(...languages.map((entry) => {
+        const name = entry.split('/').at(-1) ?? entry
+        return { name, value: name } satisfies ApplicationCommandOptionChoiceData
       }))
       break
     }
     }
+
     await interaction.respond(response)
   },
   async run(interaction) {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral })
-    const { options } = interaction
-    const language = options.getString('name', true)
-
+    const language = interaction.options.getString('name', true)
     const languageChange = await lang.set(language)
     await storage.append('.data', { language: languageChange }, { isJson: true })
-    
-    if (languageChange ===  language)
-      await interaction.editReply({
-        embeds: [new EmbedBuilder({
-          title: i18('commands.lang.sucess')
-        }).setColor('Green')]
-      })
-    else {
-      await interaction.editReply({
-        embeds: [new EmbedBuilder({
-          title: i18('commands.lang.error')
-        }).setColor('Red')]
-      })
-    }
+
+    await interaction.editReply({
+      embeds: [
+        new EmbedBuilder({
+          title: languageChange === language ? i18('commands.lang.sucess') : i18('commands.lang.error'),
+        }).setColor(languageChange === language ? 'Green' : 'Red'),
+      ],
+    })
   },
 })

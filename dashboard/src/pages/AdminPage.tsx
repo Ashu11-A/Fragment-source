@@ -1,7 +1,7 @@
 import { trpc } from '@/lib/trpc'
 import { Card, CardContent } from '@/components/ui/card'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { PageHeader } from '@/components/ui/PageHeader'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { PageHeader } from '@/components/PageHeader'
 import { getGradientColors } from '@/lib/gradient-utils'
 import { Users, Bot, Puzzle, CreditCard, TrendingUp, Activity } from 'lucide-react'
 

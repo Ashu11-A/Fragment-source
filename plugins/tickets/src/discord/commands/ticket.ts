@@ -1,8 +1,8 @@
 import { database } from '@/database'
 import { Template } from '@/class/Template'
 import { TemplateManager } from '@/class/TemplateManager.js'
-import { Close, CloseQuestionSubmit, CloseWithQuestion, Panel, PanelSelect, Switch } from '../components/Ticket/TicketActions.js'
-import { Claim, Delete, Transcript } from '../components/Claim/ClaimActions.js'
+import { Close, CloseQuestionSubmit, CloseWithQuestion, Panel, PanelSelect, Switch } from '../components/TicketActions.js'
+import { Claim, Delete, Transcript } from '../components/ClaimActions.js'
 import {
   AddSelectButton, AddSelectModal,
   Category, Config, DeleteTemplate, EditSelectMenu,
@@ -13,8 +13,8 @@ import {
   SetImageButton, SetImageModal, SetModal,
   SetSelect, SetThumbnailButton, SetThumbnailModal,
   SetTitleButton, SetTitleModal,
-} from '../components/Template/TemplateActions.js'
-import { Command, Error } from 'discord'
+} from '../components/TemplateActions.js'
+import { Command, DiscordError } from 'discord'
 import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, Colors, EmbedBuilder, MessageFlags, PermissionFlagsBits } from 'discord.js'
 
 export default new Command({
@@ -206,7 +206,6 @@ export default new Command({
         }
         case 'category': {
           const messageId = options.data[0].options?.[0].options?.find((option) => option.name === 'message_id')?.value as string | undefined
-          console.log(messageId)
           const categories = (await database.template.findOne({ where: { messageId } }))?.categories ?? []
           respond.push(...categories.map((category) => ({ name: `${category.emoji} ${category.title}`, value: category.title })))
           break
@@ -251,7 +250,7 @@ export default new Command({
           const templateId = options.getString('message_id', true)
 
           const templateData = await database.template.findOne({ where: { messageId: templateId } })
-          if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
+          if (templateData === null) throw await new DiscordError({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
           templateData.categories = [ ...(templateData.categories ?? []), { emoji, title }]
 
           await new TemplateManager({ interaction }).setData(templateData).edit({ messageId: templateId }).then(async () => {
@@ -268,7 +267,7 @@ export default new Command({
           const title = options.getString('category', true)
           const templateId = options.getString('message_id', true)
           const templateData = await database.template.findOne({ where: { messageId: templateId } })
-          if (templateData === null) throw await new Error({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
+          if (templateData === null) throw await new DiscordError({ element: 'template', interaction }).notFound({ type: 'Database' }).reply()
 
           templateData.categories = templateData?.categories.filter((category) => category.title !== title)
 
@@ -288,9 +287,9 @@ export default new Command({
     } else {
       switch (options.getSubcommand()) {
       case 'template': {
-        if (!interaction.inCachedGuild()) throw await new Error({ element: 'a ação não foi realizada dentro de um servidor', interaction }).notPossible().reply()
+        if (!interaction.inCachedGuild()) throw await new DiscordError({ element: 'a ação não foi realizada dentro de um servidor', interaction }).notPossible().reply()
         const sendChannel = await interaction.guild.channels.fetch(channelId)
-        if (!sendChannel?.isTextBased()) throw await new Error({ element: 'concluir a ação, pois o channel não é um TextBased', interaction }).notPossible().reply()
+        if (!sendChannel?.isTextBased()) throw await new DiscordError({ element: 'concluir a ação, pois o channel não é um TextBased', interaction }).notPossible().reply()
 
         const template = new Template({ interaction })
         const title = options.getString('title_create')

@@ -18,17 +18,15 @@ function isExistingCommandInstance (input: unknown): boolean {
  * o registo de todos os `Responder` no `ConstaticApp`.
  */
 export function registerPluginCommand (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  input: CommandData<any, any, Record<string, GenericAction>, any> | any
+  input: CommandData<unknown, unknown, Record<string, GenericAction>, unknown> | unknown
 ): void {
   const app = ConstaticApp.getInstance()
-  const cmd = isExistingCommandInstance(input) ? input : new Command(input)
-  app.commands.set(cmd)
+  const cmd = isExistingCommandInstance(input) ? input : new Command(input as never)
+  app.commands.set(cmd as never)
 }
 
 export function unregisterCommand (commandName: string): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mgr = ConstaticApp.getInstance().commands as any
+  const mgr = ConstaticApp.getInstance().commands as unknown as { collection: Map<string, { data: { type?: number, name: string } }>, runners: Map<string, unknown>, autocompleteRunners: Map<string, unknown> }
   const cmd = mgr.collection.get(commandName)
   if (!cmd) return
 
