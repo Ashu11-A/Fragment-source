@@ -1,0 +1,21 @@
+{
+  "name": "discord-oauth",
+  "version": "1.0.0",
+  "private": true,
+  "module": "src/index.ts",
+  "types": "build/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./src/index.ts"
+    },
+    "./loopback": {
+      "types": "./build/loopback.d.ts",
+      "import": "./src/loopback.ts"
+    }
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  }
+}

@@ -2,22 +2,26 @@
   "name": "env",
   "version": "1.0.0",
   "module": "src/app.ts",
-  "types": "src/app.ts",
+  "types": "build/app.d.ts",
   "type": "module",
   "typesVersions": {
     "*": {
-      ".": ["./src/types/env.d.ts"],
-      "globals": ["./src/types/env.d.ts"]
+      ".": [
+        "./src/types/env.d.ts"
+      ],
+      "globals": [
+        "./src/types/env.d.ts"
+      ]
     }
   },
   "exports": {
     ".": {
-      "types": "./src/app.ts",
+      "types": "./build/app.d.ts",
       "import": "./src/app.ts",
       "require": "./src/app.ts"
     },
     "./loader": {
-      "types": "./src/types/env.d.ts",
+      "types": "./build/types/env.d.ts",
       "import": "./src/loader.ts",
       "require": "./src/loader.ts"
     }

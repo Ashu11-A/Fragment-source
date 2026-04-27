@@ -2,7 +2,7 @@
   "name": "build",
   "version": "1.0.0",
   "module": "src/app.ts",
-  "types": "src/app.ts",
+  "types": "build/app.d.ts",
   "type": "module",
   "private": true,
   "scripts": {

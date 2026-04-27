@@ -1,9 +1,9 @@
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
-import { Package } from './controllers/package'
+import { Package } from '@/controllers/package'
 
-export * from './controllers/package'
-export * from './utils/index'
+export * from '@/controllers/package'
+export * from '@/utils/index'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 export const __plugin_dirname = process.cwd()

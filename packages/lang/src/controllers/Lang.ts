@@ -1,90 +1,39 @@
 import flags from 'country-code-to-flag-emoji'
-import { existsSync, watch } from 'fs'
-import { mkdir, readFile, writeFile } from 'fs/promises'
-import { glob } from 'glob'
-import { dirname, join } from 'path'
 import prompts, { type Choice } from 'prompts'
-import { exists } from 'utils'
-import type { LangLyrics, LangOptions } from '../types/lang'
+import type { LangLyrics, LangOptions } from '@/types/lang'
 
-export class Lang<Languages extends Record<string, LangLyrics<Record<string, unknown>>>>{
+export class Lang<Languages extends Record<string, LangLyrics<Record<string, unknown>>>> {
   public language: keyof Languages
   public languages: Languages
-  public paths: Record<string, string> = {}
-  public sourcePath: string
 
   constructor(options: LangOptions<Languages>) {
-    this.sourcePath = process.cwd()
     this.languages = options.languages
     this.language = options.language
   }
 
-  /**
-   * Recriar os arquivos de lang externamente (do PKG) para possibilitar customizações
-   */
-  async register () {
-    const langPath = join(this.sourcePath, 'locales')
-    const cache = new Map<string, boolean>()
-    
-    if (!existsSync(langPath)) await mkdir(langPath)
-    for (const [language, metadata] of Object.entries(this.languages)) {
-      const externalPath = join(this.sourcePath, 'locales', dirname(language.split('/')[0]), language)
-      
-      await mkdir(externalPath, { recursive: true })
-      await writeFile(join(externalPath, `/${metadata.name}.json`), JSON.stringify(metadata.data, null, 2), { encoding: 'utf8' })
-    }
-
-    const watcher = watch(langPath, { recursive: true })
-
-    watcher.on('change', async () => {
-      cache.set(langPath, true)
-      await this.reload()
-    })
-
-    return this
-  }
-
-  async reload () {
-    for (const [lang, path] of Object.entries(this.paths)) {
-      (this.languages as Record<string, unknown>)[lang] = JSON.parse(await readFile(path, { encoding: 'utf-8' }))
-    }
-  }
-
-  
-  async set (lang: string) {
-    const path = join(this.sourcePath, 'locales', lang)
-    
-    if (!(await exists(path))) {
+  set(lang: string): keyof Languages {
+    if (!(lang in this.languages)) {
       console.log(`⛔ The selected language (${lang}) does not exist, using English by default`)
-      this.language = 'en'
+      this.language = 'en' as keyof Languages
       return this.language
     }
-
-    this.language = lang
+    this.language = lang as keyof Languages
     return this.language
   }
-  
-  async select (): Promise<string> {
-    const path = join(this.sourcePath, 'locales')
-    const allLangs = (await glob('*', { cwd: path })).map((lang) => lang.split('/')[0])
-    const langs = []
-  
-    for (const lang of allLangs) {
-      if (langs.filter((langExist) => langExist === lang).length == 0) langs.push(lang)
-    }
 
+  async select(): Promise<string> {
+    const langs = Object.keys(this.languages)
     const choices: Choice[] = langs.map((lang) => ({ title: `${flags(lang)} - ${lang}`, value: lang } satisfies Choice))
     const response = await prompts({
       name: 'Language',
       type: 'select',
       choices,
       message: 'Which language should I continue with?',
-      initial: 1
+      initial: 1,
     })
 
     if (response.Language === undefined) throw new Error('Please select a language')
-    
-    await this.set(response.Language)
-    return response.Language
+    this.set(response.Language as string)
+    return response.Language as string
   }
 }

@@ -5,8 +5,8 @@ import { join } from 'path'
 import SemVer from 'semver'
 import chalk from 'chalk'
 import type { PluginModule } from 'discord'
-import { i18 } from '..'
-import { PathType, type ManagerOptions, type Metadata, type MetadataKeys } from '../types/manager'
+import { i18 } from '@/index'
+import { PathType, type ManagerOptions, type Metadata, type MetadataKeys } from '@/types/manager'
 
 /**
  * The framework version that core exposes to plugins.

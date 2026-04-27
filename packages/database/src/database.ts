@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { join } from 'path'
 import { DataSource, getMetadataArgsStorage } from 'typeorm'
 
@@ -10,13 +10,13 @@ export interface DatabaseOptions {
 
 export class Database {
   public client: DataSource
-  private entities = new Map<string, any[]>()
+  private entities = new Map<string, Function[]>()
 
   constructor(private readonly opts: DatabaseOptions) {
     this.client = this.buildDataSource([])
   }
 
-  private buildDataSource(entities: any[]): DataSource {
+  private buildDataSource(entities: Function[]): DataSource {
     return new DataSource({
       type: 'sqljs' as const,
       autoSave: true,
@@ -42,7 +42,7 @@ export class Database {
     spin?.succeed(`Database initialized (${allEntities.length} entities)`)
   }
 
-  async register(pluginName: string, entities: any[]): Promise<void> {
+  async register(pluginName: string, entities: Function[]): Promise<void> {
     if (entities.length === 0) return
 
     this.entities.set(pluginName, entities)

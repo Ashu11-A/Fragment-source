@@ -3,15 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "module": "src/app.ts",
-  "types": "src/app.ts",
+  "types": "build/app.d.ts",
   "type": "module",
   "exports": {
     ".": {
-      "types": "./src/app.ts",
+      "types": "./build/app.d.ts",
       "import": "./src/app.ts"
     },
     "./registries": {
-      "types": "./src/registries/index.ts",
+      "types": "./build/registries/index.d.ts",
       "import": "./src/registries/index.ts"
     }
   },

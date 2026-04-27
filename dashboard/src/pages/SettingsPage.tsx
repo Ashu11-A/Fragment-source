@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { PageHeader } from '@/components/ui/PageHeader'
+import { PageHeader } from '@/components/PageHeader'
 import { useTheme } from '@/providers/ThemeProvider'
 import { useAuth } from '@/providers/AuthProvider'
 import { Settings, Palette, Sun, Moon } from 'lucide-react'

@@ -9,14 +9,20 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "noEmit": true,
+    "emitDeclarationOnly": true,
     "strict": true,
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
-    "typeRoots": ["./src/types", "../../node_modules/@types"]
+    "typeRoots": ["./src/types", "../../node_modules/@types"],
+    "types": ["node"],
+    "composite": true,
+    "declarationDir": "./build",
+    "rootDir": "./src",
+    "paths": { "@/*": ["./src/*"] }
   },
-  "include": ["./src/**/*.ts"]
+  "include": ["src"],
+  "exclude": ["node_modules", "build"]
 }

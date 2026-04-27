@@ -5,7 +5,7 @@ import {
 } from '@ashu11a/constatic'
 import { Analyze } from 'url-ast'
 import type { ApplicationCommandType, InteractionContextType } from 'discord.js'
-import { toPluginComponentPath } from '../utils/pluginComponentPath.js'
+import { toPluginComponentPath } from '@/utils/pluginComponentPath.js'
 
 export class Command<
   const Type = ApplicationCommandType.ChatInput,
@@ -23,8 +23,7 @@ export class Command<
     const ast = new Analyze(pathStr) as A['ast']
     action.ast = ast
     // Mesmo contrato que `ConstaticCommand.action`; o `Responder` é genérico por tipo de interação.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    new (Responder as any)({
+    new (Responder as unknown as new (args: unknown) => unknown)({
       customId: ast.getPathname(),
       types: [action.type],
       run: action.run,

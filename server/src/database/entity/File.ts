@@ -1,29 +1,24 @@
-import { BaseEntity, Column, Entity, Generated, OneToOne, PrimaryGeneratedColumn, type Relation } from 'typeorm'
-import { Release } from './Release.js'
+import { Release } from '@/database/entity/Release.js'
 import type { FileMetadata, FileType } from 'storage'
+import { Column, Entity, OneToOne, type Relation } from 'typeorm'
+import { BaseEntity } from './base'
 
 
 @Entity({ name: 'files' })
 export class FileEntity extends BaseEntity implements FileMetadata {
-  @PrimaryGeneratedColumn()
-    id!: number
-  @Column({ type: 'varchar', nullable: true })
-  @Generated('uuid')
-    uuid!: string
-
   @Column({ type: 'varchar' })
-    name!: string
+  name!: string
   @Column({ type: 'integer' })
-    size!: number
+  size!: number
   @Column({ type: 'varchar' })
-    type!: FileType
+  type!: FileType
   @Column({ type: 'varchar' })
-    mimeType!: string
+  mimeType!: string
   @Column({ type: 'text' })
-    md5!: string
+  md5!: string
   @Column({ type: 'text' })
-    sha265!: string
+  sha265!: string
 
   @OneToOne(() => Release, (release) => release.file, { onDelete: 'CASCADE' })
-    release!: Relation<Release>
+  release!: Relation<Release>
 }

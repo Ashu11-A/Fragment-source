@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 
 /**
  * Global typed registry of plugin database schemas.
@@ -23,9 +23,10 @@
  * await db.user.find({ where: { active: true } }) // → User[]
  */
  
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface DatabaseRegistry {}
 
-type AnyConstructor = new (...args: any[]) => object
+type AnyConstructor = new (...args: unknown[]) => object
 type AnySchema = Record<string, AnyConstructor>
 
 /**

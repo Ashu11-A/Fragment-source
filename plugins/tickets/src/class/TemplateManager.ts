@@ -1,7 +1,7 @@
 import Template from '@/database/entity/Template.entry.js'
 import { database } from '@/database'
-import { checkURL, Error } from 'discord'
-import { ActionRowBuilder, ButtonInteraction, ButtonStyle, Colors, EmbedBuilder, Message, MessageComponentInteraction, type APIEmbed as APIEmbedDiscord, type CommandInteraction, type ModalSubmitInteraction, type StringSelectMenuInteraction } from 'discord.js'
+import { checkURL, DiscordError } from 'discord'
+import { ActionRowBuilder, ButtonInteraction, ButtonStyle, Colors, EmbedBuilder, Message, MessageComponentInteraction, type APIEmbed as APIEmbedDiscord } from 'discord.js'
 import { BaseInteractionBuilder, type CachedInteraction } from './BaseInteractionBuilder.js'
 import { ActionDrawer, ButtonBuilder, StringSelectMenuBuilder } from 'discord'
 import { type Properties, type Select, type System, TypeTemplate } from '@/types/entries'
@@ -107,14 +107,14 @@ export class TemplateManager extends BaseInteractionBuilder implements Record<'e
       )
     } else if (this.mode === 'production') {
       switch (this.type) {
-        case TypeTemplate.Modal:
-        case TypeTemplate.Button:
-          buttons.push(
-            new ButtonBuilder({ customId: 'Open', label: 'Abrir Ticket', style: ButtonStyle.Success, emoji: { name: '🎫' } }),
-            new ButtonBuilder({ customId: 'Config', emoji: { name: '⚙️' }, style: ButtonStyle.Secondary })
-          )
-          break
-        case TypeTemplate.Select:
+      case TypeTemplate.Modal:
+      case TypeTemplate.Button:
+        buttons.push(
+          new ButtonBuilder({ customId: 'Open', label: 'Abrir Ticket', style: ButtonStyle.Success, emoji: { name: '🎫' } }),
+          new ButtonBuilder({ customId: 'Config', emoji: { name: '⚙️' }, style: ButtonStyle.Secondary })
+        )
+        break
+      case TypeTemplate.Select:
       }
     }
 
@@ -152,9 +152,9 @@ export class TemplateManager extends BaseInteractionBuilder implements Record<'e
       const { customId } = button
       if (customId === undefined) continue
 
-      const mappedType = Object.entries(buttonTypeMap).find(([key]) => key === button.customId)
+      const mappedType = buttonTypeMap[button.customId]
       if (this.systems.find((mod) => mod.name === button.customId && mod.isEnabled)) button.setStyle(ButtonStyle.Primary)
-      if (mappedType?.[0] === customId && this.type === mappedType[1]) button.setStyle(ButtonStyle.Primary)
+      if (mappedType !== undefined && this.type === mappedType) button.setStyle(ButtonStyle.Primary)
       if (customId === 'AddSelect' && this.type === TypeTemplate.Select) button.setDisabled(false)
       if (customId === 'Category' && (this.type === TypeTemplate.Button || this.type === TypeTemplate.Modal)) button.setDisabled(false)
       if (customId === 'MoreDetails' && this.type === TypeTemplate.Modal) button.setDisabled(true)
@@ -181,7 +181,7 @@ export class TemplateManager extends BaseInteractionBuilder implements Record<'e
       : await database.template.findOne({ where: { messageId } })
 
     if (templateData === null) {
-      throw await new Error({ element: 'o template', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
+      throw await new DiscordError({ element: 'o template', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
     }
 
     const channel = await this.validateTextChannel(templateData.channelId)
@@ -190,7 +190,7 @@ export class TemplateManager extends BaseInteractionBuilder implements Record<'e
     const message = await channel.messages.fetch(templateData.messageId)
 
     if (this.options.color !== undefined && Object.values(Colors).find((color) => color === Number(this.options.color)) === undefined) {
-      await new Error({ element: 'cor', interaction: this.interaction }).invalidProperty().reply()
+      await new DiscordError({ element: 'cor', interaction: this.interaction }).invalidProperty().reply()
       return
     }
 
@@ -209,7 +209,7 @@ export class TemplateManager extends BaseInteractionBuilder implements Record<'e
     if (this.options.image !== undefined) {
       const [isImageUrl] = checkURL(this.options.image)
       if (!isImageUrl) {
-        await new Error({ element: 'Image', interaction: this.interaction }).invalidProperty().reply()
+        await new DiscordError({ element: 'Image', interaction: this.interaction }).invalidProperty().reply()
         return
       }
     }
@@ -217,7 +217,7 @@ export class TemplateManager extends BaseInteractionBuilder implements Record<'e
     if (this.options.thumbnail !== undefined) {
       const [isThumbUrl] = checkURL(this.options.thumbnail)
       if (!isThumbUrl) {
-        await new Error({ element: 'Thumbnail', interaction: this.interaction }).invalidProperty().reply()
+        await new DiscordError({ element: 'Thumbnail', interaction: this.interaction }).invalidProperty().reply()
         return
       }
     }
@@ -240,7 +240,7 @@ export class TemplateManager extends BaseInteractionBuilder implements Record<'e
 
     const templateData = await database.template.findOne({ where: { messageId } })
     if (templateData === null) {
-      await new Error({ element: 'o template', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
+      await new DiscordError({ element: 'o template', interaction: this.interaction }).notFound({ type: 'Database' }).reply()
       return
     }
 

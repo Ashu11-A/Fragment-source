@@ -2,8 +2,14 @@
   "name": "storage",
   "version": "1.0.0",
   "module": "src/app.ts",
-  "types": "src/app.ts",
+  "types": "build/src/app.d.ts",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./build/src/app.d.ts",
+      "import": "./src/app.ts"
+    }
+  },
   "scripts": {
     "lint": "eslint --fix ."
   },

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { getAccessTokenFromHandshake, authenticateUserFromAccessToken } from '@/lib/socketHandshakeAuth.js'
-import type { SocketData } from './types.js'
+import type { SocketData } from '@/socket/types.js'
 
 export function setupSocketMiddleware(fastify: FastifyInstance): void {
   fastify.io.use(async (socket, next) => {

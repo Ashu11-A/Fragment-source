@@ -1,6 +1,6 @@
 import { writeFileSync } from 'fs'
 import { join } from 'path'
-import type { GeneratorParams } from '../types/generator'
+import type { GeneratorParams } from '@/types/generator'
 
 export class Generator {
   constructor (public options: GeneratorParams) {

@@ -1,5 +1,5 @@
 import { ServerEvent } from 'socket'
-import type { SocketCtx, SocketData } from '../types.js'
+import type { SocketCtx, SocketData } from '@/socket/types.js'
 
 export const clientIdentify = new ServerEvent<'client:identify', SocketCtx>({
   name: 'client:identify',

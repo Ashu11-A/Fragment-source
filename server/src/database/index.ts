@@ -1,9 +1,9 @@
-import dataSource from './dataSource.js'
-import { Auth } from './entity/Auth.js'
-import { Bot } from './entity/Bot.js'
-import { Plugin } from './entity/Plugin.js'
-import { Subscription } from './entity/Subscription.js'
-import { User } from './entity/User.js'
+import dataSource from '@/database/dataSource.js'
+import { Auth } from '@/database/entity/Auth.js'
+import { Bot } from '@/database/entity/Bot.js'
+import { Plugin } from '@/database/entity/Plugin.js'
+import { Subscription } from '@/database/entity/Subscription.js'
+import { User } from '@/database/entity/User.js'
 
 export const authTreeRepository = dataSource.getTreeRepository(Auth)
 

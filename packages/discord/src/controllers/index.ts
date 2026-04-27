@@ -1,1 +1,1 @@
-export * from './Crons.js'
+export * from '@/controllers/Crons.js'

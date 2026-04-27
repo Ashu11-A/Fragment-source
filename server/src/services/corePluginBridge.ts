@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
-import type { User } from '../database/entity/User.js'
-import { assertUserOwnsBot } from './botActivity.js'
+import type { User } from '@/database/entity/User.js'
+import { assertOwnership } from '@/services/activity.js'
 import type { FastifyInstance } from 'fastify'
 import { TRPCError } from '@trpc/server'
 
@@ -69,7 +69,7 @@ export async function callCorePlugin(
   action: CorePluginActionInput,
   options?: { timeoutMs?: number }
 ): Promise<CorePluginResultPayload> {
-  if (!await assertUserOwnsBot(user, botId)) {
+  if (!await assertOwnership(user, botId)) {
     throw new TRPCError({ code: 'FORBIDDEN', message: 'Bot not found or not yours.' })
   }
 

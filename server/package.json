@@ -59,6 +59,7 @@
     "class-transformer": "^0.5.1",
     "date-fns": "^4.1.0",
     "dotenv": "^16.6.1",
+    "discord-oauth": "workspace:../packages/discord-oauth",
     "env": "workspace:../packages/env",
     "fastify": "^5.8.5",
     "fastify-socket.io": "^5.1.0",

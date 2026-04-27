@@ -1,5 +1,4 @@
 import { TRPCError } from '@trpc/server'
-import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { User } from '@/database/entity/User.js'
 import { Role } from '@/database/enums.js'
@@ -22,7 +21,6 @@ export const signup = publicProcedure
 
     const user = await (await User.create({
       ...input,
-      uuid: nanoid(),
       role: Role.User,
       discordId: null,
     }).setPassword(input.password)).save()

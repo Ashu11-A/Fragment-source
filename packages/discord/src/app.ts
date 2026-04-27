@@ -1,6 +1,8 @@
-export * from './utils/index.js'
-export * from './types/plugin.js'
-export * from './registries/index.js'
+export * from '@/utils/index.js'
+export * from '@/types/plugin.js'
+export * from '@/types/components.js'
+export * from '@/types/interactions.js'
+export * from '@/registries/index.js'
 
 import { bootstrap as startDiscord } from '@ashu11a/constatic'
 export { ResponderType } from '@ashu11a/constatic'
@@ -13,5 +15,5 @@ export {
   type CronsConfigurations,
   type CronsConfigurationsSystem,
   type UniqueCron,
-} from './controllers/Crons.js'
+} from '@/controllers/Crons.js'
 

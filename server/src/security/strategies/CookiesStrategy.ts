@@ -1,6 +1,6 @@
 import { type FastifyRequest } from 'fastify'
-import { Strategy } from './Base.js'
-import { validateAccessToken } from '../validateToken.js'
+import { Strategy } from '@/security/strategies/Base.js'
+import { validateAccessToken } from '@/security/validateToken.js'
 import type { User } from '@/database/entity/User.js'
 
 export class CookiesStrategy extends Strategy<User> {

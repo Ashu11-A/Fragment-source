@@ -4,8 +4,8 @@ import { useBotActivity } from '@/hooks/useBotActivity'
 import { useBotDetailStore } from '@/stores/botDetailStore'
 import { BotActivityFeed } from '@/components/bot/BotActivityFeed'
 import { BotCoreConsoleStream } from '@/components/bot/BotCoreConsoleStream'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { BotNotFound } from '@/components/ui/BotNotFound'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { BotNotFound } from '@/components/BotNotFound'
 
 const botShellRouteApi = getRouteApi('/_authenticated/bots_/$botId')
 

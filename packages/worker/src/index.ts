@@ -20,7 +20,6 @@ const languages = {
 
 const lang = new Lang({ languages, language: 'en' })
 const lyrics = new Lyrics(languages[lang.language].data, lang)
-await lang.register()
 const i18 = lyrics.get.bind(lyrics)
   
 export { i18, lang }

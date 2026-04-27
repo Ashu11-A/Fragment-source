@@ -12,7 +12,7 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "noEmit": true,
+    "emitDeclarationOnly": true,
 
     // Best practices
     "strict": true,
@@ -22,6 +22,18 @@
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
-  }
+    "noPropertyAccessFromIndexSignature": false,
+
+    "composite": true,
+    "declarationDir": "./build",
+    "rootDir": "./",
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "references": [
+    { "path": "../database" },
+    { "path": "../discord" },
+    { "path": "../lang" }
+  ],
+  "include": ["src", "locales"],
+  "exclude": ["node_modules", "build"]
 }

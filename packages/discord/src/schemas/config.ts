@@ -1,5 +1,5 @@
 import { BaseEntity, OneToOne, PrimaryGeneratedColumn, type Relation } from 'typeorm'
-import Guild from './guild'
+import Guild from '@/schemas/guild'
 
 export class ConfigEntry extends BaseEntity {
   @PrimaryGeneratedColumn()

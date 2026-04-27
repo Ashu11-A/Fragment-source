@@ -1,5 +1,5 @@
 import { ServerEvent } from 'socket'
-import type { SocketCtx } from '../types.js'
+import type { SocketCtx } from '@/socket/types.js'
 
 export const clientMessage = new ServerEvent<'client:message', SocketCtx>({
   name: 'client:message',

@@ -1,5 +1,5 @@
-import type { ComponentManifest } from '../types/plugin.js'
-import { toPluginComponentPath } from './pluginComponentPath.js'
+import type { ComponentManifest } from '@/types/plugin.js'
+import { toPluginComponentPath } from '@/utils/pluginComponentPath.js'
 
 /**
  * Mesmos `customId` que `toPluginComponentPath(parser)` em runtime (prefixo = plugin do package).

@@ -1,17 +1,17 @@
 import jwt from 'jsonwebtoken'
 import moment from 'moment'
 import type { FastifyReply } from 'fastify'
-import { Auth } from '../database/entity/Auth.js'
-import type { User } from '../database/entity/User.js'
+import { Auth } from '@/database/entity/Auth.js'
+import type { User } from '@/database/entity/User.js'
 import {
   jwtSignExpiresInSeconds,
   payloadExpireSeconds,
   resolveAccessExpireMs,
   resolveRefreshExpireMs,
-} from './jwtExpiryConfig.js'
+} from '@/security/jwtExpiryConfig.js'
 
 function resolveCookieDomain(): string | undefined {
-  const explicit = process.env.COOKIE_DOMAIN?.trim()
+  const explicit = String(process.env.COOKIE_DOMAIN ?? '').trim()
   if (explicit && explicit.length > 0) return explicit
 
   const frontEndUrl = process.env.FRONT_END_URL?.trim()
@@ -28,8 +28,8 @@ export const getCookieOptions = (expirationDate: Date) => ({
   path: '/',
   expires: expirationDate,
   httpOnly: true,
-  secure: Boolean(process.env.PRODUCTION),
-  domain: process.env.PRODUCTION ? resolveCookieDomain() : undefined,
+  secure: process.env.PRODUCTION === 'true',
+  domain: process.env.PRODUCTION === 'true' ? resolveCookieDomain() : undefined,
 })
 
 export type IssuedSessionPayload = {
@@ -61,7 +61,7 @@ export async function issueAuthSession(user: User, res: FastifyReply): Promise<I
   const expirationTokenDate = new Date(Date.now() + expiresTokenMs)
   const expirationRefreshDate = new Date(Date.now() + expiresRefreshMs)
 
-  const data = { id: user.id, uuid: user.uuid, username: user.username, email: user.email }
+  const data = { id: user.id, username: user.username, email: user.email }
 
   const accessToken = jwt.sign(data, tokenSecret, {
     expiresIn: jwtSignExpiresInSeconds(expiresTokenMs),

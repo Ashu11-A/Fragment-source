@@ -1,2 +1,2 @@
-export * from './Storage.js'
-export * from './Crypt.js'
+export * from '@/controllers/Storage.js'
+export * from '@/controllers/Crypt.js'

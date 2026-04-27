@@ -5,7 +5,7 @@ import type {
   ResponderType,
 } from '@ashu11a/constatic'
 import type { CacheType } from 'discord.js'
-import type { CronsConfigurations } from '../controllers/Crons.js'
+import type { CronsConfigurations } from '@/controllers/Crons.js'
 
 /**
  * A database dependency on another plugin.
@@ -58,8 +58,7 @@ export interface PluginContext {
    * Instância de `Command` (export do módulo, após a cadeia `.action(…, bot)`)
    * ou, em raros casos, o objeto `CommandData` plano.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  command: (data: any) => void
+  command: (data: import('@ashu11a/constatic').CommandData<unknown, unknown, Record<string, import('@ashu11a/constatic').GenericAction>, unknown> | unknown) => void
   event<K extends ClientEventKey>(data: EventData<K>): void
   component<Path extends string, Types extends readonly ResponderType[], Cache extends CacheType>(data: ResponderData<Path, Types, Cache>): void
   /** Register a cron job */
@@ -84,8 +83,7 @@ export interface PluginContext {
    *   await registerAll(ctx)
    * }
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  registerSchema(schema: Record<string, any>): void
+  registerSchema(schema: Record<string, import('typeorm').EntityTarget<unknown>>): void
 }
 
 // ---------------------------------------------------------------------------

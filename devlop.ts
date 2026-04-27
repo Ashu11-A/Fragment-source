@@ -1,237 +1,219 @@
-import { ChildProcess, spawn } from 'child_process';
-import { cp, mkdir, rm } from 'fs/promises';
-import { glob } from 'glob';
-import { join } from 'path';
-import { BuildType, PluginBuilder, type BuildMetadata } from './build';
-import chokidar from 'chokidar';
+import { type ChildProcess, spawn } from 'child_process'
+import { cp, mkdir, rm } from 'fs/promises'
+import { glob } from 'glob'
+import { join } from 'path'
+import { BuildType, PluginBuilder, type BuildMetadata } from './build'
+import chokidar from 'chokidar'
+import chalk from 'chalk'
 
-const outputDirectoryString = join(process.cwd(), 'releases');
-const corePluginsDirectoryString = join(process.cwd(), 'core/plugins');
+const ROOT = process.cwd()
+const RELEASES_DIR = join(ROOT, 'releases')
+const CORE_PLUGINS_DIR = join(ROOT, 'core/plugins')
+const PLUGIN_GLOB = 'plugins/*'
+const PLUGIN_DEBOUNCE_MS = 400
 
-const buildConfiguration: BuildMetadata = {
-  path: 'plugins/*',
+// Alinha o singleton do Constatic com o processo do core.
+const PLUGIN_BUILD_BASE: Omit<BuildMetadata, 'path'> = {
   type: BuildType.File,
   options: {
     entryFile: 'src/app.ts',
-    outputDirectory: outputDirectoryString,
-    /** Alinha o singleton do Constatic com o processo do core (ver `pluginBundleOptions` em release.ts). */
+    outputDirectory: RELEASES_DIR,
     buildArgs: ['--external=@ashu11a/constatic'],
+  },
+}
+
+// ─── Service registry ────────────────────────────────────────────────────────
+
+type ServiceName = 'server' | 'core' | 'dashboard'
+type ServiceStatus = 'idle' | 'running' | 'stopped' | 'error'
+
+type ServiceDef = {
+  label: string
+  badge: string
+  cwd: string
+  cmd: string
+  args: string[]
+}
+
+const SERVICES: Record<ServiceName, ServiceDef> = {
+  server: {
+    label: 'SERVER',
+    badge: chalk.blue.bold('[SERVER]'),
+    cwd: join(ROOT, 'server'),
+    cmd: 'bun',
+    args: ['--watch', '--inspect=ws://localhost:6499', 'src/app.ts'],
+  },
+  core: {
+    label: 'CORE',
+    badge: chalk.green.bold('[CORE  ]'),
+    cwd: join(ROOT, 'core'),
+    cmd: 'bun',
+    args: ['--watch', 'src/app.ts'],
+  },
+  dashboard: {
+    label: 'DASHBOARD',
+    badge: chalk.cyan.bold('[DASH  ]'),
+    cwd: join(ROOT, 'dashboard'),
+    cmd: 'bun',
+    args: ['run', 'dev'],
+  },
+}
+
+const SERVICE_KEYS: Record<ServiceName, string> = { server: '1', core: '2', dashboard: '3' }
+
+const processes: Record<ServiceName, ChildProcess | null> = { server: null, core: null, dashboard: null }
+const statuses: Record<ServiceName, ServiceStatus> = { server: 'idle', core: 'idle', dashboard: 'idle' }
+
+// ─── Output ──────────────────────────────────────────────────────────────────
+
+function write(badge: string, data: Buffer): void {
+  const text = data.toString().replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  for (const line of text.split('\n')) {
+    if (line.trim()) process.stdout.write(`${badge} ${line}\n`)
   }
-};
+}
+
+function sys(message: string): void {
+  console.log(chalk.magenta.bold('[devlop]'), message)
+}
+
+function pluginLog(message: string): void {
+  console.log(chalk.yellow.bold('[PLUGIN]'), message)
+}
+
+function printStatus(): void {
+  const statusIcon = (status: ServiceStatus): string => {
+    if (status === 'running') return chalk.green('●')
+    if (status === 'error') return chalk.red('●')
+    return chalk.dim('○')
+  }
+
+  console.log()
+  console.log(chalk.bold('┌─ Fragment Dev ────────────────────────────────┐'))
+  for (const [name, def] of Object.entries(SERVICES) as [ServiceName, ServiceDef][]) {
+    const pid = processes[name]?.pid ? chalk.dim(` (pid ${processes[name]!.pid})`) : ''
+    const status = statuses[name]
+    console.log(`│  [${SERVICE_KEYS[name]}] ${def.label.padEnd(11)} ${statusIcon(status)} ${status.padEnd(7)}${pid}`)
+  }
+  console.log(`│  [4] ${'PLUGINS'.padEnd(11)} ${chalk.yellow('○')} rebuild`)
+  console.log(chalk.bold('├───────────────────────────────────────────────┤'))
+  console.log(chalk.dim('│  1 server  2 core  3 dashboard  4 rebuild  s status  q quit'))
+  console.log(chalk.bold('└───────────────────────────────────────────────┘'))
+  console.log()
+}
+
+// ─── Process control ─────────────────────────────────────────────────────────
+
+function killService(name: ServiceName): void {
+  const proc = processes[name]
+  if (proc && !proc.killed) proc.kill('SIGTERM')
+  processes[name] = null
+  statuses[name] = 'stopped'
+}
+
+function startService(name: ServiceName): void {
+  killService(name)
+  const def = SERVICES[name]
+  sys(`Starting ${def.label}...`)
+
+  const child = spawn(def.cmd, def.args, {
+    cwd: def.cwd,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+
+  processes[name] = child
+  statuses[name] = 'running'
+
+  child.stdout?.on('data', (data: Buffer) => write(def.badge, data))
+  child.stderr?.on('data', (data: Buffer) => write(def.badge, data))
+  child.on('exit', (code) => {
+    processes[name] = null
+    statuses[name] = code === 0 ? 'stopped' : 'error'
+    sys(`${def.label} exited (code ${code ?? 'null'})`)
+  })
+}
+
+// ─── Plugin build ─────────────────────────────────────────────────────────────
 
 async function rebuildPlugins(): Promise<void> {
-  await rm(outputDirectoryString, { recursive: true, force: true });
-  await mkdir(outputDirectoryString, { recursive: true });
-  await rm(corePluginsDirectoryString, { recursive: true, force: true });
-  await mkdir(corePluginsDirectoryString, { recursive: true });
+  pluginLog('Rebuilding...')
+  await rm(RELEASES_DIR, { recursive: true, force: true })
+  await mkdir(RELEASES_DIR, { recursive: true })
+  await rm(CORE_PLUGINS_DIR, { recursive: true, force: true })
+  await mkdir(CORE_PLUGINS_DIR, { recursive: true })
 
-  const pluginPathsArray = await glob([buildConfiguration.path], { cwd: process.cwd() });
-
-  for (const currentPath of pluginPathsArray) {
-    buildConfiguration.path = currentPath;
-    const pluginBuilderInstance = new PluginBuilder(buildConfiguration);
-    await pluginBuilderInstance.build();
+  for (const pluginPath of await glob([PLUGIN_GLOB], { cwd: ROOT })) {
+    await new PluginBuilder({ ...PLUGIN_BUILD_BASE, path: pluginPath }).build()
   }
 
-  const generatedPluginsArray = await glob('plugin-*.js', { cwd: outputDirectoryString });
-
-  for (const generatedPluginFile of generatedPluginsArray) {
-    await cp(
-      join(outputDirectoryString, generatedPluginFile),
-      join(corePluginsDirectoryString, generatedPluginFile)
-    );
-  }
-}
-
-const RESTART_DELAY_MILLISECONDS = 400;
-
-let isServerDirty: boolean = false;
-let isPluginsDirty: boolean = false;
-let isCoreDirty: boolean = false;
-let watcherIsReady: boolean = false;
-
-let restartTimerInstance: ReturnType<typeof setTimeout> | null = null;
-let serverProcessInstance: ChildProcess | null = null;
-let coreProcessInstance: ChildProcess | null = null;
-
-const fileWatcher = chokidar.watch(
-  ['server/**/*', 'core/**/*', 'plugins/**/*', 'packages/**/*'],
-  {
-    ignored: [
-      'core/plugins',
-      'devlop.ts',
-      'plugins/*/src/register.ts',
-      'plugins/*/entries.json',
-      'core/entries',
-      'core/locales',
-      'server/database.wm',
-      '**/node_modules/**',
-      '**/.git/**',
-    ],
-  }
-);
-
-function killSpecificProcess(processToKill: ChildProcess | null): void {
-  if (processToKill && !processToKill.killed) {
-    processToKill.kill();
-  }
-}
-
-function killAllProcesses(): void {
-  console.log('Finalizando todos os processos filhos...');
-  killSpecificProcess(serverProcessInstance);
-  killSpecificProcess(coreProcessInstance);
-}
-
-function startServerProcess(): Promise<ChildProcess> {
-  return new Promise<ChildProcess>((resolve, reject) => {
-    const processInstance = spawn('bun', ['run', 'dev'], {
-      cwd: join(process.cwd(), 'server'),
-      stdio: ['inherit', 'pipe', 'pipe']
-    });
-
-    let isProcessSettled: boolean = false;
-
-    function handleProcessError(dataBuffer: Buffer): void {
-      const outputString = dataBuffer.toString();
-      process.stdout.write(outputString);
-
-      if (outputString.includes('EADDRINUSE') || outputString.includes('Failed to start server')) {
-        if (!isProcessSettled) {
-          isProcessSettled = true;
-          reject(new Error(`Erro no servidor: ${outputString}`));
-          killAllProcesses();
-        }
-      }
-    }
-
-    processInstance.stdout?.on('data', (dataBuffer: Buffer) => {
-      const outputString = dataBuffer.toString();
-      process.stdout.write(outputString);
-
-      // Alterado para reconhecer os logs reais que o seu servidor emite
-      const isServerReady = outputString.includes('successfully registered!') || outputString.includes('Bun Inspector');
-
-      if (isServerReady && !isProcessSettled) {
-        isProcessSettled = true;
-        resolve(processInstance);
-      }
-    });
-
-    processInstance.stderr?.on('data', handleProcessError);
-
-    processInstance.on('error', (errorInstance: Error) => {
-      if (!isProcessSettled) {
-        isProcessSettled = true;
-        reject(errorInstance);
-        killAllProcesses();
-      }
-    });
-
-    processInstance.on('exit', (exitCodeNumber) => {
-      console.log(`Servidor finalizado com código ${exitCodeNumber}`);
-      if (exitCodeNumber !== 0 && !isProcessSettled) {
-        isProcessSettled = true;
-        reject(new Error(`Servidor finalizou com código ${exitCodeNumber}`));
-        killAllProcesses();
-      } else if (exitCodeNumber !== 0) {
-        killAllProcesses();
-      }
-    });
-  });
-}
-
-function startCoreProcess(): ChildProcess {
-  const processInstance = spawn('bun', ['run', 'dev'], {
-    cwd: join(process.cwd(), 'core'),
-    stdio: 'inherit'
-  });
-
-  processInstance.on('exit', (exitCodeNumber) => {
-    console.log(`Core finalizado com código ${exitCodeNumber}`);
-    if (exitCodeNumber !== 0) {
-      killAllProcesses();
-    }
-  });
-
-  return processInstance;
-}
-
-async function applyModularChanges(): Promise<void> {
-  const shouldRestartServer = isServerDirty;
-  const shouldRebuildPlugins = isPluginsDirty;
-  const shouldRestartCore = isCoreDirty || isPluginsDirty;
-
-  isServerDirty = false;
-  isPluginsDirty = false;
-  isCoreDirty = false;
-
-  try {
-    if (shouldRestartServer) {
-      console.log('[devlop] Alteração no servidor detectada. Reinicializando apenas o servidor...');
-      killSpecificProcess(serverProcessInstance);
-      serverProcessInstance = await startServerProcess();
-    }
-
-    if (shouldRebuildPlugins) {
-      console.log('[devlop] Alteração em plugins ou pacotes detectada. Reconstruindo...');
-      await rebuildPlugins();
-    }
-
-    if (shouldRestartCore) {
-      console.log('[devlop] Reinicializando o core...');
-      killSpecificProcess(coreProcessInstance);
-      coreProcessInstance = startCoreProcess();
-    }
-  } catch (errorInstance: unknown) {
-    console.error('Erro ao aplicar as alterações:', errorInstance);
-    killAllProcesses();
-  }
-}
-
-async function initializeDevelopmentStack(): Promise<void> {
-  try {
-    console.log('[devlop] Inicializando ambiente de desenvolvimento...');
-    await rebuildPlugins();
-    serverProcessInstance = await startServerProcess();
-    coreProcessInstance = startCoreProcess();
-  } catch (errorInstance: unknown) {
-    console.error('Erro durante a inicialização:', errorInstance);
-    killAllProcesses();
-  }
-}
-
-fileWatcher.on('ready', () => {
-  watcherIsReady = true;
-});
-
-fileWatcher.on('all', (eventNameString, filePathString) => {
-  if (!watcherIsReady) return;
-
-  const validEventsArray = ['add', 'change', 'unlink', 'addDir', 'unlinkDir'];
-  if (!validEventsArray.includes(eventNameString)) return;
-
-  const normalizedPathString = filePathString.replace(/\\/g, '/');
-  const currentWorkingDirectoryString = process.cwd().replace(/\\/g, '/');
-  
-  const relativePathString = normalizedPathString.startsWith(currentWorkingDirectoryString)
-    ? normalizedPathString.slice(currentWorkingDirectoryString.length).replace(/^\//, '')
-    : normalizedPathString;
-
-  if (relativePathString.startsWith('server/')) {
-    isServerDirty = true;
-  } else if (relativePathString.startsWith('plugins/') || relativePathString.startsWith('packages/')) {
-    isPluginsDirty = true;
-  } else if (relativePathString.startsWith('core/')) {
-    isCoreDirty = true;
+  for (const file of await glob('plugin-*.js', { cwd: RELEASES_DIR })) {
+    await cp(join(RELEASES_DIR, file), join(CORE_PLUGINS_DIR, file))
   }
 
-  if (restartTimerInstance) clearTimeout(restartTimerInstance);
+  pluginLog('Done.')
+}
 
-  restartTimerInstance = setTimeout(() => {
-    restartTimerInstance = null;
-    void applyModularChanges();
-  }, RESTART_DELAY_MILLISECONDS);
-});
+// ─── Plugin file watcher ─────────────────────────────────────────────────────
+// server/ e core/ são gerenciados pelo bun --watch; apenas plugins/packages
+// precisam de watcher manual pois exigem etapa de build antes do reload.
 
-void initializeDevelopmentStack();
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
+const fileWatcher = chokidar.watch(['plugins/**/*', 'packages/**/*'], {
+  cwd: ROOT,
+  ignored: [
+    'plugins/*/src/register.ts',
+    'plugins/*/entries.json',
+    '**/node_modules/**',
+    '**/.git/**',
+  ],
+  ignoreInitial: true,
+})
+
+fileWatcher.on('all', () => {
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    debounceTimer = null
+    void rebuildPlugins().then(() => startService('core'))
+  }, PLUGIN_DEBOUNCE_MS)
+})
+
+// ─── Keyboard ────────────────────────────────────────────────────────────────
+
+function shutdown(): void {
+  sys('Shutting down...')
+  for (const name of Object.keys(SERVICES) as ServiceName[]) killService(name)
+  void fileWatcher.close()
+  if (process.stdin.isTTY) process.stdin.setRawMode(false)
+  process.exit(0)
+}
+
+process.on('SIGINT', shutdown)
+process.on('SIGTERM', shutdown)
+
+if (process.stdin.isTTY) {
+  process.stdin.setRawMode(true)
+  process.stdin.resume()
+}
+
+process.stdin.on('data', (raw: Buffer) => {
+  const key = raw.toString()
+  if (key === '') return shutdown()
+  switch (key) {
+  case 'q': shutdown(); break
+  case '1': startService('server'); break
+  case '2': startService('core'); break
+  case '3': startService('dashboard'); break
+  case '4': void rebuildPlugins().then(() => startService('core')); break
+  case 's': printStatus(); break
+  }
+})
+
+// ─── Boot ────────────────────────────────────────────────────────────────────
+
+sys('Initializing Fragment dev environment...')
+await rebuildPlugins()
+startService('server')
+startService('core')
+startService('dashboard')
+printStatus()

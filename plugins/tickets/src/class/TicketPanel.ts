@@ -1,5 +1,5 @@
 import { database } from '@/database'
-import { Error, ModalBuilder, StringSelectMenuBuilder } from 'discord'
+import { DiscordError, ModalBuilder, StringSelectMenuBuilder } from 'discord'
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, type SelectMenuComponentOptionData, StringSelectMenuInteraction, TextInputBuilder, TextInputStyle } from 'discord.js'
 import { TicketBuilder } from './TicketBuilder.js'
 
@@ -32,7 +32,7 @@ export class TicketPanel {
     if (await this.validator() || channelId === null) return
 
     const ticketData = await database.ticket.findOne({ where: { channelId } })
-    if (ticketData === null) return await new Error({ element: 'ticket', interaction: this.interaction }).reply()
+    if (ticketData === null) return await new DiscordError({ element: 'ticket', interaction: this.interaction }).reply()
     const { ownerId, category: { title }, voice } = ticketData
     const existCall = await this.interaction.guild.channels.fetch(voice?.id).catch(() => undefined)
     const userOwner = await this.interaction.client.users.fetch(ownerId).catch(() => undefined)
@@ -111,7 +111,7 @@ export class TicketPanel {
     const { channelId } = this.interaction
     if (channelId === null) return
     const ticketData = await database.ticket.findOne({ where: { channelId } })
-    if (ticketData === null) return await new Error({ element: 'ticket', interaction: this.interaction }).reply()
+    if (ticketData === null) return await new DiscordError({ element: 'ticket', interaction: this.interaction }).reply()
 
     if ((ticketData?.users ?? [])?.length === 0) {
       await this.interaction.editReply({
@@ -145,29 +145,4 @@ export class TicketPanel {
     await this.interaction.editReply({ components: [row] })
   }
 
-  // async EditChannelCollector (): Promise<void> {
-  //   const interaction = this.interaction
-  //   if (!interaction.isModalSubmit()) return
-  //   const userId = interaction.fields.getTextInputValue('id')
-  //   const Constructor = new Ticket({ interaction })
-  //   const { channelId } = interaction
-
-  //   if (userId === undefined) {
-  //     await interaction.editReply({
-  //       embeds: [new EmbedBuilder({
-  //         title: '❌ Nenhum usuário especificado!'
-  //       }).setColor('Red')]
-  //     })
-  //     return
-  //   }
-  //   if (channelId === null) {
-  //     await interaction.editReply({
-  //       embeds: [new EmbedBuilder({
-  //         title: '❌ Ocorreu um erro, channelId é undefined?!'
-  //       }).setColor('Red')]
-  //     })
-  //     return
-  //   }
-  //   await Constructor.Permissions({ userId, channelId })
-  // }
 }

@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
-import type { EnvParams } from '../types/env'
-import '../types/env.d'
+import type { EnvParams } from '@/types/env'
+import '@/types/env.d'
 
 const cwd = process.cwd()
 const regex = /^([A-Z0-9_]+)="?([^"\n]*)"?$/gm

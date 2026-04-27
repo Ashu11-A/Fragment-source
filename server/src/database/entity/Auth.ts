@@ -1,30 +1,24 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, type Relation, Tree, TreeChildren, TreeParent, UpdateDateColumn } from 'typeorm'
-import { User } from './User.js'
+import { Column, CreateDateColumn, Entity, ManyToOne, type Relation, Tree, TreeChildren, TreeParent, UpdateDateColumn } from 'typeorm'
+import { User } from '@/database/entity/User.js'
+import { BaseEntity } from './base'
 
 @Entity({ name: 'auths' })
 @Tree('materialized-path')
 export class Auth extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
-    uuid!: string
-
   @Column({ type: 'text' })
-    refreshToken!: string
+  refreshToken!: string
   @Column({ type: 'text' })
-    accessToken!: string
+  accessToken!: string
   @Column({ type: 'boolean', default: true })
-    valid!: boolean
+  valid!: boolean
 
   @TreeParent({ onDelete: 'CASCADE' })
-    parent!: Auth | null
+  parent!: Auth | null
   @TreeChildren({ cascade: true })
-    children!: Auth[]
+  children!: Auth[]
   @ManyToOne(() => User, (user) => user.auths)
-    user!: Relation<User>
-    
+  user!: Relation<User>
+
   @Column({ type: 'date' })
-    expireAt!: string
-  @UpdateDateColumn()
-    updatedAt!: Date
-  @CreateDateColumn()
-    createdAt!: Date
+  expireAt!: string
 }

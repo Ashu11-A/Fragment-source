@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // packages/storage/src/plugins/storages/Base.ts
 import { Readable } from 'stream'
-import type { Crypt } from '../../controllers/Crypt'
+import type { Crypt } from '@/controllers/Crypt'
 
 export abstract class BaseStorage<
   FileMap extends Record<string, any> = Record<string, any>

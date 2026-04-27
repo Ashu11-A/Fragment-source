@@ -1,6 +1,4 @@
-import { type APITextInputComponent, ComponentType, EmbedBuilder } from 'discord.js'
-
-export const notFound = new EmbedBuilder({ title: '❌ Não encontrei o template no database!' }).setColor('Red')
+import { type APITextInputComponent, ComponentType } from 'discord.js'
 
 export const elementsSelect: APITextInputComponent[] = [
   { label: '❓| Qual será o Título?', placeholder: 'Ex: Parceria', style: 1, max_length: 256, custom_id: 'title', type: ComponentType.TextInput },

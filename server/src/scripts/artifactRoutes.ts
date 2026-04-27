@@ -28,10 +28,11 @@ export function registerArtifactRoutes() {
       }
 
       try {
-        const { downloadUrl, asset } = await getAssetById(tag, assetId)
+        const { downloadUrl } = await getAssetById(tag, assetId)
         return reply
           .header('Cache-Control', 'private, max-age=60')
-          .redirect(302, downloadUrl)
+          .status(302)
+          .redirect(downloadUrl)
       } catch (err: unknown) {
         if (err instanceof TRPCError) {
           const status = err.code === 'NOT_FOUND' ? 404 : 400

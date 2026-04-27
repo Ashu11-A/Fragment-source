@@ -1,5 +1,4 @@
 import { TRPCError } from '@trpc/server'
-import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { User } from '@/database/entity/User.js'
 import { Role } from '@/database/enums.js'
@@ -31,7 +30,6 @@ async function findOrCreateUserFromDiscord(discord: DiscordUserMe): Promise<User
   }
 
   const user = User.create({
-    uuid: nanoid(),
     name,
     username,
     email,

@@ -35,7 +35,15 @@
   "references": [
     { "path": "../server" },
     { "path": "../plugins/tickets" },
-    { "path": "../plugins/base" }
+    { "path": "../plugins/base" },
+    { "path": "../packages/database" },
+    { "path": "../packages/discord" },
+    { "path": "../packages/discord-oauth" },
+    { "path": "../packages/lang" },
+    { "path": "../packages/socket" },
+    { "path": "../packages/storage" },
+    { "path": "../packages/utils" },
+    { "path": "../packages/worker" }
   ],
   "include": ["src", "entries", "locales"],
   "exclude": ["node_modules"]
