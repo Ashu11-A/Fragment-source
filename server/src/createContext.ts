@@ -1,7 +1,7 @@
 import type { CreateFastifyContextOptions } from '@trpc/server/adapters/fastify'
 import { BearerStrategy } from '@/security/strategies/BearerStrategy.js'
 import { CookiesStrategy } from '@/security/strategies/CookiesStrategy.js'
-import type { Context } from '@/trpc.js'
+import type { Context } from '@/types/trpc.js'
 
 export async function createContext({ req, res }: CreateFastifyContextOptions): Promise<Context> {
   for (const Strategy of [BearerStrategy, CookiesStrategy]) {

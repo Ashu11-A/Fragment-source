@@ -13,6 +13,7 @@ export const { isPKG, root } = processPath(dirname(fileURLToPath(import.meta.url
 export const API_URL = 'http://0.0.0.0:3500'
 
 let accessToken: string | undefined
+let refreshToken: string | undefined
 
 export function setAccessToken(token: string | undefined): void {
   accessToken = token
@@ -23,12 +24,16 @@ export function setAccessToken(token: string | undefined): void {
   }
 }
 
+export function setRefreshToken(token: string | undefined): void {
+  refreshToken = token
+}
+
 export const trpc = createTRPCClient<AppRouter>({
   links: [
     splitLink({
       condition: (op) => {
         const path = Array.isArray(op.path) ? op.path.join('.') : String(op.path)
-        return path !== 'auth.discordExchange'
+        return path !== 'auth.discordExchange' && path !== 'auth.refresh'
       },
       true: httpBatchLink({
         url: `${API_URL}/trpc`,
@@ -36,7 +41,13 @@ export const trpc = createTRPCClient<AppRouter>({
       }),
       false: httpLink({
         url: `${API_URL}/trpc`,
-        headers: () => ({ Authorization: accessToken ? `Bearer ${accessToken}` : undefined }),
+        headers: ({ op }) => {
+          const path = Array.isArray(op.path) ? op.path.join('.') : String(op.path)
+          if (path === 'auth.refresh') {
+            return { Authorization: refreshToken ? `Refresh ${refreshToken}` : undefined }
+          }
+          return { Authorization: accessToken ? `Bearer ${accessToken}` : undefined }
+        },
       }),
     }),
   ],

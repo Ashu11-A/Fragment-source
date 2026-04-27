@@ -1,24 +1,8 @@
 import { createContext, useContext, useCallback, useEffect, useRef, type ReactNode } from 'react'
-import type { inferRouterOutputs } from '@trpc/server'
-import type { AppRouter } from 'server'
 import { setSessionAccessToken } from '@/lib/sessionAccessToken'
-import type { AuthSessionPayload } from '@/lib/authSession'
 import { trpc } from '@/lib/trpc'
 import { useAuthStore, type AuthUser } from '@/stores/authStore'
-
-interface AuthContextType {
-  user: AuthUser | null
-  isLoading: boolean
-  isAuthenticated: boolean
-  login: (email: string, password: string) => Promise<void>
-  applyAuthSession: (result: AuthSessionPayload) => Promise<void>
-  signup: (data: { name: string; username: string; email: string; language: string; password: string }) => Promise<void>
-  logout: () => Promise<void>
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
-type AuthRefreshResult = inferRouterOutputs<AppRouter>['auth']['refresh']
+import type { AuthContextType, AuthRefreshResult, AuthSessionPayload } from '@/types/app'
 
 /** Evita dois `auth.refresh` em paralelo (o segundo queimava o refresh e revogava a sessão). */
 let refreshInflight: Promise<void> | null = null

@@ -3,18 +3,8 @@ import { database } from '@/database'
 import { DiscordError } from 'discord'
 import { CommandInteraction } from 'discord.js'
 import { TemplateManager } from './TemplateManager.js'
-import { BaseInteractionBuilder, type CachedInteraction } from './BaseInteractionBuilder.js'
-
-interface TicketOptions {
-    interaction: CachedInteraction
-}
-
-interface TicketCreate {
-    title: string,
-    description: string
-    channelId: string
-    guildId: string
-}
+import { BaseInteractionBuilder } from './BaseInteractionBuilder.js'
+import type { TicketOptions, TicketCreate } from '@/types/ticket.js'
 
 export class Template extends BaseInteractionBuilder {
   constructor ({ interaction }: TicketOptions) {

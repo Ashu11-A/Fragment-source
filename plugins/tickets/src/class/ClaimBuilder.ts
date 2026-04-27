@@ -1,26 +1,18 @@
 import { database } from '@/database'
 import Claim from '@/database/entity/Claim.entry.js'
-import Config, { type Roles } from '@/database/entity/Config.entry.js'
+import Config from '@/database/entity/Config.entry.js'
+import type { Roles } from '@/types/entities.js'
 import Ticket from '@/database/entity/Ticket.entry.js'
 import { ActionDrawer, DiscordError, ButtonBuilder } from 'discord'
 import { ActionRowBuilder, ButtonBuilder as DjsButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction } from 'discord.js'
-
-interface ClaimOptions {
-    ticketId: number
-    channelId: string
-}
-
-type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | StringSelectMenuInteraction<'cached'> | Message<true>
+import type { ClaimOptions } from '@/types/ticket.js'
+import type { InteractionWithMessage } from '@/types/interactions.js'
 
 
 export class ClaimBuilder {
-  private readonly interaction: Interaction
-  private options!: ClaimOptions
-  private ticketData: Ticket | undefined
-  public embed!: EmbedBuilder | undefined
-  public buttons!: ActionRowBuilder<DjsButtonBuilder>[] | undefined
+  private readonly interaction: InteractionWithMessage
 
-  constructor ({ interaction }: { interaction: Interaction }) {
+  constructor ({ interaction }: { interaction: InteractionWithMessage }) {
     this.interaction = interaction
     this.options = {
       channelId: '',

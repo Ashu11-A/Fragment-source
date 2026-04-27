@@ -1,10 +1,5 @@
 import { AlertTriangle } from 'lucide-react'
-
-interface ErrorAlertProps {
-  error?: string | null
-  variant?: 'simple' | 'detailed'
-  title?: string
-}
+import type { ErrorAlertProps } from '@/types/components'
 
 export function ErrorAlert({ error, variant = 'simple', title = 'Erro' }: ErrorAlertProps) {
   if (!error) return null

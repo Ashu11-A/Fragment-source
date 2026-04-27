@@ -2,22 +2,11 @@ import Template from '@/database/entity/Template.entry.js'
 import { database } from '@/database'
 import { checkURL, DiscordError } from 'discord'
 import { ActionRowBuilder, ButtonInteraction, ButtonStyle, Colors, EmbedBuilder, Message, MessageComponentInteraction, type APIEmbed as APIEmbedDiscord } from 'discord.js'
-import { BaseInteractionBuilder, type CachedInteraction } from './BaseInteractionBuilder.js'
+import { BaseInteractionBuilder } from './BaseInteractionBuilder.js'
 import { ActionDrawer, ButtonBuilder, StringSelectMenuBuilder } from 'discord'
 import { type Properties, type Select, type System, TypeTemplate } from '@/types/entries'
-
-interface TemplateManagerOptions {
-  interaction: CachedInteraction
-  template?: Template
-}
-
-interface APIEmbed {
-  title?: string
-  description?: string
-  color?: string | number
-  image?: string
-  thumbnail?: string
-}
+import type { TemplateManagerOptions } from '@/types/template.js'
+import type { APIEmbed } from '@/types/template.js'
 
 export class TemplateManager extends BaseInteractionBuilder implements Record<'embeds' | 'components', unknown> {
   private options: APIEmbed

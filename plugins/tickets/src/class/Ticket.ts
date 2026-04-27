@@ -1,10 +1,10 @@
-import TicketInterface, { type History } from '@/database/entity/Ticket.entry.js'
+import TicketInterface from '@/database/entity/Ticket.entry.js'
+import type { History } from '@/types/entities.js'
 import { database } from '@/database'
 import { ActionDrawer, DiscordError } from 'discord'
 import { AttachmentBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, ComponentType, EmbedBuilder, ModalSubmitInteraction, PermissionsBitField, StringSelectMenuInteraction } from 'discord.js'
 import { TicketBuilder } from './TicketBuilder.js'
-
-type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | StringSelectMenuInteraction<'cached'>
+import type { Interaction } from '@/types/interactions.js'
 
 function formatTranscriptText(displayName: string, fields: Array<{ name: string, value: string }>, history: History[]): string {
   let text = `📄 Historico do ${displayName}\n\n`

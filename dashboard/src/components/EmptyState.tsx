@@ -1,11 +1,5 @@
 import { Card } from '@/components/ui/card'
-
-interface EmptyStateProps {
-  icon: React.ComponentType<{ className?: string }>
-  title: string
-  description?: string
-  action?: React.ReactNode
-}
+import type { EmptyStateProps } from '@/types/components'
 
 export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
   return (

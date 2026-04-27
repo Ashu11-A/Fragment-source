@@ -1,9 +1,11 @@
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import { Package } from '@/controllers/package'
+import type { Metadata } from '@/types/index.js'
 
 export * from '@/controllers/package'
 export * from '@/utils/index'
+export type { Metadata } from '@/types/index.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 export const __plugin_dirname = process.cwd()
@@ -16,17 +18,6 @@ export function processPath (path: string) {
   const root: string = isPKG ? process.cwd() : join(path, '..')
 
   return { isPKG, root }
-}
-
-export type Metadata = {
-  name: string
-  version: string
-  description: string
-  author: string
-  license: string
-  api?: string
-  /** Database dependencies captured at build time from package.json fragment.dependencies */
-  dependencies?: Array<{ name: string; version: string }>
 }
 
 export const metadata = (): Metadata => {

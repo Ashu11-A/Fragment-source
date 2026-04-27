@@ -5,13 +5,7 @@ import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { useDiscordAuth } from '@/hooks/useDiscordAuth'
 import { useAuth } from '@/providers/AuthProvider'
 import { trpc } from '@/lib/trpc'
-
-type CallbackSearch = {
-  code?: string
-  state?: string
-  error?: string
-  error_description?: string
-}
+import type { CallbackSearch } from '@/types/app'
 
 export const Route = createFileRoute('/login/discord/callback')({
   validateSearch: (search: Record<string, unknown>): CallbackSearch => ({

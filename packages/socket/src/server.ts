@@ -1,35 +1,6 @@
 import type { z } from 'zod'
-import type { EventSchemaMap, InferEventMap } from './types.js'
-
-// ─── Socket.io server types (re-declared to avoid hard dep on socket.io) ─────
-// These match socket.io's Server/Socket generics without importing socket.io.
-
-/** Minimal Server interface matching socket.io's Server */
-interface IoServer<StoC, CtoS> {
-  on(event: 'connection', listener: (socket: IoSocket<StoC, CtoS>) => void): this
-  emit<K extends string & keyof StoC>(event: K, ...args: Parameters<StoC[K & keyof StoC] & ((...args: never[]) => void)>): boolean
-  to(room: string): { emit<K extends string & keyof StoC>(event: K, ...args: Parameters<StoC[K & keyof StoC] & ((...args: never[]) => void)>): boolean }
-}
-
-/** Minimal Socket interface matching socket.io's Socket */
-interface IoSocket<StoC, CtoS> {
-  id: string
-  data: Record<string, unknown>
-  on<K extends string & keyof CtoS>(event: K, listener: CtoS[K & keyof CtoS]): this
-  on(event: 'disconnect', listener: (reason: string) => void): this
-  emit<K extends string & keyof StoC>(event: K, ...args: Parameters<StoC[K & keyof StoC] & ((...args: never[]) => void)>): boolean
-  join(room: string): void
-  leave(room: string): void
-  to(room: string): { emit<K extends string & keyof StoC>(event: K, ...args: Parameters<StoC[K & keyof StoC] & ((...args: never[]) => void)>): boolean }
-  rooms: Set<string>
-  handshake: { headers: Record<string, string | string[] | undefined>; auth: Record<string, unknown> }
-}
-
-// ─── Typed server wrapper ────────────────────────────────────────────────────
-
-type ConnectionHandler<StoC extends EventSchemaMap, CtoS extends EventSchemaMap> = (
-  socket: TypedSocket<StoC, CtoS>
-) => void | Promise<void>
+import type { EventSchemaMap, InferEventMap } from './types/index.js'
+import type { IoServer, IoSocket, ConnectionHandler } from './types/server.js'
 
 /**
  * A typed wrapper around an individual socket.io Socket.

@@ -32,21 +32,7 @@ export const getCookieOptions = (expirationDate: Date) => ({
   domain: process.env.PRODUCTION === 'true' ? resolveCookieDomain() : undefined,
 })
 
-export type IssuedSessionPayload = {
-  message: string
-  data: {
-    accessToken: {
-      token: string
-      expireDate: Date
-      expireSeconds: number
-    }
-    refreshToken: {
-      token: string
-      expireDate: Date
-      expireSeconds: number
-    }
-  }
-}
+export type { IssuedSessionPayload } from '@/types/session.js'
 
 export async function issueAuthSession(user: User, res: FastifyReply): Promise<IssuedSessionPayload> {
   const tokenSecret = process.env.JWT_TOKEN

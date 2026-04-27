@@ -2,17 +2,22 @@ node_modules
 release
 .vscode/settings.json
 /pkg-cache
+
 *.cjs
+*.js
+*.map
+
 *.key
 *.hash
 *.license
 *.pem
+*.wm
+
 /releases
 /storage
 
 .early.coverage
 /core/storage
-*.wm
 /test
 
 packages/*/build/

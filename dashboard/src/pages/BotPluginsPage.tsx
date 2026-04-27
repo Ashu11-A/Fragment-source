@@ -12,16 +12,9 @@ import { BotNotFound } from '@/components/BotNotFound'
 import { ErrorAlert } from '@/components/ErrorAlert'
 import { Loader2, Power, Puzzle, RefreshCw, Upload } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { PluginRow } from '@/types/app'
 
 const botShellRouteApi = getRouteApi('/_authenticated/bots_/$botId')
-
-type PluginRow = {
-  pluginName: string
-  filePath: string
-  version?: string
-  description?: string | null
-  loaded: boolean
-}
 
 export function BotPluginsPage() {
   const { botId } = botShellRouteApi.useParams()

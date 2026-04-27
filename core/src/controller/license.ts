@@ -5,9 +5,12 @@ import { marked, type MarkedExtension } from 'marked'
 import { markedTerminal } from 'marked-terminal'
 import { join } from 'path'
 import prompt from 'prompts'
-import license from '../../../LICENSE.md' with { type: 'text' }
+import { licences, type LicenseLanguage } from './licenses.js'
+import { lang } from '../lang.js'
 
 marked.use(markedTerminal() as MarkedExtension)
+
+const REMOTE_BASE_URL = 'https://raw.githubusercontent.com/Ashu11-A/Fragment-source/refs/heads/workspace'
 
 export class License {
   private licensePath = join(root, '.license')
@@ -31,7 +34,11 @@ export class License {
   }
 
   async ask(): Promise<void> {
-    console.log(marked.parse(license))
+    await lang.select()
+
+    const licenseText = await this.resolveLicense(lang.language as LicenseLanguage)
+
+    console.log(marked.parse(licenseText))
     const response = await prompt({
       name: 'accepted',
       type: 'confirm',
@@ -42,5 +49,19 @@ export class License {
     await writeFile(join(root, '.license'), response.accepted ? 'ACCEPT=true' : 'ACCEPT=false')
 
     if (!response.accepted) throw new Error(i18('error.no_possible'))
+  }
+
+  private async resolveLicense(language: LicenseLanguage): Promise<string> {
+    const bundled = licences[language]
+    if (bundled !== undefined) return bundled
+
+    try {
+      const response = await fetch(`${REMOTE_BASE_URL}/LICENSE.${language}.md`)
+      if (response.ok) return await response.text()
+    } catch {
+      // Falha silenciosa no fetch; fallback para inglês
+    }
+
+    return licences['en']
   }
 }

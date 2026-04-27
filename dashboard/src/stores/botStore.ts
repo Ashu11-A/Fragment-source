@@ -1,10 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { BotState } from '@/types/stores'
 
-interface BotState {
-  selectedBotId: number | null
-  setSelectedBotId: (id: number | null) => void
-}
+export type { BotState } from '@/types/stores'
 
 export const useBotStore = create<BotState>()(
   persist(

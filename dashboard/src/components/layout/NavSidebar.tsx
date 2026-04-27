@@ -4,10 +4,7 @@ import { Home, Puzzle, Users, Settings, Shield, ChevronRight, Bot, LayoutDashboa
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useAuth } from '@/providers/AuthProvider'
 import { trpc } from '@/lib/trpc'
-
-interface NavSidebarProps {
-  className?: string
-}
+import type { NavSidebarProps } from '@/types/components'
 
 const navigationItems = [
   { label: 'Home', icon: Home, path: '/' as const, exact: true },

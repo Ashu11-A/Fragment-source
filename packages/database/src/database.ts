@@ -1,12 +1,9 @@
 
 import { join } from 'path'
 import { DataSource, getMetadataArgsStorage } from 'typeorm'
+import type { DatabaseOptions } from '@/types/index.js'
 
-export interface DatabaseOptions {
-  root: string
-  log?: (message: string) => void
-  spinner?: (message: string) => { succeed: (message: string) => void }
-}
+export type { DatabaseOptions } from '@/types/index.js'
 
 export class Database {
   public client: DataSource
@@ -23,7 +20,7 @@ export class Database {
       useLocalForage: true,
       synchronize: true,
       logging: false,
-      location: join(this.opts.root, '/database.wm'),
+      location: join(this.opts.root, '.fragment', 'database.wm'),
       entities: entities.length > 0
         ? entities
         : [join(this.opts.root, 'entries/**/*.{ts,js}')],

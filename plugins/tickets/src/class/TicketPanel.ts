@@ -2,8 +2,7 @@ import { database } from '@/database'
 import { DiscordError, ModalBuilder, StringSelectMenuBuilder } from 'discord'
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, type SelectMenuComponentOptionData, StringSelectMenuInteraction, TextInputBuilder, TextInputStyle } from 'discord.js'
 import { TicketBuilder } from './TicketBuilder.js'
-
-type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | StringSelectMenuInteraction<'cached'>
+import type { Interaction } from '@/types/interactions.js'
 
 export class TicketPanel {
   private readonly interaction

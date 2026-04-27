@@ -1,9 +1,8 @@
 import { initTRPC, TRPCError } from '@trpc/server'
-import type { FastifyReply, FastifyRequest } from 'fastify'
-import type { User } from '@/database/entity/User.js'
+import type { Context } from '@/types/trpc.js'
 import { Role } from '@/database/enums.js'
 
-export type Context = { user: User | null; req: FastifyRequest; res: FastifyReply }
+export type { Context } from '@/types/trpc.js'
 
 const t = initTRPC.context<Context>().create()
 export const router = t.router

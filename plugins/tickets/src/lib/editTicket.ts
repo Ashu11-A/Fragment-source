@@ -4,7 +4,6 @@ import { checkHexCor, checkURL, ModalBuilder } from 'discord'
 import {
   ActionRowBuilder,
   type APIEmbed,
-  type APITextInputComponent,
   ComponentType,
   EmbedBuilder,
   type HexColorString,
@@ -13,13 +12,9 @@ import {
   type ButtonInteraction,
   type ModalSubmitInteraction,
 } from 'discord.js'
+import type { TextInputComponent } from '@/types/entities.js'
 
 export const notFound = new EmbedBuilder({ title: '❌ Não encontrei esse template no meu banco de dados!' }).setColor('Red')
-
-export interface TextInputComponent extends APITextInputComponent {
-  title: string
-  database: string
-}
 
 export const modalData: Record<string, TextInputComponent> = {
   setTitle: { title: '❓| Qual será o Título da Embed?', label: 'Título da embed', placeholder: 'Ex: Pegue seu Ticket!', style: 1, max_length: 256, type: ComponentType.TextInput, custom_id: 'content', database: 'title' },

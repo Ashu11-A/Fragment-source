@@ -1,4 +1,4 @@
-type Generic = Dict<string | number | boolean>
+type Generic = Dict<string | number | Boolean>
 
 declare global {
   namespace NodeJS {

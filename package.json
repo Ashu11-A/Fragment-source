@@ -10,9 +10,9 @@
     }
   },
   "scripts": {
-    "dev": "bun run devlop.ts",
-    "build": "bun release.ts",
-    "update": "bun update.ts",
+    "dev": "bun packages/build/src/devlop.ts",
+    "build": "bun packages/build/src/release.ts",
+    "update": "bun packages/build/src/update.ts",
     "lint": "bun --filter '*' lint",
     "list": "bun outdated --filter \"*\""
   },

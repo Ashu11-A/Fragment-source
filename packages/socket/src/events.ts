@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { defineEvent, type SocketContract } from './types.js'
+import { defineEvent, type SocketContract } from './types/index.js'
 
 // ─── Server → Client events ─────────────────────────────────────────────────
 // Events that the SERVER sends TO the CLIENT (core)
@@ -182,5 +182,4 @@ export const fragmentSocketContract = {
   clientToServer: clientToServerEvents,
 } satisfies SocketContract
 
-export type FragmentServerToClient = typeof serverToClientEvents
-export type FragmentClientToServer = typeof clientToServerEvents
+export type { FragmentServerToClient, FragmentClientToServer } from './types/events.js'

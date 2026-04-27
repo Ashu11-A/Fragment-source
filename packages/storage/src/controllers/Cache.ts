@@ -1,11 +1,6 @@
-export type CacheEntry = {
-  buffer: Buffer
-  mime: string
-  size: number
-  lastAccessed: number
-  accessCount: number
-}
+import type { CacheEntry } from '@/types/cache.js'
 
+export type { CacheEntry } from '@/types/cache.js'
 
 export abstract class Cache {
   protected totalSize: number = 0

@@ -1,24 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { clearSessionAccessToken } from '@/lib/sessionAccessToken'
+import type { AuthState } from '@/types/stores'
 
-export interface AuthUser {
-  id: number
-  name: string
-  username: string
-  email: string
-  role: string
-}
-
-interface AuthState {
-  user: AuthUser | null
-  isAuthenticated: boolean
-  isLoading: boolean
-
-  setUser: (user: AuthUser | null) => void
-  setLoading: (loading: boolean) => void
-  clear: () => void
-}
+export type { AuthUser } from '@/types/stores'
 
 export const useAuthStore = create<AuthState>()(
   persist(

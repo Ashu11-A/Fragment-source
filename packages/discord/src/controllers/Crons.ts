@@ -1,61 +1,9 @@
 import cronParser, { type CronExpression } from 'cron-parser'
 import { randomUUID } from 'crypto'
 import { EventEmitter } from 'events'
+import type { CronsConfigurations, CronsConfigurationsSystem, UniqueCron } from '@/types/crons.js'
 
-/**
- * Configuration object for defining recurring cron jobs.
- */
-export interface CronsConfigurations<Metadata = undefined> {
-  /**
-   * Identifier for the Cron job.
-   */
-  name: string
-  /**
-   * Cron argument, e.g., "* * * * * *" for every second.
-   */
-  cron: string
-  /**
-   * Function to be executed when the cron job is triggered.
-   */
-  exec(cron: CronsConfigurations<Metadata>, interval: CronExpression): void
-  /**
-   * Metadata for the cron job, for specific information.
-   */
-  metadata?: Metadata
-  /**
-   * Indicates whether the cron job should run only once.
-   */
-  once?: boolean
-}
-
-/**
- * Configuration object for defining a unique cron job to run only once.
- */
-export interface UniqueCron<MetaArgs> {
-  /**
-   * Identifier for the unique cron job.
-   */
-  name: string
-  /**
-   * Cron argument, e.g., "* * * * * *" for every second.
-   */
-  cron: string
-  /**
-   * Function to be executed when the unique cron job is triggered.
-   */
-  exec(cron: UniqueCron<MetaArgs>): void
-  /**
-   * Metadata for the unique cron job, for specific information.
-   */
-  metadata?: MetaArgs
-}
-
-/**
- * Extended configuration interface for cron jobs, including a UUID.
- */
-export interface CronsConfigurationsSystem<Metadata> extends CronsConfigurations<Metadata> {
-  uuid: string
-}
+export type { CronsConfigurations, CronsConfigurationsSystem, UniqueCron } from '@/types/crons.js'
 
 /**
  * Class representing a collection of cron jobs.

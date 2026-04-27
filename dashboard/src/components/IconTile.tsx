@@ -1,7 +1,5 @@
 import { cn } from '@/lib/utils'
-
-type IconTileVariant = 'default' | 'bots'
-type IconTileSize = 'sm' | 'md' | 'lg'
+import type { IconTileProps, IconTileVariant, IconTileSize } from '@/types/components'
 
 const sizeMap: Record<IconTileSize, { container: string; icon: string }> = {
   sm: { container: 'w-10 h-10', icon: 'w-5 h-5' },
@@ -12,15 +10,6 @@ const sizeMap: Record<IconTileSize, { container: string; icon: string }> = {
 const variantMap: Record<IconTileVariant, string> = {
   default: 'ui-icon-tile',
   bots: 'ui-icon-tile-bots flex items-center justify-center rounded-2xl',
-}
-
-interface IconTileProps {
-  icon: React.ComponentType<{ className?: string }>
-  size?: IconTileSize
-  variant?: IconTileVariant
-  iconColor?: string
-  interactive?: boolean
-  className?: string
 }
 
 export function IconTile({

@@ -1,5 +1,5 @@
-import { trpc, setAccessToken } from '@/singletons.js'
-import { mergeStorageData } from '@/storage.js'
+import { trpc, setAccessToken, setRefreshToken } from '@/singletons.js'
+import { storage } from '@/storage.js'
 import { OAuthLoopback } from 'discord-oauth/loopback'
 
 function getPublicApiBase(): string {
@@ -17,10 +17,11 @@ export async function runDiscordOAuthLoopback(): Promise<void> {
     async onCallback({ code, state }) {
       const result = await trpc.auth.discordExchange.mutate({ code, state, redirect_uri })
       setAccessToken(result.data.accessToken.token)
-      await mergeStorageData({
+      setRefreshToken(result.data.refreshToken.token)
+      await storage.append('.data', {
         accessToken: result.data.accessToken,
         refreshToken: result.data.refreshToken,
-      })
+      }, { isJson: true })
     },
   })
 }

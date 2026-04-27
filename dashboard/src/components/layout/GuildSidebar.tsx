@@ -5,10 +5,7 @@ import { Separator } from '@/components/ui/separator'
 import { useBotStore } from '@/stores/botStore'
 import { useBotsList } from '@/hooks/useBots'
 import { useNavigate } from '@tanstack/react-router'
-
-interface GuildSidebarProps {
-  className?: string
-}
+import type { GuildSidebarProps } from '@/types/components'
 
 /** Thin left sidebar with bot/server selection icons (Discord-style) */
 export function GuildSidebar({ className }: GuildSidebarProps) {

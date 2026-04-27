@@ -16,16 +16,11 @@ import { createContext } from '@/createContext.js'
 import { setupSocketController } from '@/infra/socket.js'
 import { createAdapter } from '@socket.io/cluster-adapter'
 import cluster from 'cluster'
-
-interface Options {
-  host: string
-  port: number
-  log?: boolean
-}
+import type { FastifyServerOptions } from '@/types/infra.js'
 
 export class Fastify {
   static server: FastifyInstance
-  constructor(public options: Options){}
+  constructor(public options: FastifyServerOptions){}
 
   config() {
     const cookieToken = process.env['COOKIE_TOKEN']

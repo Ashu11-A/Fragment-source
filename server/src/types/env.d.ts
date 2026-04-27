@@ -1,5 +1,5 @@
 export type TProcessEnv = {
-  PRODUCTION: boolean
+  PRODUCTION: object
   PORT: number
   REDIS_HOST: string
   REDIS_PORT: number
@@ -23,7 +23,7 @@ export type TProcessEnv = {
   OAUTH_STATE_SECRET: string
 }
 
-type Generic = Dict<string | number | boolean>
+type Generic = Dict<string | number | Boolean>
 
 declare global {
   namespace NodeJS {

@@ -1,13 +1,5 @@
 import { useState } from 'react'
-
-interface DialogState<TData> {
-  isOpen: boolean
-  setIsOpen: (open: boolean) => void
-  data: TData | undefined
-  setData: (data: TData | undefined) => void
-  open: (data?: TData) => void
-  close: () => void
-}
+import type { DialogState } from '@/types/app'
 
 export function useDialogState<TData = undefined>(
   initialData?: TData,

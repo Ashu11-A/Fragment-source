@@ -9,29 +9,12 @@ import { basename, join } from 'path'
 import SemVer from 'semver'
 import { i18 } from '@/index'
 import type { PluginRegistration } from '@/types/manager.js'
+import type { PluginCallbacks, PluginEntry, RegisterResult } from '@/types/plugin.js'
 import { createPluginContext } from '@/controllers/Context'
 import { Manager } from '@/controllers/Manager'
 import { Watcher } from '@/controllers/Watcher'
 
-type PluginEntry = {
-  manager: Manager
-  registration: PluginRegistration
-  /** Static manifest produced by `plugin.inspect()` — available for external systems. */
-  manifest?: PluginManifest
-  fileURL: string
-  pluginName: string
-}
-
-export type RegisterResult =
-  | { ok: true; pluginName: string; filePath: string }
-  | { ok: false; filePath: string; error: string; details?: string }
-
-type PluginCallbacks = {
-  /** Invoked after setup() completes — use to attach Discord events and register entities */
-  onPluginLoaded?: (pluginName: string, registration: PluginRegistration) => Promise<void>
-  /** Invoked before a plugin is unloaded — use to detach Discord events */
-  onPluginUnloaded?: (pluginName: string, registration: PluginRegistration) => Promise<void>
-}
+export type { PluginCallbacks, PluginEntry, RegisterResult } from '@/types/plugin.js'
 
 export class Plugin {
   /** All currently loaded plugins keyed by their name (metadata.name) */

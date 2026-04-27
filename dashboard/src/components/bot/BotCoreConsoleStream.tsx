@@ -3,11 +3,7 @@ import { Trash2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useBotConsoleStream } from '@/hooks/useBotConsoleStream'
-
-type BotCoreConsoleStreamProps = {
-  botId: number | undefined
-  enabled: boolean
-}
+import type { BotCoreConsoleStreamProps } from '@/types/components'
 
 export function BotCoreConsoleStream({ botId, enabled }: BotCoreConsoleStreamProps) {
   const { text, clear } = useBotConsoleStream(botId, enabled)

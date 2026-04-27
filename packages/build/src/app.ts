@@ -122,11 +122,7 @@ async function detectDatabaseDependencies(pluginRoot: string): Promise<string[]>
   return [...found]
 }
 
-type ResolvedDep = {
-  name: string
-  version: string
-  entityIndexPath: string  // absolute path to the dep's src/entity/index.ts
-}
+import type { ResolvedDep } from '@/types/index.js'
 
 /**
  * For each dependency name, finds its plugin folder by reading sibling package.json files,

@@ -1,5 +1,7 @@
 
 
+import type { AnySchema, DatabaseRegistry } from '@/types/index.js'
+
 /**
  * Global typed registry of plugin database schemas.
  *
@@ -22,12 +24,8 @@
  * const db = useDatabase('my-plugin')
  * await db.user.find({ where: { active: true } }) // → User[]
  */
- 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface DatabaseRegistry {}
 
-type AnyConstructor = new (...args: unknown[]) => object
-type AnySchema = Record<string, AnyConstructor>
+export type { DatabaseRegistry } from '@/types/index.js'
 
 /**
  * Singleton registry stored on globalThis so it is shared across all plugin

@@ -37,15 +37,7 @@ import {
   type SortingState,
   type ColumnFiltersState,
 } from '@tanstack/react-table'
-
-interface UserData {
-  id: number
-  name: string
-  username: string
-  email: string
-  role: string
-  createdAt: string
-}
+import type { UserData } from '@/types/app'
 
 export function UsersPage() {
   const [page, setPage] = useState(1)

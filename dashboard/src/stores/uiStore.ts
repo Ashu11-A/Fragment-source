@@ -1,19 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { UIState } from '@/types/stores'
 
-type Theme = 'dark' | 'light'
-
-interface UIState {
-  theme: Theme
-  sidebarCollapsed: boolean
-  searchQuery: string
-
-  setTheme: (theme: Theme) => void
-  toggleTheme: () => void
-  setSidebarCollapsed: (collapsed: boolean) => void
-  toggleSidebar: () => void
-  setSearchQuery: (query: string) => void
-}
+export type { Theme } from '@/types/stores'
 
 export const useUIStore = create<UIState>()(
   persist(

@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type PackageType = Record<string, any>
+import type { PackageType } from '@/types/index.js'
 
 export class Package {
   private static data: PackageType

@@ -6,24 +6,7 @@ const GITHUB_API = 'https://api.github.com'
 const USER_AGENT = 'Fragment-Server/1.0'
 const CACHE_MS = 5 * 60 * 1000
 
-export type ArtifactKind = 'core' | 'plugin' | 'metadata' | 'other'
-
-export interface GithubAsset {
-  id: number
-  name: string
-  size: number
-  content_type: string
-  browser_download_url: string
-}
-
-export interface GithubRelease {
-  tag_name: string
-  name: string
-  published_at: string
-  body: string
-  html_url: string
-  assets: GithubAsset[]
-}
+import type { ArtifactKind, GithubAsset, GithubRelease, ReleaseSummary } from '@/types/githubRelease.js'
 
 const releaseCache = new Map<string, { at: number; data: GithubRelease }>()
 
@@ -88,15 +71,6 @@ export async function fetchReleaseByTag(tag: string, bustCache = false): Promise
   const data = (await res.json()) as GithubRelease
   releaseCache.set(tag, { at: Date.now(), data })
   return data
-}
-
-export interface ReleaseSummary {
-  tagName: string
-  name: string
-  publishedAt: string
-  htmlUrl: string
-  draft: boolean
-  prerelease: boolean
 }
 
 export async function listRecentReleases(perPage: number): Promise<ReleaseSummary[]> {

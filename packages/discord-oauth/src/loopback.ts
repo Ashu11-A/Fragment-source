@@ -1,3 +1,7 @@
+import type { LoopbackCallbackParams, LoopbackOptions } from '@/types/loopback.js'
+
+export type { LoopbackCallbackParams, LoopbackOptions } from '@/types/loopback.js'
+
 const TIMEOUT_MS = 5 * 60_000
 
 function openBrowser(url: string): void {
@@ -12,21 +16,6 @@ function openBrowser(url: string): void {
     console.warn(`Could not open browser automatically: ${e instanceof Error ? e.message : String(e)}`)
     console.info(`Open this URL to sign in:\n${url}\n`)
   }
-}
-
-export type LoopbackCallbackParams = {
-  code: string
-  state: string
-  redirect_uri: string
-}
-
-export type LoopbackOptions = {
-  /** Port to listen on. Defaults to env FRAGMENT_CLI_OAUTH_PORT or 9786. */
-  port?: number
-  /** Opened in the user's browser to start the OAuth flow. */
-  startUrl: string
-  /** Called when Discord redirects back with a code. Should exchange tokens and resolve. */
-  onCallback(params: LoopbackCallbackParams): Promise<void>
 }
 
 export class OAuthLoopback {

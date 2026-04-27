@@ -1,11 +1,11 @@
-import Ticket, { type Event, type History, type TicketCategories, type Message as TicketMessage, type TicketType, type User as UserTicket, type Voice } from '@/database/entity/Ticket.entry.js'
+import Ticket from '@/database/entity/Ticket.entry.js'
+import type { Event, History, TicketCategories, Message as TicketMessage, TicketType, User as UserTicket, Voice } from '@/types/entities.js'
 import { database } from '@/database'
 import { ActionDrawer, ButtonBuilder, buttonRedirect, DiscordError } from 'discord'
 import { ActionRowBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, type OverwriteResolvable, PartialGroupDMChannel, PermissionsBitField, StringSelectMenuInteraction, TextChannel, User } from 'discord.js'
 import { ClaimBuilder } from './ClaimBuilder.js'
 import { Ticket as TicketFunctions } from './Ticket.js'
-
-type Interaction = CommandInteraction<'cached'> | ModalSubmitInteraction<'cached'> | ButtonInteraction<'cached'> | StringSelectMenuInteraction<'cached'> | Message<true>
+import type { InteractionWithMessage } from '@/types/interactions.js'
 
 export class TicketBuilder {
   public options!: TicketType
@@ -15,8 +15,8 @@ export class TicketBuilder {
   private channelId?: string
   private ticketId?: number
   private templateId?: number
-  private readonly interaction: Interaction
-  constructor ({ interaction }: { interaction: Interaction }) {
+  private readonly interaction: InteractionWithMessage
+  constructor ({ interaction }: { interaction: InteractionWithMessage }) {
     this.interaction = interaction
     if (interaction instanceof Message) {
       this.user = interaction.author

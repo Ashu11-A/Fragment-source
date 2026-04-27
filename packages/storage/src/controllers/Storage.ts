@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { BaseStorage } from '@/plugins/storages/Base.js'
 import type { Crypt } from '@/controllers/Crypt.js'
+import type { StorageParams } from '@/types/storage.js'
 
-type StorageParams = {
-  driver: BaseStorage
-  crypt?: Crypt
-}
+export type { StorageParams } from '@/types/storage.js'
 
 export class Storage<
   FileMap extends Record<string, any> = Record<string, any>

@@ -1,8 +1,7 @@
 import type { IncomingHttpHeaders } from 'http'
 import { validateAccessToken } from '@/security/validateToken.js'
 import type { User } from '@/database/entity/User.js'
-
-type HandshakeAuth = { token?: unknown }
+import type { HandshakeAuth } from '@/types/socketAuth.js'
 
 export function getAccessTokenFromHandshake(headers: IncomingHttpHeaders, auth: HandshakeAuth): string | undefined {
   const rawAuth = auth?.token

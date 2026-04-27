@@ -1,10 +1,6 @@
 import { Entity, BaseEntity, PrimaryGeneratedColumn, OneToOne, type Relation, Column } from 'typeorm'
 import Guild from './Guild.entry'
-
-export interface Roles {
-  id: string
-  name: string
-}
+import type { Roles } from '@/types/entities.js'
 
 @Entity('configs')
 export default class Config extends BaseEntity {

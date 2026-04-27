@@ -1,5 +1,5 @@
 import { reportCoreActivity, type CoreActivityLevel } from 'socket'
-import { socket } from '@/events/socket';
+import { socket } from '@/events/socket'
 
 function emit(
   level: CoreActivityLevel,

@@ -3,29 +3,7 @@ import type { User } from '@/database/entity/User.js'
 import { assertOwnership } from '@/services/activity.js'
 import type { FastifyInstance } from 'fastify'
 import { TRPCError } from '@trpc/server'
-
-type CorePluginRequest =
-  | { requestId: string; action: 'list' }
-  | { requestId: string; action: 'reload'; filePath: string }
-  | { requestId: string; action: 'unload'; pluginName: string }
-  | { requestId: string; action: 'load'; filePath: string }
-
-export type CorePluginResultPayload = {
-  requestId: string
-  ok: boolean
-  action: 'list' | 'reload' | 'unload' | 'load'
-  message?: string
-  details?: string
-  plugins?: Array<{
-    pluginName: string
-    filePath: string
-    version?: string
-    description?: string | null
-    loaded: boolean
-  }>
-  pluginName?: string
-  filePath?: string
-}
+import type { CorePluginRequest, CorePluginResultPayload } from '@/types/corePlugin.js'
 
 const pending = new Map<
   string,
@@ -56,11 +34,7 @@ export function resolveCorePluginResult(identifiedBotId: number | undefined, pay
   entry.resolve(payload)
 }
 
-export type CorePluginActionInput =
-  | { action: 'list' }
-  | { action: 'reload'; filePath: string }
-  | { action: 'unload'; pluginName: string }
-  | { action: 'load'; filePath: string }
+import type { CorePluginActionInput } from '@/types/corePlugin.js'
 
 export async function callCorePlugin(
   log: FastifyInstance['log'],

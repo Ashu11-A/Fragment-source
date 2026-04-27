@@ -6,8 +6,6 @@ plugins
 entries
 .fragment
 
-privateKey.pem
-publicKey.pem
 public_key.pem
 
 locales/**/*.json

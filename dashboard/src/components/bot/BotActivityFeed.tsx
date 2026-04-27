@@ -2,29 +2,7 @@ import { Clock, RefreshCw } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-
-export type ActivityFilter = 'all' | 'success' | 'info' | 'error'
-
-type BotActivityFeedProps = {
-  title: string
-  filteredRows: Array<{
-    id: number
-    message: string
-    display: 'success' | 'info' | 'error'
-    createdAt: string
-    category: string
-    level: string
-    source: string | null
-  }>
-  formatRelativeTime: (iso: string) => string
-  isLoading: boolean
-  onRefetch: () => void | Promise<unknown>
-  filter: ActivityFilter
-  onFilterChange: (f: ActivityFilter) => void
-  showLiveBadge?: boolean
-  /** Taller scroll area on full-page logs */
-  maxHeightClass?: string
-}
+import type { ActivityFilter, BotActivityFeedProps } from '@/types/components'
 
 const FILTER_OPTIONS: { id: ActivityFilter; label: string }[] = [
   { id: 'all', label: 'All' },

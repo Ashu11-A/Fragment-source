@@ -1,20 +1,8 @@
 import { lookup } from 'mime-types'
 import { Cache, type CacheEntry } from '@/controllers/Cache.js'
+import type { CacheProps } from '@/types/cache.js'
 
-type CacheProps = {
-  /**
-   * Maximum size that can be cached, must be a value in bytes
-   * 
-   * @default 2 * 1024 * 1024 * 1024 // 2GB
-   */
-  maxSize: number
-  /**
-   * Maximum time the file will remain in cache, the value must be in ms
-   * 
-   * @default 30 * 60 * 1000 // 30 minutes
-   */
-  maxAge: number
-}
+export type { CacheProps } from '@/types/cache.js'
 
 export class LRUCache extends Cache {
   private cache = new Map<string, CacheEntry>()

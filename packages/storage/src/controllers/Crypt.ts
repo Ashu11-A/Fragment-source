@@ -3,15 +3,13 @@ import { readFile } from 'fs/promises'
 import forge from 'node-forge'
 import { resolve } from 'path'
 import { i18 } from '@/lang.js'
+import type { CryptProps } from '@/types/crypt.d.js'
+
+export type { CryptProps } from '@/types/crypt.d.js'
 
 const ROOT_PATH = process.cwd()
-const PRIVATE_KEY_PATH = resolve(ROOT_PATH, 'privateKey.pem')
-const PUBLIC_KEY_PATH = resolve(ROOT_PATH, 'publicKey.pem')
-
-type CryptProps = {
-  privateKey: string | forge.pki.rsa.PrivateKey;
-  publicKey: string | forge.pki.rsa.PublicKey;
-};
+const PRIVATE_KEY_PATH = resolve(ROOT_PATH, 'core/.fragment/privateKey.pem')
+const PUBLIC_KEY_PATH = resolve(ROOT_PATH, 'core/.fragment/publicKey.pem')
 
 export class Crypt {
   privateKey: forge.pki.rsa.PrivateKey

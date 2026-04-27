@@ -1,4 +1,4 @@
-export * from './types.js'
+export * from './types/index.js'
 export * from './events.js'
 export * from './server.js'
 export * from './client.js'

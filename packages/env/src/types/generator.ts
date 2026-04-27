@@ -1,3 +1,3 @@
 export type GeneratorParams = {
-  values: { variable: string, value: string | boolean | number }[]
+  values: { variable: string, value: string | Boolean | number }[]
 }

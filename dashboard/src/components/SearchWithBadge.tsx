@@ -1,16 +1,7 @@
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-
-interface SearchWithBadgeProps {
-  value: string
-  onChange: (value: string) => void
-  placeholder?: string
-  count: number
-  itemLabel?: string
-  delay?: string
-  inputId?: string
-}
+import type { SearchWithBadgeProps } from '@/types/components'
 
 export function SearchWithBadge({
   value,

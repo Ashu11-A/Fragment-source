@@ -22,6 +22,6 @@ jobs:
           bun-version: latest
       - run: |
           bun i &&
-          openssl genpkey -algorithm RSA -out privateKey.pem -pkeyopt rsa_keygen_bits:4096 &&
-          openssl rsa -pubout -in privateKey.pem -out publicKey.pem &&
+          openssl genpkey -algorithm RSA -out core/.fragment/privateKey.pem -pkeyopt rsa_keygen_bits:4096 &&
+          openssl rsa -pubout -in core/.fragment/privateKey.pem -out core/.fragment/publicKey.pem &&
           bun run build

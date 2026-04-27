@@ -1,13 +1,7 @@
 import { create } from 'zustand'
+import type { BotDetailUIState } from '@/types/stores'
 
-/** UI local à página de detalhe do bot (evita prop drilling) */
-export interface BotDetailUIState {
-  lastTab: 'overview' | 'activity' | 'settings'
-  setLastTab: (tab: 'overview' | 'activity' | 'settings') => void
-  recentActivityFilter: 'all' | 'success' | 'error' | 'info'
-  setRecentActivityFilter: (f: 'all' | 'success' | 'error' | 'info') => void
-  reset: () => void
-}
+export type { BotDetailUIState } from '@/types/stores'
 
 const initial: Pick<BotDetailUIState, 'lastTab' | 'recentActivityFilter'> = {
   lastTab: 'overview',

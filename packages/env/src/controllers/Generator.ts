@@ -13,7 +13,7 @@ export class Generator {
 ${this.options.values.map(({ value, variable }) => `  ${variable}: ${typeof value}`).join('\n')}
 }
 
-type Generic = Dict<string | number | boolean>
+type Generic = Dict<string | number | Boolean>
 
 declare global {
   namespace NodeJS {

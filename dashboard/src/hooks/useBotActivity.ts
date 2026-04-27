@@ -2,19 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { io } from 'socket.io-client'
 import { TypedSocketClient, fragmentSocketContract } from 'socket'
 import { trpc } from '@/lib/trpc'
-
-export type BotActivityRow = {
-  id: number
-  botId: number
-  level: string
-  category: string
-  message: string
-  display: 'success' | 'info' | 'error'
-  metadata: Record<string, unknown> | null
-  source: string | null
-  correlationId: string | null
-  createdAt: string
-}
+import type { BotActivityRow } from '@/types/app'
 
 function socketBaseUrl() {
   if (typeof window === 'undefined') return ''

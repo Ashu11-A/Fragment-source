@@ -12,6 +12,7 @@ import {
   type SubcommandManifest,
 } from 'discord'
 import { metadata as getPackageMetadata } from 'utils'
+import type { PluginOptions, RawOption } from '@/types/index.js'
 
 export type {
   CommandManifest,
@@ -22,12 +23,11 @@ export type {
   SubcommandGroupManifest,
   SubcommandManifest,
 }
+export type { PluginOptions, RawOption } from '@/types/index.js'
 
 // ApplicationCommandOptionType numeric values (avoids importing discord.js at runtime)
 const SUBCOMMAND = 1
 const SUBCOMMAND_GROUP = 2
-
-type RawOption = { name: string; description?: string; type?: number; options?: RawOption[] }
 
 function extractSubcommands(options: RawOption[]): {
   subcommands: SubcommandManifest[]
@@ -51,12 +51,6 @@ function extractSubcommands(options: RawOption[]): {
   }
 
   return { subcommands, groups }
-}
-
-type PluginOptions = {
-  /** Semver range of the framework version this plugin requires. Defaults to `'^1.0.0'`. */
-  frameworkVersion?: string
-  setup(ctx: PluginContext): Promise<void>
 }
 
 /**

@@ -1,8 +1,5 @@
 import { useCallback } from 'react'
-import type { inferRouterOutputs } from '@trpc/server'
-import type { AppRouter } from 'server'
-
-type DiscordExchangeResult = inferRouterOutputs<AppRouter>['auth']['discordExchange']
+import type { DiscordExchangeResult } from '@/types/app'
 
 /** Discord devolve um `code` de uso único; Strict Mode / deps instáveis podem reexecutar o efeito após o primeiro exchange e gerar `invalid_grant`. */
 const discordExchangeInflight = new Map<string, Promise<DiscordExchangeResult>>()

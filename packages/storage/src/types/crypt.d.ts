@@ -1,3 +1,5 @@
+import type forge from 'node-forge'
+
 export type DataCrypted = {
   email: string
   password: string
@@ -6,4 +8,9 @@ export type DataCrypted = {
   language: string
   accessToken: string
   refreshToken: string
+}
+
+export type CryptProps = {
+  privateKey: string | forge.pki.rsa.PrivateKey
+  publicKey: string | forge.pki.rsa.PublicKey
 }

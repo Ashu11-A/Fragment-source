@@ -37,7 +37,7 @@ export class Manager {
   public resolvedURL!: string
 
   constructor(public options: ManagerOptions) {
-    if (!options.cachePath) this.options.cachePath = join(process.cwd(), '/cache')
+    if (!options.cachePath) this.options.cachePath = join(process.cwd(), 'core/.fragment/cache')
     if (!existsSync(this.options.cachePath as string)) {
       mkdirSync(this.options.cachePath as string, { recursive: true })
     }
@@ -47,7 +47,7 @@ export class Manager {
    * Deletes the cached file for a remote plugin URL so the next `register()` download is forced.
    * No-op for local filesystem paths.
    */
-  static invalidateRemoteCache (fileURL: string, cachePath: string = join(process.cwd(), '/cache')): void {
+  static invalidateRemoteCache (fileURL: string, cachePath: string = join(process.cwd(), 'core/.fragment/cache')): void {
     const urlPattern = /^(https?:\/\/|ftp:\/\/|file:\/\/)[^\s]+$/i
     if (!urlPattern.test(fileURL)) return
 

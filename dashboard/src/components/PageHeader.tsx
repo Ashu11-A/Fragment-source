@@ -1,9 +1,4 @@
-interface PageHeaderProps {
-  title: string
-  description: string
-  icon?: React.ComponentType<{ className?: string }>
-  actions?: React.ReactNode
-}
+import type { PageHeaderProps } from '@/types/components'
 
 export function PageHeader({ title, description, icon: Icon, actions }: PageHeaderProps) {
   return (

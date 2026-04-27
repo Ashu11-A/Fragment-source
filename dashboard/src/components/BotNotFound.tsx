@@ -1,12 +1,7 @@
 import { Bot, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-
-interface BotNotFoundProps {
-  title?: string
-  message?: string
-  retryLabel?: string
-  onRetry?: () => void
-}
+import { Bot } from 'lucide-react'
+import type { BotNotFoundProps } from '@/types/components'
 
 export function BotNotFound({
   title = 'Bot not found',

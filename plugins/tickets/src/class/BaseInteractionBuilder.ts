@@ -1,14 +1,8 @@
 import { ButtonInteraction, CommandInteraction, Guild, GuildBasedChannel, Message, ModalSubmitInteraction, StringSelectMenuInteraction, User, type BaseMessageOptions, type TextBasedChannel } from 'discord.js'
 import { DiscordError } from 'discord'
+import type { CachedInteraction } from '@/types/interactions.js'
 
-type ReplyContent = BaseMessageOptions
-
-export type CachedInteraction =
-  | CommandInteraction<'cached'>
-  | ModalSubmitInteraction<'cached'>
-  | ButtonInteraction<'cached'>
-  | StringSelectMenuInteraction<'cached'>
-  | Message<true>
+export type { CachedInteraction }
 
 export abstract class BaseInteractionBuilder<T extends CachedInteraction = CachedInteraction> {
   protected readonly interaction: T
@@ -48,7 +42,7 @@ export abstract class BaseInteractionBuilder<T extends CachedInteraction = Cache
     return channel as GuildBasedChannel & TextBasedChannel
   }
 
-  protected async handleInteractionResponse (content: ReplyContent): Promise<void> {
+  protected async handleInteractionResponse (content: BaseMessageOptions): Promise<void> {
     if (this.interaction instanceof Message) return
 
     if (this.isComponentInteraction) {

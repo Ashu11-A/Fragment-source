@@ -1,10 +1,7 @@
 import { ClientEvent, fragmentSocketContract } from 'socket'
 import { basename } from 'node:path'
 import { Plugin } from 'worker'
-import { z } from 'zod'
-
-type PluginResult = z.infer<typeof fragmentSocketContract.clientToServer['core:plugin:result']>
-type PluginEntry = NonNullable<PluginResult['plugins']>[number]
+import type { PluginEntry, PluginResult } from '@/types/plugin.js'
 
 export const corePluginRequest = new ClientEvent({
   name: 'core:plugin:request',

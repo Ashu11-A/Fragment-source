@@ -16,7 +16,7 @@ export class Env {
     if (!existsSync(filePath)) throw new Error(`The Env file could not be located: ${filePath}`)
     const content = readFileSync(filePath, { encoding: 'utf-8' })
 
-    const matches: { variable: string, value: string | boolean | number }[] = []
+    const matches: { variable: string, value: string | Boolean | number }[] = []
     let match: RegExpExecArray | null = null
 
     while ((match = regex.exec(content)) !== null) {
@@ -25,7 +25,7 @@ export class Env {
     }
 
     for (const { value, variable } of matches) {
-      const serialized = typeof value === 'boolean' ? (value ? 'true' : 'false') : String(value)
+      const serialized = value instanceof Boolean ? (value.valueOf() ? 'true' : 'false') : String(value)
       process.env[variable] = serialized
     }
 
@@ -38,7 +38,7 @@ export class Env {
    */
   parser (value: string) {
     const trimmed = value.trim()
-    if (/^(true|false)$/i.test(trimmed)) return trimmed.toLowerCase() === 'true'
+    if (/^(true|false)$/i.test(trimmed)) return new Boolean(trimmed.toLowerCase() === 'true')
     if (trimmed === '') return value
 
     const n = Number(trimmed)

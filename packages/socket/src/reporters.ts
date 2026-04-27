@@ -1,28 +1,11 @@
-import type { TypedSocketClient } from './client.js'
-import { fragmentSocketContract } from './events.js'
+import type { CoreActivityLevel, CoreActivityDisplay, CoreActivityPayload, FragmentTypedClient } from './types/reporters.js'
 
-export type FragmentTypedClient = TypedSocketClient<
-  typeof fragmentSocketContract.serverToClient,
-  typeof fragmentSocketContract.clientToServer
->
-
-export type CoreActivityLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error'
-export type CoreActivityDisplay = 'success' | 'info' | 'error'
+export type { CoreActivityLevel, CoreActivityDisplay, CoreActivityPayload, FragmentTypedClient } from './types/reporters.js'
 
 export function inferActivityDisplay(level: CoreActivityLevel, display?: CoreActivityDisplay): CoreActivityDisplay {
   if (display) return display
   if (level === 'error' || level === 'warn') return 'error'
   return 'info'
-}
-
-export type CoreActivityPayload = {
-  level: CoreActivityLevel
-  category: string
-  message: string
-  display?: CoreActivityDisplay
-  metadata?: Record<string, unknown>
-  source?: string
-  correlationId?: string
 }
 
 /**

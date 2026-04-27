@@ -5,11 +5,9 @@ import { join } from 'path'
 import { Readable } from 'stream'
 import { LRUCache } from '@/plugins/caches/LRU.js'
 import { BaseStorage } from '@/plugins/storages/Base.js'
+import type { LocalStorageParams } from '@/types/storage.js'
 
-type LocalStorageParams = {
-  storagePath: string
-  cache?: LRUCache
-}
+export type { LocalStorageParams } from '@/types/storage.js'
 
 export class LocalStorage extends BaseStorage {
   private storagePath: string

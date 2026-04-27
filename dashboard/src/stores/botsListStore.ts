@@ -1,30 +1,7 @@
 import { create } from 'zustand'
+import type { BotsListUIState } from '@/types/stores'
 
-export interface BotsListUIState {
-  search: string
-  setSearch: (search: string) => void
-  createOpen: boolean
-  setCreateOpen: (open: boolean) => void
-  editOpen: boolean
-  setEditOpen: (open: boolean) => void
-  deleteOpen: boolean
-  setDeleteOpen: (open: boolean) => void
-  botName: string
-  setBotName: (name: string) => void
-  editBotId: number | null
-  setEditBotId: (id: number | null) => void
-  editBotName: string
-  setEditBotName: (name: string) => void
-  deleteBotId: number | null
-  setDeleteBotId: (id: number | null) => void
-  deleteBotName: string
-  setDeleteBotName: (name: string) => void
-  loading: boolean
-  setLoading: (loading: boolean) => void
-  error: string
-  setError: (error: string) => void
-  resetListDialogs: () => void
-}
+export type { BotsListUIState } from '@/types/stores'
 
 export const useBotsListStore = create<BotsListUIState>((set) => ({
   search: '',

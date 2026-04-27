@@ -6,11 +6,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useTheme } from '@/providers/ThemeProvider'
 import { useAuth } from '@/providers/AuthProvider'
 import { Input } from '@/components/ui/input'
-
-interface TopNavbarProps {
-  className?: string
-  onMenuToggle?: () => void
-}
+import type { TopNavbarProps } from '@/types/components'
 
 function getBreadcrumbs(pathname: string) {
   const segments = pathname.split('/').filter(Boolean)

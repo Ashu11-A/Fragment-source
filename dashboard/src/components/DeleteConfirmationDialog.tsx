@@ -9,17 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ErrorAlert } from '@/components/ErrorAlert'
-
-interface DeleteConfirmationDialogProps {
-  isOpen: boolean
-  onOpenChange: (open: boolean) => void
-  title: string
-  description: React.ReactNode
-  onConfirm: () => void | Promise<void>
-  isLoading?: boolean
-  error?: string
-  confirmLabel?: string
-}
+import type { DeleteConfirmationDialogProps } from '@/types/components'
 
 export function DeleteConfirmationDialog({
   isOpen,

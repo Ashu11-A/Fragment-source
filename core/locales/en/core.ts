@@ -6,7 +6,10 @@ export default {
     'hello': 'Hello {{name}}',
     'change_token': 'Change Token',
     'try_again': 'Try Again',
-    'logout': 'Logout'
+    'logout': 'Logout',
+    'create_bot': 'Create a new bot',
+    'no_bots': 'You don\'t have any bots registered',
+    'bot_name': 'Enter the bot name'
   },
   'commands': {
     'lang': {
