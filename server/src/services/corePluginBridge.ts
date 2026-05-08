@@ -1,9 +1,8 @@
-import { randomUUID } from 'node:crypto'
 import type { User } from '@/database/entity/User.js'
-import { assertOwnership } from '@/services/activity.js'
-import type { FastifyInstance } from 'fastify'
-import { TRPCError } from '@trpc/server'
 import type { CorePluginRequest, CorePluginResultPayload } from '@/types/corePlugin.js'
+import { TRPCError } from '@trpc/server'
+import type { FastifyInstance } from 'fastify'
+import { randomUUID } from 'node:crypto'
 
 const pending = new Map<
   string,
@@ -35,6 +34,7 @@ export function resolveCorePluginResult(identifiedBotId: number | undefined, pay
 }
 
 import type { CorePluginActionInput } from '@/types/corePlugin.js'
+import { activity } from './Activity.js'
 
 export async function callCorePlugin(
   log: FastifyInstance['log'],
@@ -43,19 +43,25 @@ export async function callCorePlugin(
   action: CorePluginActionInput,
   options?: { timeoutMs?: number }
 ): Promise<CorePluginResultPayload> {
-  if (!await assertOwnership(user, botId)) {
-    throw new TRPCError({ code: 'FORBIDDEN', message: 'Bot not found or not yours.' })
+  if (!await activity.assertOwnership(user, botId)) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Bot not found or not yours.',
+    })
   }
 
   const { Fastify } = await import('../infra/fastify.js')
   const raw = Fastify.server?.io
   const room = raw?.sockets?.adapter?.rooms?.get(`bot:${botId}`)
   if (room == null || room.size === 0) {
-    throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Core is offline (no process linked to this bot).' })
+    throw new TRPCError({
+      code: 'PRECONDITION_FAILED',
+      message: 'Core is offline (no process linked to this bot).',
+    })
   }
 
-  const { getIo } = await import('../infra/socket.js')
-  const io = getIo()
+  const { getCoreIo } = await import('../socket/namespaces/index.js')
+  const io = getCoreIo()
 
   const requestId = randomUUID()
   const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS
