@@ -4,7 +4,7 @@ import tseslint from 'typescript-eslint'
 
 
 export default [
-  { ignores: ['core/plugins/**'] },
+  { ignores: ['core/plugins/**', '**/dist/**', '**/node_modules/**', 'packages/*/build/**', 'plugins/**/*.js', 'plugins/*/plugins/**'] },
   { files: ['**/*.{js,mjs,cjs,ts,mts,cts}'] },
   {languageOptions: { globals: globals.node }},
   pluginJs.configs.recommended,
@@ -13,7 +13,8 @@ export default [
     rules: {
       indent: ['error', 2],
       semi: ['error', 'never'],
-      quotes: ['error', 'single']
+      quotes: ['error', 'single'],
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     }
   }
 ]

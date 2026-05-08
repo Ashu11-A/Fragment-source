@@ -1,7 +1,6 @@
 {
   "name": "fragment",
   "version": "1.0.0",
-  "module": "core/index.ts",
   "type": "module",
   "workspaces": {
     "packages": ["server", "core", "dashboard", "packages/*", "plugins/*", "packages/socket"],
@@ -10,24 +9,21 @@
     }
   },
   "scripts": {
-    "dev": "bun packages/build/src/devlop.ts",
+    "dev": "cd packages/build && bun run dev",
     "build": "bun packages/build/src/release.ts",
     "update": "bun packages/build/src/update.ts",
     "lint": "bun --filter '*' lint",
-    "list": "bun outdated --filter \"*\""
+    "list": "bun outdated --filter \"*\"",
+    "check": "knip"
   },
   "peerDependencies": {
     "typescript": "^5.9.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
-    "@types/chalk": "^2.2.4",
     "@types/cli-progress": "^3.11.6",
     "chalk": "^5.6.2",
-    "chokidar": "^4.0.3",
-    "cli-progress": "^3.12.0",
     "eslint": "^9.39.4",
-    "glob": "^11.1.0",
     "globals": "^15.15.0",
     "typescript-eslint": "^8.58.2"
   },

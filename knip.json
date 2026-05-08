@@ -1,0 +1,60 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "tags": ["-knipignore"],
+  "ignore": [
+    "**/dist/**",
+    "**/build/**",
+    "**/.turbo/**",
+    "**/.vite/**",
+    "**/coverage/**",
+    "**/node_modules/**",
+
+    "**/commands/**",
+    "**/components/**",
+    "**/events/**",
+    "**/configs/**"
+  ],
+  "workspaces": {
+    ".": {
+      "entry": ["eslint.config.js"],
+      "project": ["eslint.config.js"]
+    },
+    "core": {
+      "entry": ["src/app.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "server": {
+      "entry": ["src/app.ts", "src/cluster.ts"],
+      "project": ["src/**/*.ts", "routes/**/*.ts"]
+    },
+    "dashboard": {
+      "entry": ["index.html", "vite.config.*", "src/main.tsx", "eslint.config.js"],
+      "project": ["src/**/*.{ts,tsx}", "eslint.config.js", "vite.config.*"]
+    },
+    "packages/build": {
+      "entry": ["src/tui/index.ts", "src/release.ts", "src/update.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/discord": {
+      "entry": ["src/app.ts", "src/registries/index.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/worker": {
+      "entry": ["src/app.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/lang": {
+      "entry": ["src/app.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "plugins/base": {
+      "entry": ["src/app.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "plugins/tickets": {
+      "entry": ["src/app.ts"],
+      "project": ["src/**/*.{ts,tsx}"]
+    }
+  }
+}
+

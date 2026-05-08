@@ -1,17 +1,27 @@
 node_modules
-release
+releases
+cache
+
 .vscode/settings.json
 /pkg-cache
 
 *.cjs
 *.js
 *.map
+*.log
+*.tanstack
+*.tsbuildinfo
+config.toml
 
 *.key
 *.hash
 *.license
 *.pem
 *.wm
+*.db
+
+*.xml
+*.zip
 
 /releases
 /storage
@@ -22,3 +32,8 @@ release
 
 packages/*/build/
 core/build/
+
+# Added by cargo
+target
+cache
+/server/storage
