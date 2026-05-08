@@ -1,90 +1,104 @@
-import { useEffect, useRef, useState } from 'react'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { ErrorAlert } from '@/components/ErrorAlert'
-import { LoadingSpinner } from '@/components/LoadingSpinner'
-import { useDiscordAuth } from '@/hooks/useDiscordAuth'
-import { useAuth } from '@/providers/AuthProvider'
-import { trpc } from '@/lib/trpc'
-import type { CallbackSearch } from '@/types/app'
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
-export const Route = createFileRoute('/login/discord/callback')({
-  validateSearch: (search: Record<string, unknown>): CallbackSearch => ({
-    code: typeof search.code === 'string' ? search.code : undefined,
-    state: typeof search.state === 'string' ? search.state : undefined,
-    error: typeof search.error === 'string' ? search.error : undefined,
-    error_description: typeof search.error_description === 'string' ? search.error_description : undefined,
-  }),
-  component: DiscordOAuthCallbackPage,
-})
+export const Route = createFileRoute("/login/discord/callback")({
+  head: () => ({ meta: [{ title: "Authenticating — Fragment" }] }),
+  component: DiscordCallbackPage,
+});
 
-function DiscordOAuthCallbackPage () {
-  const search = Route.useSearch()
-  const navigate = useNavigate()
-  const { applyAuthSession } = useAuth()
-  const { dedupedExchange, formatCallbackError, getCallbackRedirectUri } = useDiscordAuth()
-  const [localError, setLocalError] = useState('')
+const OAUTH_TIMEOUT_MS = 30_000;
 
-  const { mutateAsync: exchangeDiscord } = trpc.auth.discordExchange.useMutation()
-  // mutateAsync muda de referência entre renders e re-dispara o efeito com o mesmo `code` na URL → segundo exchange → invalid_grant.
-  const exchangeDiscordRef = useRef(exchangeDiscord)
-  exchangeDiscordRef.current = exchangeDiscord
+function DiscordCallbackPage() {
+  const navigate = useNavigate();
+  const { completeDiscordSignIn, getDiscordCallbackRedirectUri, formatDiscordOAuthCallbackError } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(true);
+  const processedRef = useRef(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (search.error) {
-      setLocalError(search.error_description ?? search.error ?? 'Discord authorization was cancelled or failed.')
-      return
-    }
-    if (!search.code || !search.state) {
-      setLocalError('Missing authorization code. Try signing in again.')
-      return
+    if (processedRef.current) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const state = params.get("state");
+    const oauthError = params.get("error");
+    const errorDescription = params.get("error_description");
+
+    if (oauthError) {
+      processedRef.current = true;
+      setIsProcessing(false);
+      const msg = errorDescription || oauthError;
+      setError(formatDiscordOAuthCallbackError(msg));
+      return;
     }
 
-    const oauthCode = search.code
-    const oauthState = search.state
-    const redirect_uri = getCallbackRedirectUri()
-    let cancelled = false
+    if (!code || !state) {
+      processedRef.current = true;
+      setIsProcessing(false);
+      setError("Missing authorization code or state. Please try again.");
+      return;
+    }
 
-    void (async () => {
-      try {
-        const result = await dedupedExchange(exchangeDiscordRef.current, {
-          code: oauthCode,
-          state: oauthState,
-          redirect_uri,
-        })
-        if (cancelled) return
-        await applyAuthSession(result)
-        if (cancelled) return
-        navigate({ to: '/', replace: true })
-      } catch (err) {
-        if (cancelled) return
-        setLocalError(formatCallbackError(err))
-      }
-    })()
+    processedRef.current = true;
+
+    timeoutRef.current = setTimeout(() => {
+      setIsProcessing(false);
+      setError("Authentication timed out. Please try again.");
+    }, OAUTH_TIMEOUT_MS);
+
+    completeDiscordSignIn({
+      code,
+      state,
+      redirectUri: getDiscordCallbackRedirectUri(),
+    })
+      .then(() => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        navigate({ to: "/dashboard", replace: true });
+      })
+      .catch((err) => {
+        console.error("Discord OAuth callback error:", err);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        setIsProcessing(false);
+        setError(formatDiscordOAuthCallbackError(err));
+      });
 
     return () => {
-      cancelled = true
-    }
-  }, [search.code, search.state, search.error, search.error_description, applyAuthSession, navigate, dedupedExchange, formatCallbackError, getCallbackRedirectUri])
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [completeDiscordSignIn, getDiscordCallbackRedirectUri, formatDiscordOAuthCallbackError, navigate]);
 
-  if (localError) {
+  if (error) {
     return (
-      <div className="ui-app-screen min-h-screen flex flex-col items-center justify-center gap-4 p-4">
-        <ErrorAlert error={localError} />
-        <button
-          type="button"
-          className="text-sm text-blurple-400 hover:text-blurple-300"
-          onClick={() => navigate({ to: '/login' })}
-        >
-          Back to login
-        </button>
+      <div className="flex min-h-screen items-center justify-center bg-sidebar-rail">
+        <div className="text-center max-w-sm px-4">
+          <div className="text-4xl mb-4">⚠️</div>
+          <div className="font-display text-lg font-semibold text-destructive">Authentication Failed</div>
+          <div className="mt-2 text-sm text-muted-foreground">{error}</div>
+          <button
+            onClick={() => navigate({ to: "/", replace: true })}
+            className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Back to Login
+          </button>
+        </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="ui-app-screen min-h-screen flex flex-col items-center justify-center gap-3 p-4">
-      <LoadingSpinner />
-      <p className="text-surface-400 text-sm">Completing Discord sign-in…</p>
+    <div className="flex min-h-screen items-center justify-center bg-sidebar-rail">
+      <div className="text-center">
+        <div className="relative mx-auto h-16 w-16">
+          <div className="absolute inset-0 rounded-full border-4 border-border" />
+          <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-primary" />
+        </div>
+        <div className="mt-6 font-display text-lg font-semibold">Authenticating with Discord…</div>
+        <div className="mt-1 text-sm text-muted-foreground">
+          {isProcessing ? "Hold on, syncing your account." : "Processing complete."}
+        </div>
+      </div>
     </div>
-  )
+  );
 }

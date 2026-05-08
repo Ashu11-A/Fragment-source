@@ -1,6 +1,6 @@
 import type { inferRouterOutputs } from '@trpc/server'
 import type { AppRouter } from 'server'
-import type { AuthUser } from './stores'
+import type { AuthUser } from '@/types/auth'
 
 export type AuthSessionPayload = inferRouterOutputs<AppRouter>['auth']['discordExchange']
 
@@ -10,6 +10,10 @@ export interface AuthContextType {
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<void>
   applyAuthSession: (result: AuthSessionPayload) => Promise<void>
+  startDiscordSignIn: () => void
+  completeDiscordSignIn: (input: { code: string; state: string; redirectUri: string }) => Promise<void>
+  getDiscordCallbackRedirectUri: () => string
+  formatDiscordOAuthCallbackError: (error: unknown) => string
   signup: (data: { name: string; username: string; email: string; language: string; password: string }) => Promise<void>
   logout: () => Promise<void>
 }

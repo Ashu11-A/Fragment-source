@@ -3,8 +3,6 @@ import { persist } from 'zustand/middleware'
 import { clearSessionAccessToken } from '@/lib/sessionAccessToken'
 import type { AuthState } from '@/types/stores'
 
-export type { AuthUser } from '@/types/stores'
-
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({

@@ -10,200 +10,342 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
-import { Route as LoginIndexRouteImport } from './routes/login.index'
-import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
-import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
-import { Route as AuthenticatedPluginsRouteImport } from './routes/_authenticated/plugins'
-import { Route as AuthenticatedDownloadsRouteImport } from './routes/_authenticated/downloads'
-import { Route as AuthenticatedBotsRouteImport } from './routes/_authenticated/bots'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as DashboardSubscriptionRouteImport } from './routes/dashboard/subscription'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
+import { Route as AuthDiscordRouteImport } from './routes/auth.discord'
+import { Route as DashboardReleasesIndexRouteImport } from './routes/dashboard/releases.index'
+import { Route as DashboardPublisherIndexRouteImport } from './routes/dashboard/publisher.index'
+import { Route as DashboardPluginsIndexRouteImport } from './routes/dashboard/plugins.index'
+import { Route as DashboardNodesIndexRouteImport } from './routes/dashboard/nodes.index'
+import { Route as DashboardMarketplaceIndexRouteImport } from './routes/dashboard/marketplace.index'
+import { Route as DashboardBotsIndexRouteImport } from './routes/dashboard/bots.index'
+import { Route as DashboardAdminIndexRouteImport } from './routes/dashboard/admin.index'
 import { Route as LoginDiscordCallbackRouteImport } from './routes/login.discord.callback'
-import { Route as AuthenticatedBotsBotIdRouteImport } from './routes/_authenticated/bots_.$botId'
-import { Route as AuthenticatedBotsBotIdIndexRouteImport } from './routes/_authenticated/bots_.$botId.index'
-import { Route as AuthenticatedBotsBotIdPluginsRouteImport } from './routes/_authenticated/bots_.$botId.plugins'
-import { Route as AuthenticatedBotsBotIdLogsRouteImport } from './routes/_authenticated/bots_.$botId.logs'
+import { Route as DashboardPublisherStatsRouteImport } from './routes/dashboard/publisher.stats'
+import { Route as DashboardPluginsPluginIdRouteImport } from './routes/dashboard/plugins.$pluginId'
+import { Route as DashboardNodesNodeIdRouteImport } from './routes/dashboard/nodes.$nodeId'
+import { Route as DashboardBotsBotIdRouteImport } from './routes/dashboard/bots.$botId'
+import { Route as DashboardAdminUsersRouteImport } from './routes/dashboard/admin.users'
+import { Route as DashboardAdminPluginRequestsRouteImport } from './routes/dashboard/admin.plugin-requests'
+import { Route as DashboardBotsBotIdIndexRouteImport } from './routes/dashboard/bots.$botId.index'
+import { Route as DashboardBotsBotIdPluginsRouteImport } from './routes/dashboard/bots.$botId.plugins'
+import { Route as DashboardBotsBotIdLogsRouteImport } from './routes/dashboard/bots.$botId.logs'
+import { Route as DashboardBotsBotIdDatabaseRouteImport } from './routes/dashboard/bots.$botId.database'
+import { Route as DashboardBotsBotIdConfigRouteImport } from './routes/dashboard/bots.$botId.config'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
+const DashboardRouteRoute = DashboardRouteRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoginIndexRoute = LoginIndexRouteImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => LoginRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => DashboardRouteRoute,
 } as any)
-const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AuthenticatedRoute,
+const DashboardSubscriptionRoute = DashboardSubscriptionRouteImport.update({
+  id: '/subscription',
+  path: '/subscription',
+  getParentRoute: () => DashboardRouteRoute,
 } as any)
-const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => DashboardRouteRoute,
 } as any)
-const AuthenticatedPluginsRoute = AuthenticatedPluginsRouteImport.update({
-  id: '/plugins',
-  path: '/plugins',
-  getParentRoute: () => AuthenticatedRoute,
+const AuthDiscordRoute = AuthDiscordRouteImport.update({
+  id: '/auth/discord',
+  path: '/auth/discord',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedDownloadsRoute = AuthenticatedDownloadsRouteImport.update({
-  id: '/downloads',
-  path: '/downloads',
-  getParentRoute: () => AuthenticatedRoute,
+const DashboardReleasesIndexRoute = DashboardReleasesIndexRouteImport.update({
+  id: '/releases/',
+  path: '/releases/',
+  getParentRoute: () => DashboardRouteRoute,
 } as any)
-const AuthenticatedBotsRoute = AuthenticatedBotsRouteImport.update({
-  id: '/bots',
-  path: '/bots',
-  getParentRoute: () => AuthenticatedRoute,
+const DashboardPublisherIndexRoute = DashboardPublisherIndexRouteImport.update({
+  id: '/publisher/',
+  path: '/publisher/',
+  getParentRoute: () => DashboardRouteRoute,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRoute,
+const DashboardPluginsIndexRoute = DashboardPluginsIndexRouteImport.update({
+  id: '/plugins/',
+  path: '/plugins/',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardNodesIndexRoute = DashboardNodesIndexRouteImport.update({
+  id: '/nodes/',
+  path: '/nodes/',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardMarketplaceIndexRoute =
+  DashboardMarketplaceIndexRouteImport.update({
+    id: '/marketplace/',
+    path: '/marketplace/',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardBotsIndexRoute = DashboardBotsIndexRouteImport.update({
+  id: '/bots/',
+  path: '/bots/',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardAdminIndexRoute = DashboardAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => DashboardRouteRoute,
 } as any)
 const LoginDiscordCallbackRoute = LoginDiscordCallbackRouteImport.update({
   id: '/discord/callback',
   path: '/discord/callback',
   getParentRoute: () => LoginRoute,
 } as any)
-const AuthenticatedBotsBotIdRoute = AuthenticatedBotsBotIdRouteImport.update({
-  id: '/bots_/$botId',
-  path: '/bots/$botId',
-  getParentRoute: () => AuthenticatedRoute,
+const DashboardPublisherStatsRoute = DashboardPublisherStatsRouteImport.update({
+  id: '/publisher/stats',
+  path: '/publisher/stats',
+  getParentRoute: () => DashboardRouteRoute,
 } as any)
-const AuthenticatedBotsBotIdIndexRoute =
-  AuthenticatedBotsBotIdIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedBotsBotIdRoute,
+const DashboardPluginsPluginIdRoute =
+  DashboardPluginsPluginIdRouteImport.update({
+    id: '/plugins/$pluginId',
+    path: '/plugins/$pluginId',
+    getParentRoute: () => DashboardRouteRoute,
   } as any)
-const AuthenticatedBotsBotIdPluginsRoute =
-  AuthenticatedBotsBotIdPluginsRouteImport.update({
+const DashboardNodesNodeIdRoute = DashboardNodesNodeIdRouteImport.update({
+  id: '/nodes/$nodeId',
+  path: '/nodes/$nodeId',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardBotsBotIdRoute = DashboardBotsBotIdRouteImport.update({
+  id: '/bots/$botId',
+  path: '/bots/$botId',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardAdminUsersRoute = DashboardAdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardAdminPluginRequestsRoute =
+  DashboardAdminPluginRequestsRouteImport.update({
+    id: '/admin/plugin-requests',
+    path: '/admin/plugin-requests',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardBotsBotIdIndexRoute = DashboardBotsBotIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardBotsBotIdRoute,
+} as any)
+const DashboardBotsBotIdPluginsRoute =
+  DashboardBotsBotIdPluginsRouteImport.update({
     id: '/plugins',
     path: '/plugins',
-    getParentRoute: () => AuthenticatedBotsBotIdRoute,
+    getParentRoute: () => DashboardBotsBotIdRoute,
   } as any)
-const AuthenticatedBotsBotIdLogsRoute =
-  AuthenticatedBotsBotIdLogsRouteImport.update({
-    id: '/logs',
-    path: '/logs',
-    getParentRoute: () => AuthenticatedBotsBotIdRoute,
+const DashboardBotsBotIdLogsRoute = DashboardBotsBotIdLogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => DashboardBotsBotIdRoute,
+} as any)
+const DashboardBotsBotIdDatabaseRoute =
+  DashboardBotsBotIdDatabaseRouteImport.update({
+    id: '/database',
+    path: '/database',
+    getParentRoute: () => DashboardBotsBotIdRoute,
+  } as any)
+const DashboardBotsBotIdConfigRoute =
+  DashboardBotsBotIdConfigRouteImport.update({
+    id: '/config',
+    path: '/config',
+    getParentRoute: () => DashboardBotsBotIdRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthenticatedIndexRoute
+  '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteRouteWithChildren
   '/login': typeof LoginRouteWithChildren
-  '/admin': typeof AuthenticatedAdminRoute
-  '/bots': typeof AuthenticatedBotsRoute
-  '/downloads': typeof AuthenticatedDownloadsRoute
-  '/plugins': typeof AuthenticatedPluginsRoute
-  '/settings': typeof AuthenticatedSettingsRoute
-  '/users': typeof AuthenticatedUsersRoute
-  '/login/': typeof LoginIndexRoute
-  '/bots/$botId': typeof AuthenticatedBotsBotIdRouteWithChildren
+  '/auth/discord': typeof AuthDiscordRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/subscription': typeof DashboardSubscriptionRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/admin/plugin-requests': typeof DashboardAdminPluginRequestsRoute
+  '/dashboard/admin/users': typeof DashboardAdminUsersRoute
+  '/dashboard/bots/$botId': typeof DashboardBotsBotIdRouteWithChildren
+  '/dashboard/nodes/$nodeId': typeof DashboardNodesNodeIdRoute
+  '/dashboard/plugins/$pluginId': typeof DashboardPluginsPluginIdRoute
+  '/dashboard/publisher/stats': typeof DashboardPublisherStatsRoute
   '/login/discord/callback': typeof LoginDiscordCallbackRoute
-  '/bots/$botId/logs': typeof AuthenticatedBotsBotIdLogsRoute
-  '/bots/$botId/plugins': typeof AuthenticatedBotsBotIdPluginsRoute
-  '/bots/$botId/': typeof AuthenticatedBotsBotIdIndexRoute
+  '/dashboard/admin/': typeof DashboardAdminIndexRoute
+  '/dashboard/bots/': typeof DashboardBotsIndexRoute
+  '/dashboard/marketplace/': typeof DashboardMarketplaceIndexRoute
+  '/dashboard/nodes/': typeof DashboardNodesIndexRoute
+  '/dashboard/plugins/': typeof DashboardPluginsIndexRoute
+  '/dashboard/publisher/': typeof DashboardPublisherIndexRoute
+  '/dashboard/releases/': typeof DashboardReleasesIndexRoute
+  '/dashboard/bots/$botId/config': typeof DashboardBotsBotIdConfigRoute
+  '/dashboard/bots/$botId/database': typeof DashboardBotsBotIdDatabaseRoute
+  '/dashboard/bots/$botId/logs': typeof DashboardBotsBotIdLogsRoute
+  '/dashboard/bots/$botId/plugins': typeof DashboardBotsBotIdPluginsRoute
+  '/dashboard/bots/$botId/': typeof DashboardBotsBotIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/admin': typeof AuthenticatedAdminRoute
-  '/bots': typeof AuthenticatedBotsRoute
-  '/downloads': typeof AuthenticatedDownloadsRoute
-  '/plugins': typeof AuthenticatedPluginsRoute
-  '/settings': typeof AuthenticatedSettingsRoute
-  '/users': typeof AuthenticatedUsersRoute
-  '/': typeof AuthenticatedIndexRoute
-  '/login': typeof LoginIndexRoute
+  '/': typeof IndexRoute
+  '/login': typeof LoginRouteWithChildren
+  '/auth/discord': typeof AuthDiscordRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/subscription': typeof DashboardSubscriptionRoute
+  '/dashboard': typeof DashboardIndexRoute
+  '/dashboard/admin/plugin-requests': typeof DashboardAdminPluginRequestsRoute
+  '/dashboard/admin/users': typeof DashboardAdminUsersRoute
+  '/dashboard/nodes/$nodeId': typeof DashboardNodesNodeIdRoute
+  '/dashboard/plugins/$pluginId': typeof DashboardPluginsPluginIdRoute
+  '/dashboard/publisher/stats': typeof DashboardPublisherStatsRoute
   '/login/discord/callback': typeof LoginDiscordCallbackRoute
-  '/bots/$botId/logs': typeof AuthenticatedBotsBotIdLogsRoute
-  '/bots/$botId/plugins': typeof AuthenticatedBotsBotIdPluginsRoute
-  '/bots/$botId': typeof AuthenticatedBotsBotIdIndexRoute
+  '/dashboard/admin': typeof DashboardAdminIndexRoute
+  '/dashboard/bots': typeof DashboardBotsIndexRoute
+  '/dashboard/marketplace': typeof DashboardMarketplaceIndexRoute
+  '/dashboard/nodes': typeof DashboardNodesIndexRoute
+  '/dashboard/plugins': typeof DashboardPluginsIndexRoute
+  '/dashboard/publisher': typeof DashboardPublisherIndexRoute
+  '/dashboard/releases': typeof DashboardReleasesIndexRoute
+  '/dashboard/bots/$botId/config': typeof DashboardBotsBotIdConfigRoute
+  '/dashboard/bots/$botId/database': typeof DashboardBotsBotIdDatabaseRoute
+  '/dashboard/bots/$botId/logs': typeof DashboardBotsBotIdLogsRoute
+  '/dashboard/bots/$botId/plugins': typeof DashboardBotsBotIdPluginsRoute
+  '/dashboard/bots/$botId': typeof DashboardBotsBotIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteRouteWithChildren
   '/login': typeof LoginRouteWithChildren
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
-  '/_authenticated/bots': typeof AuthenticatedBotsRoute
-  '/_authenticated/downloads': typeof AuthenticatedDownloadsRoute
-  '/_authenticated/plugins': typeof AuthenticatedPluginsRoute
-  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
-  '/_authenticated/users': typeof AuthenticatedUsersRoute
-  '/_authenticated/': typeof AuthenticatedIndexRoute
-  '/login/': typeof LoginIndexRoute
-  '/_authenticated/bots_/$botId': typeof AuthenticatedBotsBotIdRouteWithChildren
+  '/auth/discord': typeof AuthDiscordRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/subscription': typeof DashboardSubscriptionRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/admin/plugin-requests': typeof DashboardAdminPluginRequestsRoute
+  '/dashboard/admin/users': typeof DashboardAdminUsersRoute
+  '/dashboard/bots/$botId': typeof DashboardBotsBotIdRouteWithChildren
+  '/dashboard/nodes/$nodeId': typeof DashboardNodesNodeIdRoute
+  '/dashboard/plugins/$pluginId': typeof DashboardPluginsPluginIdRoute
+  '/dashboard/publisher/stats': typeof DashboardPublisherStatsRoute
   '/login/discord/callback': typeof LoginDiscordCallbackRoute
-  '/_authenticated/bots_/$botId/logs': typeof AuthenticatedBotsBotIdLogsRoute
-  '/_authenticated/bots_/$botId/plugins': typeof AuthenticatedBotsBotIdPluginsRoute
-  '/_authenticated/bots_/$botId/': typeof AuthenticatedBotsBotIdIndexRoute
+  '/dashboard/admin/': typeof DashboardAdminIndexRoute
+  '/dashboard/bots/': typeof DashboardBotsIndexRoute
+  '/dashboard/marketplace/': typeof DashboardMarketplaceIndexRoute
+  '/dashboard/nodes/': typeof DashboardNodesIndexRoute
+  '/dashboard/plugins/': typeof DashboardPluginsIndexRoute
+  '/dashboard/publisher/': typeof DashboardPublisherIndexRoute
+  '/dashboard/releases/': typeof DashboardReleasesIndexRoute
+  '/dashboard/bots/$botId/config': typeof DashboardBotsBotIdConfigRoute
+  '/dashboard/bots/$botId/database': typeof DashboardBotsBotIdDatabaseRoute
+  '/dashboard/bots/$botId/logs': typeof DashboardBotsBotIdLogsRoute
+  '/dashboard/bots/$botId/plugins': typeof DashboardBotsBotIdPluginsRoute
+  '/dashboard/bots/$botId/': typeof DashboardBotsBotIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/dashboard'
     | '/login'
-    | '/admin'
-    | '/bots'
-    | '/downloads'
-    | '/plugins'
-    | '/settings'
-    | '/users'
-    | '/login/'
-    | '/bots/$botId'
+    | '/auth/discord'
+    | '/dashboard/settings'
+    | '/dashboard/subscription'
+    | '/dashboard/'
+    | '/dashboard/admin/plugin-requests'
+    | '/dashboard/admin/users'
+    | '/dashboard/bots/$botId'
+    | '/dashboard/nodes/$nodeId'
+    | '/dashboard/plugins/$pluginId'
+    | '/dashboard/publisher/stats'
     | '/login/discord/callback'
-    | '/bots/$botId/logs'
-    | '/bots/$botId/plugins'
-    | '/bots/$botId/'
+    | '/dashboard/admin/'
+    | '/dashboard/bots/'
+    | '/dashboard/marketplace/'
+    | '/dashboard/nodes/'
+    | '/dashboard/plugins/'
+    | '/dashboard/publisher/'
+    | '/dashboard/releases/'
+    | '/dashboard/bots/$botId/config'
+    | '/dashboard/bots/$botId/database'
+    | '/dashboard/bots/$botId/logs'
+    | '/dashboard/bots/$botId/plugins'
+    | '/dashboard/bots/$botId/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/admin'
-    | '/bots'
-    | '/downloads'
-    | '/plugins'
-    | '/settings'
-    | '/users'
     | '/'
     | '/login'
+    | '/auth/discord'
+    | '/dashboard/settings'
+    | '/dashboard/subscription'
+    | '/dashboard'
+    | '/dashboard/admin/plugin-requests'
+    | '/dashboard/admin/users'
+    | '/dashboard/nodes/$nodeId'
+    | '/dashboard/plugins/$pluginId'
+    | '/dashboard/publisher/stats'
     | '/login/discord/callback'
-    | '/bots/$botId/logs'
-    | '/bots/$botId/plugins'
-    | '/bots/$botId'
+    | '/dashboard/admin'
+    | '/dashboard/bots'
+    | '/dashboard/marketplace'
+    | '/dashboard/nodes'
+    | '/dashboard/plugins'
+    | '/dashboard/publisher'
+    | '/dashboard/releases'
+    | '/dashboard/bots/$botId/config'
+    | '/dashboard/bots/$botId/database'
+    | '/dashboard/bots/$botId/logs'
+    | '/dashboard/bots/$botId/plugins'
+    | '/dashboard/bots/$botId'
   id:
     | '__root__'
-    | '/_authenticated'
+    | '/'
+    | '/dashboard'
     | '/login'
-    | '/_authenticated/admin'
-    | '/_authenticated/bots'
-    | '/_authenticated/downloads'
-    | '/_authenticated/plugins'
-    | '/_authenticated/settings'
-    | '/_authenticated/users'
-    | '/_authenticated/'
-    | '/login/'
-    | '/_authenticated/bots_/$botId'
+    | '/auth/discord'
+    | '/dashboard/settings'
+    | '/dashboard/subscription'
+    | '/dashboard/'
+    | '/dashboard/admin/plugin-requests'
+    | '/dashboard/admin/users'
+    | '/dashboard/bots/$botId'
+    | '/dashboard/nodes/$nodeId'
+    | '/dashboard/plugins/$pluginId'
+    | '/dashboard/publisher/stats'
     | '/login/discord/callback'
-    | '/_authenticated/bots_/$botId/logs'
-    | '/_authenticated/bots_/$botId/plugins'
-    | '/_authenticated/bots_/$botId/'
+    | '/dashboard/admin/'
+    | '/dashboard/bots/'
+    | '/dashboard/marketplace/'
+    | '/dashboard/nodes/'
+    | '/dashboard/plugins/'
+    | '/dashboard/publisher/'
+    | '/dashboard/releases/'
+    | '/dashboard/bots/$botId/config'
+    | '/dashboard/bots/$botId/database'
+    | '/dashboard/bots/$botId/logs'
+    | '/dashboard/bots/$botId/plugins'
+    | '/dashboard/bots/$botId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  IndexRoute: typeof IndexRoute
+  DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
   LoginRoute: typeof LoginRouteWithChildren
+  AuthDiscordRoute: typeof AuthDiscordRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -215,68 +357,96 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/login/': {
-      id: '/login/'
-      path: '/'
-      fullPath: '/login/'
-      preLoaderRoute: typeof LoginIndexRouteImport
-      parentRoute: typeof LoginRoute
-    }
-    '/_authenticated/': {
-      id: '/_authenticated/'
+    '/': {
+      id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/users': {
-      id: '/_authenticated/users'
-      path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof AuthenticatedUsersRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
-    '/_authenticated/settings': {
-      id: '/_authenticated/settings'
+    '/dashboard/subscription': {
+      id: '/dashboard/subscription'
+      path: '/subscription'
+      fullPath: '/dashboard/subscription'
+      preLoaderRoute: typeof DashboardSubscriptionRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
       path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
-    '/_authenticated/plugins': {
-      id: '/_authenticated/plugins'
+    '/auth/discord': {
+      id: '/auth/discord'
+      path: '/auth/discord'
+      fullPath: '/auth/discord'
+      preLoaderRoute: typeof AuthDiscordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/releases/': {
+      id: '/dashboard/releases/'
+      path: '/releases'
+      fullPath: '/dashboard/releases/'
+      preLoaderRoute: typeof DashboardReleasesIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/publisher/': {
+      id: '/dashboard/publisher/'
+      path: '/publisher'
+      fullPath: '/dashboard/publisher/'
+      preLoaderRoute: typeof DashboardPublisherIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/plugins/': {
+      id: '/dashboard/plugins/'
       path: '/plugins'
-      fullPath: '/plugins'
-      preLoaderRoute: typeof AuthenticatedPluginsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      fullPath: '/dashboard/plugins/'
+      preLoaderRoute: typeof DashboardPluginsIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
-    '/_authenticated/downloads': {
-      id: '/_authenticated/downloads'
-      path: '/downloads'
-      fullPath: '/downloads'
-      preLoaderRoute: typeof AuthenticatedDownloadsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+    '/dashboard/nodes/': {
+      id: '/dashboard/nodes/'
+      path: '/nodes'
+      fullPath: '/dashboard/nodes/'
+      preLoaderRoute: typeof DashboardNodesIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
-    '/_authenticated/bots': {
-      id: '/_authenticated/bots'
+    '/dashboard/marketplace/': {
+      id: '/dashboard/marketplace/'
+      path: '/marketplace'
+      fullPath: '/dashboard/marketplace/'
+      preLoaderRoute: typeof DashboardMarketplaceIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/bots/': {
+      id: '/dashboard/bots/'
       path: '/bots'
-      fullPath: '/bots'
-      preLoaderRoute: typeof AuthenticatedBotsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      fullPath: '/dashboard/bots/'
+      preLoaderRoute: typeof DashboardBotsIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
+    '/dashboard/admin/': {
+      id: '/dashboard/admin/'
       path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      fullPath: '/dashboard/admin/'
+      preLoaderRoute: typeof DashboardAdminIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
     '/login/discord/callback': {
       id: '/login/discord/callback'
@@ -285,96 +455,162 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginDiscordCallbackRouteImport
       parentRoute: typeof LoginRoute
     }
-    '/_authenticated/bots_/$botId': {
-      id: '/_authenticated/bots_/$botId'
+    '/dashboard/publisher/stats': {
+      id: '/dashboard/publisher/stats'
+      path: '/publisher/stats'
+      fullPath: '/dashboard/publisher/stats'
+      preLoaderRoute: typeof DashboardPublisherStatsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/plugins/$pluginId': {
+      id: '/dashboard/plugins/$pluginId'
+      path: '/plugins/$pluginId'
+      fullPath: '/dashboard/plugins/$pluginId'
+      preLoaderRoute: typeof DashboardPluginsPluginIdRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/nodes/$nodeId': {
+      id: '/dashboard/nodes/$nodeId'
+      path: '/nodes/$nodeId'
+      fullPath: '/dashboard/nodes/$nodeId'
+      preLoaderRoute: typeof DashboardNodesNodeIdRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/bots/$botId': {
+      id: '/dashboard/bots/$botId'
       path: '/bots/$botId'
-      fullPath: '/bots/$botId'
-      preLoaderRoute: typeof AuthenticatedBotsBotIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      fullPath: '/dashboard/bots/$botId'
+      preLoaderRoute: typeof DashboardBotsBotIdRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
-    '/_authenticated/bots_/$botId/': {
-      id: '/_authenticated/bots_/$botId/'
+    '/dashboard/admin/users': {
+      id: '/dashboard/admin/users'
+      path: '/admin/users'
+      fullPath: '/dashboard/admin/users'
+      preLoaderRoute: typeof DashboardAdminUsersRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/admin/plugin-requests': {
+      id: '/dashboard/admin/plugin-requests'
+      path: '/admin/plugin-requests'
+      fullPath: '/dashboard/admin/plugin-requests'
+      preLoaderRoute: typeof DashboardAdminPluginRequestsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/bots/$botId/': {
+      id: '/dashboard/bots/$botId/'
       path: '/'
-      fullPath: '/bots/$botId/'
-      preLoaderRoute: typeof AuthenticatedBotsBotIdIndexRouteImport
-      parentRoute: typeof AuthenticatedBotsBotIdRoute
+      fullPath: '/dashboard/bots/$botId/'
+      preLoaderRoute: typeof DashboardBotsBotIdIndexRouteImport
+      parentRoute: typeof DashboardBotsBotIdRoute
     }
-    '/_authenticated/bots_/$botId/plugins': {
-      id: '/_authenticated/bots_/$botId/plugins'
+    '/dashboard/bots/$botId/plugins': {
+      id: '/dashboard/bots/$botId/plugins'
       path: '/plugins'
-      fullPath: '/bots/$botId/plugins'
-      preLoaderRoute: typeof AuthenticatedBotsBotIdPluginsRouteImport
-      parentRoute: typeof AuthenticatedBotsBotIdRoute
+      fullPath: '/dashboard/bots/$botId/plugins'
+      preLoaderRoute: typeof DashboardBotsBotIdPluginsRouteImport
+      parentRoute: typeof DashboardBotsBotIdRoute
     }
-    '/_authenticated/bots_/$botId/logs': {
-      id: '/_authenticated/bots_/$botId/logs'
+    '/dashboard/bots/$botId/logs': {
+      id: '/dashboard/bots/$botId/logs'
       path: '/logs'
-      fullPath: '/bots/$botId/logs'
-      preLoaderRoute: typeof AuthenticatedBotsBotIdLogsRouteImport
-      parentRoute: typeof AuthenticatedBotsBotIdRoute
+      fullPath: '/dashboard/bots/$botId/logs'
+      preLoaderRoute: typeof DashboardBotsBotIdLogsRouteImport
+      parentRoute: typeof DashboardBotsBotIdRoute
+    }
+    '/dashboard/bots/$botId/database': {
+      id: '/dashboard/bots/$botId/database'
+      path: '/database'
+      fullPath: '/dashboard/bots/$botId/database'
+      preLoaderRoute: typeof DashboardBotsBotIdDatabaseRouteImport
+      parentRoute: typeof DashboardBotsBotIdRoute
+    }
+    '/dashboard/bots/$botId/config': {
+      id: '/dashboard/bots/$botId/config'
+      path: '/config'
+      fullPath: '/dashboard/bots/$botId/config'
+      preLoaderRoute: typeof DashboardBotsBotIdConfigRouteImport
+      parentRoute: typeof DashboardBotsBotIdRoute
     }
   }
 }
 
-interface AuthenticatedBotsBotIdRouteChildren {
-  AuthenticatedBotsBotIdLogsRoute: typeof AuthenticatedBotsBotIdLogsRoute
-  AuthenticatedBotsBotIdPluginsRoute: typeof AuthenticatedBotsBotIdPluginsRoute
-  AuthenticatedBotsBotIdIndexRoute: typeof AuthenticatedBotsBotIdIndexRoute
+interface DashboardBotsBotIdRouteChildren {
+  DashboardBotsBotIdConfigRoute: typeof DashboardBotsBotIdConfigRoute
+  DashboardBotsBotIdDatabaseRoute: typeof DashboardBotsBotIdDatabaseRoute
+  DashboardBotsBotIdLogsRoute: typeof DashboardBotsBotIdLogsRoute
+  DashboardBotsBotIdPluginsRoute: typeof DashboardBotsBotIdPluginsRoute
+  DashboardBotsBotIdIndexRoute: typeof DashboardBotsBotIdIndexRoute
 }
 
-const AuthenticatedBotsBotIdRouteChildren: AuthenticatedBotsBotIdRouteChildren =
-  {
-    AuthenticatedBotsBotIdLogsRoute: AuthenticatedBotsBotIdLogsRoute,
-    AuthenticatedBotsBotIdPluginsRoute: AuthenticatedBotsBotIdPluginsRoute,
-    AuthenticatedBotsBotIdIndexRoute: AuthenticatedBotsBotIdIndexRoute,
-  }
-
-const AuthenticatedBotsBotIdRouteWithChildren =
-  AuthenticatedBotsBotIdRoute._addFileChildren(
-    AuthenticatedBotsBotIdRouteChildren,
-  )
-
-interface AuthenticatedRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
-  AuthenticatedBotsRoute: typeof AuthenticatedBotsRoute
-  AuthenticatedDownloadsRoute: typeof AuthenticatedDownloadsRoute
-  AuthenticatedPluginsRoute: typeof AuthenticatedPluginsRoute
-  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
-  AuthenticatedBotsBotIdRoute: typeof AuthenticatedBotsBotIdRouteWithChildren
+const DashboardBotsBotIdRouteChildren: DashboardBotsBotIdRouteChildren = {
+  DashboardBotsBotIdConfigRoute: DashboardBotsBotIdConfigRoute,
+  DashboardBotsBotIdDatabaseRoute: DashboardBotsBotIdDatabaseRoute,
+  DashboardBotsBotIdLogsRoute: DashboardBotsBotIdLogsRoute,
+  DashboardBotsBotIdPluginsRoute: DashboardBotsBotIdPluginsRoute,
+  DashboardBotsBotIdIndexRoute: DashboardBotsBotIdIndexRoute,
 }
 
-const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
-  AuthenticatedBotsRoute: AuthenticatedBotsRoute,
-  AuthenticatedDownloadsRoute: AuthenticatedDownloadsRoute,
-  AuthenticatedPluginsRoute: AuthenticatedPluginsRoute,
-  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedUsersRoute: AuthenticatedUsersRoute,
-  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
-  AuthenticatedBotsBotIdRoute: AuthenticatedBotsBotIdRouteWithChildren,
+const DashboardBotsBotIdRouteWithChildren =
+  DashboardBotsBotIdRoute._addFileChildren(DashboardBotsBotIdRouteChildren)
+
+interface DashboardRouteRouteChildren {
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardSubscriptionRoute: typeof DashboardSubscriptionRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardAdminPluginRequestsRoute: typeof DashboardAdminPluginRequestsRoute
+  DashboardAdminUsersRoute: typeof DashboardAdminUsersRoute
+  DashboardBotsBotIdRoute: typeof DashboardBotsBotIdRouteWithChildren
+  DashboardNodesNodeIdRoute: typeof DashboardNodesNodeIdRoute
+  DashboardPluginsPluginIdRoute: typeof DashboardPluginsPluginIdRoute
+  DashboardPublisherStatsRoute: typeof DashboardPublisherStatsRoute
+  DashboardAdminIndexRoute: typeof DashboardAdminIndexRoute
+  DashboardBotsIndexRoute: typeof DashboardBotsIndexRoute
+  DashboardMarketplaceIndexRoute: typeof DashboardMarketplaceIndexRoute
+  DashboardNodesIndexRoute: typeof DashboardNodesIndexRoute
+  DashboardPluginsIndexRoute: typeof DashboardPluginsIndexRoute
+  DashboardPublisherIndexRoute: typeof DashboardPublisherIndexRoute
+  DashboardReleasesIndexRoute: typeof DashboardReleasesIndexRoute
 }
 
-const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
-  AuthenticatedRouteChildren,
+const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
+  DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardSubscriptionRoute: DashboardSubscriptionRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+  DashboardAdminPluginRequestsRoute: DashboardAdminPluginRequestsRoute,
+  DashboardAdminUsersRoute: DashboardAdminUsersRoute,
+  DashboardBotsBotIdRoute: DashboardBotsBotIdRouteWithChildren,
+  DashboardNodesNodeIdRoute: DashboardNodesNodeIdRoute,
+  DashboardPluginsPluginIdRoute: DashboardPluginsPluginIdRoute,
+  DashboardPublisherStatsRoute: DashboardPublisherStatsRoute,
+  DashboardAdminIndexRoute: DashboardAdminIndexRoute,
+  DashboardBotsIndexRoute: DashboardBotsIndexRoute,
+  DashboardMarketplaceIndexRoute: DashboardMarketplaceIndexRoute,
+  DashboardNodesIndexRoute: DashboardNodesIndexRoute,
+  DashboardPluginsIndexRoute: DashboardPluginsIndexRoute,
+  DashboardPublisherIndexRoute: DashboardPublisherIndexRoute,
+  DashboardReleasesIndexRoute: DashboardReleasesIndexRoute,
+}
+
+const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
+  DashboardRouteRouteChildren,
 )
 
 interface LoginRouteChildren {
-  LoginIndexRoute: typeof LoginIndexRoute
   LoginDiscordCallbackRoute: typeof LoginDiscordCallbackRoute
 }
 
 const LoginRouteChildren: LoginRouteChildren = {
-  LoginIndexRoute: LoginIndexRoute,
   LoginDiscordCallbackRoute: LoginDiscordCallbackRoute,
 }
 
 const LoginRouteWithChildren = LoginRoute._addFileChildren(LoginRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  IndexRoute: IndexRoute,
+  DashboardRouteRoute: DashboardRouteRouteWithChildren,
   LoginRoute: LoginRouteWithChildren,
+  AuthDiscordRoute: AuthDiscordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

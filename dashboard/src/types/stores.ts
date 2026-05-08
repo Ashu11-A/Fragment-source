@@ -1,10 +1,7 @@
-export interface AuthUser {
-  id: number
-  name: string
-  username: string
-  email: string
-  role: string
-}
+import type { RouterOutputs } from '@/lib/trpc'
+import type { AuthUser } from '@/types/auth'
+
+export type SubscriptionListResponse = RouterOutputs['subscriptions']['list']
 
 export interface AuthState {
   user: AuthUser | null
@@ -27,6 +24,8 @@ export interface BotsListUIState {
   setDeleteOpen: (open: boolean) => void
   botName: string
   setBotName: (name: string) => void
+  selectedNodeId: string
+  setSelectedNodeId: (nodeId: string) => void
   editBotId: number | null
   setEditBotId: (id: number | null) => void
   editBotName: string
@@ -67,4 +66,23 @@ export interface UIState {
   setSidebarCollapsed: (collapsed: boolean) => void
   toggleSidebar: () => void
   setSearchQuery: (query: string) => void
+}
+
+export interface SubscriptionState extends SubscriptionListResponse {
+  isLoading: boolean
+  isFetched: boolean
+
+  setData: (data: SubscriptionListResponse) => void
+  setLoading: (loading: boolean) => void
+  setFetched: (fetched: boolean) => void
+}
+
+export interface PlanState {
+  plans: RouterOutputs['plans']['list']
+  isLoading: boolean
+  isFetched: boolean
+
+  setPlans: (plans: RouterOutputs['plans']['list']) => void
+  setLoading: (loading: boolean) => void
+  setFetched: (fetched: boolean) => void
 }
