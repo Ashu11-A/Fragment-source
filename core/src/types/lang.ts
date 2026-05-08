@@ -1,4 +1,4 @@
-import type { i18 as lang } from '@/lang'
+import type { lang } from '@/singletons'
 
 declare global {
   var i18: typeof lang

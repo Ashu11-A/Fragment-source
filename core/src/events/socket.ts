@@ -1,93 +1,88 @@
-import { TypedSocketClient, fragmentSocketContract, reportCoreActivity } from 'socket'
-import { io as socketIoClient, type Socket } from 'socket.io-client'
+import { CoreSocketManager } from '../socket/CoreSocketManager.js'
+import { API_URL, state, storage } from '@/singletons.js'
+import { Plugin } from 'worker'
 import * as corePkg from '../../package.json' with { type: 'json' }
-import { serverStatus } from '@/events/server/status.js'
-import { API_URL } from '@/singletons.js'
-
-export let socket: TypedSocketClient<typeof fragmentSocketContract.serverToClient, typeof fragmentSocketContract.clientToServer> | null = null
-
-let rawIo: Socket | null = null
-
-export function getMirrorReady(): boolean {
-  return rawIo?.connected === true && serverBotId != null
-}
-
-export function emitCoreConsoleLines(lines: string[]): void {
-  if (!rawIo?.connected || serverBotId == null || lines.length === 0) return
-  rawIo.emit('core:console:push', { lines })
-}
-
-/** Alvo de `client:identify` — necessário para `bots.status` achar a sala `bot:{id}`. */
-let serverBotId: number | null = null
+import { serverStatus } from './server/status.js'
 
 const coreVersion = (corePkg as unknown as { default?: { version?: string }; version?: string }).default?.version
   ?? (corePkg as unknown as { version?: string }).version
   ?? 'unknown'
 
-function emitIdentify() {
-  if (socket == null || serverBotId == null) return
-  socket.emit('client:identify', { botId: serverBotId, version: coreVersion })
-}
+export const coreSocketManager = new CoreSocketManager({
+  serverUrl: API_URL,
+  getAccessToken: () => state.accessToken || null,
+  getRefreshToken: () => state.refreshToken || null,
+  getBotId: () => state.botId ?? null,
+  getCoreVersion: () => coreVersion,
+  getActivePluginsCount: () => Plugin.all.size,
 
-function reportLinkedIfConnected() {
-  if (socket == null || serverBotId == null || !socket.connected) return
-  reportCoreActivity(socket, {
-    level: 'info',
-    category: 'core',
-    message: 'Core linked to bot (socket ready)',
-    display: 'success',
-    source: 'core:socket',
-    metadata: { botId: serverBotId },
-  })
-}
+  onTokenRefreshed: async (tokens) => {
+    state.accessToken = tokens.accessToken
+    state.refreshToken = tokens.refreshToken
 
-export function setServerSocketBotId(botId: number | null) {
-  serverBotId = botId
-  if (botId != null) {
-    emitIdentify()
-    reportLinkedIfConnected()
-  }
-  void import('../logs/logger.js').then((m) => m.pokeMirrorFlush())
+    const accessExpireDate = tokens.accessExpiresAt ? new Date(tokens.accessExpiresAt).toISOString() : ''
+    const accessExpireSeconds = tokens.accessExpiresAt ? Math.floor((tokens.accessExpiresAt - Date.now()) / 1000) : 0
+
+    await storage.append('.data', {
+      accessToken: { token: tokens.accessToken, expireDate: accessExpireDate, expireSeconds: accessExpireSeconds },
+      refreshToken: { token: tokens.refreshToken, expireDate: '', expireSeconds: 0 },
+    }, { isJson: true })
+  },
+  
+  onDiscordTokenReceived: async (token) => {
+    state.discordToken = token
+    await storage.append('.data', { token }, { isJson: true })
+    if (state.discordToken) {
+      const core = (await import('@/app.js')).default
+      await core.discord.start()
+    }
+  },
+  
+  onBotIdReceived: async (botId) => {
+    state.botId = botId
+  },
+
+  onEnvVarsReceived: async (envs) => {
+    for (const { name, value } of envs) {
+      process.env[name] = value
+    }
+    console.log(`[core:socket] Applied ${envs.length} env var(s) to process environment`)
+  },
+})
+
+// Bind existing events to the manager's socket
+const originalConnect = coreSocketManager.connect.bind(coreSocketManager)
+coreSocketManager.connect = () => {
+  const socket = originalConnect()
+  serverStatus.register(socket as any)
+  return socket
 }
 
 export function connectSocket(token: string) {
-  if (socket) return socket
+  // Update state with token before connecting
+  state.accessToken = token
+  return coreSocketManager.connect()
+}
 
-  const url = API_URL.replace('0.0.0.0', '127.0.0.1')
-  const rawSocket = socketIoClient(url, {
-    auth: { token },
-    transports: process.env.NODE_ENV === 'production' ? ['websocket'] : ['polling', 'websocket'],
-    reconnection: true,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
-    reconnectionAttempts: Infinity,
-  })
+export function emitCoreConsoleLines(lines: string[]) {
+  coreSocketManager.emitConsoleLines(lines)
+}
 
-  rawIo = rawSocket
-  const s = new TypedSocketClient(rawSocket, fragmentSocketContract.serverToClient)
-  socket = s
+export function setServerSocketBotId(botId: number | null) {
+  state.botId = botId || undefined
+  if (botId != null) {
+    coreSocketManager.identify(botId)
+  }
+}
 
-  s.onConnect(() => {
-    console.log(`[core:socket] Connected to server! (id: ${s.id})`)
-    s.emit('ping')
-    emitIdentify()
-    reportLinkedIfConnected()
-    void import('../logs/logger.js').then((m) => m.pokeMirrorFlush())
-  })
+export function getServerBotId() {
+  return coreSocketManager.activeBotId
+}
 
-  s.onDisconnect((reason) => {
-    console.log(`[core:socket] Disconnected: ${reason}`)
-  })
+export function waitForConnect() {
+  return coreSocketManager.waitForConnect()
+}
 
-  s.onError((error) => {
-    console.error(`[core:socket] Connection error: ${error.message}`)
-  })
-
-  s.onReconnect((attempt) => {
-    console.log(`[core:socket] Reconnected after ${attempt} attempts`)
-  })
-
-  serverStatus.register(s)
-
-  return s
+export function getMirrorReady() {
+  return coreSocketManager.isMirrorReady
 }

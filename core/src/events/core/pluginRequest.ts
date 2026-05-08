@@ -1,12 +1,13 @@
-import { ClientEvent, fragmentSocketContract } from 'socket'
-import { basename } from 'node:path'
-import { Plugin } from 'worker'
 import type { PluginEntry, PluginResult } from '@/types/plugin.js'
+import { basename } from 'node:path'
+import { ClientEvent } from 'socket'
+import { Plugin } from 'worker'
 
 export const corePluginRequest = new ClientEvent({
   name: 'core:plugin:request',
   async onRun({ data: req, socket }) {
-    const { plugin } = await import('@/app')
+    const { default: core } = await import('@/app.js')
+    const plugin = core.plugin
 
     const send = (payload: PluginResult) => socket.emit('core:plugin:result', payload)
     const fail = (message: string, details?: string) =>
@@ -22,7 +23,7 @@ export const corePluginRequest = new ClientEvent({
           loaded: true,
         }))
 
-        const discovered = await plugin.listDiscoveredBundlePaths()
+        const discovered = await plugin.list()
         const loadedPaths = new Set(loaded.map((r) => r.filePath))
         for (const p of discovered) {
           if (!loadedPaths.has(p)) {

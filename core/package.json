@@ -1,13 +1,13 @@
 {
   "name": "core",
-  "version": "1.0.0",
+  "version": "1.2.3",
   "description": "Controler dos modulos do PaymentBot",
   "main": "dist/app.js",
   "type": "module",
   "private": true,
   "scripts": {
     "start": "node .",
-    "dev": "bun run src/app.ts #--inspect-brk=ws://localhost:6499",
+    "dev": "FRAGMENT_RUN=1 bun run src/app.ts #--inspect-brk=ws://localhost:6499",
     "lint": "eslint --fix ."
   },
   "author": {
@@ -16,39 +16,29 @@
   },
   "license": "LSC",
   "devDependencies": {
-    "@types/figlet": "^1.7.0",
-    "@types/marked-terminal": "^6.1.1",
-    "@types/prompts": "^2.4.9",
-    "@types/yargs": "^17.0.35",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.58.2"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "@trpc/client": "^11.16.0",
+    "@trpc/server": "^11.16.0",
     "boxen": "^8.0.1",
     "database": "workspace:../packages/database",
     "discord": "workspace:../packages/discord",
-    "discord-oauth": "workspace:../packages/discord-oauth",
     "discord.js": "^14.26.3",
     "dotenv": "^16.6.1",
-    "express": "^4.22.1",
     "figlet": "^1.11.0",
-    "glob": "^11.1.0",
     "lang": "workspace:../packages/lang",
-    "marked": "^15.0.12",
-    "marked-terminal": "^7.3.0",
     "mysql2": "^3.22.0",
     "ora": "^9.3.0",
-    "prompts": "^2.4.2",
     "reflect-metadata": "^0.2.2",
     "server": "workspace:../server",
     "socket": "workspace:../packages/socket",
     "socket.io-client": "^4.8.3",
-    "strip-ansi": "^7.1.0",
     "storage": "workspace:../packages/storage",
+    "strip-ansi": "^7.1.0",
     "typeorm": "^0.3.28",
     "utils": "workspace:../packages/utils",
     "worker": "workspace:../packages/worker",
-    "yargs": "^17.7.2"
+    "zod": "^3.24.2"
   }
 }

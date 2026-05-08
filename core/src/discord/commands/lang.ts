@@ -1,6 +1,4 @@
-import { root } from '@/singletons.js'
-import { lang } from '@/lang.js'
-import { storage } from '@/storage.js'
+import { lang, root, storage } from '@/singletons.js'
 import { Command } from 'discord'
 import { type ApplicationCommandOptionChoiceData, ApplicationCommandOptionType, ApplicationCommandType, EmbedBuilder, MessageFlags } from 'discord.js'
 import { glob } from 'glob'

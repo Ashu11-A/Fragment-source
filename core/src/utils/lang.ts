@@ -1,6 +1,6 @@
 import { Lang, Lyrics } from 'lang'
-import en from '../locales/en/core'
-import ptBR from '../locales/pt-BR/core'
+import en from '../../locales/en/core'
+import ptBR from '../../locales/pt-BR/core'
 
 const languages = {
   'pt-BR': {

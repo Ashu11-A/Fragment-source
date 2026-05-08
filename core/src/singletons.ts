@@ -1,33 +1,15 @@
-import { dirname } from 'path'
+import { state } from '@/utils/config.js'
+import { isPKG, root } from '@/utils/paths'
+import { log, spinner } from '@/utils/ui.js'
 import { createTRPCClient, httpBatchLink, httpLink, splitLink } from '@trpc/client'
-import type { AppRouter } from 'server'
-import { fileURLToPath } from 'url'
-import { Package, processPath } from 'utils'
-import * as pkg from '../package.json' with { type: 'json' }
-import { log, spinner } from '@/ui.js'
 import { Database } from 'database'
+import type { AppRouter } from 'server'
 
-Package.setData((pkg as unknown as { default: typeof pkg }).default)
+export { i18, lang } from '@/utils/lang.js'
+export { storage } from '@/utils/storage.js'
+export { state, isPKG, root }
 
-export const { isPKG, root } = processPath(dirname(fileURLToPath(import.meta.url)))
-export const API_URL = 'http://0.0.0.0:3500'
-
-let accessToken: string | undefined
-let refreshToken: string | undefined
-
-export function setAccessToken(token: string | undefined): void {
-  accessToken = token
-  if (token) {
-    import('./events/socket.js')
-      .then(({ connectSocket }) => connectSocket(token))
-      .catch(console.error)
-  }
-}
-
-export function setRefreshToken(token: string | undefined): void {
-  refreshToken = token
-}
-
+export const API_URL = process.env.SERVER_URL || 'http://0.0.0.0:3500'
 export const trpc = createTRPCClient<AppRouter>({
   links: [
     splitLink({
@@ -37,16 +19,16 @@ export const trpc = createTRPCClient<AppRouter>({
       },
       true: httpBatchLink({
         url: `${API_URL}/trpc`,
-        headers: () => ({ Authorization: accessToken ? `Bearer ${accessToken}` : undefined }),
+        headers: () => ({ Authorization: state.accessToken ? `Bearer ${state.accessToken}` : undefined }),
       }),
       false: httpLink({
         url: `${API_URL}/trpc`,
         headers: ({ op }) => {
           const path = Array.isArray(op.path) ? op.path.join('.') : String(op.path)
           if (path === 'auth.refresh') {
-            return { Authorization: refreshToken ? `Refresh ${refreshToken}` : undefined }
+            return { Authorization: state.refreshToken ? `Refresh ${state.refreshToken}` : undefined }
           }
-          return { Authorization: accessToken ? `Bearer ${accessToken}` : undefined }
+          return { Authorization: state.accessToken ? `Bearer ${state.accessToken}` : undefined }
         },
       }),
     }),

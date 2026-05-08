@@ -1,14 +1,10 @@
-import { appendFileSync, mkdirSync, truncateSync, existsSync } from 'fs'
-import { join } from 'path'
 import stripAnsi from 'strip-ansi'
-import { emitCoreConsoleLines, getMirrorReady } from '@/events/socket.js'
+import { emitCoreConsoleLines } from '@/events/socket.js'
 
-let logFilePath = ''
 const lineQueue: string[] = []
 let flushTimer: ReturnType<typeof setTimeout> | null = null
 
 const FLUSH_MS = 120
-const RETRY_MS = 400
 const MAX_BATCH = 120
 
 function scheduleFlush() {
@@ -16,14 +12,6 @@ function scheduleFlush() {
   flushTimer = setTimeout(() => {
     flushTimer = null
     if (lineQueue.length === 0) return
-
-    if (!getMirrorReady()) {
-      flushTimer = setTimeout(() => {
-        flushTimer = null
-        scheduleFlush()
-      }, RETRY_MS)
-      return
-    }
 
     const batch = lineQueue.splice(0, MAX_BATCH)
     emitCoreConsoleLines(batch)
@@ -44,12 +32,6 @@ function enqueueLine(rawLine: string) {
   const line = stripAnsi(rawLine)
   if (line.length === 0) return
 
-  try {
-    if (logFilePath) appendFileSync(logFilePath, `${line}\n`, 'utf8')
-  } catch {
-    // ignore disk errors
-  }
-
   lineQueue.push(line)
   scheduleFlush()
 }
@@ -57,57 +39,40 @@ function enqueueLine(rawLine: string) {
 function ingestStreamChunk(chunk: string, sink: { pending: string }): void {
   sink.pending += chunk.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
   for (;;) {
-    const i = sink.pending.indexOf('\n')
-    if (i === -1) break
-    const line = sink.pending.slice(0, i)
-    sink.pending = sink.pending.slice(i + 1)
+    const index = sink.pending.indexOf('\n')
+    if (index === -1) break
+    const line = sink.pending.slice(0, index)
+    sink.pending = sink.pending.slice(index + 1)
     enqueueLine(line)
   }
 }
 
 function patchWritable(stream: NodeJS.WriteStream, sink: { pending: string }) {
-  const orig = stream.write.bind(stream) as (
-    chunk: unknown,
-    encoding?: unknown,
-    cb?: unknown,
-  ) => boolean
+  const originalWrite = stream.write.bind(stream)
 
-  stream.write = ((chunk: unknown, encoding?: unknown, cb?: unknown): boolean => {
+  stream.write = ((chunk: unknown, encoding?: unknown, callback?: unknown): boolean => {
     try {
       if (chunk != null) {
-        const s =
+        const stringChunk =
           typeof chunk === 'string'
             ? chunk
             : Buffer.isBuffer(chunk)
               ? chunk.toString('utf8')
               : String(chunk)
-        ingestStreamChunk(s, sink)
+        ingestStreamChunk(stringChunk, sink)
       }
     } catch {
       // never break stdout/stderr
     }
-    return orig(chunk, encoding, cb)
+    return originalWrite(chunk, encoding as BufferEncoding, callback as (error?: Error | null) => void)
   }) as typeof stream.write
 }
 
 export class Logger {
-  readonly logPath: string
-
-  constructor(root: string) {
-    const dir = join(root, '.fragment')
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
-    logFilePath = join(dir, 'console.log')
-    try {
-      truncateSync(logFilePath, 0)
-    } catch {
-      // ignore
-    }
-
+  constructor() {
     const outSink = { pending: '' }
     const errSink = { pending: '' }
     patchWritable(process.stdout, outSink)
     patchWritable(process.stderr, errSink)
-
-    this.logPath = logFilePath
   }
 }
