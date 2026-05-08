@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import { Auth } from '@/database/entity/Auth.js'
+import { Session } from '@/database/entity/Session.js'
 import { User } from '@/database/entity/User.js'
 
 /**
@@ -12,8 +12,8 @@ export async function validateAccessToken(token: string): Promise<User | null> {
     const secret = process.env.JWT_TOKEN
     if (!secret) return null
 
-    const auth = await Auth.findOneBy({ accessToken: token })
-    if (!auth?.valid) return null
+    const session = await Session.findOneBy({ accessToken: token })
+    if (!session?.valid) return null
 
     const decoded = jwt.verify(token, secret, { algorithms: ['HS512'] })
     if (typeof decoded !== 'object' || decoded === null) return null

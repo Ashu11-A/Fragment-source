@@ -1,14 +1,18 @@
 import { router } from '@/trpc.js'
-import { discordExchange } from './discordExchange.js'
-import { login } from './login.js'
-import { logout } from './logout.js'
-import { refresh } from './refresh.js'
-import { signup } from './signup.js'
+import { discordExchangeProcedure } from './discordExchange.js'
+import { loginProcedure } from './login.js'
+import { logoutProcedure } from './logout.js'
+import { logoutAllProcedure } from './logoutAll.js'
+import { refreshProcedure } from './refresh.js'
+import { sessionsProcedure } from './sessions.js'
+import { signupProcedure } from './signup.js'
 
 export const authRouter = router({
-  login,
-  signup,
-  logout,
-  refresh,
-  discordExchange,
+  discordExchange: discordExchangeProcedure,
+  login: loginProcedure,
+  logout: logoutProcedure,
+  logoutAll: logoutAllProcedure,
+  refresh: refreshProcedure,
+  sessions: sessionsProcedure,
+  signup: signupProcedure,
 })

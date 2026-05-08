@@ -1,65 +1,78 @@
 import { TRPCError } from '@trpc/server'
+import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
+import { publicProcedure } from '@/trpc.js'
 import { User } from '@/database/entity/User.js'
 import { Role } from '@/database/enums.js'
 import { issueAuthSession } from '@/security/session.js'
-import {
-  assertRedirectUriAllowed,
-  exchangeDiscordCode,
-  fetchDiscordUserMe,
-  verifyDiscordOAuthState,
-  type DiscordUserMe,
-} from '@/services/discordOAuth.js'
-import { publicProcedure } from '@/trpc.js'
+import { discord } from '@/services/Discord.js'
+import { toTrpcError } from '../_shared/errors.js'
 
-async function findOrCreateUserFromDiscord(discord: DiscordUserMe): Promise<User> {
-  const existingByDiscord = await User.findOne({ where: { discordId: discord.id } })
-  if (existingByDiscord) return existingByDiscord
+const discordExchangeSchema = z.object({
+  code: z.string().min(1),
+  state: z.string().min(1),
+})
 
-  const nameSource = discord.global_name || discord.username
-  const name = nameSource.slice(0, 64)
-  const username = `dsc_${discord.id}`.slice(0, 64)
+function buildSafeUsername(candidate: string): string {
+  const base = candidate
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
 
-  let email: string
-  if (discord.email && discord.verified) {
-    email = discord.email
-    const taken = await User.findOneBy({ email })
-    if (taken) email = `discord-${discord.id}@users.fragment.local`
-  } else {
-    email = `discord-${discord.id}@users.fragment.local`
-  }
-
-  const user = User.create({
-    name,
-    username,
-    email,
-    language: 'en',
-    role: Role.User,
-    discordId: discord.id,
-    password: null,
-  })
-  await user.save()
-  return user
+  return base.length >= 3 ? base.slice(0, 32) : `discord-${randomUUID().slice(0, 8)}`
 }
 
-export const discordExchange = publicProcedure
-  .input(z.object({
-    code: z.string().min(1),
-    state: z.string().min(1),
-    redirect_uri: z.string().min(1),
-  }))
+export const discordExchangeProcedure = publicProcedure
+  .input(discordExchangeSchema)
   .mutation(async ({ input, ctx }) => {
-    const payload = verifyDiscordOAuthState(input.state)
-    const canonicalRedirect = payload.redirect_uri.trim()
-    if (canonicalRedirect !== input.redirect_uri.trim()) {
-      throw new TRPCError({ code: 'BAD_REQUEST', message: 'redirect_uri does not match state' })
+    try {
+      const statePayload = discord.verifyState(input.state)
+      discord.assertRedirectUri(statePayload.redirect_uri)
+
+      const tokenResponse = await discord.exchangeCode(input.code, statePayload.redirect_uri)
+      const discordUser = await discord.fetchUser(tokenResponse.access_token)
+
+      if (!discordUser.id || !discordUser.email) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Discord account does not provide required identity fields.',
+        })
+      }
+
+      let user = await User.findOne({ where: { discordId: discordUser.id } })
+
+      if (!user) {
+        user = await User.findOne({ where: { email: discordUser.email.toLowerCase() } })
+      }
+
+      if (!user) {
+        const preferredName = discordUser.global_name?.trim() || discordUser.username?.trim() || 'Discord User'
+        const preferredUsername = buildSafeUsername(discordUser.username || preferredName)
+
+        let username = preferredUsername
+        for (let attempts = 0; attempts < 5; attempts += 1) {
+          const existing = await User.findOne({ where: { username } })
+          if (!existing) break
+          username = `${preferredUsername}-${Math.floor(1000 + Math.random() * 9000)}`
+        }
+
+        user = User.create({
+          name: preferredName,
+          username,
+          email: discordUser.email.toLowerCase(),
+          language: 'pt-BR',
+          role: Role.User,
+          password: null,
+        })
+      }
+
+      user.discordId = discordUser.id
+      user.discordAvatar = discordUser.avatar ?? null
+      await user.save()
+
+      return issueAuthSession(user, ctx.res, ctx.req)
+    } catch (error) {
+      throw toTrpcError(error, 'Could not complete Discord authentication')
     }
-    assertRedirectUriAllowed(canonicalRedirect)
-
-    // Usar sempre o redirect do JWT (o mesmo do /authorize) para bater byte-a-byte com o Discord.
-    const tokenData = await exchangeDiscordCode(input.code.trim(), canonicalRedirect)
-    const discordUser = await fetchDiscordUserMe(tokenData.access_token)
-    const user = await findOrCreateUserFromDiscord(discordUser)
-
-    return await issueAuthSession(user, ctx.res)
   })

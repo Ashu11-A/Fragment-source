@@ -1,31 +1,37 @@
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
-import { issueAuthSession } from '@/security/session.js'
-import { repository } from '@/database/index.js'
 import { publicProcedure } from '@/trpc.js'
+import { User } from '@/database/entity/User.js'
+import { issueAuthSession } from '@/security/session.js'
+import { toTrpcError } from '../_shared/errors.js'
 
-export const login = publicProcedure
-  .input(z.object({
-    email: z.string().email(),
-    password: z.string().min(8),
-  }))
+const loginSchema = z.object({
+  email: z.string().email().max(255),
+  password: z.string().min(1).max(128),
+})
+
+export const loginProcedure = publicProcedure
+  .input(loginSchema)
   .mutation(async ({ input, ctx }) => {
-    const user = await repository.user
-      .createQueryBuilder('user')
-      .addSelect('user.password')
-      .where('user.email = :email', { email: input.email })
-      .getOne()
-    if (!user) throw new TRPCError({ code: 'FORBIDDEN', message: 'Invalid email or password' })
+    try {
+      const user = await User.findOne({ where: { email: input.email.toLowerCase().trim() } })
+      if (!user) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'Invalid credentials.',
+        })
+      }
 
-    if (user.password == null) {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'This account uses Discord sign-in. Please log in with Discord.',
-      })
+      const validPassword = await user.validatePassword(input.password)
+      if (!validPassword) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'Invalid credentials.',
+        })
+      }
+
+      return issueAuthSession(user, ctx.res, ctx.req)
+    } catch (error) {
+      throw toTrpcError(error, 'Could not complete login')
     }
-
-    const valid = await user.validatePassword(input.password)
-    if (!valid) throw new TRPCError({ code: 'FORBIDDEN', message: 'Invalid email or password' })
-
-    return await issueAuthSession(user, ctx.res)
   })

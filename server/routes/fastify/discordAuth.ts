@@ -1,40 +1,26 @@
-import type { FastifyPluginAsync } from 'fastify'
-import { assertRedirectUriAllowed, buildDiscordAuthorizeUrl, signDiscordOAuthState } from '@/services/discordOAuth.js'
+import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
+import { discord, buildDiscordAuthorizeUrl } from '@/services/Discord.js'
 
-// Esta rota deve ser Fastify nativo (não tRPC): o browser precisa de um HTTP 302 real
-// para iniciar o fluxo OAuth. tRPC só suporta JSON, tornando redirect impossível via mutation.
-// O exchange do code (callback) é feito via tRPC em routes/auth/discordExchange.ts.
-const discordAuthRoutes: FastifyPluginAsync = async (app) => {
-  app.get<{ Querystring: { redirect_uri?: string } }>('/auth/discord/start', async (request, reply) => {
-    const redirect_uri = request.query.redirect_uri?.trim()
-    if (!redirect_uri) {
-      return reply.status(400).send({ error: 'redirect_uri is required' })
+export default async function discordAuthRoutes(
+  fastify: FastifyInstance,
+  _options: FastifyPluginOptions,
+): Promise<void> {
+  fastify.get('/auth/discord/start', async (request, reply) => {
+    const query = request.query as { redirect_uri?: string }
+    const redirectUri = query.redirect_uri?.trim()
+
+    if (!redirectUri) {
+      return reply.status(400).send({ message: 'Query parameter redirect_uri is required.' })
     }
 
     try {
-      assertRedirectUriAllowed(redirect_uri)
-    } catch {
-      return reply.status(400).send({ error: 'redirect_uri is not allowed' })
+      discord.assertRedirectUri(redirectUri)
+      const state = discord.signState(redirectUri)
+      const authorizeUrl = buildDiscordAuthorizeUrl(redirectUri, state)
+      return reply.redirect(authorizeUrl)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not start Discord OAuth flow.'
+      return reply.status(400).send({ message })
     }
-
-    if (!process.env.DISCORD_CLIENT_ID) {
-      return reply.status(503).send({ error: 'Discord OAuth is not configured' })
-    }
-
-    let state: string
-    try {
-      state = signDiscordOAuthState(redirect_uri)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      if (message.includes('OAUTH_STATE_SECRET')) {
-        return reply.status(503).send({ error: 'Discord OAuth state signing is not configured' })
-      }
-      throw err
-    }
-
-    const location = buildDiscordAuthorizeUrl(redirect_uri, state)
-    return reply.redirect(location)
   })
 }
-
-export default discordAuthRoutes

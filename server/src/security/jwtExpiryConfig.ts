@@ -6,7 +6,7 @@ export function resolveAccessExpireMs(): number {
 }
 
 export function resolveRefreshExpireMs(): number {
-  return timer.number(process.env.REFRESH_EXPIRE ?? '7d') as number
+  return timer.number(process.env.REFRESH_EXPIRE ?? '30d') as number
 }
 
 /** Segundos para o JSON da API; o cliente multiplica por 1000 para agendar refresh. */

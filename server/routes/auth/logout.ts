@@ -1,21 +1,27 @@
-import { TRPCError } from '@trpc/server'
-import { authTreeRepository } from '@/database/index.js'
+import type { FastifyRequest } from 'fastify'
 import { protectedProcedure } from '@/trpc.js'
+import { Session } from '@/database/entity/Session.js'
+import { toTrpcError } from '../_shared/errors.js'
 
-export const logout = protectedProcedure
+function getAccessToken(req: FastifyRequest): string | undefined {
+  const bearer = req.headers.authorization
+  if (bearer?.startsWith('Bearer ')) return bearer.slice(7)
+  return req.cookies['Bearer']
+}
+
+export const logoutProcedure = protectedProcedure
   .mutation(async ({ ctx }) => {
-    const token = ctx.req.headers['authorization'] ?? ctx.req.cookies?.['Bearer']
-    if (!token) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Token not provided' })
+    try {
+      const token = getAccessToken(ctx.req)
+      if (token) {
+        await Session.update({ accessToken: token }, { valid: false })
+      }
 
-    const auth = await authTreeRepository.findOne({ where: { accessToken: token } })
-    if (!auth) throw new TRPCError({ code: 'NOT_FOUND', message: 'Auth not found' })
+      ctx.res.clearCookie('Bearer', { path: '/' })
+      ctx.res.clearCookie('Refresh', { path: '/' })
 
-    const ancestors = await authTreeRepository.findAncestors(auth)
-    const descendants = await authTreeRepository.findDescendants(auth)
-    const nodesToRemove = [...descendants, ...ancestors]
-
-    await authTreeRepository.remove(nodesToRemove)
-    await auth.remove()
-
-    return { message: 'Logout successful, tokens removed.' }
+      return { message: 'Logout successful' }
+    } catch (error) {
+      throw toTrpcError(error, 'Could not complete logout')
+    }
   })
