@@ -13,11 +13,9 @@
   "scripts": {
     "lint": "eslint --fix ."
   },
-  "devDependencies": {
-    "@types/chokidar": "^2.1.7"
-  },
+  "devDependencies": {},
   "dependencies": {
-    "boxen": "^8.0.1",
+    "@ashu11a/constatic": "^1.0.1",
     "chalk": "^5.6.2",
     "chokidar": "^4.0.3",
     "database": "workspace:../packages/database",
@@ -25,6 +23,7 @@
     "lang": "workspace:../packages/lang",
     "discord.js": "^14.26.3",
     "ora": "^9.3.0",
-    "semver": "^7.7.4"
+    "semver": "^7.7.4",
+    "typeorm": "^0.3.28"
   }
 }

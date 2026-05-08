@@ -1,7 +1,7 @@
 export type WatcherOptions = {
   /**
    * When true, existing files on disk do not emit `add` on the initial scan.
-   * Use after {@link Plugin.loadExistingBundles} so plugins are not registered twice.
+   * Use after {@link Plugin.load} so plugins are not registered twice.
    */
   ignoreInitial?: boolean
   onChange?: (filePath: string) => void

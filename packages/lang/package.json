@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "country-code-to-flag-emoji": "^1.3.3",
-    "glob": "^11.1.0",
     "prompts": "^2.4.2"
   }
 }

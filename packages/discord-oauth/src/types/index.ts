@@ -12,6 +12,7 @@ export const discordUserSchema = z.object({
   id: z.string().min(1),
   username: z.string(),
   global_name: z.string().nullable(),
+  avatar: z.string().nullable().optional(),
   email: z.string().optional(),
   verified: z.boolean().optional(),
 })

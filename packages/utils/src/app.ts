@@ -27,10 +27,5 @@ export const metadata = (): Metadata => {
     .filter(([key]) => infos.includes(key))
     .reduce((obj, [k, v]) => ({ ...obj, [k]: v }), {}) as Metadata
 
-  const fragment = pkg['fragment'] as Record<string, unknown> | undefined
-  if (Array.isArray(fragment?.['dependencies'])) {
-    base.dependencies = fragment['dependencies'] as Array<{ name: string; version: string }>
-  }
-
   return base
 }

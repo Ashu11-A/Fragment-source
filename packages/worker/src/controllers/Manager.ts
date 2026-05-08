@@ -10,7 +10,7 @@ import { PathType, type ManagerOptions, type Metadata, type MetadataKeys } from 
 
 /**
  * The framework version that core exposes to plugins.
- * Plugins declare `frameworkVersion: "^1.0.0"` in their metadata;
+ * Plugins declare `dependencies: { core: "^1.0.0" }` in their metadata;
  * Manager validates this against FRAMEWORK_VERSION before calling setup().
  */
 export const FRAMEWORK_VERSION = '1.0.0'
@@ -21,7 +21,7 @@ const REQUIRED_METADATA_KEYS: MetadataKeys[] = [
   'license',
   'name',
   'version',
-  'frameworkVersion',
+  'dependencies',
 ]
 
 /**
@@ -134,25 +134,32 @@ export class Manager {
   }
 
   /**
-   * Semver compatibility check: the plugin's declared `frameworkVersion` range
+   * Semver compatibility check: the plugin's declared `dependencies.core` range
    * must be satisfied by FRAMEWORK_VERSION.
    *
    * This runs at load-time (dynamic import) and mirrors the build-time TypeScript
    * type checks that guarantee API shape compatibility.
    */
   private validateCompatibility(): void {
-    const required = this.metadata.frameworkVersion
+    const required = this.metadata.dependencies?.core
+
+    if (!required) {
+      throw new Error(
+        `[Manager] Plugin "${this.metadata.name}" is missing a "core" dependency. ` +
+        'Specify it in the dependencies object.'
+      )
+    }
 
     if (!SemVer.validRange(required)) {
       throw new Error(
-        `[Manager] Plugin "${this.metadata.name}" has an invalid frameworkVersion: "${required}". ` +
+        `[Manager] Plugin "${this.metadata.name}" has an invalid core dependency version: "${required}". ` +
         'Use a valid semver range (e.g. "^1.0.0").'
       )
     }
 
     if (!SemVer.satisfies(FRAMEWORK_VERSION, required)) {
       throw new Error(
-        `[Manager] Plugin "${this.metadata.name}" requires framework version "${required}", ` +
+        `[Manager] Plugin "${this.metadata.name}" requires core framework version "${required}", ` +
         `but core provides "${FRAMEWORK_VERSION}". Update the plugin or core to match.`
       )
     }

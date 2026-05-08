@@ -1,18 +1,17 @@
+import { createPluginContext } from '@/controllers/Context'
+import { Manager } from '@/controllers/Manager'
+import { Watcher } from '@/controllers/Watcher'
+import { i18 } from '@/index'
+import type { PluginCallbacks, PluginEntry, RegisterResult } from '@/types/plugin.js'
 import chalk from 'chalk'
 import { unregisterDatabase } from 'database'
-import { Crons, unregisterCommand } from 'discord/registries'
 import type { PluginManifest } from 'discord'
+import { Crons, unregisterCommand } from 'discord/registries'
 import { existsSync, mkdirSync } from 'fs'
 import { readdir } from 'fs/promises'
 import ora from 'ora'
 import { basename, join } from 'path'
 import SemVer from 'semver'
-import { i18 } from '@/index'
-import type { PluginRegistration } from '@/types/manager.js'
-import type { PluginCallbacks, PluginEntry, RegisterResult } from '@/types/plugin.js'
-import { createPluginContext } from '@/controllers/Context'
-import { Manager } from '@/controllers/Manager'
-import { Watcher } from '@/controllers/Watcher'
 
 export type { PluginCallbacks, PluginEntry, RegisterResult } from '@/types/plugin.js'
 
@@ -34,16 +33,9 @@ export class Plugin {
   constructor(private readonly callbacks: PluginCallbacks = {}) {}
 
   /**
-   * Public list of `plugin-*.js` under `./plugins` (same rules as load); sorted by filename.
-   */
-  public async listDiscoveredBundlePaths (): Promise<string[]> {
-    return this.resolvePluginBundlePaths()
-  }
-
-  /**
    * Absolute paths to every `plugin-*.js` under `./plugins` (sorted by filename).
    */
-  private async resolvePluginBundlePaths (): Promise<string[]> {
+  public async list (): Promise<string[]> {
     const dir = join(process.cwd(), 'plugins')
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true })
@@ -68,8 +60,8 @@ export class Plugin {
    * Call this **before** Discord bootstrap so slash commands, events, components, configs and crons
    * from plugins are in the shared registries when the client connects.
    */
-  public async loadExistingBundles (): Promise<void> {
-    const paths = await this.resolvePluginBundlePaths()
+  public async load (): Promise<void> {
+    const paths = await this.list()
     if (paths.length === 0) return
 
     console.log('\n' + chalk.cyan('◆') + ' ' + chalk.bold('Plugins'))
@@ -96,9 +88,9 @@ export class Plugin {
    * Full reload: unload all plugins, then import every `plugin-*.js` from `./plugins` from disk
    * (does not require plugins to have been loaded before).
    */
-  public async reloadAllFromDisk (): Promise<Array<{ filePath: string; pluginName?: string; error?: string }>> {
+  public async reloadAll (): Promise<Array<{ filePath: string; pluginName?: string; error?: string }>> {
     await this.unloadAll()
-    const paths = await this.resolvePluginBundlePaths()
+    const paths = await this.list()
     const results: Array<{ filePath: string; pluginName?: string; error?: string }> = []
     if (paths.length === 0) return results
 
@@ -117,7 +109,7 @@ export class Plugin {
 
   /**
    * Watch `./plugins` for new/changed bundles. Uses `ignoreInitial: true` so files already loaded
-   * via {@link loadExistingBundles} are not registered again.
+   * via {@link load} are not registered again.
    */
   public watcher (): void {
     const onChange = async (filePath: string) => {

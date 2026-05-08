@@ -1,4 +1,4 @@
-import cronParser, { type CronExpression } from 'cron-parser'
+import cronParser from 'cron-parser'
 import { randomUUID } from 'crypto'
 import { EventEmitter } from 'events'
 import type { CronsConfigurations, CronsConfigurationsSystem, UniqueCron } from '@/types/crons.js'

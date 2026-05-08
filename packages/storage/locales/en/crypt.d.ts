@@ -1,6 +1,6 @@
 declare const _default: {
     readonly error: {
-        readonly not_exist: "❌ {{name}} does not exist!";
+        readonly not_exist: '❌ {{name}} does not exist!';
     };
-};
-export default _default;
+}
+export default _default

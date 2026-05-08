@@ -93,13 +93,25 @@ export class LocalStorage extends BaseStorage {
     }
 
     const fileContentString = await readFile(filePath, { encoding: 'utf-8' })
-    
+
+    // Arquivo existe mas está vazio — trata como ausente
+    if (!fileContentString.trim()) return undefined
+
     let decryptedString: string
     if (this.crypt) {
-      decryptedString = await this.crypt.decrypt(fileContentString)
+      try {
+        decryptedString = await this.crypt.decrypt(fileContentString)
+      } catch {
+        // Chave incompatível ou arquivo corrompido — descarta e trata como ausente
+        console.warn(`[storage] Falha ao descriptografar '${key}': arquivo será ignorado`)
+        return undefined
+      }
     } else {
       decryptedString = fileContentString
     }
+
+    // Descriptografia retornou conteúdo vazio — trata como ausente
+    if (!decryptedString.trim()) return undefined
 
     const decryptedBuffer = Buffer.from(decryptedString, 'utf-8')
     this.cache.add(key, decryptedBuffer)
@@ -107,8 +119,10 @@ export class LocalStorage extends BaseStorage {
     if (options?.isJson) {
       try {
         return JSON.parse(decryptedString) as T
-      } catch (e) {
-        throw new Error(`Failed to parse JSON from file ${key}: ${(e as Error).message}`)
+      } catch {
+        // JSON malformado (corrompido ou chave errada) — descarta e trata como ausente
+        console.warn(`[storage] JSON inválido em '${key}': arquivo será ignorado`)
+        return undefined
       }
     }
     

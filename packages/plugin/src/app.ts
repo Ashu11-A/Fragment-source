@@ -23,7 +23,8 @@ export type {
   SubcommandGroupManifest,
   SubcommandManifest,
 }
-export type { PluginOptions, RawOption } from '@/types/index.js'
+export type { PluginOptions, RawOption, PluginRegistry, PluginDependencies } from '@/types/index.js'
+export { get, buildEnvVarName, getPluginEnvPrefix } from '@/env.js'
 
 // ApplicationCommandOptionType numeric values (avoids importing discord.js at runtime)
 const SUBCOMMAND = 1
@@ -57,7 +58,7 @@ function extractSubcommands(options: RawOption[]): {
  * Defines a plugin. Use `export default new Plugin({...})` in your `app.ts`.
  *
  * Metadata (name, version, description, author, license) is read automatically
- * from the plugin's `package.json`. Only `frameworkVersion` and `setup` need
+ * from the plugin's `package.json`. Only `dependencies` and `setup` need
  * to be provided.
  *
  * Call `plugin.inspect()` to get a side-effect-free manifest of every command,
@@ -70,7 +71,7 @@ function extractSubcommands(options: RawOption[]): {
  * import { registerAll } from '@/register.js'
  *
  * export default new Plugin({
- *   frameworkVersion: '^1.0.0',
+ *   dependencies: { core: '^1.0.0' },
  *   setup: async (ctx) => {
  *     ctx.registerSchema(database)
  *     await registerAll(ctx)
@@ -83,7 +84,7 @@ export class Plugin implements PluginModule {
   constructor(private readonly options: PluginOptions) {
     this.metadata = {
       ...getPackageMetadata(),
-      frameworkVersion: options.frameworkVersion ?? '^1.0.0',
+      dependencies: options.dependencies,
     }
   }
 
@@ -105,6 +106,7 @@ export class Plugin implements PluginModule {
       events: [],
       configs: [],
       crons: [],
+      envs: this.options.envs ? [...this.options.envs] : [],
       entities: [],
     }
 

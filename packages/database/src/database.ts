@@ -1,19 +1,19 @@
 
 import { join } from 'path'
 import { DataSource, getMetadataArgsStorage } from 'typeorm'
-import type { DatabaseOptions } from '@/types/index.js'
+import type { AnyConstructor, DatabaseOptions } from '@/types/index.js'
 
 export type { DatabaseOptions } from '@/types/index.js'
 
 export class Database {
   public client: DataSource
-  private entities = new Map<string, Function[]>()
+  private entities = new Map<string, AnyConstructor[]>()
 
   constructor(private readonly opts: DatabaseOptions) {
     this.client = this.buildDataSource([])
   }
 
-  private buildDataSource(entities: Function[]): DataSource {
+  private buildDataSource(entities: AnyConstructor[]): DataSource {
     return new DataSource({
       type: 'sqljs' as const,
       autoSave: true,
@@ -39,7 +39,7 @@ export class Database {
     spin?.succeed(`Database initialized (${allEntities.length} entities)`)
   }
 
-  async register(pluginName: string, entities: Function[]): Promise<void> {
+  async register(pluginName: string, entities: AnyConstructor[]): Promise<void> {
     if (entities.length === 0) return
 
     this.entities.set(pluginName, entities)
