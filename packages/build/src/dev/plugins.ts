@@ -1,9 +1,9 @@
 import { cp, mkdir, rm } from 'node:fs/promises'
 import { glob } from 'glob'
-import { join } from 'node:path'
+import { join, basename } from 'node:path'
 import { BuildType, type BuildMetadata } from '../types/index'
 import { PluginBuilder } from '../builder'
-import { logPlugin } from './services'
+import { logPlugin, logBuildLine } from './services'
 
 const root = process.cwd()
 const releasesDirectory = join(root, 'releases')
@@ -27,7 +27,9 @@ export async function rebuildPlugins(): Promise<void> {
   await mkdir(corePluginsDirectory, { recursive: true })
 
   for (const pluginPath of await glob([pluginGlob], { cwd: root })) {
-    await new PluginBuilder({ ...pluginBuildBase, path: pluginPath }).build()
+    const pluginName = basename(pluginPath)
+    await new PluginBuilder({ ...pluginBuildBase, path: pluginPath })
+      .build((line) => logBuildLine(`[${pluginName}] ${line}`))
   }
 
   for (const file of await glob('plugin-*.js', { cwd: releasesDirectory })) {

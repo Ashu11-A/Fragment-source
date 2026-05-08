@@ -204,18 +204,21 @@ async function generateDependenciesFile(pluginRoot: string, deps: ResolvedDep[])
 }
 
 /**
- * Updates package.json's `fragment.dependencies` field with the resolved dependency
- * list so that core can validate versions at runtime.
+ * Injects resolved dependencies directly into the plugin's src/app.ts dependencies block.
  */
-async function updatePackageJsonFragment(pluginRoot: string, deps: ResolvedDep[]): Promise<void> {
-  const pkgPath = join(pluginRoot, 'package.json')
-  const pkg = JSON.parse(await readFile(pkgPath, 'utf-8')) as Record<string, unknown>
+async function injectDependenciesIntoAppTs(pluginRoot: string, deps: ResolvedDep[]): Promise<void> {
+  const appTsPath = join(pluginRoot, 'src', 'app.ts')
+  if (!existsSync(appTsPath)) return
 
-  const fragment = (pkg['fragment'] as Record<string, unknown> | undefined) ?? {}
-  fragment['dependencies'] = deps.map(({ name, version }) => ({ name, version }))
-  pkg['fragment'] = fragment
-
-  await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf-8')
+  let content = await readFile(appTsPath, 'utf-8')
+  
+  const depsString = deps.map(dep => `    '${dep.name}': '^${dep.version}',`).join('\n')
+  
+  const regex = /(dependencies:\s*\{\s*core:\s*`\^?\$\{corePackageJson\.version\}`\s*,?)[^}]*(\})/
+  if (regex.test(content)) {
+    content = content.replace(regex, `$1${depsString ? '\n' + depsString + '\n  ' : '\n  '}$2`)
+    await writeFile(appTsPath, content, 'utf-8')
+  }
 }
 
 // ─── Entry point ──────────────────────────────────────────────────────────────
@@ -224,7 +227,7 @@ async function updatePackageJsonFragment(pluginRoot: string, deps: ResolvedDep[]
  * Gera o arquivo src/register.ts exportando a função registerAll.
  * Também detecta dependências de banco de dados via useDatabase() e:
  *   1. Gera src/types/dependencies.ts com type imports para tipagem cross-plugin.
- *   2. Atualiza package.json com fragment.dependencies para validação em runtime.
+ *   2. Injeta as dependências no src/app.ts.
  */
 export async function build(filePath: string): Promise<void> {
   if (isPKG(filePath)) return
@@ -237,7 +240,7 @@ export async function build(filePath: string): Promise<void> {
   const resolvedDeps = await resolveDependencies(pluginsDir, depNames)
 
   await generateDependenciesFile(pluginRoot, resolvedDeps)
-  await updatePackageJsonFragment(pluginRoot, resolvedDeps)
+  await injectDependenciesIntoAppTs(pluginRoot, resolvedDeps)
 
   if (resolvedDeps.length > 0) {
     console.log(`[Build] Database dependencies detected: ${resolvedDeps.map((d) => `${d.name}@${d.version}`).join(', ')}`)

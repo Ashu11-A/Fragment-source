@@ -1,9 +1,16 @@
 import { $ } from 'bun'
 import { existsSync, readFileSync } from 'node:fs'
 import { mkdir, rm, writeFile, readFile, cp } from 'node:fs/promises'
+import { stripAnsi } from './utils'
+
+function emitLines(log: (line: string) => void, buf: Buffer): void {
+  for (const line of buf.toString().split('\n')) {
+    const clean = stripAnsi(line).trimEnd()
+    if (clean) log(clean)
+  }
+}
 import { createHash, createSign, createVerify } from 'node:crypto'
-import { join } from 'node:path'
-import { z } from 'zod'
+import { basename, join } from 'node:path'
 import { BuildType, type BuildMetadata, type BuildOptions, type BuildRelease, type PluginManifest, packageJsonSchema, pluginManifestSchema } from './types/index'
 import { formatBytes } from './utils'
 
@@ -41,6 +48,7 @@ export class PluginBuilder {
     this.version = packageJson.version
     this.buildDirectory = join(this.metadata.path, 'build')
     this.buildFilePath = join(this.buildDirectory, this.name)
+    this.buildMapPath = this.buildFilePath + '.map'
     this.releaseFilePath = join(this.options.outputDirectory, this.name)
     this.hasBuildScript = Boolean(packageJson.scripts?.build)
 
@@ -49,17 +57,30 @@ export class PluginBuilder {
       '--bundle',
       '--target=bun',
       '--sourcemap',
-      '--external=typeorm',
-      '--external=reflect-metadata',
       ...(options.options.buildArgs ?? []),
     )
   }
 
-  async build(): Promise<PluginBuilder> {
+  async build(log?: (line: string) => void): Promise<PluginBuilder> {
     const cwd = this.metadata.path
 
-    await $`cd ${cwd} && bun install`
-    if (this.hasBuildScript) await $`cd ${cwd} && bun run build`
+    const run = async (shell: ReturnType<typeof $>): Promise<void> => {
+      if (!log) { await shell; return }
+      try {
+        const result = await shell.quiet()
+        emitLines(log, result.stdout)
+        emitLines(log, result.stderr)
+      } catch (err: unknown) {
+        if (err && typeof err === 'object') {
+          if ('stdout' in err) emitLines(log, (err as { stdout: Buffer }).stdout)
+          if ('stderr' in err) emitLines(log, (err as { stderr: Buffer }).stderr)
+        }
+        throw err
+      }
+    }
+
+    await run($`cd ${cwd} && bun install`)
+    if (this.hasBuildScript) await run($`cd ${cwd} && bun run build`)
 
     if (!existsSync(this.buildDirectory)) {
       await mkdir(this.buildDirectory, { recursive: true })
@@ -67,13 +88,22 @@ export class PluginBuilder {
 
     switch (this.metadata.type) {
     case BuildType.Binary:
-      await $`cd ${cwd} && bun build ${this.buildArgs} --compile --outfile=${this.buildFilePath}`
+      await run($`cd ${cwd} && bun build ${this.buildArgs} --compile --outfile=${this.buildFilePath}`)
       break
-    case BuildType.File:
-      await $`cd ${cwd} && bun build ${this.buildArgs} --outfile=${this.buildFilePath}`
+    case BuildType.File: {
+      await run($`cd ${cwd} && bun build ${this.buildArgs} --outdir=${this.buildDirectory}`)
+      const generatedFile = join(this.buildDirectory, basename(this.options.entryFile).replace(/\.[^.]+$/, '.js'))
+      const generatedMap = generatedFile + '.map'
+      if (existsSync(generatedFile) && generatedFile !== this.buildFilePath) {
+        await run($`mv ${generatedFile} ${this.buildFilePath}`)
+        if (existsSync(generatedMap)) {
+          await run($`mv ${generatedMap} ${this.buildMapPath}`)
+        }
+      }
       break
+    }
     case BuildType.Directory:
-      await $`cd ${cwd} && bun build ${this.buildArgs} --outdir=${this.buildFilePath}`
+      await run($`cd ${cwd} && bun build ${this.buildArgs} --outdir=${this.buildFilePath}`)
       break
     }
 
@@ -89,10 +119,10 @@ export class PluginBuilder {
     const scriptPath = join(this.metadata.path, scriptName)
 
     const script = [
-      `import 'reflect-metadata'`,
+      'import \'reflect-metadata\'',
       `import plugin from './${this.options.entryFile}'`,
-      `import { writeFile } from 'node:fs/promises'`,
-      `const manifest = await plugin?.inspect?.()`,
+      'import { writeFile } from \'node:fs/promises\'',
+      'const manifest = await plugin?.inspect?.()',
       `await writeFile('./${outputName}', JSON.stringify(manifest ?? null))`,
     ].join('\n')
 
@@ -120,6 +150,7 @@ export class PluginBuilder {
 
     await cp(this.buildFilePath, this.releaseFilePath, { recursive: true })
     await rm(this.buildFilePath, { recursive: true, force: true })
+    await rm(this.buildMapPath, { recursive: true, force: true }).catch(() => undefined)
 
     const file = await readFile(this.releaseFilePath)
 

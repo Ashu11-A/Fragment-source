@@ -39,6 +39,14 @@ export const subcommandGroupManifestSchema = z.object({
   subcommands: z.array(subcommandManifestSchema)
 })
 
+export const envVarManifestSchema = z.object({
+  name: z.string().min(1).max(256),
+  description: z.string().max(2000),
+  required: z.boolean().optional(),
+  default: z.string().optional(),
+  type: z.enum(['string', 'number', 'boolean', 'secret']).optional(),
+})
+
 export const pluginManifestSchema = z.object({
   metadata: z.object({
     name: z.string(),
@@ -46,8 +54,7 @@ export const pluginManifestSchema = z.object({
     description: z.string(),
     author: z.union([z.string(), z.object({ name: z.string(), email: z.string() })]),
     license: z.string(),
-    frameworkVersion: z.string(),
-    dependencies: z.array(z.object({ name: z.string(), version: z.string() })).optional()
+    dependencies: z.record(z.string(), z.string()).optional()
   }),
   commands: z.array(z.object({
     name: z.string(),
@@ -59,6 +66,7 @@ export const pluginManifestSchema = z.object({
   events: z.array(z.object({ name: z.string(), event: z.string(), once: z.boolean() })),
   configs: z.array(z.string()),
   crons: z.array(z.object({ name: z.string(), cron: z.string(), once: z.boolean() })),
+  envs: z.array(envVarManifestSchema),
   entities: z.array(z.string())
 })
 
@@ -90,7 +98,7 @@ export const packageJsonSchema = z.object({
   }).optional()
 })
 
-export type ServiceName = 'server' | 'core' | 'dashboard'
+export type ServiceName = 'server' | 'daemon' | 'dashboard'
 export type ServiceStatus = 'idle' | 'running' | 'stopped' | 'error'
 
 export type ServiceDefinition = {

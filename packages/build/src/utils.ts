@@ -1,3 +1,9 @@
+const ANSI_RE = /\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]|][^\x07\x1B]*(?:\x07|\x1B\\)|.)/g
+
+export function stripAnsi(str: string): string {
+  return str.replace(ANSI_RE, '')
+}
+
 export function formatBytes(bytes: number, decimals: number = 2): string {
   if (bytes === 0) return '0 Bytes'
   const kilo = 1024

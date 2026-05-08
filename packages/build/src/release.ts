@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { rm, writeFile } from 'node:fs/promises'
 import { glob } from 'glob'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { z } from 'zod'
 import { PluginBuilder } from './builder'
 import { BuildType, type BuildMetadata, type BuildOptions, type BuildRelease, type ReleaseIndex } from './types/index'
@@ -16,7 +16,8 @@ const options: BuildOptions = {
 
 const pluginBundleOptions: BuildOptions = {
   ...options,
-  buildArgs: ['--external=@ashu11a/constatic'],
+  // Plugins run inside core's process and share its typeorm/reflect-metadata instances.
+  buildArgs: ['--external=typeorm', '--external=reflect-metadata', '--external=@ashu11a/constatic'],
 }
 
 const projects: BuildMetadata[] = [
@@ -30,6 +31,15 @@ const projects: BuildMetadata[] = [
   {
     path: 'core',
     type: BuildType.Binary,
+    release: true,
+    options: {
+      ...options,
+      buildArgs: ['--external=typeorm', '--external=reflect-metadata'],
+    },
+  },
+  {
+    path: 'core',
+    type: BuildType.File,
     release: true,
     options,
   },
@@ -49,22 +59,24 @@ for (const project of projects) {
   ) continue
 
   for (const path of await glob([project.path], { cwd: process.cwd() })) {
-    project.path = path
-    const builder = new PluginBuilder(project)
+    const metadata = { ...project, path: resolve(path) }
+    const builder = new PluginBuilder(metadata)
 
     await builder.build()
 
-    if (project.options?.signatureLength) {
+    if (metadata.options?.signatureLength) {
       await builder.sign(join(process.cwd(), 'core/.fragment/privateKey.pem'))
       await builder.signCheck(join(process.cwd(), 'core/.fragment/publicKey.pem'))
     }
 
-    if (!project.release) continue
+    if (!metadata.release) continue
 
-    const manifest = project.type === BuildType.File ? await builder.inspect() : undefined
+    const manifest = project.path.startsWith('plugins/') && metadata.type === BuildType.File
+      ? await builder.inspect()
+      : undefined
     const release = await builder.release(manifest ?? undefined)
 
-    if (project.type === BuildType.Binary) {
+    if (project.path === 'core') {
       binaryReleases.push(release)
     } else {
       pluginReleases.push(release)
