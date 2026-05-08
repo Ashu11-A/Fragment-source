@@ -1,8 +1,26 @@
 import 'dotenv/config'
 import mysql from 'mysql2/promise'
-import { dirname, join } from 'path'
+import { dirname, join } from 'node:path'
 import { DataSource } from 'typeorm'
-import { fileURLToPath } from 'url'
+import { fileURLToPath } from 'node:url'
+
+import { BaseEntity } from './entity/base'
+import { File } from './entity/File.js'
+
+import { User } from './entity/User.js'
+import { Session } from './entity/Session.js'
+import { Plan } from './entity/Plan.js'
+import { Release } from './entity/Release.js'
+
+import { Node } from './entity/Node.js'
+import { Plugin } from './entity/Plugin.js'
+import { PluginRelease } from './entity/PluginRelease.js'
+import { PluginSale } from './entity/PluginSale.js'
+
+import { Log } from './entity/Log.js'
+import { Bot } from './entity/Bot.js'
+import { Variable } from './entity/Variable.js'
+import { Subscription } from './entity/Subscription.js'
 
 const path = dirname(fileURLToPath(import.meta.url))
 
@@ -21,7 +39,7 @@ async function getDatabase(database: 'mysql' | 'sqljs' = 'sqljs') {
       user: username,
       password
     })
-      
+
     await rootSource.query(`CREATE DATABASE IF NOT EXISTS ${dbName} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`)
     await rootSource.query(`GRANT ALL PRIVILEGES ON ${dbName}.* TO '${username}'@'%' IDENTIFIED BY '${password}';`)
     await rootSource.query('FLUSH PRIVILEGES;')
@@ -51,7 +69,22 @@ async function getDatabase(database: 'mysql' | 'sqljs' = 'sqljs') {
 export default new DataSource({
   ...(await getDatabase(process.env.DATABASE_TYPE as 'mysql' | 'sqljs' | undefined)),
   synchronize: true,
-  logging: true,
-  entities: [join(path, 'entity', '**', '*.{js,ts}')],
+  logging: false,
+  entities: [
+    BaseEntity,
+    File,
+    User,
+    Session,
+    Plan,
+    Release,
+    Node,
+    Plugin,
+    PluginRelease,
+    PluginSale,
+    Log,
+    Bot,
+    Variable,
+    Subscription,
+  ],
   migrations: [join(path, 'migration', '**', '*.{js,ts}')],
 })

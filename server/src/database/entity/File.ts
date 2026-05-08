@@ -1,24 +1,17 @@
-import { Release } from '@/database/entity/Release.js'
-import type { FileMetadata, FileType } from 'storage'
-import { Column, Entity, OneToOne, type Relation } from 'typeorm'
+import { Column, Entity } from 'typeorm'
+import type { FileType } from 'storage'
 import { BaseEntity } from './base'
 
-
 @Entity({ name: 'files' })
-export class FileEntity extends BaseEntity implements FileMetadata {
-  @Column({ type: 'varchar' })
-  name!: string
+export class File extends BaseEntity {
+  @Column({ type: 'varchar', length: 256 })
+	  name!: string
   @Column({ type: 'integer' })
-  size!: number
-  @Column({ type: 'varchar' })
-  type!: FileType
-  @Column({ type: 'varchar' })
-  mimeType!: string
+	  size!: number
+  @Column({ type: 'varchar', length: 64 })
+	  type!: FileType
+  @Column({ type: 'varchar', length: 255 })
+	  mimeType!: string
   @Column({ type: 'text' })
-  md5!: string
-  @Column({ type: 'text' })
-  sha265!: string
-
-  @OneToOne(() => Release, (release) => release.file, { onDelete: 'CASCADE' })
-  release!: Relation<Release>
+	  sha256!: string
 }

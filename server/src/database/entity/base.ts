@@ -1,11 +1,11 @@
-import { BaseEntity as TBaseEntity, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
+import { BaseEntity as TBaseEntity, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 
 export class BaseEntity extends TBaseEntity {
   @PrimaryGeneratedColumn()
-  id!: number
+    id!: number
 
   @UpdateDateColumn()
-  updatedAt!: Date
+    updatedAt!: Date
   @CreateDateColumn()
-  createdAt!: Date
+    createdAt!: Date
 }

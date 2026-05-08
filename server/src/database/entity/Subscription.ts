@@ -1,24 +1,24 @@
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn, type Relation, UpdateDateColumn } from 'typeorm'
+import { Plan } from '@/database/entity/Plan.js'
 import { User } from '@/database/entity/User.js'
-import { Plugin } from '@/database/entity/Plugin.js'
-import { Bot } from '@/database/entity/Bot.js'
+import { Column, Entity, Index, ManyToOne, type Relation } from 'typeorm'
 import { BaseEntity } from './base'
 
 @Entity({ name: 'subscriptions' })
+@Index(['active'])
+@Index(['user', 'active'])
 export class Subscription extends BaseEntity {
   @Column({ type: 'boolean', default: true })
-  active!: boolean
+	  active!: boolean
 
-  @ManyToOne(() => User, (user) => user.subscriptions)
-  user!: Relation<User>
-  @ManyToOne(() => Bot, (bot) => bot.subscriptions)
-  bot!: Relation<User>
-  @ManyToMany(() => Plugin, (plugin) => plugin.subscriptions)
-  @JoinTable()
-  plugins!: Relation<Plugin[]>
+  @ManyToOne(() => User, (user) => user.subscriptions, { onDelete: 'CASCADE' })
+	  user!: Relation<User>
+  @ManyToOne(() => Plan, (plan) => plan.subscriptions)
+	  plan!: Relation<Plan>
 
   @Column({ type: 'date' })
-  startAt!: string
+	  startAt!: Date
   @Column({ type: 'date' })
-  expireAt!: string
+	  expiresAt!: Date
+  @Column({ type: 'date', nullable: true })
+	  canceledAt!: Date | null
 }

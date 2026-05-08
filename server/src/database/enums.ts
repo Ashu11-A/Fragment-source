@@ -8,3 +8,9 @@ export enum RequestStatus {
   Approved = 'approved',
   Rejected = 'rejected'
 }
+
+export enum PluginSaleStatus {
+  Pending = 'pending',
+  Paid = 'paid',
+  Failed = 'failed',
+}
