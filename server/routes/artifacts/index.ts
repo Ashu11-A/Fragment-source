@@ -1,8 +1,8 @@
 import { router } from '@/trpc.js'
-import { catalog } from './catalog.js'
-import { releaseList } from './releaseList.js'
+import { catalogArtifactsProcedure } from './catalog.js'
+import { releaseListProcedure } from './releaseList.js'
 
 export const artifactsRouter = router({
-  catalog,
-  releaseList,
+  catalog: catalogArtifactsProcedure,
+  releaseList: releaseListProcedure,
 })

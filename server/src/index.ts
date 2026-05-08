@@ -1,18 +1,20 @@
-import { dirname, join } from 'path'
-import { LocalStorage, MemoryStorage } from 'storage'
-import { fileURLToPath } from 'url'
+import type { User } from './database/entity/User.js'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+export type { AppRouter } from '../routes/index.js'
+export { RequestStatus, Role } from './database/enums.js'
 
-const cwd = import.meta.filename.endsWith('.ts')
-  ? join(__dirname, '../')
-  : process.cwd()
-
-export const storage = process.env.STORAGE_TYPE === 'memory'
-  ? new MemoryStorage()
-  : new LocalStorage({
-    storagePath: join(cwd, process.env.LOCAL_STORAGE_PATH ?? 'storage')
-  })
-
-export const baseUrl = (process.env.BACK_END_URL ?? `http://localhost:${process.env.PORT}`)
+export type AuthUser = Omit<
+  User,
+  | 'password'
+  | 'sessions'
+  | 'bots'
+  | 'subscriptions'
+  | 'setPassword'
+  | 'validatePassword'
+  | 'hasId'
+  | 'save'
+  | 'remove'
+  | 'softRemove'
+  | 'recover'
+  | 'reload'
+>

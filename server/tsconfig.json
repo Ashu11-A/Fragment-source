@@ -10,9 +10,8 @@
 
     // Allow import types in Core
     "composite": true,
-    // "allowImportingTsExtensions": true,
-    // "declaration": false,
-    // "noEmit": true,
+    "declaration": true,
+    "declarationMap": true,
 
     // Bundler mode
     "moduleResolution": "bundler",
@@ -48,6 +47,6 @@
     { "path": "../packages/socket" },
     { "path": "../packages/storage" }
   ],
-  "include": ["src", "routes", "ws"],
+  "include": ["src", "routes"],
   "exclude": ["node_modules", "dist"]
 }

@@ -1,42 +1,41 @@
-import { TRPCError } from '@trpc/server'
-import { z } from 'zod'
-import { Bot } from '@/database/entity/Bot.js'
-import { Plugin } from '@/database/entity/Plugin.js'
 import { Subscription } from '@/database/entity/Subscription.js'
-import { Role } from '@/database/enums.js'
 import { protectedProcedure } from '@/trpc.js'
+import { TRPCError } from '@trpc/server'
+import { addDays } from 'date-fns'
+import { z } from 'zod'
+import { toTrpcError } from '../_shared/errors.js'
 
-export const create = protectedProcedure
-  .input(z.object({
-    botId: z.number().int().positive(),
-    pluginIds: z.array(z.number().int().positive()).min(1),
-    startAt: z.string(),
-    expireAt: z.string(),
-  }))
+const createSubscriptionSchema = z.object({
+  startAt: z.coerce.date().optional(),
+  expiresAt: z.coerce.date().optional(),
+})
+
+export const createSubscriptionProcedure = protectedProcedure
+  .input(createSubscriptionSchema)
   .mutation(async ({ input, ctx }) => {
-    const isAdmin = ctx.user.role === Role.Administrator
-    const bot = await Bot.findOneBy({
-      id: input.botId,
-      user: isAdmin ? undefined : { id: ctx.user.id },
-    })
-    if (!bot) throw new TRPCError({ code: 'NOT_FOUND', message: 'Bot not found or not yours' })
+    try {
+      const startAt = input.startAt ?? new Date()
+      const expiresAt = input.expiresAt ?? addDays(startAt, 30)
 
-    const plugins = await Promise.all(
-      input.pluginIds.map(async (pluginId) => {
-        const plugin = await Plugin.findOneBy({ id: pluginId })
-        if (!plugin) throw new TRPCError({ code: 'NOT_FOUND', message: `Plugin with ID ${pluginId} not found` })
-        return plugin
-      }),
-    )
+      if (expiresAt <= startAt)
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'expiresAt must be greater than startAt.',
+        })
 
-    const subscription = await Subscription.create({
-      user: ctx.user,
-      bot,
-      plugins,
-      active: true,
-      startAt: input.startAt,
-      expireAt: input.expireAt,
-    }).save()
+      const subscription = await Subscription.create({
+        active: true,
+        user: { id: ctx.user.id },
+        startAt,
+        expiresAt,
+      }).save()
 
-    return { message: 'Subscription created successfully', data: subscription }
+
+      return {
+        ...subscription,
+        user: ctx.user,
+      }
+    } catch (error) {
+      throw toTrpcError(error, 'Could not create subscription')
+    }
   })

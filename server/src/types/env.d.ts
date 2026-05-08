@@ -20,6 +20,9 @@ export type TProcessEnv = {
   LOCAL_STORAGE_PATH: string
   DISCORD_CLIENT_ID: string
   DISCORD_CLIENT_SECRET: string
+  DISCORD_TOKEN_ENCRYPTION_SECRET: string
+  SALT_LENGTH: number
+  IV_LENGTH: number
   OAUTH_STATE_SECRET: string
 }
 

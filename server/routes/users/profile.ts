@@ -1,11 +1,14 @@
-import { TRPCError } from '@trpc/server'
-import { User } from '@/database/entity/User.js'
 import { protectedProcedure } from '@/trpc.js'
+import { User } from '@/database/entity/User.js'
+import { toTrpcError } from '../_shared/errors.js'
 
-export const profile = protectedProcedure
+export const profileProcedure = protectedProcedure
   .query(async ({ ctx }) => {
-    const user = await User.findOne({ where: { id: ctx.user.id } })
-    if (!user) throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' })
+    try {
+      const user = await User.findOneBy({ id: ctx.user.id })
 
-    return { message: 'Profile retrieved successfully', data: user }
+      return user ?? ctx.user
+    } catch (error) {
+      throw toTrpcError(error, 'Could not fetch profile')
+    }
   })

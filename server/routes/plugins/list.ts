@@ -1,19 +1,33 @@
-import { repository } from '@/database/index.js'
-import { paginate, paginateSchema } from '@/database/pagination.js'
 import { protectedProcedure } from '@/trpc.js'
+import { Plugin } from '@/database/entity/Plugin.js'
+import { Role } from '@/database/enums.js'
+import { paginationSchema, getSkip } from '../_shared/pagination.js'
+import { toTrpcError } from '../_shared/errors.js'
 
-export const list = protectedProcedure
-  .input(paginateSchema)
-  .query(async ({ input }) => {
-    const paginated = await paginate({
-      page: input.page,
-      pageSize: input.pageSize,
-      interval: input.interval,
-      day: input.day,
-      orderBy: input.orderBy,
-      orderDirection: input.orderDirection,
-      repository: repository.plugin,
-    })
+export const listPluginsProcedure = protectedProcedure
+  .input(paginationSchema)
+  .query(async ({ input, ctx }) => {
+    try {
+      const where = ctx.user.role === Role.Administrator
+        ? {}
+        : [{ published: true }, { creator: { id: ctx.user.id } }]
 
-    return { message: 'Plugin list request successful!', ...paginated }
+      const [items, total] = await Plugin.findAndCount({
+        where,
+        relations: { creator: true, icon: true },
+        order: { createdAt: 'DESC' },
+        skip: getSkip(input.page, input.limit),
+        take: input.limit,
+      })
+
+      return {
+        items,
+        total,
+        page: input.page,
+        limit: input.limit,
+        pageCount: Math.ceil(total / input.limit),
+      }
+    } catch (error) {
+      throw toTrpcError(error, 'Could not list plugins')
+    }
   })

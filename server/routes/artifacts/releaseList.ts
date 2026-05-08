@@ -1,18 +1,23 @@
 import { z } from 'zod'
-import { getReleasesRepo, listRecentReleases } from '@/lib/githubReleases.js'
 import { protectedProcedure } from '@/trpc.js'
+import { getReleasesRepo, listRecentReleases } from '@/lib/githubReleases.js'
+import { toTrpcError } from '../_shared/errors.js'
 
-export const releaseList = protectedProcedure
-  .input(
-    z.object({
-      perPage: z.number().int().min(1).max(30).optional(),
-    }).optional(),
-  )
+const releaseListSchema = z.object({
+  limit: z.coerce.number().int().min(1).max(30).default(10),
+}).default({})
+
+export const releaseListProcedure = protectedProcedure
+  .input(releaseListSchema)
   .query(async ({ input }) => {
-    const perPage = input?.perPage ?? 20
-    const releases = await listRecentReleases(perPage)
-    return {
-      message: 'Releases listed.',
-      data: { repository: getReleasesRepo(), releases },
+    try {
+      const releases = await listRecentReleases(input.limit)
+
+      return {
+        repository: getReleasesRepo(),
+        releases,
+      }
+    } catch (error) {
+      throw toTrpcError(error, 'Could not list releases')
     }
   })

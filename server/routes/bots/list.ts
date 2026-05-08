@@ -1,24 +1,39 @@
 import { z } from 'zod'
-import { repository } from '@/database/index.js'
-import { paginate, paginateSchema } from '@/database/pagination.js'
-import { Role } from '@/database/enums.js'
 import { protectedProcedure } from '@/trpc.js'
+import { Bot } from '@/database/entity/Bot.js'
+import { Role } from '@/database/enums.js'
+import { getSkip } from '../_shared/pagination.js'
+import { toTrpcError } from '../_shared/errors.js'
 
-export const list = protectedProcedure
-  .input(paginateSchema.extend({ type: z.enum(['your', 'other']).default('your') }))
+const listBotsSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  onlyMine: z.boolean().default(true),
+}).default({})
+
+export const listBotsProcedure = protectedProcedure
+  .input(listBotsSchema)
   .query(async ({ input, ctx }) => {
-    const isAdmin = ctx.user.role === Role.Administrator
+    try {
+      const canSeeAll = ctx.user.role === Role.Administrator && input.onlyMine === false
+      const where = canSeeAll ? {} : { user: { id: ctx.user.id } }
 
-    const paginated = await paginate({
-      repository: repository.bot,
-      page: input.page,
-      pageSize: input.pageSize,
-      interval: input.interval,
-      day: input.day,
-      orderBy: input.orderBy,
-      orderDirection: input.orderDirection,
-      user: (isAdmin && input.type === 'other') ? undefined : { id: ctx.user.id },
-    })
+      const [items, total] = await Bot.findAndCount({
+        where,
+        relations: { user: true, node: true, plugins: true },
+        order: { createdAt: 'DESC' },
+        skip: getSkip(input.page, input.limit),
+        take: input.limit,
+      })
 
-    return { message: 'Request completed successfully!', ...paginated }
+      return {
+        items,
+        total,
+        page: input.page,
+        limit: input.limit,
+        pageCount: Math.ceil(total / input.limit),
+      }
+    } catch (error) {
+      throw toTrpcError(error, 'Could not list bots')
+    }
   })

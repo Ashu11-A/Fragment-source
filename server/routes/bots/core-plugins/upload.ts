@@ -1,47 +1,39 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
-import { callCorePlugin } from '@/services/corePluginBridge.js'
 import { protectedProcedure } from '@/trpc.js'
-import { assertSafePluginFileName, getPluginsDir, MAX_BASE64_CHARS, MAX_UPLOAD_BYTES, throwIfCoreError } from './shared.js'
+import { callCorePlugin } from '@/services/corePluginBridge.js'
+import { toTrpcError } from '../../_shared/errors.js'
+import { ensureCorePluginSuccess } from './shared.js'
 
-export const upload = protectedProcedure
-  .input(z.object({
-    botId: z.number().int().positive(),
-    fileName: z.string().min(1).max(200),
-    contentBase64: z.string().min(1).max(MAX_BASE64_CHARS),
-  }))
-  .mutation(async ({ ctx, input }) => {
-    const baseName = assertSafePluginFileName(input.fileName)
-    const dir = getPluginsDir()
-    await mkdir(dir, { recursive: true })
+const uploadCorePluginSchema = z.object({
+  botId: z.number().int().positive(),
+  fileName: z.string().min(3).max(200).regex(/^[a-zA-Z0-9._-]+\.js$/),
+  contentBase64: z.string().min(1),
+})
 
-    let buffer: Buffer
+export const uploadCorePluginProcedure = protectedProcedure
+  .input(uploadCorePluginSchema)
+  .mutation(async ({ input, ctx }) => {
     try {
-      buffer = Buffer.from(input.contentBase64, 'base64')
-    } catch {
-      throw new TRPCError({ code: 'BAD_REQUEST', message: 'Base64 inválido' })
-    }
-    if (buffer.length === 0) {
-      throw new TRPCError({ code: 'BAD_REQUEST', message: 'Ficheiro vazio' })
-    }
-    if (buffer.length > MAX_UPLOAD_BYTES) {
-      throw new TRPCError({ code: 'BAD_REQUEST', message: 'Ficheiro excede o tamanho máximo permitido' })
-    }
+      const targetFolder = join(process.cwd(), 'storage', 'core-plugins', String(input.botId))
+      await mkdir(targetFolder, { recursive: true })
 
-    const finalPath = join(dir, baseName)
-    await writeFile(finalPath, buffer)
+      const filePath = join(targetFolder, input.fileName)
+      await writeFile(filePath, Buffer.from(input.contentBase64, 'base64'))
 
-    const result = await callCorePlugin(
-      ctx.req.log,
-      ctx.user,
-      input.botId,
-      { action: 'load', filePath: finalPath },
-    )
-    if (!result.ok) throwIfCoreError(result)
-    return {
-      message: 'Plugin enviado e carregado',
-      data: { pluginName: result.pluginName, filePath: result.filePath },
+      const result = await callCorePlugin(ctx.req.log, ctx.user, input.botId, {
+        action: 'load',
+        filePath,
+      })
+
+      ensureCorePluginSuccess(result)
+
+      return {
+        pluginName: result.pluginName,
+        filePath,
+      }
+    } catch (error) {
+      throw toTrpcError(error, 'Could not upload core plugin')
     }
   })

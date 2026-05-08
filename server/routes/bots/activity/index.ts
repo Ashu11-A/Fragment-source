@@ -1,6 +1,6 @@
 import { router } from '@/trpc.js'
-import { list } from './list.js'
+import { listBotActivityProcedure } from './list.js'
 
-export const activityRouter = router({
-  list,
+export const botsActivityRouter = router({
+  list: listBotActivityProcedure,
 })

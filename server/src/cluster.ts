@@ -3,7 +3,7 @@ import cluster from 'cluster'
 import { cpus } from 'os'
 import { setupPrimary } from '@socket.io/cluster-adapter'
 
-if (process.env.PRODUCTION !== 'true') {
+if (String(process.env.PRODUCTION) !== 'true') {
   // Development: single process — preserves sql.js in-memory state across requests
   await import('@/app')
 } else if (cluster.isPrimary) {

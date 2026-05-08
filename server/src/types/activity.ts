@@ -10,7 +10,6 @@ export type ActivitySocketPayload = {
   display: ActivityDisplay
   metadata?: Record<string, unknown> | null
   source?: string | null
-  correlationId?: string | null
   createdAt: string
 }
 
@@ -22,5 +21,4 @@ export type ActivityIngest = {
   display?: ActivityDisplay
   metadata?: Record<string, unknown>
   source?: string
-  correlationId?: string
 }

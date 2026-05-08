@@ -3,40 +3,40 @@ import fastifyCookie from '@fastify/cookie'
 import fastifyCors from '@fastify/cors'
 import { fastifyMultipart } from '@fastify/multipart'
 import fastifyRateLimit from '@fastify/rate-limit'
-import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify'
+import { createAdapter } from '@socket.io/cluster-adapter'
+import { fastifyTRPCPlugin, type CreateFastifyContextOptions } from '@trpc/server/adapters/fastify'
+import cluster from 'cluster'
 import fastify, { type FastifyInstance, type FastifyRequest } from 'fastify'
+import fastifyRawBody from 'fastify-raw-body'
 import fastifyIO from 'fastify-socket.io'
 import { constants as zlibConstants } from 'zlib'
 
-import { appRouter } from '../../routes/index.js'
-import discordAuthRoutes from '../../routes/fastify/discordAuth.js'
 import { BearerStrategy } from '@/security/strategies/BearerStrategy.js'
 import { CookiesStrategy } from '@/security/strategies/CookiesStrategy.js'
-import { createContext } from '@/createContext.js'
-import { setupSocketController } from '@/infra/socket.js'
-import { createAdapter } from '@socket.io/cluster-adapter'
-import cluster from 'cluster'
+import { setupSocketNamespaces } from '@/socket/namespaces/index.js'
 import type { FastifyServerOptions } from '@/types/infra.js'
+import containerRefreshRoutes from '../../routes/fastify/containerRefresh.js'
+import discordAuthRoutes from '../../routes/fastify/discordAuth.js'
+import nodeRoutes from '../../routes/fastify/nodeConfig.js'
+import stripeWebhookRoutes from '../../routes/fastify/stripeWebhook.js'
+import { appRouter } from '../../routes/index.js'
+
+const uploadBodyLimit = 1024 * 1024 * 50
 
 export class Fastify {
   static server: FastifyInstance
-  constructor(public options: FastifyServerOptions){}
+  constructor(public options: FastifyServerOptions) { }
 
   config() {
     const cookieToken = process.env['COOKIE_TOKEN']
     if (cookieToken === undefined) throw new Error('Cookie token are undefined')
+    const frontEndUrl = String(process.env.FRONT_END_URL ?? '').trim()
+    if (!frontEndUrl) throw new Error('FRONT_END_URL is undefined')
+    const frontEndOrigin = new URL(frontEndUrl).origin
 
     Fastify.server = fastify({
-      logger: {
-        transport: {
-          target: 'pino-pretty',
-          options: {
-            colorize: true,
-            translateTime: 'SYS:standard',
-            ignore: 'pid,hostname,reqId',
-          },
-        },
-      },
+      logger: false,
+      bodyLimit: uploadBodyLimit,
       // Required for tRPC batch requests — default maxParamLength: 100 would cause 404s
       routerOptions: { maxParamLength: 5000 },
     })
@@ -44,7 +44,8 @@ export class Fastify {
         Fastify.server.log.debug(`[route] ${routeOptions.method} ${routeOptions.url}`)
       })
       .register(fastifyCors, {
-        origin: process.env.FRONT_END_URL
+        origin: frontEndOrigin,
+        credentials: true,
       })
       .register(fastifyCompress, {
         logLevel: 'debug',
@@ -60,8 +61,14 @@ export class Fastify {
       })
       .register(fastifyMultipart, {
         limits: {
-          fileSize: 1024 * 1024 * 50
+          fileSize: uploadBodyLimit
         },
+      })
+      .register(fastifyRawBody as unknown as import('fastify').FastifyPluginCallback<Record<string, unknown>>, {
+        field: 'rawBody',
+        global: false,
+        encoding: 'utf8',
+        runFirst: true,
       })
       .register(fastifyCookie, {
         secret: cookieToken,
@@ -84,9 +91,10 @@ export class Fastify {
       .register(fastifyIO as unknown as import('fastify').FastifyPluginCallback<Record<string, unknown>>, {
         // WebSocket-only em produção: cada conexão é um TCP persistente,
         // garantindo que workers round-robin não dividam a mesma sessão.
-        transports: process.env.PRODUCTION === 'true' ? ['websocket'] : ['polling', 'websocket'],
+        transports: String(process.env.PRODUCTION) === 'true' ? ['websocket'] : ['polling', 'websocket'],
         cors: {
-          origin: '*',
+          origin: frontEndOrigin,
+          credentials: true,
           methods: ['GET', 'POST', 'OPTIONS'],
         }
       })
@@ -98,9 +106,22 @@ export class Fastify {
       })
       .register(fastifyTRPCPlugin, {
         prefix: '/trpc',
-        trpcOptions: { router: appRouter, createContext },
+        trpcOptions: {
+          router: appRouter,
+          createContext: async ({ req, res }: CreateFastifyContextOptions) => {
+            for (const Strategy of [BearerStrategy, CookiesStrategy]) {
+              const s = new Strategy()
+              await s.validation(req)
+              if (s.authenticated && s.data) return { user: s.data, req, res }
+            }
+            return { user: null, req, res }
+          }
+        },
       })
       .register(discordAuthRoutes)
+      .register(nodeRoutes)
+      .register(containerRefreshRoutes)
+      .register(stripeWebhookRoutes)
 
     return this
   }
@@ -114,12 +135,12 @@ export class Fastify {
         host: this.options.host
       }, (err) => {
         if (err === null) {
-          if (process.env.PRODUCTION === 'true' && cluster.isWorker) {
+          if (String(process.env.PRODUCTION) === 'true' && cluster.isWorker) {
             Fastify.server.io.adapter(createAdapter())
             Fastify.server.log.info(`Worker ${process.pid} ready`)
           }
 
-          setupSocketController(Fastify.server)
+          setupSocketNamespaces(Fastify.server)
 
           Fastify.server.io.on('connection', (socket) => {
             Fastify.server.log.info(`[socket] connected ${socket.id}`)

@@ -1,44 +1,35 @@
 import { z } from 'zod'
+import { protectedProcedure } from '@/trpc.js'
 import {
   classifyArtifact,
   fetchReleaseByTag,
-  getDefaultReleaseTag,
   getReleasesRepo,
-  pluginSlugFromFileName,
 } from '@/lib/githubReleases.js'
-import { protectedProcedure } from '@/trpc.js'
+import { toTrpcError } from '../_shared/errors.js'
 
-export const catalog = protectedProcedure
-  .input(
-    z.object({
-      tag: z.string().min(1).max(200).optional(),
-    }).optional(),
-  )
+const catalogSchema = z.object({
+  tag: z.string().min(1),
+})
+
+export const catalogArtifactsProcedure = protectedProcedure
+  .input(catalogSchema)
   .query(async ({ input }) => {
-    const tag = input?.tag ?? getDefaultReleaseTag()
-    const release = await fetchReleaseByTag(tag)
+    try {
+      const release = await fetchReleaseByTag(input.tag)
 
-    const items = release.assets.map((asset) => ({
-      id: asset.id,
-      name: asset.name,
-      size: asset.size,
-      kind: classifyArtifact(asset.name),
-      contentType: asset.content_type,
-      downloadUrl: asset.browser_download_url,
-      pluginSlug: pluginSlugFromFileName(asset.name),
-    }))
-
-    return {
-      message: 'Catalog ready.',
-      data: {
+      return {
         repository: getReleasesRepo(),
-        defaultTag: getDefaultReleaseTag(),
         tag: release.tag_name,
-        releaseName: release.name,
-        publishedAt: release.published_at,
-        body: release.body,
-        htmlUrl: release.html_url,
-        assets: items,
-      },
+        assets: release.assets.map((asset) => ({
+          id: asset.id,
+          name: asset.name,
+          size: asset.size,
+          contentType: asset.content_type,
+          kind: classifyArtifact(asset.name),
+          downloadUrl: asset.browser_download_url,
+        })),
+      }
+    } catch (error) {
+      throw toTrpcError(error, 'Could not load release artifacts catalog')
     }
   })

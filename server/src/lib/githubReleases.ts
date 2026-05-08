@@ -57,9 +57,10 @@ export async function fetchReleaseByTag(tag: string, bustCache = false): Promise
   const res = await ghFetch(
     `/repos/${repo}/releases/tags/${encodeURIComponent(tag)}`,
   )
-  if (res.status === 404) {
-    throw new TRPCError({ code: 'NOT_FOUND', message: `Release "${tag}" not found on GitHub.` })
-  }
+  if (res.status === 404) throw new TRPCError({
+    code: 'NOT_FOUND',
+    message: `Release "${tag}" not found on GitHub.`,
+  })
   if (!res.ok) {
     const t = await res.text()
     throw new TRPCError({
@@ -109,9 +110,11 @@ export async function getAssetById(
 ): Promise<{ asset: GithubAsset; downloadUrl: string }> {
   const rel = await fetchReleaseByTag(tag)
   const asset = rel.assets.find((a) => a.id === assetId)
-  if (!asset) {
-    throw new TRPCError({ code: 'NOT_FOUND', message: 'Asset not found in this release.' })
-  }
+  if (!asset) throw new TRPCError({
+    code: 'NOT_FOUND',
+    message: 'Asset not found in this release.',
+  })
+
   return { asset, downloadUrl: asset.browser_download_url }
 }
 

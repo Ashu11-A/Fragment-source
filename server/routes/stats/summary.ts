@@ -1,25 +1,27 @@
+import { adminProcedure } from '@/trpc.js'
 import { User } from '@/database/entity/User.js'
 import { Bot } from '@/database/entity/Bot.js'
 import { Plugin } from '@/database/entity/Plugin.js'
 import { Subscription } from '@/database/entity/Subscription.js'
-import { adminProcedure } from '@/trpc.js'
+import { toTrpcError } from '../_shared/errors.js'
 
-export const summary = adminProcedure
+export const summaryStatsProcedure = adminProcedure
   .query(async () => {
-    const [totalUsers, totalBots, totalPlugins, activeSubscriptions] = await Promise.all([
-      User.count(),
-      Bot.count(),
-      Plugin.count(),
-      Subscription.count({ where: { active: true } }),
-    ])
+    try {
+      const [users, bots, plugins, activeSubscriptions] = await Promise.all([
+        User.count(),
+        Bot.count(),
+        Plugin.count(),
+        Subscription.count({ where: { active: true } }),
+      ])
 
-    return {
-      message: 'Stats retrieved successfully',
-      data: {
-        totalUsers,
-        totalBots,
-        totalPlugins,
+      return {
+        users,
+        bots,
+        plugins,
         activeSubscriptions,
-      },
+      }
+    } catch (error) {
+      throw toTrpcError(error, 'Could not load platform summary')
     }
   })

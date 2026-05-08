@@ -1,13 +1,18 @@
-import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
-import { Bot } from '@/database/entity/Bot.js'
 import { protectedProcedure } from '@/trpc.js'
+import { toTrpcError } from '../_shared/errors.js'
+import { findBotForUser } from './shared.js'
 
-export const get = protectedProcedure
-  .input(z.object({ id: z.number().int().positive() }))
-  .query(async ({ input }) => {
-    const bot = await Bot.findOneBy({ id: input.id })
-    if (!bot) throw new TRPCError({ code: 'NOT_FOUND', message: 'Bot not found!' })
+const getBotSchema = z.object({
+  id: z.number().int().positive(),
+})
 
-    return { message: 'Request completed successfully!', data: bot }
+export const getBotProcedure = protectedProcedure
+  .input(getBotSchema)
+  .query(async ({ input, ctx }) => {
+    try {
+      return findBotForUser(input.id, ctx.user, ['nodes', 'plugins', 'user'])
+    } catch (error) {
+      throw toTrpcError(error, 'Could not fetch bot')
+    }
   })

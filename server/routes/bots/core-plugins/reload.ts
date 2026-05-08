@@ -1,23 +1,29 @@
 import { z } from 'zod'
-import { callCorePlugin } from '@/services/corePluginBridge.js'
 import { protectedProcedure } from '@/trpc.js'
-import { throwIfCoreError } from './shared.js'
+import { callCorePlugin } from '@/services/corePluginBridge.js'
+import { toTrpcError } from '../../_shared/errors.js'
+import { ensureCorePluginSuccess } from './shared.js'
 
-export const reload = protectedProcedure
-  .input(z.object({
-    botId: z.number().int().positive(),
-    filePath: z.string().min(1).max(4096),
-  }))
-  .mutation(async ({ ctx, input }) => {
-    const result = await callCorePlugin(
-      ctx.req.log,
-      ctx.user,
-      input.botId,
-      { action: 'reload', filePath: input.filePath },
-    )
-    if (!result.ok) throwIfCoreError(result)
-    return {
-      message: 'Plugin recarregado',
-      data: { pluginName: result.pluginName, filePath: result.filePath },
+const reloadCorePluginSchema = z.object({
+  botId: z.number().int().positive(),
+  filePath: z.string().min(1).max(4096),
+})
+
+export const reloadCorePluginProcedure = protectedProcedure
+  .input(reloadCorePluginSchema)
+  .mutation(async ({ input, ctx }) => {
+    try {
+      const result = await callCorePlugin(ctx.req.log, ctx.user, input.botId, {
+        action: 'reload',
+        filePath: input.filePath,
+      })
+      ensureCorePluginSuccess(result)
+
+      return {
+        pluginName: result.pluginName,
+        filePath: result.filePath ?? input.filePath,
+      }
+    } catch (error) {
+      throw toTrpcError(error, 'Could not reload core plugin')
     }
   })

@@ -1,30 +1,28 @@
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
-import { assertOwnership, fetchLogs } from '@/services/activity.js'
 import { protectedProcedure } from '@/trpc.js'
+import { toTrpcError } from '../../_shared/errors.js'
+import { activity } from '@/services/Activity.js'
 
-export const list = protectedProcedure
-  .input(z.object({
-    botId: z.number().int().positive(),
-    limit: z.number().int().min(1).max(500).default(50),
-  }))
+const listBotActivitySchema = z.object({
+  botId: z.coerce.number().int().positive(),
+  limit: z.coerce.number().int().min(1).max(500).default(100),
+})
+
+export const listBotActivityProcedure = protectedProcedure
+  .input(listBotActivitySchema)
   .query(async ({ input, ctx }) => {
-    if (!await assertOwnership(ctx.user, input.botId)) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Bot not found, maybe it\'s not yours!' })
-    }
+    try {
+      const owns = await activity.assertOwnership(ctx.user, input.botId)
+      if (!owns)
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Bot not found or not owned by you.',
+        })
 
-    const rows = await fetchLogs(input.botId, input.limit)
-    const data = rows.map((row) => ({
-      id: row.id,
-      botId: row.botId,
-      level: row.level,
-      category: row.category,
-      message: row.message,
-      display: row.display,
-      metadata: row.metadata,
-      source: row.source,
-      correlationId: row.correlationId,
-      createdAt: row.createdAt.toISOString(),
-    }))
-    return { message: 'Activity loaded', data }
+      const logs = await activity.fetchLogs(input.botId, input.limit)
+      return logs.map(activity.toPayload)
+    } catch (error) {
+      throw toTrpcError(error, 'Could not list bot activity')
+    }
   })

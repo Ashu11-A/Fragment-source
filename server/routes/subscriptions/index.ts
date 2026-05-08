@@ -1,14 +1,16 @@
 import { router } from '@/trpc.js'
-import { cancel } from './cancel.js'
-import { create } from './create.js'
+import { cancelSubscriptionProcedure } from './cancel.js'
+import { createSubscriptionProcedure } from './create.js'
 import { deleteSubscriptionProcedure } from './delete.js'
-import { get } from './get.js'
-import { list } from './list.js'
+import { getSubscriptionProcedure } from './get.js'
+import { listSubscriptionsProcedure } from './list.js'
+import { upgradeSubscriptionProcedure } from './upgrade.js'
 
 export const subscriptionsRouter = router({
-  list,
-  get,
-  create,
-  cancel,
-  delete: deleteSubscriptionProcedure,
+  get: getSubscriptionProcedure,
+  list: listSubscriptionsProcedure,
+  create: createSubscriptionProcedure,
+  cancel: cancelSubscriptionProcedure,
+  upgrade: upgradeSubscriptionProcedure,
+  deleteSubscriptionProcedure: deleteSubscriptionProcedure,
 })
