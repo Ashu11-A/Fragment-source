@@ -1,59 +1,56 @@
-import { useState } from 'react'
-import { Outlet } from '@tanstack/react-router'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { GuildSidebar } from '@/components/layout/GuildSidebar'
-import { NavSidebar } from '@/components/layout/NavSidebar'
-import { TopNavbar } from '@/components/layout/TopNavbar'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { Outlet, useRouterState } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { useAuth } from '@/hooks/useAuth'
+import { useBot } from '@/hooks/useBots'
+import { useNavBar } from '@/hooks/useNavBar'
+import { DashboardRailSidebar } from './DashboardRailSidebar'
+import { DashboardMainSidebar } from './DashboardMainSidebar'
+import { DashboardNavBar } from './DashboardNavBar'
+import { NavBarProvider } from './NavBarProvider'
 
-/**
- * Main dashboard layout: Discord-inspired double sidebar + top nav + scrollable content.
- *
- * ┌──────┬─────────────┬─────────────────────────┐
- * │Guild │  NavSidebar  │  TopNavbar              │
- * │ Bar  │             ├─────────────────────────┤
- * │      │             │  Content (scrollable)    │
- * │      │             │                         │
- * └──────┴─────────────┴─────────────────────────┘
- */
+function useActivePath() {
+  return useRouterState({ select: (s) => s.location.pathname })
+}
+
 export function DashboardLayout() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  return (
+    <NavBarProvider>
+      <DashboardLayoutContent />
+    </NavBarProvider>
+  )
+}
+
+function DashboardLayoutContent() {
+  const path = useActivePath()
+  const [collapsed, setCollapsed] = useState(false)
+  const { user, logout } = useAuth()
+  const { bots, statuses } = useBot('list')
+  const { resetNavBar } = useNavBar()
+
+  const isAdmin = user?.role === 'administrator'
+
+  useEffect(() => {
+    resetNavBar()
+  }, [path, resetNavBar])
 
   return (
-    <TooltipProvider delayDuration={300}>
-      <div className="flex h-screen w-screen overflow-hidden">
-        {/* Left guild bar — hidden on mobile */}
-        <GuildSidebar className="hidden md:flex" />
+    <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
+      <DashboardRailSidebar path={path} bots={bots} statuses={statuses} />
+      <DashboardMainSidebar
+        collapsed={collapsed}
+        onCollapse={() => setCollapsed(true)}
+        path={path}
+        isAdmin={isAdmin}
+        user={user}
+        onLogout={() => void logout()}
+      />
 
-        {/* Mobile overlay */}
-        {mobileMenuOpen && (
-          <div
-            className="ui-overlay-scrim fixed inset-0 z-40 md:hidden"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-        )}
-
-        {/* Navigation sidebar — slide-in on mobile */}
-        <NavSidebar
-          className={`
-            fixed md:relative z-50 md:z-auto
-            transition-transform duration-300 ease-in-out
-            ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-            h-full
-          `}
-        />
-
-        {/* Main content area */}
-        <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-          <TopNavbar onMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
-
-          <ScrollArea className="flex-1">
-            <main className="p-4 md:p-6 animate-fade-in">
-              <Outlet />
-            </main>
-          </ScrollArea>
-        </div>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <DashboardNavBar collapsed={collapsed} onExpand={() => setCollapsed(false)} />
+        <main className="scrollbar-thin flex-1 overflow-y-auto">
+          <Outlet />
+        </main>
       </div>
-    </TooltipProvider>
+    </div>
   )
 }

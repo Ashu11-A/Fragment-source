@@ -19,19 +19,6 @@ export default defineConfig({
         target: 'http://localhost:3500',
         changeOrigin: true,
       },
-      '/api': {
-        target: 'http://localhost:3500',
-        changeOrigin: true,
-      },
-      '/auth': {
-        target: 'http://localhost:3500',
-        changeOrigin: true,
-      },
-      '/socket.io': {
-        target: 'http://localhost:3500',
-        changeOrigin: true,
-        ws: true,
-      },
-    },
-  },
+    }
+  }
 })
