@@ -1,33 +1,14 @@
 import { ServerEvent } from 'socket'
-import { consoleBuffer } from '@/services/consoleBuffer.js'
-import { assertOwnership } from '@/services/activity.js'
+import { activity } from '@/services/Activity.js'
+import { botRuntime } from '@/services/BotRuntime.js'
 import type { SocketCtx, SocketData } from '@/socket/types.js'
-
-export const coreConsolePush = new ServerEvent<'core:console:push', SocketCtx>({
-  name: 'core:console:push',
-  async onRun({ data, socket, io }) {
-    const socketData = socket.data as SocketData
-    const botId = socketData.identifiedBotId
-    if (botId === undefined) return
-
-    const user = socketData.user!
-    const owns = await assertOwnership(user, botId)
-    if (!owns) return
-
-    consoleBuffer.append(botId, data.lines)
-    io.to(`bot:${botId}:console`).emit('bot:console:lines', {
-      lines: data.lines,
-      mode: 'append',
-    })
-  },
-})
 
 export const dashboardConsoleSubscribe = new ServerEvent<'dashboard:console:subscribe', SocketCtx>({
   name: 'dashboard:console:subscribe',
   async onRun({ data, socket, ctx: { fastify } }) {
     const socketData = socket.data as SocketData
     const user = socketData.user!
-    const owns = await assertOwnership(user, data.botId)
+    const owns = await activity.assertOwnership(user, data.botId)
     if (!owns) {
       fastify.log.warn({ userId: user.id, botId: data.botId }, '[socket] console subscribe denied')
       return
@@ -36,7 +17,7 @@ export const dashboardConsoleSubscribe = new ServerEvent<'dashboard:console:subs
     void socket.join(room)
     if (!socketData.watchedConsoleBotIds!.includes(data.botId)) socketData.watchedConsoleBotIds!.push(data.botId)
 
-    const snap = consoleBuffer.snapshot(data.botId, data.tailLines ?? 4000)
+    const snap = botRuntime.console.snapshot(data.botId, data.tailLines ?? 4000)
     if (snap.length > 0) {
       socket.emit('bot:console:lines', { lines: snap, mode: 'snapshot' })
     }

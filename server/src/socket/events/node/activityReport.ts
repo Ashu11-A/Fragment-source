@@ -1,5 +1,5 @@
 import { ServerEvent } from 'socket'
-import { assertOwnership, record, toSocketPayload } from '@/services/activity.js'
+import { activity } from '@/services/Activity.js'
 import type { SocketCtx, SocketData } from '@/socket/types.js'
 
 export const activityReport = new ServerEvent<'core:activity:report', SocketCtx>({
@@ -13,14 +13,14 @@ export const activityReport = new ServerEvent<'core:activity:report', SocketCtx>
     }
 
     const user = socketData.user!
-    const owns = await assertOwnership(user, botId)
+    const owns = await activity.assertOwnership(user, botId)
     if (!owns) {
       fastify.log.warn({ userId: user.id, botId }, '[socket] core:activity:report bot not owned — ignored')
       return
     }
 
     try {
-      const row = await record(fastify.log, {
+      const row = await activity.record(fastify.log, {
         botId,
         level: data.level,
         category: data.category,
@@ -28,9 +28,8 @@ export const activityReport = new ServerEvent<'core:activity:report', SocketCtx>
         display: data.display,
         metadata: data.metadata,
         source: data.source,
-        correlationId: data.correlationId,
       })
-      io.to(`bot:${botId}:activity`).emit('bot:activity', toSocketPayload(row))
+      io.to(`bot:${botId}:activity`).emit('bot:activity', activity.toPayload(row))
     } catch (err) {
       fastify.log.error({ err, botId }, '[socket] failed to record bot activity')
     }

@@ -1,5 +1,5 @@
 import { ServerEvent } from 'socket'
-import { assertOwnership } from '@/services/activity.js'
+import { activity } from '@/services/Activity.js'
 import type { SocketCtx, SocketData } from '@/socket/types.js'
 
 export const dashboardActivitySubscribe = new ServerEvent<'dashboard:activity:subscribe', SocketCtx>({
@@ -7,7 +7,7 @@ export const dashboardActivitySubscribe = new ServerEvent<'dashboard:activity:su
   async onRun({ data, socket, ctx: { fastify } }) {
     const socketData = socket.data as SocketData
     const user = socketData.user!
-    const owns = await assertOwnership(user, data.botId)
+    const owns = await activity.assertOwnership(user, data.botId)
     if (!owns) {
       fastify.log.warn({ userId: user.id, botId: data.botId }, '[socket] activity subscribe denied')
       return
