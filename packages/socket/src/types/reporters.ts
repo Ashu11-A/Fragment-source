@@ -1,10 +1,7 @@
 import type { TypedSocketClient } from '../client.js'
-import { fragmentSocketContract } from '../events.js'
+import type { FragmentServerToClient, FragmentClientToServer } from '../contract/index.js'
 
-export type FragmentTypedClient = TypedSocketClient<
-  typeof fragmentSocketContract.serverToClient,
-  typeof fragmentSocketContract.clientToServer
->
+export type FragmentTypedClient = TypedSocketClient<FragmentServerToClient, FragmentClientToServer>
 
 export type CoreActivityLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error'
 export type CoreActivityDisplay = 'success' | 'info' | 'error'

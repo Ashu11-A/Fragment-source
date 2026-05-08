@@ -1,7 +1,3 @@
-import type { z } from 'zod'
-import type { FragmentClientToServer, FragmentServerToClient } from './types/events.js'
-import type { TypedSocket, TypedSocketServer } from './server.js'
-import type { TypedSocketClient } from './client.js'
 import type {
   ClientRunCtx,
   ClientSocketWithOn,
@@ -12,6 +8,7 @@ import type {
   ServerRunCtx,
   SocketWithOn,
 } from './types/event.js'
+import type { FragmentClientToServer, FragmentServerToClient } from './contract/index.js'
 
 // ─── Server event ─────────────────────────────────────────────────────────────
 // Handles events that arrive at the server from clients (clientToServer direction).

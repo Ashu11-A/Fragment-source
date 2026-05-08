@@ -28,10 +28,12 @@ export class TypedSocketClient<
   private connectionHandlers: Array<() => void> = []
   private disconnectionHandlers: Array<(reason: string) => void> = []
   private errorHandlers: Array<(error: Error) => void> = []
+  private listenerMap = new WeakMap<Function, Function>()
 
   constructor(
     private readonly raw: IoClientSocket<InferEventMap<StoC>, InferEventMap<CtoS>>,
     private readonly serverSchemas: StoC,
+    public readonly namespacePath: string = '/',
   ) {
     this.raw.on('connect', () => {
       for (const h of this.connectionHandlers) h()
@@ -109,7 +111,7 @@ export class TypedSocketClient<
   ): this {
     const schema = this.serverSchemas[event]
 
-    this.raw.on(event, ((...args: unknown[]) => {
+    const wrapped = ((...args: unknown[]) => {
       const raw = args[0]
       const result = schema.safeParse(raw)
       if (!result.success) {
@@ -117,7 +119,10 @@ export class TypedSocketClient<
         return
       }
       ;(handler as (...a: unknown[]) => void)(result.data)
-    }) as InferEventMap<StoC>[K])
+    }) as InferEventMap<StoC>[K]
+
+    this.listenerMap.set(handler, wrapped)
+    this.raw.on(event, wrapped)
 
     return this
   }
@@ -125,8 +130,15 @@ export class TypedSocketClient<
   /**
    * Remove a listener for a server→client event.
    */
-  off<K extends string & keyof StoC>(event: K): this {
-    this.raw.off(event)
+  off<K extends string & keyof StoC>(event: K, handler?: Function): this {
+    if (handler) {
+      const wrapped = this.listenerMap.get(handler)
+      if (wrapped) {
+        this.raw.off(event, wrapped as InferEventMap<StoC>[K])
+      }
+    } else {
+      this.raw.off(event)
+    }
     return this
   }
 

@@ -1,5 +1,5 @@
 import type { z } from 'zod'
-import type { FragmentClientToServer, FragmentServerToClient } from './events.js'
+import type { FragmentClientToServer, FragmentServerToClient } from '../contract/index.js'
 import type { TypedSocket, TypedSocketServer } from '../server.js'
 import type { TypedSocketClient } from '../client.js'
 

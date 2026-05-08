@@ -121,6 +121,7 @@ export class TypedSocketServer<
   constructor(
     private readonly io: IoServer<InferEventMap<StoC>, InferEventMap<CtoS>>,
     private readonly clientSchemas: CtoS,
+    public readonly namespacePath: string = '/',
   ) {}
 
   /**
