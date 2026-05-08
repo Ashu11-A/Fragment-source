@@ -1,4 +1,4 @@
-import { ButtonInteraction, CommandInteraction, Guild, GuildBasedChannel, Message, ModalSubmitInteraction, StringSelectMenuInteraction, User, type BaseMessageOptions, type TextBasedChannel } from 'discord.js'
+import { ButtonInteraction, Guild, type GuildBasedChannel, Message, StringSelectMenuInteraction, User, type BaseMessageOptions, type TextBasedChannel } from 'discord.js'
 import { DiscordError } from 'discord'
 import type { CachedInteraction } from '@/types/interactions.js'
 

@@ -1,6 +1,6 @@
 import { database } from '@/database'
 import { DiscordError, ModalBuilder, StringSelectMenuBuilder } from 'discord'
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, CommandInteraction, EmbedBuilder, ModalSubmitInteraction, type SelectMenuComponentOptionData, StringSelectMenuInteraction, TextInputBuilder, TextInputStyle } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder, type SelectMenuComponentOptionData, TextInputBuilder, TextInputStyle } from 'discord.js'
 import { TicketBuilder } from './TicketBuilder.js'
 import type { Interaction } from '@/types/interactions.js'
 

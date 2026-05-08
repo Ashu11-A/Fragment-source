@@ -4,8 +4,7 @@ import Config from '@/database/entity/Config.entry.js'
 import type { Roles } from '@/types/entities.js'
 import Ticket from '@/database/entity/Ticket.entry.js'
 import { ActionDrawer, DiscordError, ButtonBuilder } from 'discord'
-import { ActionRowBuilder, ButtonBuilder as DjsButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, EmbedBuilder, Message, ModalSubmitInteraction, type OverwriteResolvable, PermissionsBitField, StringSelectMenuInteraction } from 'discord.js'
-import type { ClaimOptions } from '@/types/ticket.js'
+import { ButtonStyle, ChannelType, codeBlock, EmbedBuilder, type OverwriteResolvable, PermissionsBitField } from 'discord.js'
 import type { InteractionWithMessage } from '@/types/interactions.js'
 
 

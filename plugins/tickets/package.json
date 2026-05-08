@@ -17,11 +17,10 @@
   "dependencies": {
     "build": "workspace:../../packages/build",
     "database": "workspace:../../packages/database",
-    "storage": "workspace:../../packages/storage",
     "discord": "workspace:../../packages/discord",
-    "plugin": "workspace:../../packages/plugin"
-  },
-  "fragment": {
-    "dependencies": []
+    "plugin": "workspace:../../packages/plugin",
+    "discord.js": "^14.26.3",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.28"
   }
 }

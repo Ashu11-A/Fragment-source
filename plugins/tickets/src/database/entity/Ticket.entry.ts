@@ -2,7 +2,7 @@ import { BaseEntity, type Relation, ManyToOne, UpdateDateColumn, Column, CreateD
 import Claim from './Claim.entry'
 import Template from './Template.entry'
 import Guild from './Guild.entry'
-import type { User, History, Event, Message, TicketCategories, Voice, TicketType } from '@/types/entities.js'
+import type { User, History, Event, Message, TicketCategories, Voice } from '@/types/entities.js'
 
 @Entity('tickets')
 export default class Ticket extends BaseEntity {

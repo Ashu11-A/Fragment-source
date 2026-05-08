@@ -19,9 +19,8 @@
     "database": "workspace:../../packages/database",
     "discord": "workspace:../../packages/discord",
     "plugin": "workspace:../../packages/plugin",
-    "utils": "workspace:../../packages/utils"
-  },
-  "fragment": {
-    "dependencies": []
+    "discord.js": "^14.26.3",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.28"
   }
 }

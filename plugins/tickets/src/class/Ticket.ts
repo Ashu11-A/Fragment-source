@@ -2,7 +2,7 @@ import TicketInterface from '@/database/entity/Ticket.entry.js'
 import type { History } from '@/types/entities.js'
 import { database } from '@/database'
 import { ActionDrawer, DiscordError } from 'discord'
-import { AttachmentBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, codeBlock, CommandInteraction, ComponentType, EmbedBuilder, ModalSubmitInteraction, PermissionsBitField, StringSelectMenuInteraction } from 'discord.js'
+import { AttachmentBuilder, ButtonBuilder, ButtonStyle, ChannelType, codeBlock, ComponentType, EmbedBuilder, PermissionsBitField } from 'discord.js'
 import { TicketBuilder } from './TicketBuilder.js'
 import type { Interaction } from '@/types/interactions.js'
 

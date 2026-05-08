@@ -1,3 +1,4 @@
+import type { } from '../../../base/src/types/index.ts'
 import Claim from './entity/Claim.entry.js'
 import Config from './entity/Config.entry.js'
 import Guild from './entity/Guild.entry.js'
@@ -12,7 +13,7 @@ export const database = {
   template: Template,
 } as const
 
-import type { DatabaseRegistry as _DatabaseRegistry } from 'database'
+import { type DatabaseRegistry as _DatabaseRegistry } from 'database'
 
 declare module 'database' {
   interface DatabaseRegistry {

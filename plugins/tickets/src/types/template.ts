@@ -1,4 +1,3 @@
-import type { APIEmbed as APIEmbedDiscord } from 'discord.js'
 import type { CachedInteraction } from './interactions.js'
 
 export interface TemplateManagerOptions {
